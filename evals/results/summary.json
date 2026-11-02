@@ -1,0 +1,110 @@
+[
+  {
+    "name": "baseline",
+    "label": "No skill",
+    "pass_rate": 0.9583333333333334,
+    "quality": 7.5,
+    "cost_usd": 0.0125821,
+    "per_case": {
+      "01-reuse-existing-helper": 0.8,
+      "02-refactor-with-many-callers": 1,
+      "03-hot-path": 0.9333333333333333,
+      "04-go-error-handling": 1,
+      "05-kotlin-nullability": 1,
+      "06-code-review": 1,
+      "07-csharp-conventions": 1,
+      "08-minimal-bugfix": 0.9333333333333333
+    },
+    "per_case_quality": {
+      "01-reuse-existing-helper": 6.333333333333333,
+      "02-refactor-with-many-callers": 7,
+      "03-hot-path": 7,
+      "04-go-error-handling": 8.666666666666666,
+      "05-kotlin-nullability": 8,
+      "06-code-review": 8.333333333333334,
+      "07-csharp-conventions": 8.333333333333334,
+      "08-minimal-bugfix": 6.333333333333333
+    }
+  },
+  {
+    "name": "sickn33",
+    "label": "sickn33/clean-code",
+    "pass_rate": 0.925,
+    "quality": 7.458333333333333,
+    "cost_usd": 0.017606275,
+    "per_case": {
+      "01-reuse-existing-helper": 0.8666666666666667,
+      "02-refactor-with-many-callers": 1,
+      "03-hot-path": 0.6,
+      "04-go-error-handling": 1,
+      "05-kotlin-nullability": 1,
+      "06-code-review": 1,
+      "07-csharp-conventions": 1,
+      "08-minimal-bugfix": 0.9333333333333333
+    },
+    "per_case_quality": {
+      "01-reuse-existing-helper": 7.333333333333333,
+      "02-refactor-with-many-callers": 8,
+      "03-hot-path": 5,
+      "04-go-error-handling": 8.333333333333334,
+      "05-kotlin-nullability": 7.666666666666667,
+      "06-code-review": 8,
+      "07-csharp-conventions": 7.666666666666667,
+      "08-minimal-bugfix": 7.666666666666667
+    }
+  },
+  {
+    "name": "v1",
+    "label": "This repo, v1",
+    "pass_rate": 0.8916666666666667,
+    "quality": 6.25,
+    "cost_usd": 0.019104654166666665,
+    "per_case": {
+      "01-reuse-existing-helper": 0.9333333333333333,
+      "02-refactor-with-many-callers": 1,
+      "03-hot-path": 0.8,
+      "04-go-error-handling": 0.9333333333333333,
+      "05-kotlin-nullability": 0.6,
+      "06-code-review": 1,
+      "07-csharp-conventions": 1,
+      "08-minimal-bugfix": 0.8666666666666667
+    },
+    "per_case_quality": {
+      "01-reuse-existing-helper": 6.333333333333333,
+      "02-refactor-with-many-callers": 8,
+      "03-hot-path": 6.666666666666667,
+      "04-go-error-handling": 6.333333333333333,
+      "05-kotlin-nullability": 4,
+      "06-code-review": 6,
+      "07-csharp-conventions": 7,
+      "08-minimal-bugfix": 5.666666666666667
+    }
+  },
+  {
+    "name": "v2",
+    "label": "This repo, v2",
+    "pass_rate": 0.9916666666666667,
+    "quality": 8.375,
+    "cost_usd": 0.016951525000000002,
+    "per_case": {
+      "01-reuse-existing-helper": 1,
+      "02-refactor-with-many-callers": 1,
+      "03-hot-path": 0.9333333333333333,
+      "04-go-error-handling": 1,
+      "05-kotlin-nullability": 1,
+      "06-code-review": 1,
+      "07-csharp-conventions": 1,
+      "08-minimal-bugfix": 1
+    },
+    "per_case_quality": {
+      "01-reuse-existing-helper": 8.666666666666666,
+      "02-refactor-with-many-callers": 7.666666666666667,
+      "03-hot-path": 7.666666666666667,
+      "04-go-error-handling": 9,
+      "05-kotlin-nullability": 9,
+      "06-code-review": 8,
+      "07-csharp-conventions": 9,
+      "08-minimal-bugfix": 8
+    }
+  }
+]

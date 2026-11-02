@@ -1,0 +1,133 @@
+{
+  "case": "04-go-error-handling",
+  "rep": 1,
+  "judge_model": "opus",
+  "blind_map": {
+    "A": "sickn33",
+    "B": "v2",
+    "C": "baseline",
+    "D": "v1"
+  },
+  "results": {
+    "sickn33": {
+      "assertions": [
+        {
+          "text": "An invalid or missing `id` is detected (the `Atoi` error is checked) and answered with HTTP 400.",
+          "passed": true,
+          "evidence": "parseUserID returns the Atoi error; the handler replies `http.Error(w, \"invalid user id\", http.StatusBadRequest)` and returns."
+        },
+        {
+          "text": "On a lookup error the handler returns instead of continuing; `store.ErrNotFound` is distinguished with `errors.Is` and mapped to 404, other errors to 500.",
+          "passed": true,
+          "evidence": "Early `return` after writeFindUserError; `errors.Is(err, store.ErrNotFound)` maps to 404, all other errors to 500."
+        },
+        {
+          "text": "Idiomatic Go: plain `error` values; no `panic`/`recover` for control flow and no exception-like wrapper types invented.",
+          "passed": true,
+          "evidence": "Uses plain error values and small helpers; no panic/recover and no custom error types."
+        },
+        {
+          "text": "Logged errors carry context (operation and/or id), and internal error details are not written to the client response.",
+          "passed": true,
+          "evidence": "Logs `find user %d: %v` and `encode user %d: %v`; the client only sees \"internal server error\"."
+        },
+        {
+          "text": "The `Encode` error is handled or explicitly addressed.",
+          "passed": true,
+          "evidence": "`if err := json.NewEncoder(w).Encode(user); err != nil { log.Printf(...) }`, with an explanation that headers are already sent."
+        }
+      ],
+      "quality": 8
+    },
+    "v2": {
+      "assertions": [
+        {
+          "text": "An invalid or missing `id` is detected (the `Atoi` error is checked) and answered with HTTP 400.",
+          "passed": true,
+          "evidence": "Checks the Atoi err and returns 400 \"invalid user id\"."
+        },
+        {
+          "text": "On a lookup error the handler returns instead of continuing; `store.ErrNotFound` is distinguished with `errors.Is` and mapped to 404, other errors to 500.",
+          "passed": true,
+          "evidence": "`errors.Is(err, store.ErrNotFound)` gives 404 and returns; any other non-nil err gives 500 and returns."
+        },
+        {
+          "text": "Idiomatic Go: plain `error` values; no `panic`/`recover` for control flow and no exception-like wrapper types invented.",
+          "passed": true,
+          "evidence": "Straight-line idiomatic Go with plain errors and no invented types."
+        },
+        {
+          "text": "Logged errors carry context (operation and/or id), and internal error details are not written to the client response.",
+          "passed": true,
+          "evidence": "`handleGetUser: find user %d: %v` is logged; the client gets a generic 500 message."
+        },
+        {
+          "text": "The `Encode` error is handled or explicitly addressed.",
+          "passed": true,
+          "evidence": "Encode error is logged with operation and id."
+        }
+      ],
+      "quality": 9
+    },
+    "baseline": {
+      "assertions": [
+        {
+          "text": "An invalid or missing `id` is detected (the `Atoi` error is checked) and answered with HTTP 400.",
+          "passed": true,
+          "evidence": "Atoi err returns 400 \"invalid or missing user id\"."
+        },
+        {
+          "text": "On a lookup error the handler returns instead of continuing; `store.ErrNotFound` is distinguished with `errors.Is` and mapped to 404, other errors to 500.",
+          "passed": true,
+          "evidence": "Inside `if err != nil`, `errors.Is(... store.ErrNotFound)` gives 404, otherwise 500, and both paths return."
+        },
+        {
+          "text": "Idiomatic Go: plain `error` values; no `panic`/`recover` for control flow and no exception-like wrapper types invented.",
+          "passed": true,
+          "evidence": "Idiomatic early returns using plain errors."
+        },
+        {
+          "text": "Logged errors carry context (operation and/or id), and internal error details are not written to the client response.",
+          "passed": true,
+          "evidence": "`handleGetUser: find user %d: %v` is logged; the response says \"internal server error\"."
+        },
+        {
+          "text": "The `Encode` error is handled or explicitly addressed.",
+          "passed": true,
+          "evidence": "Encode error is logged with id context."
+        }
+      ],
+      "quality": 9
+    },
+    "v1": {
+      "assertions": [
+        {
+          "text": "An invalid or missing `id` is detected (the `Atoi` error is checked) and answered with HTTP 400.",
+          "passed": true,
+          "evidence": "parseUserID error leads to a 400 \"invalid user id\" and a return."
+        },
+        {
+          "text": "On a lookup error the handler returns instead of continuing; `store.ErrNotFound` is distinguished with `errors.Is` and mapped to 404, other errors to 500.",
+          "passed": true,
+          "evidence": "Returns after respondToFindUserError, which uses `errors.Is` to choose 404 and otherwise 500."
+        },
+        {
+          "text": "Idiomatic Go: plain `error` values; no `panic`/`recover` for control flow and no exception-like wrapper types invented.",
+          "passed": true,
+          "evidence": "Plain errors wrapped with fmt.Errorf %w; no panic and no custom types."
+        },
+        {
+          "text": "Logged errors carry context (operation and/or id), and internal error details are not written to the client response.",
+          "passed": true,
+          "evidence": "`find user %d: %v` is logged and the client gets a generic 500. The encode log names only the operation."
+        },
+        {
+          "text": "The `Encode` error is handled or explicitly addressed.",
+          "passed": true,
+          "evidence": "respondWithJSON logs the Encode error."
+        }
+      ],
+      "quality": 6
+    }
+  }
+}

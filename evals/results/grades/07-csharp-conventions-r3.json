@@ -1,0 +1,133 @@
+{
+  "case": "07-csharp-conventions",
+  "rep": 3,
+  "judge_model": "opus",
+  "blind_map": {
+    "A": "baseline",
+    "B": "v2",
+    "C": "sickn33",
+    "D": "v1"
+  },
+  "results": {
+    "baseline": {
+      "assertions": [
+        {
+          "text": "The new interface is named `ICustomerRepository` (keeps the `I` prefix convention of the codebase).",
+          "passed": true,
+          "evidence": "public interface ICustomerRepository"
+        },
+        {
+          "text": "All new methods follow the existing pattern: `Async` suffix, `Task` return types and a `CancellationToken` parameter.",
+          "passed": true,
+          "evidence": "GetByIdAsync, GetByEmailAsync and AddAsync all return Task/Task<Customer?> and take CancellationToken ct"
+        },
+        {
+          "text": "\"Not found\" for the email lookup returns `Customer?` (consistent with `GetByIdAsync`) rather than throwing.",
+          "passed": true,
+          "evidence": "Task<Customer?> GetByEmailAsync via FirstOrDefaultAsync, which returns null when nothing matches"
+        },
+        {
+          "text": "The existing order repository is not modified (no generic base repository extracted from it, no renames).",
+          "passed": true,
+          "evidence": "Order repository is untouched; no base class extracted and nothing renamed"
+        },
+        {
+          "text": "The implementation follows the file's conventions (`sealed` class, `_db` field naming, expression-bodied members where the original uses them).",
+          "passed": true,
+          "evidence": "sealed class, _db field, expression-bodied ctor, GetByIdAsync and GetByEmailAsync, block-bodied async AddAsync as in the original"
+        }
+      ],
+      "quality": 9
+    },
+    "v2": {
+      "assertions": [
+        {
+          "text": "The new interface is named `ICustomerRepository` (keeps the `I` prefix convention of the codebase).",
+          "passed": true,
+          "evidence": "public interface ICustomerRepository"
+        },
+        {
+          "text": "All new methods follow the existing pattern: `Async` suffix, `Task` return types and a `CancellationToken` parameter.",
+          "passed": true,
+          "evidence": "All three methods use the Async suffix, return Task/Task<Customer?> and take CancellationToken ct"
+        },
+        {
+          "text": "\"Not found\" for the email lookup returns `Customer?` (consistent with `GetByIdAsync`) rather than throwing.",
+          "passed": true,
+          "evidence": "Task<Customer?> GetByEmailAsync => FirstOrDefaultAsync(...) returns null when no customer matches"
+        },
+        {
+          "text": "The existing order repository is not modified (no generic base repository extracted from it, no renames).",
+          "passed": true,
+          "evidence": "Only new types are added; order code is unchanged"
+        },
+        {
+          "text": "The implementation follows the file's conventions (`sealed` class, `_db` field naming, expression-bodied members where the original uses them).",
+          "passed": true,
+          "evidence": "sealed, _db, expression-bodied members mirror the original exactly"
+        }
+      ],
+      "quality": 9
+    },
+    "sickn33": {
+      "assertions": [
+        {
+          "text": "The new interface is named `ICustomerRepository` (keeps the `I` prefix convention of the codebase).",
+          "passed": true,
+          "evidence": "public interface ICustomerRepository"
+        },
+        {
+          "text": "All new methods follow the existing pattern: `Async` suffix, `Task` return types and a `CancellationToken` parameter.",
+          "passed": true,
+          "evidence": "All methods use the Async suffix, return Task types and take CancellationToken ct"
+        },
+        {
+          "text": "\"Not found\" for the email lookup returns `Customer?` (consistent with `GetByIdAsync`) rather than throwing.",
+          "passed": true,
+          "evidence": "Not found returns null via FirstOrDefaultAsync; it only throws on null/blank input, which is a separate case"
+        },
+        {
+          "text": "The existing order repository is not modified (no generic base repository extracted from it, no renames).",
+          "passed": true,
+          "evidence": "Order repository is not modified"
+        },
+        {
+          "text": "The implementation follows the file's conventions (`sealed` class, `_db` field naming, expression-bodied members where the original uses them).",
+          "passed": true,
+          "evidence": "sealed, _db and expression-bodied ctor/GetByIdAsync kept; GetByEmailAsync is block-bodied only because of the added guard"
+        }
+      ],
+      "quality": 7
+    },
+    "v1": {
+      "assertions": [
+        {
+          "text": "The new interface is named `ICustomerRepository` (keeps the `I` prefix convention of the codebase).",
+          "passed": true,
+          "evidence": "public interface ICustomerRepository"
+        },
+        {
+          "text": "All new methods follow the existing pattern: `Async` suffix, `Task` return types and a `CancellationToken` parameter.",
+          "passed": true,
+          "evidence": "All methods use the Async suffix, return Task types and take CancellationToken ct"
+        },
+        {
+          "text": "\"Not found\" for the email lookup returns `Customer?` (consistent with `GetByIdAsync`) rather than throwing.",
+          "passed": true,
+          "evidence": "\"GetByEmailAsync returns Customer?, like GetByIdAsync\""
+        },
+        {
+          "text": "The existing order repository is not modified (no generic base repository extracted from it, no renames).",
+          "passed": true,
+          "evidence": "Explicitly leaves the order repository alone: \"that would change the order repository too, so I left it alone\""
+        },
+        {
+          "text": "The implementation follows the file's conventions (`sealed` class, `_db` field naming, expression-bodied members where the original uses them).",
+          "passed": true,
+          "evidence": "sealed, _db, expression-bodied GetByIdAsync/GetByEmailAsync, block-bodied AddAsync"
+        }
+      ],
+      "quality": 8
+    }
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "case": "05-kotlin-nullability",
+  "rep": 1,
+  "judge_model": "opus",
+  "blind_map": {
+    "A": "v2",
+    "B": "v1",
+    "C": "sickn33",
+    "D": "baseline"
+  },
+  "results": {
+    "v2": {
+      "assertions": [
+        {
+          "text": "The nullable return type for \"user not found\" is kept (or the response explicitly justifies a change); it is not replaced by throwing an exception for the normal not-found case.",
+          "passed": true,
+          "evidence": "Signature stays `fun displayName(id: Long): String?` and uses `?: return null`."
+        },
+        {
+          "text": "No Java `Optional` is introduced.",
+          "passed": true,
+          "evidence": "No Optional is used anywhere."
+        },
+        {
+          "text": "Uses Kotlin idioms such as `?.`, `?:`, `takeIf`/`ifBlank`/`isNullOrBlank` or string templates instead of Java-style null checks and concatenation.",
+          "passed": true,
+          "evidence": "Uses `?: return null`, `nickname?.takeIf { it.isNotBlank() }` and the template \"${user.firstName} ${user.lastName}\"."
+        },
+        {
+          "text": "Behavior is preserved: unknown id \u2192 `null`; non-blank nickname \u2192 nickname; null or blank nickname \u2192 \"firstName lastName\".",
+          "passed": true,
+          "evidence": "Null user returns null. A null or blank nickname falls through `takeIf` to the full name."
+        },
+        {
+          "text": "No over-extraction: the result is not split into more than two additional functions or classes.",
+          "passed": true,
+          "evidence": "No new functions or classes. The feature-envy move is only suggested."
+        }
+      ],
+      "quality": 9
+    },
+    "v1": {
+      "assertions": [
+        {
+          "text": "The nullable return type for \"user not found\" is kept (or the response explicitly justifies a change); it is not replaced by throwing an exception for the normal not-found case.",
+          "passed": false,
+          "evidence": "Replaces the nullable return with `throw UserNotFoundException(id)` for the normal not-found case. It justifies the change, but this case is explicitly disallowed."
+        },
+        {
+          "text": "No Java `Optional` is introduced.",
+          "passed": true,
+          "evidence": "No Optional is introduced."
+        },
+        {
+          "text": "Uses Kotlin idioms such as `?.`, `?:`, `takeIf`/`ifBlank`/`isNullOrBlank` or string templates instead of Java-style null checks and concatenation.",
+          "passed": true,
+          "evidence": "Uses `?:`, `takeIf { it.isNotBlank() }` and \"$firstName $lastName\"."
+        },
+        {
+          "text": "Behavior is preserved: unknown id \u2192 `null`; non-blank nickname \u2192 nickname; null or blank nickname \u2192 \"firstName lastName\".",
+          "passed": false,
+          "evidence": "An unknown id now throws instead of returning null. The return type changed to `String`."
+        },
+        {
+          "text": "No over-extraction: the result is not split into more than two additional functions or classes.",
+          "passed": true,
+          "evidence": "Adds exactly two: the `User.displayName()` extension and `UserNotFoundException`."
+        }
+      ],
+      "quality": 4
+    },
+    "sickn33": {
+      "assertions": [
+        {
+          "text": "The nullable return type for \"user not found\" is kept (or the response explicitly justifies a change); it is not replaced by throwing an exception for the normal not-found case.",
+          "passed": true,
+          "evidence": "Keeps `String?` and explains: \"It is the existing contract\"."
+        },
+        {
+          "text": "No Java `Optional` is introduced.",
+          "passed": true,
+          "evidence": "No Optional is used."
+        },
+        {
+          "text": "Uses Kotlin idioms such as `?.`, `?:`, `takeIf`/`ifBlank`/`isNullOrBlank` or string templates instead of Java-style null checks and concatenation.",
+          "passed": true,
+          "evidence": "Uses `?.displayName()`, `takeUnless { it.isNullOrBlank() }`, `?:` and a string template."
+        },
+        {
+          "text": "Behavior is preserved: unknown id \u2192 `null`; non-blank nickname \u2192 nickname; null or blank nickname \u2192 \"firstName lastName\".",
+          "passed": true,
+          "evidence": "Null user gives null via `?.`. `takeUnless(isNullOrBlank)` returns the nickname only when non-blank, otherwise `fullName()`."
+        },
+        {
+          "text": "No over-extraction: the result is not split into more than two additional functions or classes.",
+          "passed": true,
+          "evidence": "Exactly two private extensions: `displayName` and `fullName`."
+        }
+      ],
+      "quality": 8
+    },
+    "baseline": {
+      "assertions": [
+        {
+          "text": "The nullable return type for \"user not found\" is kept (or the response explicitly justifies a change); it is not replaced by throwing an exception for the normal not-found case.",
+          "passed": true,
+          "evidence": "Keeps `fun displayName(id: Long): String?` and avoids changing the public API."
+        },
+        {
+          "text": "No Java `Optional` is introduced.",
+          "passed": true,
+          "evidence": "No Optional is used."
+        },
+        {
+          "text": "Uses Kotlin idioms such as `?.`, `?:`, `takeIf`/`ifBlank`/`isNullOrBlank` or string templates instead of Java-style null checks and concatenation.",
+          "passed": true,
+          "evidence": "Uses `?.`, `nickname?.takeIf { it.isNotBlank() } ?: fullName()` and \"$firstName $lastName\"."
+        },
+        {
+          "text": "Behavior is preserved: unknown id \u2192 `null`; non-blank nickname \u2192 nickname; null or blank nickname \u2192 \"firstName lastName\".",
+          "passed": true,
+          "evidence": "Null user propagates to null. A non-blank nickname is returned, otherwise the full name."
+        },
+        {
+          "text": "No over-extraction: the result is not split into more than two additional functions or classes.",
+          "passed": true,
+          "evidence": "Two private extensions, `displayName()` and `fullName()`, which is at the limit."
+        }
+      ],
+      "quality": 8
+    }
+  }
+}

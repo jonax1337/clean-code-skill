@@ -1,0 +1,133 @@
+{
+  "case": "07-csharp-conventions",
+  "rep": 1,
+  "judge_model": "opus",
+  "blind_map": {
+    "A": "sickn33",
+    "B": "baseline",
+    "C": "v1",
+    "D": "v2"
+  },
+  "results": {
+    "sickn33": {
+      "assertions": [
+        {
+          "text": "The new interface is named `ICustomerRepository` (keeps the `I` prefix convention of the codebase).",
+          "passed": true,
+          "evidence": "public interface ICustomerRepository"
+        },
+        {
+          "text": "All new methods follow the existing pattern: `Async` suffix, `Task` return types and a `CancellationToken` parameter.",
+          "passed": true,
+          "evidence": "GetByIdAsync, FindByEmailAsync and AddAsync all return Task/Task<Customer?> and take CancellationToken ct"
+        },
+        {
+          "text": "\"Not found\" for the email lookup returns `Customer?` (consistent with `GetByIdAsync`) rather than throwing.",
+          "passed": true,
+          "evidence": "Task<Customer?> FindByEmailAsync via FirstOrDefaultAsync; \"returns null when nothing matches\""
+        },
+        {
+          "text": "The existing order repository is not modified (no generic base repository extracted from it, no renames).",
+          "passed": true,
+          "evidence": "Only new types are added; SqlOrderRepository is untouched and no base class is extracted"
+        },
+        {
+          "text": "The implementation follows the file's conventions (`sealed` class, `_db` field naming, expression-bodied members where the original uses them).",
+          "passed": true,
+          "evidence": "sealed class, private readonly DbContext _db, expression-bodied ctor/GetById/FindByEmail, block-bodied async AddAsync as in the original"
+        }
+      ],
+      "quality": 8
+    },
+    "baseline": {
+      "assertions": [
+        {
+          "text": "The new interface is named `ICustomerRepository` (keeps the `I` prefix convention of the codebase).",
+          "passed": true,
+          "evidence": "public interface ICustomerRepository"
+        },
+        {
+          "text": "All new methods follow the existing pattern: `Async` suffix, `Task` return types and a `CancellationToken` parameter.",
+          "passed": true,
+          "evidence": "GetByEmailAsync(string email, CancellationToken ct) returns Task<Customer?>; all methods follow the pattern"
+        },
+        {
+          "text": "\"Not found\" for the email lookup returns `Customer?` (consistent with `GetByIdAsync`) rather than throwing.",
+          "passed": true,
+          "evidence": "Task<Customer?> GetByEmailAsync using FirstOrDefaultAsync, so a miss returns null"
+        },
+        {
+          "text": "The existing order repository is not modified (no generic base repository extracted from it, no renames).",
+          "passed": true,
+          "evidence": "Order repository is not touched"
+        },
+        {
+          "text": "The implementation follows the file's conventions (`sealed` class, `_db` field naming, expression-bodied members where the original uses them).",
+          "passed": true,
+          "evidence": "sealed, _db field, expression-bodied members mirror the original"
+        }
+      ],
+      "quality": 8
+    },
+    "v1": {
+      "assertions": [
+        {
+          "text": "The new interface is named `ICustomerRepository` (keeps the `I` prefix convention of the codebase).",
+          "passed": true,
+          "evidence": "public interface ICustomerRepository"
+        },
+        {
+          "text": "All new methods follow the existing pattern: `Async` suffix, `Task` return types and a `CancellationToken` parameter.",
+          "passed": true,
+          "evidence": "All three methods use the Async suffix, Task returns and CancellationToken ct"
+        },
+        {
+          "text": "\"Not found\" for the email lookup returns `Customer?` (consistent with `GetByIdAsync`) rather than throwing.",
+          "passed": true,
+          "evidence": "Customer? mirrors the existing Order? contract; explicitly keeps null rather than throwing"
+        },
+        {
+          "text": "The existing order repository is not modified (no generic base repository extracted from it, no renames).",
+          "passed": true,
+          "evidence": "\"With only two, I kept them separate\"; no generic base is extracted and nothing is renamed"
+        },
+        {
+          "text": "The implementation follows the file's conventions (`sealed` class, `_db` field naming, expression-bodied members where the original uses them).",
+          "passed": true,
+          "evidence": "sealed, _db, expression-bodied members match the original"
+        }
+      ],
+      "quality": 7
+    },
+    "v2": {
+      "assertions": [
+        {
+          "text": "The new interface is named `ICustomerRepository` (keeps the `I` prefix convention of the codebase).",
+          "passed": true,
+          "evidence": "public interface ICustomerRepository; \"The I prefix follows your existing C# convention\""
+        },
+        {
+          "text": "All new methods follow the existing pattern: `Async` suffix, `Task` return types and a `CancellationToken` parameter.",
+          "passed": true,
+          "evidence": "GetByEmailAsync(string email, CancellationToken ct) returns Task<Customer?>"
+        },
+        {
+          "text": "\"Not found\" for the email lookup returns `Customer?` (consistent with `GetByIdAsync`) rather than throwing.",
+          "passed": true,
+          "evidence": "Returns Customer? via FirstOrDefaultAsync; mentions a test for \"not-found email returning null\""
+        },
+        {
+          "text": "The existing order repository is not modified (no generic base repository extracted from it, no renames).",
+          "passed": true,
+          "evidence": "Only new types are added; the order repository is unchanged"
+        },
+        {
+          "text": "The implementation follows the file's conventions (`sealed` class, `_db` field naming, expression-bodied members where the original uses them).",
+          "passed": true,
+          "evidence": "\"mirrors SqlOrderRepository exactly\": sealed, _db, expression-bodied members"
+        }
+      ],
+      "quality": 9
+    }
+  }
+}

@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="738" height="388" viewBox="0 0 738 388" role="img" aria-labelledby="t">
+<style>text{font-family:system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif} .bg{fill:#fcfcfb} .ink{fill:#0b0b0b} .ink2{fill:#52514e} .muted{fill:#898781} .grid{stroke:#e1e0d9} .bar{fill:#c3c2b7} .accent{fill:#2a78d6} @media (prefers-color-scheme: dark){.bg{fill:#1a1a19} .ink{fill:#f0efec} .ink2{fill:#c3c2b7} .muted{fill:#898781} .grid{stroke:#2c2c2a} .bar{fill:#52514e} .accent{fill:#3987e5}}</style>
+<title id="t">Share of assertions passed per eval case and skill condition</title>
+<rect class="bg" width="738" height="388" rx="8"/>
+<text class="ink" x="24" y="32" font-size="16" font-weight="600">Assertions passed by case</text>
+<text class="ink2" x="24" y="50" font-size="12">Darker is better</text>
+<text class="ink" x="378.0" y="80" font-size="12" font-weight="400" text-anchor="middle">No skill</text>
+<text class="ink" x="474.0" y="80" font-size="12" font-weight="400" text-anchor="middle">sickn33</text>
+<text class="ink" x="570.0" y="80" font-size="12" font-weight="400" text-anchor="middle">v1</text>
+<text class="ink" x="666.0" y="80" font-size="12" font-weight="600" text-anchor="middle">v2</text>
+<text class="ink" x="24" y="113.0" font-size="13">Reuse existing helper (Python)</text>
+<rect x="331" y="93" width="94" height="32" rx="4" fill="#256abf"/>
+<text x="378.0" y="113.0" font-size="12" text-anchor="middle" fill="#ffffff">80%</text>
+<rect x="427" y="93" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="474.0" y="113.0" font-size="12" text-anchor="middle" fill="#ffffff">87%</text>
+<rect x="523" y="93" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="570.0" y="113.0" font-size="12" text-anchor="middle" fill="#ffffff">93%</text>
+<rect x="619" y="93" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="666.0" y="113.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<text class="ink" x="24" y="147.0" font-size="13">Refactor a function with many callers (TypeScript)</text>
+<rect x="331" y="127" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="378.0" y="147.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect x="427" y="127" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="474.0" y="147.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect x="523" y="127" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="570.0" y="147.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect x="619" y="127" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="666.0" y="147.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<text class="ink" x="24" y="181.0" font-size="13">Clean up hot-path code (Java)</text>
+<rect x="331" y="161" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="378.0" y="181.0" font-size="12" text-anchor="middle" fill="#ffffff">93%</text>
+<rect x="427" y="161" width="94" height="32" rx="4" fill="#3987e5"/>
+<text x="474.0" y="181.0" font-size="12" text-anchor="middle" fill="#0b0b0b">60%</text>
+<rect x="523" y="161" width="94" height="32" rx="4" fill="#256abf"/>
+<text x="570.0" y="181.0" font-size="12" text-anchor="middle" fill="#ffffff">80%</text>
+<rect x="619" y="161" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="666.0" y="181.0" font-size="12" text-anchor="middle" fill="#ffffff">93%</text>
+<text class="ink" x="24" y="215.0" font-size="13">Error handling in Go</text>
+<rect x="331" y="195" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="378.0" y="215.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect x="427" y="195" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="474.0" y="215.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect x="523" y="195" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="570.0" y="215.0" font-size="12" text-anchor="middle" fill="#ffffff">93%</text>
+<rect x="619" y="195" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="666.0" y="215.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<text class="ink" x="24" y="249.0" font-size="13">Nullability in Kotlin</text>
+<rect x="331" y="229" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="378.0" y="249.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect x="427" y="229" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="474.0" y="249.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect x="523" y="229" width="94" height="32" rx="4" fill="#3987e5"/>
+<text x="570.0" y="249.0" font-size="12" text-anchor="middle" fill="#0b0b0b">60%</text>
+<rect x="619" y="229" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="666.0" y="249.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<text class="ink" x="24" y="283.0" font-size="13">Review a pull request (Python)</text>
+<rect x="331" y="263" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="378.0" y="283.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect x="427" y="263" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="474.0" y="283.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect x="523" y="263" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="570.0" y="283.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect x="619" y="263" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="666.0" y="283.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<text class="ink" x="24" y="317.0" font-size="13">Follow codebase conventions (C#)</text>
+<rect x="331" y="297" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="378.0" y="317.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect x="427" y="297" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="474.0" y="317.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect x="523" y="297" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="570.0" y="317.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect x="619" y="297" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="666.0" y="317.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<text class="ink" x="24" y="351.0" font-size="13">Minimal bugfix with regression test (JavaScript)</text>
+<rect x="331" y="331" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="378.0" y="351.0" font-size="12" text-anchor="middle" fill="#ffffff">93%</text>
+<rect x="427" y="331" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="474.0" y="351.0" font-size="12" text-anchor="middle" fill="#ffffff">93%</text>
+<rect x="523" y="331" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="570.0" y="351.0" font-size="12" text-anchor="middle" fill="#ffffff">87%</text>
+<rect x="619" y="331" width="94" height="32" rx="4" fill="#184f95"/>
+<text x="666.0" y="351.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+</svg>

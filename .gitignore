@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+evals/.cache/
+.venv/
+.ruff_cache/

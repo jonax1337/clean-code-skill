@@ -1,0 +1,133 @@
+{
+  "case": "08-minimal-bugfix",
+  "rep": 3,
+  "judge_model": "opus",
+  "blind_map": {
+    "A": "baseline",
+    "B": "sickn33",
+    "C": "v1",
+    "D": "v2"
+  },
+  "results": {
+    "baseline": {
+      "assertions": [
+        {
+          "text": "Both symptoms are fixed: an empty order list yields neither `NaN` for `avg` nor `-Infinity` for `max`.",
+          "passed": true,
+          "evidence": "average returns 0 for empty input, and summarize returns { count: 0, avg: '0.00', max: 0 } early, so no NaN or -Infinity."
+        },
+        {
+          "text": "A Jest regression test for the empty case is added.",
+          "passed": true,
+          "evidence": "Adds the Jest tests `expect(summarize([])).toEqual({ count: 0, avg: '0.00', max: 0 })` and `average([])`."
+        },
+        {
+          "text": "The fix is minimal: the output shape for non-empty input is unchanged and unrelated code is not rewritten.",
+          "passed": true,
+          "evidence": "The non-empty path is unchanged. However, the empty check is duplicated: average already handles [] and summarize adds a second early-return branch."
+        },
+        {
+          "text": "The response states explicitly what the empty case now returns (e.g. `0`, `\"0.00\"` or `null`) and why.",
+          "passed": true,
+          "evidence": "\"I chose `0` / `\"0.00\"` as the 'no orders' values so the dashboard displays something sensible.\" The reason given is weak but explicit."
+        },
+        {
+          "text": "No leftover debug output and no comments that narrate the fix.",
+          "passed": true,
+          "evidence": "No console output and no narrating comments in the code."
+        }
+      ],
+      "quality": 6
+    },
+    "sickn33": {
+      "assertions": [
+        {
+          "text": "Both symptoms are fixed: an empty order list yields neither `NaN` for `avg` nor `-Infinity` for `max`.",
+          "passed": true,
+          "evidence": "average guards length 0, and the new maximum helper returns 0 for empty input."
+        },
+        {
+          "text": "A Jest regression test for the empty case is added.",
+          "passed": true,
+          "evidence": "Adds 'customers with no orders' tests asserting `summarize([])` equals `{ count: 0, avg: '0.00', max: 0 }`."
+        },
+        {
+          "text": "The fix is minimal: the output shape for non-empty input is unchanged and unrelated code is not rewritten.",
+          "passed": true,
+          "evidence": "Adds a small maximum helper. The non-empty shape is unchanged and verified by a test; nothing unrelated is rewritten."
+        },
+        {
+          "text": "The response states explicitly what the empty case now returns (e.g. `0`, `\"0.00\"` or `null`) and why.",
+          "passed": true,
+          "evidence": "\"I chose `0` / `\"0.00\"`... because it keeps the types the same (`avg` stays a string, `max` stays a number).\""
+        },
+        {
+          "text": "No leftover debug output and no comments that narrate the fix.",
+          "passed": true,
+          "evidence": "Clean code with no debug output or narrating comments."
+        }
+      ],
+      "quality": 9
+    },
+    "v1": {
+      "assertions": [
+        {
+          "text": "Both symptoms are fixed: an empty order list yields neither `NaN` for `avg` nor `-Infinity` for `max`.",
+          "passed": true,
+          "evidence": "average and maximum both return 0 for empty arrays."
+        },
+        {
+          "text": "A Jest regression test for the empty case is added.",
+          "passed": true,
+          "evidence": "The test `reports zeros for a customer without orders` asserts `summarize([])`."
+        },
+        {
+          "text": "The fix is minimal: the output shape for non-empty input is unchanged and unrelated code is not rewritten.",
+          "passed": true,
+          "evidence": "Adds a small maximum helper; the non-empty output is unchanged and tested."
+        },
+        {
+          "text": "The response states explicitly what the empty case now returns (e.g. `0`, `\"0.00\"` or `null`) and why.",
+          "passed": false,
+          "evidence": "It states \"I chose `0`\" but gives no reason for that value. The 'at the source' reasoning explains where the fix goes, not why 0 was chosen."
+        },
+        {
+          "text": "No leftover debug output and no comments that narrate the fix.",
+          "passed": true,
+          "evidence": "No code comments or debug output. The G3/G5/G19 jargon in the prose is noise but is not code comments."
+        }
+      ],
+      "quality": 6
+    },
+    "v2": {
+      "assertions": [
+        {
+          "text": "Both symptoms are fixed: an empty order list yields neither `NaN` for `avg` nor `-Infinity` for `max`.",
+          "passed": true,
+          "evidence": "average guards the empty case, and `max: amounts.length === 0 ? 0 : Math.max(...amounts)` handles max."
+        },
+        {
+          "text": "A Jest regression test for the empty case is added.",
+          "passed": true,
+          "evidence": "Adds a 'customers without orders' describe block with `summarize([])` and `average([])` tests."
+        },
+        {
+          "text": "The fix is minimal: the output shape for non-empty input is unchanged and unrelated code is not rewritten.",
+          "passed": true,
+          "evidence": "This is the smallest change: one guard and one inline ternary, with the non-empty path untouched."
+        },
+        {
+          "text": "The response states explicitly what the empty case now returns (e.g. `0`, `\"0.00\"` or `null`) and why.",
+          "passed": true,
+          "evidence": "\"I chose `0` / `\"0.00\"`... because it keeps the return types unchanged, so the dashboard code needs no changes.\""
+        },
+        {
+          "text": "No leftover debug output and no comments that narrate the fix.",
+          "passed": true,
+          "evidence": "No debug output or narrating comments."
+        }
+      ],
+      "quality": 8
+    }
+  }
+}

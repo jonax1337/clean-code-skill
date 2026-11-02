@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="330" viewBox="0 0 880 330" role="img" aria-labelledby="title desc">
+  <title id="title">Precedence of rules</title>
+  <desc id="desc">When rules conflict, the higher layer wins: 1 correct and verified, 2 the codebase and the language, 3 Beck's four rules of simple design, 4 the heuristics C1 to T9.</desc>
+  <style>
+    text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .bg { fill: #fcfcfb; }
+    .ink { fill: #0b0b0b; }
+    .ink2 { fill: #52514e; }
+    .muted { fill: #898781; }
+    .l1 { fill: #184f95; }
+    .l2 { fill: #256abf; }
+    .l3 { fill: #6da7ec; }
+    .l4 { fill: #b7d3f6; }
+    .on-dark { fill: #ffffff; }
+    .on-light { fill: #0b0b0b; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #1a1a19; }
+      .ink { fill: #f0efec; }
+      .ink2 { fill: #c3c2b7; }
+    }
+  </style>
+
+  <rect class="bg" width="880" height="330" rx="12"/>
+  <text class="ink" x="32" y="40" font-size="17" font-weight="600">When rules conflict, the higher one wins</text>
+
+  <g font-size="15">
+    <rect class="l1" x="32" y="64" width="400" height="52" rx="6"/>
+    <text class="on-dark" x="52" y="96" font-weight="600">1  Correct and verified</text>
+    <text class="ink2" x="456" y="88">Tests, type checks and linters pass.</text>
+    <text class="ink2" x="456" y="108">Unintended behavior did not change.</text>
+
+    <rect class="l2" x="32" y="122" width="400" height="52" rx="6"/>
+    <text class="on-dark" x="52" y="154" font-weight="600">2  The codebase and the language</text>
+    <text class="ink2" x="456" y="146">Project conventions, then language idioms.</text>
+    <text class="ink2" x="456" y="166">Go errors, Kotlin nulls, C# I-prefixes stay.</text>
+
+    <rect class="l3" x="32" y="180" width="400" height="52" rx="6"/>
+    <text class="on-light" x="52" y="212" font-weight="600">3  Beck's four rules of simple design</text>
+    <text class="ink2" x="456" y="204">Passes tests, no duplication,</text>
+    <text class="ink2" x="456" y="224">expresses intent, fewest elements.</text>
+
+    <rect class="l4" x="32" y="238" width="400" height="52" rx="6"/>
+    <text class="on-light" x="52" y="270" font-weight="600">4  Heuristics C1–T9</text>
+    <text class="ink2" x="456" y="262">The smell catalog from chapter 17,</text>
+    <text class="ink2" x="456" y="282">cited by code in reviews.</text>
+  </g>
+
+  <text class="muted" x="32" y="314" font-size="12">Bend a rule only with a one-line reason: hot paths, generated code, spikes, legacy consistency.</text>
+</svg>

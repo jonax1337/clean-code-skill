@@ -1,0 +1,133 @@
+{
+  "case": "06-code-review",
+  "rep": 3,
+  "judge_model": "opus",
+  "blind_map": {
+    "A": "sickn33",
+    "B": "v2",
+    "C": "baseline",
+    "D": "v1"
+  },
+  "results": {
+    "sickn33": {
+      "assertions": [
+        {
+          "text": "Finds the off-by-one: `range(1, len(rows) - 1)` skips the last data row.",
+          "passed": true,
+          "evidence": "\"Off-by-one: the last data row is never imported. `range(1, len(rows) - 1)` stops one row early.\" Suggests `rows[1:]`."
+        },
+        {
+          "text": "Flags the swallowed exception (`except Exception: pass`) as a real problem (silent data loss) and proposes a concrete alternative.",
+          "passed": true,
+          "evidence": "\"`except Exception: pass` hides every failure\" and notes the save/mail inconsistency. The refactor catches ValueError and logs it, lets DB errors propagate, and logs mail failures."
+        },
+        {
+          "text": "Points out that the inline email check duplicates the existing `is_valid_email`.",
+          "passed": true,
+          "evidence": "\"re-implements `is_valid_email`, and more weakly (`\"@\"` alone passes). Use the existing helper.\""
+        },
+        {
+          "text": "Flags the commented-out old version for deletion.",
+          "passed": true,
+          "evidence": "\"Dead commented-out code (`# old version: ...`) should be deleted. Git history keeps it.\""
+        },
+        {
+          "text": "Orders findings by impact: correctness problems (off-by-one, swallowed errors) come before style or naming remarks.",
+          "passed": true,
+          "evidence": "The 'Bugs' section (off-by-one, swallowed exception) comes before the 'Clean-code issues' section."
+        }
+      ],
+      "quality": 8
+    },
+    "v2": {
+      "assertions": [
+        {
+          "text": "Finds the off-by-one: `range(1, len(rows) - 1)` skips the last data row.",
+          "passed": true,
+          "evidence": "\"stops one row early, so the final row is never imported. With `rows = [header, a, b]` only `a` is processed.\""
+        },
+        {
+          "text": "Flags the swallowed exception (`except Exception: pass`) as a real problem (silent data loss) and proposes a concrete alternative.",
+          "passed": true,
+          "evidence": "Explains that the caller cannot tell a partial import from a full one. Gives concrete fixes: let `db.save` errors propagate, handle malformed rows explicitly, append before the mail, and catch the mailer's specific error. The code matches."
+        },
+        {
+          "text": "Points out that the inline email check duplicates the existing `is_valid_email`.",
+          "passed": true,
+          "evidence": "\"You already have `utils/validation.is_valid_email`. This inline check is weaker... Use the helper.\""
+        },
+        {
+          "text": "Flags the commented-out old version for deletion.",
+          "passed": true,
+          "evidence": "\"Commented-out code (C5): delete `# old version: ...`. Git has it.\""
+        },
+        {
+          "text": "Orders findings by impact: correctness problems (off-by-one, swallowed errors) come before style or naming remarks.",
+          "passed": true,
+          "evidence": "'Must fix' (off-by-one, swallowed exception, duplicated validation) comes before 'Should fix' (magic indices, commented code, flag argument)."
+        }
+      ],
+      "quality": 9
+    },
+    "baseline": {
+      "assertions": [
+        {
+          "text": "Finds the off-by-one: `range(1, len(rows) - 1)` skips the last data row.",
+          "passed": true,
+          "evidence": "\"`range(1, len(rows) - 1)` stops one row early, so the final user is never imported. Use `rows[1:]`.\""
+        },
+        {
+          "text": "Flags the swallowed exception (`except Exception: pass`) as a real problem (silent data loss) and proposes a concrete alternative.",
+          "passed": true,
+          "evidence": "\"Errors are swallowed... Nobody can tell why an import came back short.\" The revision logs short rows, invalid emails, save failures and mail failures per row."
+        },
+        {
+          "text": "Points out that the inline email check duplicates the existing `is_valid_email`.",
+          "passed": true,
+          "evidence": "\"It doesn't use `is_valid_email`... Reuse the existing helper so validation stays in one place.\""
+        },
+        {
+          "text": "Flags the commented-out old version for deletion.",
+          "passed": true,
+          "evidence": "\"Remove the `# old version:` comment. That's what git history is for.\""
+        },
+        {
+          "text": "Orders findings by impact: correctness problems (off-by-one, swallowed errors) come before style or naming remarks.",
+          "passed": true,
+          "evidence": "Order is Bugs (off-by-one, swallowed errors, inconsistent state), then Should fix, then Nits (commented code, enumerate)."
+        }
+      ],
+      "quality": 8
+    },
+    "v1": {
+      "assertions": [
+        {
+          "text": "Finds the off-by-one: `range(1, len(rows) - 1)` skips the last data row.",
+          "passed": true,
+          "evidence": "\"`range(1, len(rows) - 1)` never processes the last row. Every import silently loses one user. Use `rows[1:]`.\""
+        },
+        {
+          "text": "Flags the swallowed exception (`except Exception: pass`) as a real problem (silent data loss) and proposes a concrete alternative.",
+          "passed": true,
+          "evidence": "\"`except Exception: pass` hides every failure.\" Alternative: \"DB errors now propagate... catch the specific exception, log it with the row number, and collect the failures.\""
+        },
+        {
+          "text": "Points out that the inline email check duplicates the existing `is_valid_email`.",
+          "passed": true,
+          "evidence": "\"The inline `\"@\" not in email or len(email) > 254` re-implements `is_valid_email`... Use the existing function.\""
+        },
+        {
+          "text": "Flags the commented-out old version for deletion.",
+          "passed": true,
+          "evidence": "\"C5 (commented-out code): Delete `# old version: ...`. Version control has it.\""
+        },
+        {
+          "text": "Orders findings by impact: correctness problems (off-by-one, swallowed errors) come before style or naming remarks.",
+          "passed": true,
+          "evidence": "The 'Bugs' section (off-by-one, swallowed errors) comes before the 'Clean-code violations' section."
+        }
+      ],
+      "quality": 6
+    }
+  }
+}

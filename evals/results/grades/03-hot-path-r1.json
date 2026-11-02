@@ -1,0 +1,133 @@
+{
+  "case": "03-hot-path",
+  "rep": 1,
+  "judge_model": "opus",
+  "blind_map": {
+    "A": "baseline",
+    "B": "sickn33",
+    "C": "v1",
+    "D": "v2"
+  },
+  "results": {
+    "baseline": {
+      "assertions": [
+        {
+          "text": "No allocation is added on the normal (non-error) path: no `Optional`, boxing, streams, lambdas, iterators or new objects per call.",
+          "passed": true,
+          "evidence": "Only primitives in the loop; states \"no allocations, no extra calls\"."
+        },
+        {
+          "text": "The bit masks and shift constants (`0x7F`, `0x80`, `7`, `32`) are given names.",
+          "passed": true,
+          "evidence": "Adds SEGMENT_MASK, CONTINUATION_BIT and BITS_PER_SEGMENT, and uses Integer.SIZE for 32."
+        },
+        {
+          "text": "The method stays a single tight loop: no interfaces, polymorphism, strategy objects or splitting into several small helper methods on the hot path.",
+          "passed": true,
+          "evidence": "One bounded for loop with the mask check inline; no helper methods."
+        },
+        {
+          "text": "The error case is improved: a more specific exception type or a message with useful context.",
+          "passed": true,
+          "evidence": "Changes RuntimeException to the more specific IllegalArgumentException and notes it stays compatible with existing catch blocks."
+        },
+        {
+          "text": "The response explicitly acknowledges the performance constraint and explains which clean-code changes it did or did not make because of it.",
+          "passed": true,
+          "evidence": "Has a \"Behavior and performance\" section and explains the single-byte fast path was left out because it needs benchmarking first."
+        }
+      ],
+      "quality": 6
+    },
+    "sickn33": {
+      "assertions": [
+        {
+          "text": "No allocation is added on the normal (non-error) path: no `Optional`, boxing, streams, lambdas, iterators or new objects per call.",
+          "passed": true,
+          "evidence": "Primitives only; no allocation on the normal path."
+        },
+        {
+          "text": "The bit masks and shift constants (`0x7F`, `0x80`, `7`, `32`) are given names.",
+          "passed": true,
+          "evidence": "PAYLOAD_MASK, CONTINUATION_BIT, PAYLOAD_BITS_PER_BYTE and INT_BITS are all named."
+        },
+        {
+          "text": "The method stays a single tight loop: no interfaces, polymorphism, strategy objects or splitting into several small helper methods on the hot path.",
+          "passed": false,
+          "evidence": "Adds a hasContinuationBit helper method on the hot path."
+        },
+        {
+          "text": "The error case is improved: a more specific exception type or a message with useful context.",
+          "passed": false,
+          "evidence": "Keeps the same RuntimeException(\"VarInt too big\") and only suggests a dedicated exception as future work."
+        },
+        {
+          "text": "The response explicitly acknowledges the performance constraint and explains which clean-code changes it did or did not make because of it.",
+          "passed": true,
+          "evidence": "Discusses relying on HotSpot inlining for the helper, offers to inline it, and recommends confirming with JMH."
+        }
+      ],
+      "quality": 5
+    },
+    "v1": {
+      "assertions": [
+        {
+          "text": "No allocation is added on the normal (non-error) path: no `Optional`, boxing, streams, lambdas, iterators or new objects per call.",
+          "passed": true,
+          "evidence": "\"It uses primitives only, with no allocation\"."
+        },
+        {
+          "text": "The bit masks and shift constants (`0x7F`, `0x80`, `7`, `32`) are given names.",
+          "passed": true,
+          "evidence": "PAYLOAD_MASK, CONTINUATION_BIT and PAYLOAD_BITS_PER_BYTE are named, and Integer.SIZE replaces 32."
+        },
+        {
+          "text": "The method stays a single tight loop: no interfaces, polymorphism, strategy objects or splitting into several small helper methods on the hot path.",
+          "passed": false,
+          "evidence": "Extracts an isLastByte helper method on the hot path."
+        },
+        {
+          "text": "The error case is improved: a more specific exception type or a message with useful context.",
+          "passed": true,
+          "evidence": "The message now adds context: \"VarInt too big: more than 5 bytes\"."
+        },
+        {
+          "text": "The response explicitly acknowledges the performance constraint and explains which clean-code changes it did or did not make because of it.",
+          "passed": true,
+          "evidence": "Has a Performance section covering inlining and unmeasured performance, and leaves the buf.get() bounds-check cost untouched."
+        }
+      ],
+      "quality": 6
+    },
+    "v2": {
+      "assertions": [
+        {
+          "text": "No allocation is added on the normal (non-error) path: no `Optional`, boxing, streams, lambdas, iterators or new objects per call.",
+          "passed": true,
+          "evidence": "\"added no allocations, extra calls or abstractions\"."
+        },
+        {
+          "text": "The bit masks and shift constants (`0x7F`, `0x80`, `7`, `32`) are given names.",
+          "passed": true,
+          "evidence": "VARINT_PAYLOAD_MASK, VARINT_CONTINUATION_BIT and VARINT_BITS_PER_BYTE are named, and Integer.SIZE replaces 32."
+        },
+        {
+          "text": "The method stays a single tight loop: no interfaces, polymorphism, strategy objects or splitting into several small helper methods on the hot path.",
+          "passed": true,
+          "evidence": "Single loop with the continuation check kept inline."
+        },
+        {
+          "text": "The error case is improved: a more specific exception type or a message with useful context.",
+          "passed": true,
+          "evidence": "The message adds the limit: \"more than 5 bytes\"."
+        },
+        {
+          "text": "The response explicitly acknowledges the performance constraint and explains which clean-code changes it did or did not make because of it.",
+          "passed": true,
+          "evidence": "Says \"G-rule bent for a hot path\", explicitly avoided extra calls and abstractions, and left out the fast path because it can't measure the gain."
+        }
+      ],
+      "quality": 8
+    }
+  }
+}
