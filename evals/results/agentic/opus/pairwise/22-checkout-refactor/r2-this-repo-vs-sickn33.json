@@ -1,0 +1,86 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "734f546c14580c7f",
+    "sickn33": "cb8e4875c42bb3e5"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 1.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors split process_order into the same six steps and preserve behavior exactly: same call order, the same error messages and statuses, and releasing order.items on decline is equivalent because every item has been reserved by then. A's characterization tests cover more of the risky rules, including VIP rounding down, the coupon not being redeemed on a declined payment, and the warning being logged on a failed receipt. B's report adds a useful note about non-PaymentDeclined gateway errors leaving stock reserved, but A's stronger test safety net for a live production refactor gives it a slight edge.",
+        "a_issues": [
+          "BrokenNotifier is defined at the bottom of the test module after the test that uses it, which is slightly awkward to read",
+          "Does not point out the existing risk that gateway errors other than PaymentDeclined leave stock reserved"
+        ],
+        "b_issues": [
+          "Characterization tests do not cover VIP discount rounding or that a declined payment does not redeem the coupon",
+          "Failed-receipt test does not check that the warning is logged",
+          "Extra helpers (_round_cents, _coupon_percent) add a bit more indirection than needed"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors are nearly identical and preserve behavior: the same six-step split, the same shared release helper with an equivalent release list on decline, and the same call ordering. B's characterization tests cover more risky rules, including VIP discount rounding, the coupon not being redeemed on a declined payment, tax following the customer's country, and the warning being logged on a failed receipt. A's helpers are a bit more finely factored, and its report flags a real gateway-exception risk. B's broader safety net for a production refactor tips it.",
+        "a_issues": [
+          "Tests do not check that a declined payment leaves the coupon unredeemed, or that VIP discount rounding stays floor-based.",
+          "Failed-receipt test does not assert that the warning is logged.",
+          "Extra tiny helpers (_round_cents, _coupon_percent) fragment the pricing slightly more than needed."
+        ],
+        "b_issues": [
+          "_tax packs the Decimal rounding into one dense generator expression.",
+          "BrokenNotifier is defined at the bottom of the test file, after the test that uses it.",
+          "Adds a dozen tests to the existing test_checkout.py instead of keeping the characterization tests separate (minor)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

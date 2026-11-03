@@ -2,7 +2,7 @@
 public interface ICustomerRepository
 {
     Task<Customer?> GetByIdAsync(Guid id, CancellationToken ct);
-    Task<Customer?> FindByEmailAsync(string email, CancellationToken ct);
+    Task<Customer?> GetByEmailAsync(string email, CancellationToken ct);
     Task AddAsync(Customer customer, CancellationToken ct);
 }
 
@@ -15,8 +15,11 @@ public sealed class SqlCustomerRepository : ICustomerRepository
     public Task<Customer?> GetByIdAsync(Guid id, CancellationToken ct) =>
         _db.Set<Customer>().FindAsync(new object[] { id }, ct).AsTask();
 
-    public Task<Customer?> FindByEmailAsync(string email, CancellationToken ct) =>
-        _db.Set<Customer>().FirstOrDefaultAsync(customer => customer.Email == email, ct);
+    public Task<Customer?> GetByEmailAsync(string email, CancellationToken ct)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(email);
+        return _db.Set<Customer>().FirstOrDefaultAsync(c => c.Email == email, ct);
+    }
 
     public async Task AddAsync(Customer customer, CancellationToken ct)
     {
@@ -26,13 +29,12 @@ public sealed class SqlCustomerRepository : ICustomerRepository
 }
 ```
 
-This needs `using Microsoft.EntityFrameworkCore;` for `FirstOrDefaultAsync`.
+Notes:
 
-- **Same shape as the order repository.** `GetByIdAsync` and `AddAsync` mirror the originals, so the two repositories read the same way.
-- **`FindByEmailAsync` naming.** It returns `null` when nothing matches, as `GetByIdAsync` does, and "Find" signals that a miss is normal.
-- **Assumption about `Customer.Email`.** I assumed it's a `string` property. If it's a value object, change the comparison to match, for example `customer.Email == new EmailAddress(email)`.
-- **Case sensitivity.** The comparison follows your database collation. SQL Server's default is case-insensitive, but other providers may not be. If you need case-insensitive matching regardless of collation, normalize emails when storing and querying. I left that out so as not to change behavior beyond what you asked.
-- **Uniqueness.** `FirstOrDefaultAsync` assumes at most one customer per email. A unique index on `Email` would enforce that in the database.
-- **DI registration.** Remember to register it, e.g. `services.AddScoped<ICustomerRepository, SqlCustomerRepository>();`.
-
-I haven't compiled this or run any tests, since I can only see the code you pasted.
+- I mirrored the order repository's structure, naming, and nullable-return convention (`Customer?` when not found), so it stays consistent with the existing code.
+- `GetByEmailAsync` needs `using Microsoft.EntityFrameworkCore;` for `FirstOrDefaultAsync`, if it's not already in scope.
+- I assumed `Customer` has an `Email` property of type `string`. If it's a value object (e.g. `EmailAddress`), adjust the comparison and parameter type accordingly.
+- Email matching is only as case-insensitive as your database collation. SQL Server's default is case-insensitive, but PostgreSQL's isn't. If you need guaranteed case-insensitivity, normalize emails on write and on lookup (e.g. store a lowercased value) rather than calling `ToLower()` in the query, which can defeat an index.
+- You'll likely want a unique index on `Customer.Email` in your model configuration, both for lookup performance and to enforce one customer per email.
+- I added a guard clause on `email` since passing null or blank is a caller bug; it throws instead of silently querying. Since the guard is synchronous, a bad argument throws at call time rather than on await, which is fine here.
+- I didn't write tests since I can't run anything in this session, but a good set would cover: found by id, not found by id, found by email, not found by email, and the invalid-email guard.

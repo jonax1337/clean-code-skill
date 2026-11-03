@@ -1,0 +1,88 @@
+{
+  "case": "07-tests-for-rates",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "1b2d033b26300d6d",
+    "this-repo": "0455e317038e2448"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.25,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both suites add only `test/rates.test.ts`, leave the code alone, and every expected value checks out against the rate table and the rounding logic. Their coverage is similar: each tells the rounding modes apart with real ties, pins the fee limits and their boundaries, and covers quote's edge cases. B adds a precision check at MAX_SAFE_INTEGER and a net+fee invariant. B's report is accurate about the test count and points out pinned behaviors worth reviewing. A's report says 38 tests for rates.ts, but the new file contains 28, and 38 is the whole repository's total.",
+        "a_issues": [
+          "The report says it added 38 tests for rates.ts, but the file has 28; 38 is the total including the existing suites.",
+          "The 'target mode, not source' test uses convert(11, USD, EUR), which divides exactly, so it tests no rounding at all.",
+          "No precision check for large amounts."
+        ],
+        "b_issues": [
+          "minorUnitsOf skips USD and CHF.",
+          "convert has no half-even tie test for CHF or EUR as the target; KWD is the only half-even target.",
+          "The report claims min/max fees are tested 'in each currency', but USD and CHF limits are not tested.",
+          "It uses describe blocks, while the existing suites use flat test() calls (a small style difference)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs add only `test/rates.test.ts`, and every expected value I checked by hand against the rate table is correct in both. A's tie cases are chosen so that half-up and half-even give different answers (e.g. 16.5 \u2192 17), and its report is accurate: 33 new tests plus 10 existing make the 43 it claims. B's suite is broad, but its 'target, not source' test contains a non-tie case mislabelled as a mode check. B's report also says it added 38 tests for rates.ts when the file has 28 (38 is the repo total).",
+        "a_issues": [
+          "Grouping with `describe` differs slightly from the flat `test` style in the other suites",
+          "Does not exercise USD/CHF in `minorUnitsOf` and has fewer CHF cases"
+        ],
+        "b_issues": [
+          "`convert(11, \"USD\", \"EUR\")` is commented as a half-up-source/half-even-target check, but 10 is exact, so the case proves nothing about rounding mode",
+          "In the 'target mode' test, `convert(5, \"EUR\", \"USD\")` is 5.5, which rounds to 6 under either mode, so it does not tell the modes apart",
+          "Report says 38 tests were added for rates.ts; the new file contains 28 (38 is the total across the repo)",
+          "Report says expected values were corrected to match the current code's output, which suggests they were partly taken from the implementation rather than derived independently"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

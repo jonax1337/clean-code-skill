@@ -1,0 +1,85 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "7fbb1946ff3fa04f",
+    "this-repo": "dbe7c7e5c73291ff"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 1.0,
+    "design": 0.0,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both PRs move the email, name and role checks into one module, and both keep the message wording and order intact. B also removes the invite-only case divergence: invitation emails are now lowercased, which `docs/api.md` requires and which closes a duplicate-invite gap. B reports this change and covers it with a test. A keeps that bug alive as a `lowercase: false` option in the shared validator, so the divergence the task wants removed survives, and A adds no tests for the new module.",
+        "a_issues": [
+          "Keeps the documented-contract violation where invitation emails are not lowercased, so duplicate invites can slip past the case-sensitive store check.",
+          "Adds a `lowercase` option to `validateEmail` whose only purpose is to keep that bug, which keeps the per-handler divergence the task is meant to remove.",
+          "No tests for the new `validation.js` module or for the edge cases it moved, such as the 80/81 character name boundary and rejecting the owner role on invite."
+        ],
+        "b_issues": [
+          "Changes observable invite behavior (lowercasing) inside a refactor PR. It is justified by the docs and reported, but it is still a behavior change rather than a pure refactor.",
+          "Adds a separate `validateOptionalName` function rather than an option; this is minor, and it reads clearly."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both PRs move email, name and role validation into one shared module and keep message wording and ordering intact. A also makes invitation emails lowercase, which docs/api.md requires and which fixes a case-sensitive duplicate-invite bug; the report states this change and a test covers it. B keeps the bug behind a `lowercase: false` option whose only purpose is preserving a known defect. B also adds no tests for the new shared module, while A covers boundaries such as the 80/81-character name limit and invite role restrictions.",
+        "a_issues": [
+          "Changes inviteUser's email normalization (lowercasing) inside a refactor task; it is documented and matches docs/api.md, but it is a behavior change beyond pure extraction",
+          "updateUser builds an intermediate results map and then derives changes from it, which is a bit more indirect than before"
+        ],
+        "b_issues": [
+          "Adds a `lowercase` option to validateEmail only to preserve behavior that contradicts docs/api.md (invitation emails should be stored lowercase), leaving a known duplicate-invite bug in place",
+          "No tests for the new shared validation module or for its edge cases (name length boundary, optional name, invitable roles)",
+          "INVITABLE_ROLES is a separately hardcoded list that can drift from ROLES"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

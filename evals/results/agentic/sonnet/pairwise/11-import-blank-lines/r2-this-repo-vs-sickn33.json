@@ -1,0 +1,84 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "07abbb78b8dfd0ee",
+    "sickn33": "21190de747fba461"
+  },
+  "score": 0.75,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both changes make the identical two-line fix in parse_entries: they skip empty or whitespace-only lines and keep the original line numbering. A tests at the parser level and asserts the exact parsed entries, including a whitespace-plus-CRLF line. B tests through the CLI with real files, which mirrors the reported scenario, but it only checks the imported count. Both reports are accurate and say they did not try the accountant's file, so I would be equally happy to merge either.",
+        "a_issues": [
+          "Tests only cover parse_entries directly, not the CLI import path that reads a real file",
+          "README's CSV import section is not updated to mention that blank lines are ignored"
+        ],
+        "b_issues": [
+          "The blank-line CLI test checks only the 'imported 2 entries' message, not which entries were stored",
+          "README's CSV import section is not updated to mention that blank lines are ignored"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two code changes are identical: both skip empty and whitespace-only lines in `parse_entries` and keep line numbers counted, which fixes the reported failure without changing other behavior. B puts its tests next to the existing importer unit tests and also covers a whitespace-only line with a Windows line ending. A tests the same behavior through the CLI, which mirrors the user's scenario but is a less direct place to pin down this parsing rule. Both reports are accurate, and B also notes that malformed non-blank lines still raise an error.",
+        "a_issues": [
+          "Tests go through the CLI with temp files rather than sitting with the importer unit tests, where the changed logic lives.",
+          "No test for a whitespace-only line with a Windows line ending.",
+          "README's CSV section is not updated to say blank lines are ignored."
+        ],
+        "b_issues": [
+          "No end-to-end test of the exact scenario: a CSV file ending in a blank line imported through the CLI.",
+          "README's CSV section is not updated to say blank lines are ignored."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "case": "04-cleanup-report-module",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "bf53e3ebd684ac2c",
+    "ub-mode": "2a3a11d9932bb16e"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.75,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "The task requires the output to stay exactly the same. A keeps the old report-line output byte-for-byte, including the odd DE/UK negative-amount grouping, and pins that quirk in a commented test for finance to decide on later. B deliberately changes the output for negative prices, discounts over 100% and non-numeric FR discounts, which breaks the 'exactly the same' requirement, though its report admits it. B also committed without being asked, and its report cites missing 'crapper, dryer or mutator' checks from an unnamed source.",
+        "a_issues": [
+          "Non-finite amounts such as a NaN unitPrice now print differently (`,aN \u20ac` instead of `NaN,undefined \u20ac`). The report discloses this.",
+          "`formatLineMoney` exists only to keep a quirk, which adds a little complexity, though its comment explains why."
+        ],
+        "b_issues": [
+          "Changes report-line output for negative amounts in DE and UK, against the explicit 'exactly the same' requirement.",
+          "Changes FR handling of a non-numeric `discountPct`, which used to print NaN.",
+          "Committed changes locally without being asked.",
+          "The report mentions crapper/dryer/mutator checks 'from ,' with no source, which is confusing.",
+          "The tests do not cover negative amounts, the bulk rebate or the truncation boundary on their own; they mostly rely on the sample data."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "The task required the output to stay exactly the same. B keeps the old malformed negative-amount grouping for DE and UK report lines through a small, commented `formatLineMoney`, and pins that quirk in a test. A routes every line through `formatMoney`, which changes the output for negative prices (e.g. credits or returns). A discloses this and asks for a decision, but it still breaks the brief. B's tests are also broader (bulk rebate, truncation boundary, month filter, negatives), and its report is more accurate.",
+        "a_issues": [
+          "Changes report output for negative line amounts in DE and UK (e.g. `\u00a3-,147.60` becomes `-\u00a3147.60`), against the requirement that output stay identical.",
+          "The report's claim that only FR printed NaN for a non-numeric discount looks inaccurate: a non-numeric string discount is truthy, so the DE and UK branches would also produce NaN.",
+          "The report mentions unrelated tooling it couldn't run (\"crapper, dryer or mutator checks from ,\"), a confusing leftover that doesn't apply to this repo.",
+          "The pinning tests rely mostly on `data/sample.json` and don't cover the negative or edge cases where the rewrite actually diverges."
+        ],
+        "b_issues": [
+          "`formatLineMoney` adds a special case to preserve a known-bad format; this is justified but slightly complicates the design.",
+          "Somewhat more verbose than needed (e.g. `validateOptions` returns options, `buildSection` returns a struct).",
+          "The output for non-finite amounts changed slightly (`NaN,undefined \u20ac` becomes `,aN \u20ac`); this is disclosed but not pinned."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

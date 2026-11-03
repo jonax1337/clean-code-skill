@@ -1,0 +1,82 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "9110d257d31fd2c6",
+    "ertugrul-dmr": "d3d8abff8bfe3d09"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 0.25,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes fix the bug the same way: skip lines that are blank or whitespace-only before parsing, keeping the original line numbering. A also updates the README, whose CSV section says that any unreadable line stops the import, so the documentation now matches the new behavior. B leaves that sentence stale and wraps a one-line check in a trivial `_is_blank` helper. B's tests cover a few more edge cases (tab, empty string, the trailing-line case on its own), but that does not outweigh the documentation gap.",
+        "a_issues": [
+          "Tests do not include a tab-only or truly empty string line (minor)"
+        ],
+        "b_issues": [
+          "README still says any line that cannot be read stops the import, which no longer matches the behavior",
+          "`_is_blank` helper is a needless abstraction for `not line.strip()`"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes fix the bug the same way: they skip blank or whitespace-only lines and keep the original line numbers in error messages. B also updates the README, which otherwise would have said that any unreadable line stops the import. B keeps the check inline instead of adding a one-line helper, and its report says it confirmed the new tests fail without the fix. A's tests are slightly more targeted at the exact trailing-empty-line case, but that does not outweigh the documentation gap.",
+        "a_issues": [
+          "README still says any unreadable line stops the import, which no longer matches the behavior now that blank lines are skipped",
+          "Adds a one-line `_is_blank` helper that adds indirection without any benefit"
+        ],
+        "b_issues": [
+          "No test isolates the exact reported case (a lone trailing empty line at the end of the file), though the mixed blank-lines test covers it in practice",
+          "Report includes a digression about a failed scripted edit that was reverted, which is noise for the reviewer"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

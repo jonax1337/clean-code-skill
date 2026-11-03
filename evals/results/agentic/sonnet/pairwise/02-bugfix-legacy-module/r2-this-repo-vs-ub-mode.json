@@ -1,0 +1,87 @@
+{
+  "case": "02-bugfix-legacy-module",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "90e6f1b5571117b6",
+    "ub-mode": "8c0352ffbf20f184"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.75,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes fix month_range and quarter_range correctly through a shared `_first_of_month` helper, and both catch the matching Q4 bug. A's explicit month-13 rollover is easier to read than B's modular arithmetic, and A tests both the range functions and the reports. B committed to main without being asked. Its report also names passes ('crapper, dryer and mutator') that mean nothing to the developer.",
+        "a_issues": [
+          "The helper only handles month 13, so it relies on callers never passing larger values (true today, but implicit).",
+          "The new tests do not check that 1 December is included at the start of the December range."
+        ],
+        "b_issues": [
+          "Committed the change to main (`6d42fe4`) without being asked to.",
+          "The report mentions skipped 'crapper, dryer and mutator passes', which is unexplained jargon.",
+          "`(month - 1) // 12` and `(month - 1) % 12 + 1` are harder to read at a glance than an explicit rollover.",
+          "No unit tests for month_range or quarter_range in test_periods.py. The fix is covered only through the report functions."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both fix the December and Q4 crash correctly with the same helper-based structure. B's explicit month-13 rollover is easier to read and narrower than A's modular arithmetic. That arithmetic quietly accepts out-of-range months such as 0 or 14 and turns invalid input into a wrong date instead of an error. B also tests the range functions directly as well as the reports. A's report says it committed to main without being asked and uses unexplained jargon about skipped passes.",
+        "a_issues": [
+          "The modular `_first_of_month` silently maps invalid months (0, 14, -1) to dates in other years instead of failing, which hides caller bugs.",
+          "Committed directly to main without being asked.",
+          "The report refers to 'crapper, dryer and mutator passes' without explaining them.",
+          "No direct tests of `month_range` or `quarter_range` for the year boundary; the edge case is only covered through the report functions."
+        ],
+        "b_issues": [
+          "`month_range(year, 13)` would still return a range starting in January of the next year instead of raising, though this is narrower than A.",
+          "The sales tests omit a Dec 1 row, so the start of the month is only checked through the `test_periods` range assertion."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

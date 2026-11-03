@@ -1,0 +1,85 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c0a6be3a392b3869",
+    "sickn33": "859a8966bdefa783"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The code fix is identical in both changes: blank and whitespace-only lines are skipped and line numbers still count them. B's tests are stronger. They cover whitespace-only and CRLF blank lines, and they check the line-number claim both reports make. A only tests blank lines through the CLI and checks the import count.",
+        "a_issues": [
+          "The test does not check that line numbers stay correct after a blank line, although the report claims they do.",
+          "The test does not cover whitespace-only or CRLF blank lines.",
+          "The README is not updated to say that blank lines are skipped."
+        ],
+        "b_issues": [
+          "The README is not updated to say that blank lines are skipped.",
+          "There is no end-to-end CLI test with a trailing blank line, though the unit tests cover the logic."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the identical one-line fix in parse_entries: skip blank and whitespace-only lines while still counting them for line numbers. A's tests are stronger. They cover whitespace-only and CRLF blank lines, and they pin down that a bad line after a blank line still reports its physical line number, which both reports claim. B's single CLI test does exercise the accountant's scenario end to end, and its report usefully flags the 'blank lines anywhere' choice, but it leaves the line-numbering claim untested.",
+        "a_issues": [
+          "No end-to-end CLI test of an import with a trailing blank line",
+          "README's CSV section is not updated to mention that blank lines are ignored"
+        ],
+        "b_issues": [
+          "The report claims error line numbers stay correct after skipped lines, but no test checks this",
+          "Whitespace-only and CRLF blank lines are not tested",
+          "README's CSV section is not updated to mention that blank lines are ignored"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

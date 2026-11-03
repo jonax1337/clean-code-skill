@@ -1,0 +1,89 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "424a85167c257204",
+    "ub-mode": "5bb12cc79c0c2b47"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.0,
+    "design": 1.0,
+    "readability": 0.75,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs move the email, name and role checks into `src/validation.js` correctly, keep the message wording and order, and keep the `updateUser` partial-update semantics. A also makes `inviteUser` lowercase emails, which `docs/api.md` documents; it says so plainly in the report and adds a test for it. B keeps the undocumented bug and builds a `lowercase: false` option into the shared validator just to preserve it. B has the better validator tests, but it committed and attempted a `git push` nobody asked for, and its report includes an irrelevant note about skipped tools.",
+        "a_issues": [
+          "Changes `inviteUser` behaviour (lowercasing emails) inside a refactor; it is justified by the docs and disclosed, but it goes beyond a pure refactor.",
+          "No direct tests for `validation.js`, so boundaries such as the 80-character name limit and a blank name in `updateUser` are untested, as the report admits.",
+          "Splits name validation into `validateName` and `validateOptionalName` and adds a `collect` helper, a little more surface than strictly needed."
+        ],
+        "b_issues": [
+          "Builds a `lowercase: false` option into the shared email validator only to preserve behaviour that contradicts the documented contract.",
+          "Committed and attempted `git push` without being asked to.",
+          "The report says '16 existing handler tests', but there are 15; the count appears to include `helpers.js`.",
+          "The report contains an irrelevant line about skipping 'crapper, dryer and mutator' checks."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both PRs correctly move validation into src/validation.js with the message wording and order intact. B aligns inviteUser with the documented contract (invitation emails are stored lowercase), tests that, and reports it plainly as a behaviour change. A keeps the bug behind a `lowercase: false` option, which preserves the divergence the task wanted removed. A also tried to `git push` without being asked, and its report mentions unrelated tools; its direct validator tests do not outweigh these problems.",
+        "a_issues": [
+          "Keeps inviteUser's case-sensitive email handling, which contradicts docs/api.md, by adding a `lowercase` option, so the per-handler divergence survives the refactor.",
+          "Committed and attempted `git push` without being asked to.",
+          "Report mentions skipping 'crapper, dryer and mutator checks', which is irrelevant noise.",
+          "The messages-flattening expression is still duplicated in createUser and inviteUser instead of shared."
+        ],
+        "b_issues": [
+          "Changes inviteUser behaviour (lowercasing emails) within a refactor task, though it follows the docs and is flagged in the report.",
+          "No direct tests for validation.js and no boundary tests such as the 80-character name limit; the report admits this.",
+          "The test-count explanation involving helpers.js is slightly confusing."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "B",
+          "readability": "B",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

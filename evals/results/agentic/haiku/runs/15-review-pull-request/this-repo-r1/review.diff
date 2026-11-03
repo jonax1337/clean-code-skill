@@ -1,0 +1,65 @@
+diff --git a/REVIEW.md b/REVIEW.md
+new file mode 100644
+index 0000000..ed5beaf
+--- /dev/null
++++ b/REVIEW.md
+@@ -0,0 +1,59 @@
++# Review: PR 482 (user search, paged user list, bulk deactivation with audit log)
++
++Line numbers refer to the files as they are after applying `pr/482.diff`. I applied the patch in a scratch copy and did not change the repo. `python -m pytest -q` in that copy: **28 passed**, which matches the PR description. The problems below are not caught by those tests.
++
++## Findings, most important first
++
++### 1. SQL injection in `search_users` (must fix)
++`adminhub/search.py:13` puts the user's search term into the SQL text with an f-string:
++
++```python
++f"WHERE name LIKE '%{term}%' OR email LIKE '%{term}%' "
++```
++
++This breaks the README rule that all queries use `?` placeholders. I confirmed it: with the term `zzz' OR name<>'`, `search_users` returned all 5 users from the fixture instead of none. `api.search` (`adminhub/api.py:42-48`) passes `q` straight through, so any console user, or anyone who can reach the endpoint, can read the whole table. The fix is to bind the term:
++
++```python
++"WHERE name LIKE ? ESCAPE '\\' OR email LIKE ? ESCAPE '\\' "
++```
++
++with the pattern `f"%{escaped}%"`, where `escaped` has `\`, `%` and `_` escaped (see finding 3). Add a test that uses a quote in the term and asserts no extra rows come back.
++
++### 2. The audit trail can fail silently (must fix: compliance requirement)
++`adminhub/audit.py:14-16` catches `sqlite3.Error` and does `pass`. If the insert fails, `deactivate_users` (`adminhub/users.py:61-63`) still commits the `UPDATE`, so the user is deactivated with no audit row. I checked this: after `DROP TABLE audit_log`, `bulk_deactivate` returned `200 {"deactivated": 1}` and user 2 was inactive. Compliance asked that every deactivation be recorded, so this breaks the stated purpose of the PR. Remove the `try/except` in `audit.record` and let the error propagate, so the transaction rolls back.
++
++### 3. Audit entries are written for IDs that were never deactivated (should fix)
++`adminhub/users.py:62-63` writes one audit row per requested ID, not per row changed. I sent `ids=["99"]` (no such user): the response was `deactivated: 0`, but `audit_log` got a `deactivate` entry for target 99. Already inactive users are also audited again. Either audit only the IDs that changed (select them first, then update and audit those), or make the audit row say what actually happened.
++
++### 4. `total_pages` is wrong (should fix)
++`adminhub/api.py:37` computes `count_users(conn) // per_page`, which rounds down. With 5 users and `per_page=2` it returns `pages: 2`, but 3 are needed, so the last page is never offered in the pager. An empty table gives `pages: 0` even though page 1 exists. Use ceiling division, e.g. `max(1, -(-total // per_page))`.
++
++### 5. Bad input causes unhandled exceptions instead of 400s (should fix)
++- `api.py:35-36`, `api.py:46`: `int(params.get(...))` raises `ValueError` for `page=abc`. I reproduced it: `search` with `page=abc` raised instead of returning 400. Other handlers in this file (`_user_id`) return 400 for this.
++- `api.py:36`: `per_page=0` gives `ZeroDivisionError` in `total_pages` (reproduced). Negative `per_page` or `page=0` gives negative `OFFSET` values. Validate `page >= 1` and `per_page` in `1..100` and return 400.
++- `api.py:62`: `params["actor"]` raises `KeyError` when missing. Return 400, as `signups` does for missing `start`/`end`.
++- `api.py:61`: `int(user_id)` on a non-numeric entry in `ids` raises `ValueError`. Return 400.
++
++### 6. `LIKE` wildcards in the term are not escaped (should fix)
++`adminhub/search.py:13`: a search for `%` matches every user (reproduced: it returned all 5). `_` also matches any single character. Escape these, together with the fix from finding 1.
++
++### 7. Unbounded `IN (...)` list in `bulk_deactivate` (should check)
++`adminhub/users.py:60-61` builds one placeholder per ID and has no upper limit. Very large batches can exceed SQLite's bound-parameter limit (it depends on the build; 999 on older builds), which would then raise an unhandled `OperationalError`. I did not test this. Cap the batch size in the handler and return 400 above it.
++
++### 8. Behaviour change in `list_users` not reflected in the docs (should fix)
++`users.list_users` now defaults to 25 rows (`adminhub/users.py:35`). Any caller that wants everyone (there is none in the repo today) now silently gets 25. `README.md` still says `list_users` takes no parameters and returns all users, so the handler table is now wrong. Update the README table, and add `page`/`per_page` and the new `search` and `bulk_deactivate` handlers.
++
++### 9. Smaller points
++- `adminhub/search.py:10`: the `TODO` about exact-match ranking is fine to leave, but say in the PR that it is out of scope.
++- `search_users` has `per_page` as a parameter (`search.py:9`), but the handler never passes it, so `search` cannot be paged in a size the console chooses. This is harmless, but it is an option nobody sets.
++- `search.py:3` imports `os`, which is unused.
++- Tests: none cover invalid input (`page=abc`, `per_page=0`, missing `actor`), the audit failure path, the wrong page count, or wildcard/quote input to search. Those gaps are why the findings above get past 28 green tests.
++
++## Good parts to keep
++- `deactivate_users` runs the update and the audit writes in one transaction and rolls back on error (`users.py:59-68`). That is the right shape, apart from finding 2.
++- Parameterised `LIMIT`/`OFFSET` in `list_users` and `deactivate_users` follow the README rule.
++- Page numbering from 1 matches the README.
++
++## Would I merge it as it is?
++
++**No.** Finding 1 is a SQL injection in a search endpoint that the console exposes, and finding 2 means deactivations can happen without the audit record that compliance asked for. Both are blocking. Findings 3–5 give wrong results or crashes in normal console use (wrong page count, `500`s on bad input). The console team's deadline is real, so the fastest route is: fix findings 1 and 2, add tests for them, and fix the page count (finding 4). Findings 3, 5 and 6 can follow in the same PR if they are quick. Finding 7 can be a follow-up if the batch size is capped in the console.

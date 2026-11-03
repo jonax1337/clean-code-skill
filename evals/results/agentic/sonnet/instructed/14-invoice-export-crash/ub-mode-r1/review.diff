@@ -1,0 +1,34 @@
+diff --git a/src/sources.js b/src/sources.js
+index 637fd82..6107906 100644
+--- a/src/sources.js
++++ b/src/sources.js
+@@ -8,11 +8,11 @@ function readJson(directory, file) {
+ export function loadInvoices(directory) {
+   return readJson(directory, "invoices.json");
+ }
+ 
+ /** The customers of both systems in one list: billing first, then the CRM. */
+ export function loadCustomerRecords(directory) {
+   return [
+     ...readJson(directory, "billing-customers.json"),
+-    ...readJson(directory, "crm-customers.json"),
++    ...readJson(directory, "crm-customers.json").map(({ customer_id, ...rest }) => ({ customerId: customer_id, ...rest })),
+   ];
+ }
+diff --git a/tests/sources.test.js b/tests/sources.test.js
+new file mode 100644
+index 0000000..14e452b
+--- /dev/null
++++ b/tests/sources.test.js
+@@ -0,0 +1,11 @@
++import assert from "node:assert/strict";
++import { test } from "node:test";
++import { buildCustomerIndex } from "../src/customers.js";
++import { loadCustomerRecords } from "../src/sources.js";
++
++test("customers from both billing and the CRM can be looked up by customerId", () => {
++  const index = buildCustomerIndex(loadCustomerRecords("data"));
++  assert.equal(index.get("C-1001").name, "Acme GmbH");
++  assert.equal(index.get("C-2201").name, "Birch & Co");
++  assert.equal(index.size, 7);
++});

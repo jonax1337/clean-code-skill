@@ -1,0 +1,80 @@
+{
+  "case": "01-reuse-across-modules",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "8d822502a7614307",
+    "ub-mode": "0335df23496c3f48"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The production code changes are identical. Both reuse `gross_total` and `format_eur` and put the line right after the items. Both new tests are arithmetically correct and check the placement. A wins on the report: it is concise and accurate. B attempted an unrequested push and mentions irrelevant tooling ('crapper, dryer or mutator'), which adds noise and suggests actions beyond the task.",
+        "a_issues": [
+          "Test does not cover an order without shipping or a mixed-VAT order (minor)"
+        ],
+        "b_issues": [
+          "Attempted to push to a remote without being asked",
+          "Report includes irrelevant remarks about unknown tools (crapper, dryer, mutator) and push failure noise",
+          "Test does not cover an order without shipping or a mixed-VAT order (minor)"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The code changes are identical: both reuse `gross_total` and `format_eur` and put the line right after the item list. Both tests check the placement and German formatting with correct arithmetic (1000 + 190 VAT + shipping). The difference is the report. A's report leads with a push the task never asked for, and mentions 'crapper, dryer or mutator' tools that don't exist in the repo, which is confusing noise. B's report is concise and accurately states what was verified.",
+        "a_issues": [
+          "Report mentions unexplained 'crapper, dryer or mutator' tools that are not part of the repository",
+          "Committed and attempted a push without being asked, and the report leads with that push failure instead of the change"
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

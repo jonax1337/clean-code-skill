@@ -1,0 +1,226 @@
+diff --git a/src/handlers/createUser.js b/src/handlers/createUser.js
+index d9710d7..9eae0f3 100644
+--- a/src/handlers/createUser.js
++++ b/src/handlers/createUser.js
+@@ -1,37 +1,19 @@
+ import { conflict, created, validationFailed } from '../response.js';
+-
+-const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+-const ROLES = ['owner', 'admin', 'member', 'viewer'];
+-const MAX_NAME_LENGTH = 80;
++import { DEFAULT_ROLE, checkEmail, checkName, checkRole, normalizeEmail, normalizeName } from '../validation/user.js';
+ 
+ export function createUser(store, request) {
+   const body = request.body ?? {};
+-  const messages = [];
+-
+-  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+-  if (email === '') {
+-    messages.push('email is required');
+-  } else if (!EMAIL_PATTERN.test(email)) {
+-    messages.push('email is invalid');
+-  }
+ 
+-  const name = typeof body.name === 'string' ? body.name.trim() : '';
+-  if (name === '') {
+-    messages.push('name is required');
+-  } else if (name.length > MAX_NAME_LENGTH) {
+-    messages.push('name must be at most 80 characters');
+-  }
+-
+-  const role = body.role === undefined ? 'member' : body.role;
+-  if (!ROLES.includes(role)) {
+-    messages.push('role is invalid');
+-  }
++  const email = normalizeEmail(body.email);
++  const name = normalizeName(body.name);
++  const role = body.role === undefined ? DEFAULT_ROLE : body.role;
+ 
++  const messages = [checkEmail(email), checkName(name), checkRole(role)].filter(Boolean);
+   if (messages.length > 0) {
+     return validationFailed(messages);
+   }
+   if (store.findUserByEmail(email)) {
+     return conflict('email already in use');
+   }
+   return created(store.addUser({ email, name, role }));
+ }
+diff --git a/src/handlers/inviteUser.js b/src/handlers/inviteUser.js
+index 9b1a608..0d986c8 100644
+--- a/src/handlers/inviteUser.js
++++ b/src/handlers/inviteUser.js
+@@ -1,38 +1,26 @@
+ import { conflict, created, validationFailed } from '../response.js';
++import { checkEmail, checkName, checkRole, normalizeEmail, normalizeName } from '../validation/user.js';
+ 
+-const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+ const INVITABLE_ROLES = ['admin', 'member', 'viewer'];
+-const MAX_NAME_LENGTH = 80;
+ 
+ export function inviteUser(store, request) {
+   const body = request.body ?? {};
+-  const messages = [];
+-
+-  const email = typeof body.email === 'string' ? body.email.trim() : '';
+-  if (email === '') {
+-    messages.push('email is required');
+-  } else if (!EMAIL_PATTERN.test(email)) {
+-    messages.push('email is invalid');
+-  }
+ 
++  const email = normalizeEmail(body.email);
+   // The invitee fills in their name when they accept, so an empty name is fine here.
+-  const name = typeof body.name === 'string' ? body.name.trim() : '';
+-  if (name.length > MAX_NAME_LENGTH) {
+-    messages.push('name must be at most 80 characters');
+-  }
+-
++  const name = normalizeName(body.name);
+   const role = body.role;
+-  if (role === undefined) {
+-    messages.push('role is required');
+-  } else if (!INVITABLE_ROLES.includes(role)) {
+-    messages.push('role is invalid');
+-  }
+ 
++  const messages = [
++    checkEmail(email),
++    checkName(name, { required: false }),
++    checkRole(role, { allowed: INVITABLE_ROLES, required: true }),
++  ].filter(Boolean);
+   if (messages.length > 0) {
+     return validationFailed(messages);
+   }
+   if (store.findUserByEmail(email) || store.findInvitationByEmail(email)) {
+     return conflict('email already in use');
+   }
+   return created(store.addInvitation({ email, name, role }));
+ }
+diff --git a/src/handlers/updateUser.js b/src/handlers/updateUser.js
+index 86e20db..64615da 100644
+--- a/src/handlers/updateUser.js
++++ b/src/handlers/updateUser.js
+@@ -1,52 +1,40 @@
+ import { conflict, notFound, ok, validationFailed } from '../response.js';
+-
+-const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+-const ROLES = ['owner', 'admin', 'member', 'viewer'];
+-const MAX_NAME_LENGTH = 80;
++import { checkEmail, checkName, checkRole, normalizeEmail, normalizeName } from '../validation/user.js';
+ 
+ export function updateUser(store, request) {
+   const user = store.getUser(Number(request.params.id));
+   if (!user) {
+     return notFound('user not found');
+   }
+ 
+   const body = request.body ?? {};
+   const messages = [];
+   const changes = {};
+ 
++  // Only fields present in the request are validated and applied.
+   if (body.email !== undefined) {
+-    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+-    if (email === '') {
+-      messages.push('email is required');
+-    } else if (!EMAIL_PATTERN.test(email)) {
+-      messages.push('email is invalid');
+-    } else {
+-      changes.email = email;
+-    }
++    const email = normalizeEmail(body.email);
++    const error = checkEmail(email);
++    if (error) messages.push(error);
++    else changes.email = email;
+   }
+ 
+   if (body.name !== undefined) {
+-    const name = typeof body.name === 'string' ? body.name.trim() : '';
+-    if (name === '') {
+-      messages.push('name is required');
+-    } else if (name.length > MAX_NAME_LENGTH) {
+-      messages.push('name must be at most 80 characters');
+-    } else {
+-      changes.name = name;
+-    }
++    const name = normalizeName(body.name);
++    const error = checkName(name);
++    if (error) messages.push(error);
++    else changes.name = name;
+   }
+ 
+   if (body.role !== undefined) {
+-    if (!ROLES.includes(body.role)) {
+-      messages.push('role is invalid');
+-    } else {
+-      changes.role = body.role;
+-    }
++    const error = checkRole(body.role);
++    if (error) messages.push(error);
++    else changes.role = body.role;
+   }
+ 
+   if (messages.length > 0) {
+     return validationFailed(messages);
+   }
+   if (Object.keys(changes).length === 0) {
+     return validationFailed(['no fields to update']);
+   }
+diff --git a/src/validation/user.js b/src/validation/user.js
+new file mode 100644
+index 0000000..307ed8e
+--- /dev/null
++++ b/src/validation/user.js
+@@ -0,0 +1,34 @@
++// Single source of truth for user field rules. Handlers compose these checks;
++// a rule change (pattern, length limit, role list) only needs to be made here.
++
++const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
++export const ROLES = ['owner', 'admin', 'member', 'viewer'];
++export const DEFAULT_ROLE = 'member';
++export const MAX_NAME_LENGTH = 80;
++
++export function normalizeEmail(raw) {
++  return typeof raw === 'string' ? raw.trim().toLowerCase() : '';
++}
++
++export function normalizeName(raw) {
++  return typeof raw === 'string' ? raw.trim() : '';
++}
++
++// Each check returns an error message, or null when the value is acceptable.
++
++export function checkEmail(email) {
++  if (email === '') return 'email is required';
++  if (!EMAIL_PATTERN.test(email)) return 'email is invalid';
++  return null;
++}
++
++export function checkName(name, { required = true } = {}) {
++  if (name === '' && required) return 'name is required';
++  if (name.length > MAX_NAME_LENGTH) return `name must be at most ${MAX_NAME_LENGTH} characters`;
++  return null;
++}
++
++export function checkRole(role, { allowed = ROLES, required = false } = {}) {
++  if (role === undefined) return required ? 'role is required' : null;
++  return allowed.includes(role) ? null : 'role is invalid';
++}
+diff --git a/test/inviteUser.test.js b/test/inviteUser.test.js
+index b4517c9..63be276 100644
+--- a/test/inviteUser.test.js
++++ b/test/inviteUser.test.js
+@@ -13,8 +13,13 @@ test('requires a role', () => {
+   const result = inviteUser(storeWith(), { body: { email: 'bob@example.com' } });
+   assert.deepEqual(result.body.messages, ['role is required']);
+ });
+ 
+ test('answers 409 when a user already has the email', () => {
+   const result = inviteUser(storeWith(ann()), { body: { email: 'ann@example.com', role: 'member' } });
+   assert.equal(result.status, 409);
+ });
++
++test('matches existing emails regardless of case', () => {
++  const result = inviteUser(storeWith(ann()), { body: { email: 'ANN@example.com', role: 'member' } });
++  assert.equal(result.status, 409);
++});

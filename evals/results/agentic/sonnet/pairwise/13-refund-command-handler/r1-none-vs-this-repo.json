@@ -1,0 +1,85 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "d0fd3941d1b2e90d",
+    "this-repo": "cfc5518d65186853"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both handlers are functionally equivalent and correct: same status check, a cap against amountPaid that includes earlier refunds, the same validation and errors, and the status is left unchanged. B wins slightly on readability (a named `refundable` amount and a clearer error message), a cleaner README edit, and somewhat broader tests (cancelled orders, negative amounts, one refund bringing the total to exactly the amount paid). Its report miscounts the new tests, which slightly weakens it against A's accurate report.",
+        "a_issues": [
+          "The README edit pushes a long sentence into an existing wrapped paragraph and adds a table row wider than the column, so the formatting is inconsistent.",
+          "The tests do not cover cancelled orders or negative amounts.",
+          "Every test shares one setup where 80 is paid on a 100 total, so no test uses a fully paid order."
+        ],
+        "b_issues": [
+          "The report says 8 new refund tests, but the diff adds 9 (20 existing + 9 = 29 total).",
+          "Tests compare BigDecimal with assertEquals, which also compares scale. They pass here but are more fragile than compareTo."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement essentially the same correct handler: the status check, input validation, a cumulative cap against amountPaid and an unchanged status. A's tests are somewhat broader: they also cover a cancelled order, negative amounts, and both fully paid and underpaid orders. Its README edit also keeps the existing formatting. B's report is slightly more accurate, since A says there are 8 new tests when it added 9, but that does not outweigh A's better coverage.",
+        "a_issues": [
+          "Report says 8 new refund tests, but the diff adds 9 (20 existing + 9 = 29).",
+          "Method name `recordRefund` is fine, but the README row 'stays SHIPPED or DELIVERED' reads a little awkwardly in a 'moves from' column."
+        ],
+        "b_issues": [
+          "Tests do not cover a cancelled order or a negative refund amount.",
+          "All tests share one underpaid fixture, so a fully paid order is never exercised.",
+          "The README edit puts a long line into the wrapped paragraph and widens the table row past the column alignment."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

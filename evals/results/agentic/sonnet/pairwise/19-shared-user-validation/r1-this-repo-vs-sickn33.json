@@ -1,0 +1,87 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "424a85167c257204",
+    "sickn33": "6fa6e917977e79a0"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.0,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors centralize the email, name and role checks and keep the messages, their order and the per-handler differences intact. A also brings inviteUser's email handling in line with docs/api.md, which says invitation emails are stored lowercase, and adds a test for it. It reports this as a deliberate behavior change. B keeps the documented bug by adding a `lowercase: false` option to the shared validator, so a rule that clients rely on stays split across handlers, which works against the goal of the task. B is the more conservative refactor and flags the bug honestly, but leaving a contract violation in place behind a shared option makes A the better merge.",
+        "a_issues": [
+          "Bundles a behavior change (lowercasing invite emails) into a refactor; it is documented and tested, but it widens the scope",
+          "No direct tests for the new validation.js, so boundaries such as the 80-character limit and a blank name in updateUser are not covered",
+          "Has two name validators (validateName and validateOptionalName) where one with a flag would do"
+        ],
+        "b_issues": [
+          "Adds a `lowercase: false` option whose only purpose is to keep behavior that contradicts docs/api.md, so the email rule is still not fixed in one place",
+          "Adds no tests at all, including none for the new module",
+          "The report's \"16 existing tests\" counts test/helpers.js as a test without saying so"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes correctly centralize the email, name and role checks while keeping the message order and wording. B also fixes the inviteUser email lowercasing, which docs/api.md explicitly requires, so the shared validator has no bug-preserving option. B discloses that change clearly and adds a test for it. A is a stricter pure refactor and flags the bug honestly, but its `lowercase: false` option keeps a known contract violation alive in the shared module, which works against the goal of fixing validation in one place.",
+        "a_issues": [
+          "Adds a `lowercase: false` option to the shared validateEmail only to keep a documented bug (invitation emails must be stored lowercase), so case-insensitive duplicate detection for invites stays broken.",
+          "No tests added for the new validation module or the refactored paths.",
+          "The collectResults doc comment ('Runs each [field, result] pair... Skips nothing') is slightly misleading, since it receives results that were already computed."
+        ],
+        "b_issues": [
+          "Changes inviteUser behavior (lowercasing the email) inside what was asked to be a refactor. The change is disclosed and justified by the docs, but it is still beyond the strict scope.",
+          "INVITABLE_ROLES stays in inviteUser.js instead of moving into the shared module next to ROLES, so the role lists are still split.",
+          "No direct boundary tests for validation.js, such as the 80-character limit or a blank name on update; the report acknowledges this."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

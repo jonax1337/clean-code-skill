@@ -1,0 +1,87 @@
+{
+  "case": "07-tests-for-rates",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "5cd65213f57fb593",
+    "this-repo": "3b47000cb4f07a7d"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs add only test/rates.test.ts, leave src/rates.ts alone, and every expected value I checked by hand matches the code, so both suites should pass. B's tests protect the change somewhat better: it checks just past the fee boundaries (1240 EUR, 2040 JPY, 200040 EUR), a cross-rate conversion with no euro side (USD\u2192CHF), and the same tie amount giving different fees in EUR and USD. B's report also flags behavior worth checking before the refactor. A's suite is clean and also covers CHF half-even conversion, so the margin is small.",
+        "a_issues": [
+          "Report says 29 tests, but the file has 30, which is consistent with the reported total of 40.",
+          "Fee boundary tests only hit exact boundaries and never check an amount just past the minimum or maximum.",
+          "No conversion between two non-euro currencies, so the via-euro path is only checked with EUR on one side."
+        ],
+        "b_issues": [
+          "Report says 31 tests, but the file has 30, which is consistent with the reported total of 40.",
+          "convert(MAX_SAFE_INTEGER, EUR, USD) returns a value above MAX_SAFE_INTEGER. It is exact only because it happens to be even, yet the test and the report call it exact without noting this.",
+          "Half-even conversion is tested only for KWD, not CHF, and feeFor input validation is thinner (no Infinity or unsafe integers).",
+          "One report caveat about CHF and KWD rates is vague."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs add only test/rates.test.ts. I checked every expected value in both files against the rate table and the rounding logic, and all of them match what the code does. A has a stronger exactness test: MAX_SAFE_INTEGER EUR\u2192USD gives a result above 2^53. It also tests the fee cap from just above (200040 \u2192 5000). B covers more half-even currencies (CHF as well as KWD), but its claim that amounts up to MAX_SAFE_INTEGER stay exact rests only on an identity conversion and 1e12. A's report is also more candid about what the tests pin down and where it corrected an expected value.",
+        "a_issues": [
+          "Report says 31 tests, but the file has 30 (30 + 10 existing = the stated 40 total).",
+          "Half-even convert ties are tested only for KWD, not CHF."
+        ],
+        "b_issues": [
+          "Report says 29 tests, but the file has 30.",
+          "The claim that amounts up to MAX_SAFE_INTEGER stay exact is backed only by a same-currency identity check and a 1e12 conversion, not a rounding conversion near 2^53.",
+          "The report frames hand-computed values as 'intended behavior', but they are the same as the current behavior; it does not flag any design choices worth reviewing before the planned change."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

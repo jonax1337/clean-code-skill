@@ -1,0 +1,83 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "81b26d33dca311c1",
+    "this-repo": "944d175d31f77bd9"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes make the same production fix: CRM records are mapped from `customer_id` to `customerId`, and the export uses `requireCustomer` so a missing customer raises an UnknownReferenceError, as the README requires. B also adds regression tests for both behaviours, so the fix stays in place. A ships the same fix with no new tests. B's named `fromCrmRecord` helper is slightly clearer, and its report is complete and honest about what it did not verify.",
+        "a_issues": [
+          "No regression test for the CRM id mapping or for the new UnknownReferenceError path in the export.",
+          "Inline mapping that reorders `loadCustomerRecords` is slightly less readable than a named helper, and it puts `customerId` last in the record."
+        ],
+        "b_issues": [
+          "`tests/sources.test.js` reads the real `data/` directory, so the test depends on production data files rather than a fixture.",
+          "The new tests were not run against the old code to confirm they fail there (the report says so)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes make the same correct fix: they map the CRM `customer_id` to `customerId` at load time and route lookups through `requireCustomer`, so a missing customer now produces the documented UnknownReferenceError and exit 1. A also adds a regression test for the CRM mapping and one for an orphan invoice. B adds no test, so the actual cause of the crash is unprotected. Both reports are accurate, and A states clearly what it did and did not verify.",
+        "a_issues": [
+          "The new sources test reads the real `data/` directory, so it depends on the working directory and the production data files instead of a fixture.",
+          "The report admits the new tests were not run against the old code to confirm they fail there."
+        ],
+        "b_issues": [
+          "No regression test for the CRM `customer_id` mapping, which is the actual cause of the crash.",
+          "No test for the new `requireCustomer` error path in the export."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

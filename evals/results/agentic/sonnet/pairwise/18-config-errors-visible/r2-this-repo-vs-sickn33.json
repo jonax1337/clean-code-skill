@@ -1,0 +1,86 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "3d4376183cfa0fc6",
+    "sickn33": "2d68b69694471e16"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes reject invalid values, unknown keys and missing files, report every problem at once and exit 78, with nearly identical test coverage. A keeps the loader's existing static structure, catches the specific URISyntaxException and includes its reason in the message, and tests that zero retries is still accepted. B turns the loader into a stateful instance without needing to, catches a broad Exception for URL parsing, and its report wrongly says a missing upstream.url used to crash with a null-pointer error. B's README note is a real plus, but it does not quite outweigh these points.",
+        "a_issues": [
+          "Does not document the new strict-validation behaviour or the exit code in the README, even though a missing file now stops startup instead of running on defaults.",
+          "The unknown-key rejection is a behaviour change that could break existing deployments; it is flagged in the report but not configurable."
+        ],
+        "b_issues": [
+          "Restructures ConfigLoader into an instance with mutable state, which is more churn than the task needed.",
+          "The upstream URL parse catches a broad Exception rather than URISyntaxException and drops the parse reason from the message.",
+          "The report claims a missing upstream.url used to crash with a null-pointer error; the original code caught that exception and silently returned null.",
+          "No test confirms that the minimum boundary (for example retry.max-attempts=0) is still accepted."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement the same strict validation: they collect every problem, reject unknown keys, treat a missing file as an error, validate the URL, reject zero or overflowing timeouts, check the boolean strictly, and exit with status 78. A also documents the new strict behavior in the README. That matters for ops, because a missing file and stray keys now stop startup. A also gives more specific timeout error messages. B's tests are a bit broader (zero retries accepted, ftp scheme, negative and overflow timeouts), but A's documentation of a deploy-facing behavior change tips it slightly.",
+        "a_issues": [
+          "Tests cover fewer edge cases than B: there is no positive test that zero retries is accepted, and the non-http scheme check uses only a path rather than e.g. ftp://",
+          "Turns ConfigLoader into a stateful instance holding a mutable problems list, a somewhat bigger restructuring than needed"
+        ],
+        "b_issues": [
+          "Does not document the new strict behavior in the README, even though a missing file and unknown keys now stop startup; the report dismisses this with 'README table needed no change'",
+          "The timeout error message is the same for a missing unit, a zero value and overflow, which is less precise for whoever is deploying",
+          "Uses a hard-coded \"\\n\" in the error message rather than the platform line separator (minor)"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

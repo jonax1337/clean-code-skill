@@ -1,0 +1,85 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "9110d257d31fd2c6",
+    "ub-mode": "008f2dea12e47b2a"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The code fix is identical in both changes and correctly skips whitespace-only lines while keeping the real line numbers in error messages. A's README wording ('Any other line that cannot be read') is more precise than B's, which reads as if blank lines could still stop the import. B committed directly to main without being asked, and its report has a garbled sentence about unavailable tools from an empty source. B did run an end-to-end import, but that does not outweigh the unrequested commit and the less clean report.",
+        "a_issues": [
+          "Did not test against a real file through the CLI; verification was only through unit tests."
+        ],
+        "b_issues": [
+          "Committed to main (f6df2ef) without being asked to.",
+          "Report contains a garbled sentence about 'crapper, dryer or mutator tools from ,' that refers to tools from an empty source.",
+          "README now says 'A line that cannot be read stops the import' right after 'Blank lines are skipped', which slightly contradicts itself.",
+          "Test input includes an empty string '', which file iteration never yields; harmless but not realistic."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production code change is identical in both: whitespace-only lines are skipped in parse_entries, and line numbering is kept. Both add equivalent tests and make the same one-sentence README update. B's README wording ('Any other line') is slightly more precise, and B's report is accurate and plainly honest about what was and wasn't verified. A's report has a garbled sentence about unrelated 'crapper, dryer or mutator' tools, and A committed to main without being asked.",
+        "a_issues": [
+          "Report has a garbled, confusing sentence about 'crapper, dryer or mutator tools from ,', which the user never mentioned",
+          "Committed directly to main without being asked",
+          "README says 'A line that cannot be read' right after saying blank lines are skipped, which is slightly less precise than B's wording"
+        ],
+        "b_issues": [
+          "Blank-line test doesn't include a bare empty-string element (minor, since file iteration rarely yields one)",
+          "Report mentions a broken first editing attempt; it says it was reverted, but this adds noise"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

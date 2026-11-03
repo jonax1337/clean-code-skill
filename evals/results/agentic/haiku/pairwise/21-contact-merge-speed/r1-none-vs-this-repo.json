@@ -1,0 +1,79 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "18e33c63e1cc3636",
+    "this-repo": "3c6d7f4b2238cd5d"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs make the same correct change to `src/import.ts`: a Map from normalized email to the first matching index, updated as new contacts are appended. This turns the merge from quadratic to linear and keeps first-entry-wins and arrival order. B also adds a test that pins first-entry-wins when the existing book has duplicate emails, which is the behavior the index could most easily break. B's report gives a before/after benchmark and an output-equivalence check, so B is the safer merge.",
+        "a_issues": [
+          "Adds no test for the first-entry-wins rule with duplicate emails in the existing book, which the new index could silently break",
+          "Report gives only the after timing (about 50 ms), with no baseline and no check that the output matches the old implementation"
+        ],
+        "b_issues": [
+          "Uses `forEach` with a side-effecting callback where a plain loop would read just as well (minor style point)"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make the same fix: build a Map from normalized email to the first matching position, and add newly appended contacts to it. Both preserve first-entry-wins semantics and output order, so the code changes are functionally identical. A also adds a test for the edge case the index could most easily break, where the existing book already contains duplicate emails, and its report compares old and new runs on the same output. B adds no test, so a future change could silently break the first-match rule.",
+        "a_issues": [],
+        "b_issues": [
+          "Adds no test protecting the first-entry-wins semantics when the existing book already has duplicate emails.",
+          "The benchmark has no before/after comparison or output-equivalence check, so 'semantics unchanged' rests only on the existing tests."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

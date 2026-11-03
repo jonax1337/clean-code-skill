@@ -1,0 +1,85 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "c28089c1d0b161f2",
+    "this-repo": "4d0c9a3aaa91c4b8"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both PRs make the same change to `mergeContacts`: a Map from normalized email to index. Both keep first-match semantics and arrival order and track new appends, so the core change is equivalent. B also adds a test for repeated stored emails and a scale test, and it ran the test suite and typecheck. A ran nothing and added no tests to protect the change. B's wall-clock assertion could be flaky on slow CI, but B's report says so.",
+        "a_issues": [
+          "No tests added to protect the new lookup behavior, such as first-match with repeated stored emails or the performance regression.",
+          "Nothing was run or verified, not even the existing tests or typecheck.",
+          "`?? -1` sentinel is a slightly awkward bridge to the old findIndex convention."
+        ],
+        "b_issues": [
+          "The performance test uses a wall-clock 1000ms threshold, which can be flaky on slow CI machines (acknowledged in the report).",
+          "The report's suggestion to check pipeline.ts goes slightly beyond the task, though it is harmless."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both diffs make the same correct change: a map from normalized email to the first matching position, updated on each append. That keeps first-match semantics, merges duplicates within the upload, and preserves append order. A adds a test pinning the repeated-stored-email edge case and a 50k/30k regression test. A also ran the suite and typecheck and reported honestly what it did not time. B ships the change with no tests and no verification, which it admits.",
+        "a_issues": [
+          "The performance test uses a wall-clock limit of 1000 ms, which could flake on slow CI (the report acknowledges this).",
+          "Neither the old nor the new speed was measured, so the speedup is asserted rather than quantified."
+        ],
+        "b_issues": [
+          "No tests were added for the new lookup path or for the repeated-existing-email edge case.",
+          "Nothing was run: no tests and no typecheck.",
+          "`indexByEmail.get(key) ?? -1` keeps the findIndex sentinel instead of checking for `undefined` directly, which is slightly less direct."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

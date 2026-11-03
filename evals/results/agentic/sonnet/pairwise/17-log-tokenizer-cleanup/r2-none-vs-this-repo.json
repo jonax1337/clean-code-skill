@@ -1,0 +1,85 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "2acc9d92d21951eb",
+    "this-repo": "b96acc341f4b801c"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors look behavior-preserving: the state machine, error positions, separator rule and empty-bare handling all match the original, and both reports describe a differential fuzz run and benchmarks. B also adds 15 characterization tests that pin every error kind and position, multibyte offsets, empty values and the stop-after-error behavior. That protects this refactor and future edits to the line format, which is exactly the user's concern. A leaves most error paths untested in the repo and only suggests adding such tests.",
+        "a_issues": [
+          "Adds no tests even though most error paths (NestedBracket, InvalidEscape, ExpectedSeparator, empty bare value) are untested; equivalence rests on a scratch fuzz harness that is not in the repo",
+          "Performance relies on the compiler inlining the non-annotated helper methods; there is no comment explaining the perf-sensitive structure for future maintainers"
+        ],
+        "b_issues": [
+          "read_value returns `Token::Bare(\"\")` (a static str) instead of a slice of the line. This is equal by value but deviates slightly from the 'borrowed from the line' doc",
+          "Relies on five `#[inline(always)]` attributes. It is justified by a comment, but it is a fragile performance contract"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors look behavior-preserving and give a similar readable structure: a State enum, per-token helpers and a #[cold] fail. A first pinned the old behavior with 15 characterization tests that cover every error kind, its byte position, multibyte offsets and stopping after an error, and these tests stay in the repo to protect future edits. B relied on a throwaway fuzz harness in /tmp and only suggested adding the edge-case tests, so the error paths remain mostly unprotected. A's design is also slightly cleaner: its scanners are pure functions returning Result, and failure handling is centralized in `next`.",
+        "a_issues": [
+          "Heavy use of #[inline(always)] on five helpers is a maintenance smell, though it is justified by measurements and explained in a comment",
+          "When the line is exhausted it does not advance `pos` past trailing separators as the original did; this is not observable through the public API",
+          "Splits `fail` into a separate `impl Tokens<'_>` block for no clear reason"
+        ],
+        "b_issues": [
+          "Adds no tests even though the report itself says several error paths (invalid escape, nested bracket, missing separator) are untested",
+          "Each scanner calls `self.fail` itself, so the error-state handling is spread across every helper instead of being in one place",
+          "Its equivalence check lives in a scratch crate in /tmp and is not preserved, so future edits to the tokenizer have no regression protection"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

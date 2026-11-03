@@ -1,0 +1,7 @@
+[
+  { "region": "DE", "rep": "Anke", "product": "Widget Pro", "units": 12, "unitPrice": 49.9, "date": "2024-03-04" },
+  { "region": "DE", "rep": "Jonas", "product": "Gadget Mini", "units": 150, "unitPrice": 12.5, "discountPct": 10, "date": "2024-03-11" },
+  { "region": "FR", "rep": "Claire", "product": "Widget Pro", "units": 30, "unitPrice": 51, "date": "2024-03-12" },
+  { "region": "UK", "rep": "Oliver", "product": "Gadget Mini", "units": 80, "unitPrice": 11.2, "date": "2024-03-20" },
+  { "region": "UK", "rep": "Priya", "product": "Premium Support Contract", "units": 1, "unitPrice": 9800, "date": "2024-04-02" }
+]

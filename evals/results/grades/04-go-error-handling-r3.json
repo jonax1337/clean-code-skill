@@ -3,131 +3,132 @@
   "rep": 3,
   "judge_model": "opus",
   "blind_map": {
-    "A": "v2",
-    "B": "v1",
-    "C": "sickn33",
-    "D": "baseline"
+    "A": "sickn33",
+    "B": "ub-mode",
+    "C": "this-repo",
+    "D": "none"
   },
+  "replies_fingerprint": "f9e8ef2acd2424e9",
   "results": {
-    "v2": {
-      "assertions": [
-        {
-          "text": "An invalid or missing `id` is detected (the `Atoi` error is checked) and answered with HTTP 400.",
-          "passed": true,
-          "evidence": "id, err := strconv.Atoi(...); if err != nil { http.Error(w, \"invalid user id\", http.StatusBadRequest); return }"
-        },
-        {
-          "text": "On a lookup error the handler returns instead of continuing; `store.ErrNotFound` is distinguished with `errors.Is` and mapped to 404, other errors to 500.",
-          "passed": true,
-          "evidence": "errors.Is(err, store.ErrNotFound) maps to 404 and returns; any other err is logged, maps to 500 and returns"
-        },
-        {
-          "text": "Idiomatic Go: plain `error` values; no `panic`/`recover` for control flow and no exception-like wrapper types invented.",
-          "passed": true,
-          "evidence": "Uses plain error values and early returns; no panic/recover and no custom error types"
-        },
-        {
-          "text": "Logged errors carry context (operation and/or id), and internal error details are not written to the client response.",
-          "passed": true,
-          "evidence": "log.Printf(\"find user %d: %v\", id, err); the client only sees \"internal server error\""
-        },
-        {
-          "text": "The `Encode` error is handled or explicitly addressed.",
-          "passed": true,
-          "evidence": "if err := json.NewEncoder(w).Encode(user); err != nil { log.Printf(\"encode response for user %d: %v\", id, err) }"
-        }
-      ],
-      "quality": 9
-    },
-    "v1": {
-      "assertions": [
-        {
-          "text": "An invalid or missing `id` is detected (the `Atoi` error is checked) and answered with HTTP 400.",
-          "passed": true,
-          "evidence": "parseUserID checks the Atoi error; the handler responds with http.StatusBadRequest and returns"
-        },
-        {
-          "text": "On a lookup error the handler returns instead of continuing; `store.ErrNotFound` is distinguished with `errors.Is` and mapped to 404, other errors to 500.",
-          "passed": true,
-          "evidence": "respondToFindUserError uses errors.Is for 404 and gives 500 otherwise; the handler returns after calling it"
-        },
-        {
-          "text": "Idiomatic Go: plain `error` values; no `panic`/`recover` for control flow and no exception-like wrapper types invented.",
-          "passed": true,
-          "evidence": "Plain errors via fmt.Errorf with %w; no panic and no wrapper types"
-        },
-        {
-          "text": "Logged errors carry context (operation and/or id), and internal error details are not written to the client response.",
-          "passed": false,
-          "evidence": "http.Error(w, err.Error(), 400) sends the wrapped strconv error text (\"strconv.Atoi: parsing ...: invalid syntax\") to the client, which leaks internal error details"
-        },
-        {
-          "text": "The `Encode` error is handled or explicitly addressed.",
-          "passed": true,
-          "evidence": "respondWithJSON logs the Encode error"
-        }
-      ],
-      "quality": 6
-    },
     "sickn33": {
       "assertions": [
         {
           "text": "An invalid or missing `id` is detected (the `Atoi` error is checked) and answered with HTTP 400.",
           "passed": true,
-          "evidence": "Checks the Atoi error and responds with \"invalid user id\", http.StatusBadRequest, then returns"
+          "evidence": "parseUserID returns the Atoi error; the handler replies http.Error(w, \"invalid user id\", http.StatusBadRequest) and returns."
         },
         {
           "text": "On a lookup error the handler returns instead of continuing; `store.ErrNotFound` is distinguished with `errors.Is` and mapped to 404, other errors to 500.",
           "passed": true,
-          "evidence": "switch with case errors.Is(err, store.ErrNotFound) for 404 and case err != nil for 500; both return"
+          "evidence": "respondWithFindUserError uses errors.Is(err, store.ErrNotFound) for 404 and gives 500 otherwise; the handler returns after calling it."
         },
         {
           "text": "Idiomatic Go: plain `error` values; no `panic`/`recover` for control flow and no exception-like wrapper types invented.",
           "passed": true,
-          "evidence": "Idiomatic early returns using plain errors"
+          "evidence": "Only plain error values and fmt.Errorf %w wrapping; no panic and no custom error types."
         },
         {
           "text": "Logged errors carry context (operation and/or id), and internal error details are not written to the client response.",
           "passed": true,
-          "evidence": "log.Printf(\"find user %d: %v\", id, err); the client gets the generic \"internal server error\""
+          "evidence": "log.Printf(\"find user: %v\", err) names the operation and the client gets a generic \"internal server error\". The id is not logged because the helper does not receive it."
         },
         {
           "text": "The `Encode` error is handled or explicitly addressed.",
           "passed": true,
-          "evidence": "writeJSON logs the Encode error and explains that headers are already sent"
+          "evidence": "writeJSON logs the Encode error and explains that the status has already been sent."
         }
       ],
-      "quality": 9
+      "quality": 7
     },
-    "baseline": {
+    "ub-mode": {
       "assertions": [
         {
           "text": "An invalid or missing `id` is detected (the `Atoi` error is checked) and answered with HTTP 400.",
           "passed": true,
-          "evidence": "Checks the Atoi error and responds with http.StatusBadRequest, then returns"
+          "evidence": "if err != nil { http.Error(w, \"invalid id\", http.StatusBadRequest); return }"
         },
         {
           "text": "On a lookup error the handler returns instead of continuing; `store.ErrNotFound` is distinguished with `errors.Is` and mapped to 404, other errors to 500.",
           "passed": true,
-          "evidence": "Inside if err != nil, errors.Is(err, store.ErrNotFound) gives 404; all other errors give 500; both paths return"
+          "evidence": "The switch uses errors.Is(err, store.ErrNotFound) for 404 and err != nil for 500, and both cases return."
         },
         {
           "text": "Idiomatic Go: plain `error` values; no `panic`/`recover` for control flow and no exception-like wrapper types invented.",
           "passed": true,
-          "evidence": "Plain errors and early returns; no panic"
+          "evidence": "Plain errors and a switch statement; no panic and no wrapper types."
         },
         {
           "text": "Logged errors carry context (operation and/or id), and internal error details are not written to the client response.",
           "passed": true,
-          "evidence": "log.Printf(\"handleGetUser: find user %d: %v\", id, err); the client sees a generic message"
+          "evidence": "log.Printf(\"find user %d: %v\", id, err) carries operation and id; the client gets a generic \"internal error\"."
         },
         {
           "text": "The `Encode` error is handled or explicitly addressed.",
           "passed": true,
-          "evidence": "The Encode error is checked and logged with the user id"
+          "evidence": "if err := json.NewEncoder(w).Encode(user); err != nil { log.Printf(\"encode user %d: %v\", ...) }"
         }
       ],
-      "quality": 8
+      "quality": 7
+    },
+    "this-repo": {
+      "assertions": [
+        {
+          "text": "An invalid or missing `id` is detected (the `Atoi` error is checked) and answered with HTTP 400.",
+          "passed": true,
+          "evidence": "The Atoi error is checked and answered with http.StatusBadRequest, then the handler returns."
+        },
+        {
+          "text": "On a lookup error the handler returns instead of continuing; `store.ErrNotFound` is distinguished with `errors.Is` and mapped to 404, other errors to 500.",
+          "passed": true,
+          "evidence": "errors.Is(err, store.ErrNotFound) gives 404 and returns; any other err is logged, gets 500 and returns."
+        },
+        {
+          "text": "Idiomatic Go: plain `error` values; no `panic`/`recover` for control flow and no exception-like wrapper types invented.",
+          "passed": true,
+          "evidence": "Idiomatic plain error checks with no panic or invented types."
+        },
+        {
+          "text": "Logged errors carry context (operation and/or id), and internal error details are not written to the client response.",
+          "passed": true,
+          "evidence": "log.Printf(\"handleGetUser: find user %d: %v\", id, err) carries operation and id; the client gets a generic 500 message."
+        },
+        {
+          "text": "The `Encode` error is handled or explicitly addressed.",
+          "passed": true,
+          "evidence": "The Encode error is logged with context, and the answer explains that the status is already sent."
+        }
+      ],
+      "quality": 9
+    },
+    "none": {
+      "assertions": [
+        {
+          "text": "An invalid or missing `id` is detected (the `Atoi` error is checked) and answered with HTTP 400.",
+          "passed": true,
+          "evidence": "http.Error(w, \"invalid or missing id\", http.StatusBadRequest); return"
+        },
+        {
+          "text": "On a lookup error the handler returns instead of continuing; `store.ErrNotFound` is distinguished with `errors.Is` and mapped to 404, other errors to 500.",
+          "passed": true,
+          "evidence": "A nested errors.Is check gives 404; other errors are logged and get 500; both paths return."
+        },
+        {
+          "text": "Idiomatic Go: plain `error` values; no `panic`/`recover` for control flow and no exception-like wrapper types invented.",
+          "passed": true,
+          "evidence": "Plain error values only; no panic and no wrapper types."
+        },
+        {
+          "text": "Logged errors carry context (operation and/or id), and internal error details are not written to the client response.",
+          "passed": true,
+          "evidence": "log.Printf(\"handleGetUser: find user %d: %v\", id, err); the client gets a generic \"internal server error\"."
+        },
+        {
+          "text": "The `Encode` error is handled or explicitly addressed.",
+          "passed": true,
+          "evidence": "The Encode error is logged with the user id, and the answer explains that headers may already be sent."
+        }
+      ],
+      "quality": 9
     }
   }
 }

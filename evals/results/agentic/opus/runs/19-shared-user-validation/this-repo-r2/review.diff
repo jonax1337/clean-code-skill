@@ -1,0 +1,357 @@
+diff --git a/README.md b/README.md
+index 2fa7528..0a9b530 100644
+--- a/README.md
++++ b/README.md
+@@ -5,16 +5,17 @@ Handlers are plain functions that take the in-memory store and a request and ret
+ HTTP layer that calls them lives in another repository.
+ 
+ The behavior clients can rely on, including the exact error messages, is described in `docs/api.md`.
+ 
+ ## Layout
+ 
+ - `src/handlers/` one file per endpoint
+ - `src/response.js` helpers that build `{ status, body }` results
++- `src/userValidation.js` the email, name and role rules shared by the user and invitation handlers
+ - `src/store.js` the in-memory store
+ - `src/routes.js` the route table
+ - `test/` tests, one file per handler
+ 
+ ## Tests
+ 
+ Node 20 or newer, no dependencies to install:
+ 
+diff --git a/src/handlers/createUser.js b/src/handlers/createUser.js
+index d9710d7..3da0136 100644
+--- a/src/handlers/createUser.js
++++ b/src/handlers/createUser.js
+@@ -1,37 +1,20 @@
+ import { conflict, created, validationFailed } from '../response.js';
++import { emailError, errorMessages, nameError, normalizeEmail, normalizeName, roleError } from '../userValidation.js';
+ 
+-const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+-const ROLES = ['owner', 'admin', 'member', 'viewer'];
+-const MAX_NAME_LENGTH = 80;
++const DEFAULT_ROLE = 'member';
+ 
+ export function createUser(store, request) {
+   const body = request.body ?? {};
+-  const messages = [];
+-
+-  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+-  if (email === '') {
+-    messages.push('email is required');
+-  } else if (!EMAIL_PATTERN.test(email)) {
+-    messages.push('email is invalid');
+-  }
+-
+-  const name = typeof body.name === 'string' ? body.name.trim() : '';
+-  if (name === '') {
+-    messages.push('name is required');
+-  } else if (name.length > MAX_NAME_LENGTH) {
+-    messages.push('name must be at most 80 characters');
+-  }
+-
+-  const role = body.role === undefined ? 'member' : body.role;
+-  if (!ROLES.includes(role)) {
+-    messages.push('role is invalid');
+-  }
++  const email = normalizeEmail(body.email);
++  const name = normalizeName(body.name);
++  const role = body.role === undefined ? DEFAULT_ROLE : body.role;
+ 
++  const messages = errorMessages(emailError(email), nameError(name), roleError(role));
+   if (messages.length > 0) {
+     return validationFailed(messages);
+   }
+   if (store.findUserByEmail(email)) {
+     return conflict('email already in use');
+   }
+   return created(store.addUser({ email, name, role }));
+ }
+diff --git a/src/handlers/inviteUser.js b/src/handlers/inviteUser.js
+index 9b1a608..3c6a171 100644
+--- a/src/handlers/inviteUser.js
++++ b/src/handlers/inviteUser.js
+@@ -1,38 +1,33 @@
+ import { conflict, created, validationFailed } from '../response.js';
++import {
++  ROLES,
++  emailError,
++  errorMessages,
++  nameLengthError,
++  normalizeEmail,
++  normalizeName,
++  roleError,
++} from '../userValidation.js';
+ 
+-const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+-const INVITABLE_ROLES = ['admin', 'member', 'viewer'];
+-const MAX_NAME_LENGTH = 80;
++const INVITABLE_ROLES = ROLES.filter((role) => role !== 'owner');
+ 
+ export function inviteUser(store, request) {
+   const body = request.body ?? {};
+-  const messages = [];
+-
+-  const email = typeof body.email === 'string' ? body.email.trim() : '';
+-  if (email === '') {
+-    messages.push('email is required');
+-  } else if (!EMAIL_PATTERN.test(email)) {
+-    messages.push('email is invalid');
+-  }
+-
+-  // The invitee fills in their name when they accept, so an empty name is fine here.
+-  const name = typeof body.name === 'string' ? body.name.trim() : '';
+-  if (name.length > MAX_NAME_LENGTH) {
+-    messages.push('name must be at most 80 characters');
+-  }
+-
++  const email = normalizeEmail(body.email);
++  const name = normalizeName(body.name);
+   const role = body.role;
+-  if (role === undefined) {
+-    messages.push('role is required');
+-  } else if (!INVITABLE_ROLES.includes(role)) {
+-    messages.push('role is invalid');
+-  }
+ 
++  // The invitee fills in their name when they accept, so an empty name is fine here.
++  const messages = errorMessages(emailError(email), nameLengthError(name), inviteRoleError(role));
+   if (messages.length > 0) {
+     return validationFailed(messages);
+   }
+   if (store.findUserByEmail(email) || store.findInvitationByEmail(email)) {
+     return conflict('email already in use');
+   }
+   return created(store.addInvitation({ email, name, role }));
+ }
++
++function inviteRoleError(role) {
++  return role === undefined ? 'role is required' : roleError(role, INVITABLE_ROLES);
++}
+diff --git a/src/handlers/updateUser.js b/src/handlers/updateUser.js
+index 86e20db..a8da9c9 100644
+--- a/src/handlers/updateUser.js
++++ b/src/handlers/updateUser.js
+@@ -1,51 +1,36 @@
+ import { conflict, notFound, ok, validationFailed } from '../response.js';
++import { emailError, nameError, normalizeEmail, normalizeName, roleError } from '../userValidation.js';
+ 
+-const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+-const ROLES = ['owner', 'admin', 'member', 'viewer'];
+-const MAX_NAME_LENGTH = 80;
++const FIELD_RULES = [
++  { field: 'email', normalize: normalizeEmail, error: emailError },
++  { field: 'name', normalize: normalizeName, error: nameError },
++  { field: 'role', normalize: (role) => role, error: roleError },
++];
+ 
+ export function updateUser(store, request) {
+   const user = store.getUser(Number(request.params.id));
+   if (!user) {
+     return notFound('user not found');
+   }
+ 
+   const body = request.body ?? {};
+   const messages = [];
+   const changes = {};
+-
+-  if (body.email !== undefined) {
+-    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+-    if (email === '') {
+-      messages.push('email is required');
+-    } else if (!EMAIL_PATTERN.test(email)) {
+-      messages.push('email is invalid');
+-    } else {
+-      changes.email = email;
+-    }
+-  }
+-
+-  if (body.name !== undefined) {
+-    const name = typeof body.name === 'string' ? body.name.trim() : '';
+-    if (name === '') {
+-      messages.push('name is required');
+-    } else if (name.length > MAX_NAME_LENGTH) {
+-      messages.push('name must be at most 80 characters');
+-    } else {
+-      changes.name = name;
++  for (const { field, normalize, error } of FIELD_RULES) {
++    if (body[field] === undefined) {
++      continue;
+     }
+-  }
+-
+-  if (body.role !== undefined) {
+-    if (!ROLES.includes(body.role)) {
+-      messages.push('role is invalid');
++    const value = normalize(body[field]);
++    const message = error(value);
++    if (message === null) {
++      changes[field] = value;
+     } else {
+-      changes.role = body.role;
++      messages.push(message);
+     }
+   }
+ 
+   if (messages.length > 0) {
+     return validationFailed(messages);
+   }
+   if (Object.keys(changes).length === 0) {
+     return validationFailed(['no fields to update']);
+diff --git a/src/userValidation.js b/src/userValidation.js
+new file mode 100644
+index 0000000..25873bf
+--- /dev/null
++++ b/src/userValidation.js
+@@ -0,0 +1,38 @@
++// Field rules shared by the user and invitation handlers. Clients match on the message strings,
++// so their wording is part of the API contract (see docs/api.md).
++
++const EMAIL_PATTERN = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
++const MAX_NAME_LENGTH = 80;
++
++export const ROLES = ['owner', 'admin', 'member', 'viewer'];
++
++export function normalizeEmail(value) {
++  return typeof value === 'string' ? value.trim().toLowerCase() : '';
++}
++
++export function normalizeName(value) {
++  return typeof value === 'string' ? value.trim() : '';
++}
++
++export function emailError(email) {
++  if (email === '') {
++    return 'email is required';
++  }
++  return EMAIL_PATTERN.test(email) ? null : 'email is invalid';
++}
++
++export function nameError(name) {
++  return name === '' ? 'name is required' : nameLengthError(name);
++}
++
++export function nameLengthError(name) {
++  return name.length > MAX_NAME_LENGTH ? `name must be at most ${MAX_NAME_LENGTH} characters` : null;
++}
++
++export function roleError(role, allowedRoles = ROLES) {
++  return allowedRoles.includes(role) ? null : 'role is invalid';
++}
++
++export function errorMessages(...errors) {
++  return errors.filter((error) => error !== null);
++}
+diff --git a/test/createUser.test.js b/test/createUser.test.js
+index a7c28df..5c86980 100644
+--- a/test/createUser.test.js
++++ b/test/createUser.test.js
+@@ -21,8 +21,25 @@ test('rejects an unknown role', () => {
+   assert.deepEqual(result.body.messages, ['role is invalid']);
+ });
+ 
+ test('answers 409 when the email is taken', () => {
+   const result = createUser(storeWith(ann()), { body: { email: 'ANN@example.com', name: 'Other Ann' } });
+   assert.equal(result.status, 409);
+   assert.equal(result.body.message, 'email already in use');
+ });
++
++test('rejects an email that is not of the form local@domain.tld', () => {
++  const result = createUser(storeWith(), { body: { email: 'ann@example', name: 'Ann' } });
++  assert.deepEqual(result.body.messages, ['email is invalid']);
++});
++
++test('accepts a name of 80 characters and rejects one of 81', () => {
++  const accepted = createUser(storeWith(), { body: { email: 'ann@example.com', name: 'a'.repeat(80) } });
++  const rejected = createUser(storeWith(), { body: { email: 'ann@example.com', name: 'a'.repeat(81) } });
++  assert.equal(accepted.status, 201);
++  assert.deepEqual(rejected.body.messages, ['name must be at most 80 characters']);
++});
++
++test('reports every failing field in the order email, name, role', () => {
++  const result = createUser(storeWith(), { body: { email: 42, name: '   ', role: 'god' } });
++  assert.deepEqual(result.body.messages, ['email is required', 'name is required', 'role is invalid']);
++});
+diff --git a/test/inviteUser.test.js b/test/inviteUser.test.js
+index b4517c9..f85f8d3 100644
+--- a/test/inviteUser.test.js
++++ b/test/inviteUser.test.js
+@@ -13,8 +13,41 @@ test('requires a role', () => {
+   const result = inviteUser(storeWith(), { body: { email: 'bob@example.com' } });
+   assert.deepEqual(result.body.messages, ['role is required']);
+ });
+ 
+ test('answers 409 when a user already has the email', () => {
+   const result = inviteUser(storeWith(ann()), { body: { email: 'ann@example.com', role: 'member' } });
+   assert.equal(result.status, 409);
+ });
++
++test('allows a missing name and stores it as an empty string', () => {
++  const result = inviteUser(storeWith(), { body: { email: 'bob@example.com', role: 'member' } });
++  assert.equal(result.status, 201);
++  assert.equal(result.body.name, '');
++});
++
++test('rejects a name longer than 80 characters', () => {
++  const result = inviteUser(storeWith(), { body: { email: 'bob@example.com', name: 'a'.repeat(81), role: 'member' } });
++  assert.deepEqual(result.body.messages, ['name must be at most 80 characters']);
++});
++
++test('cannot grant the owner role', () => {
++  const result = inviteUser(storeWith(), { body: { email: 'bob@example.com', role: 'owner' } });
++  assert.deepEqual(result.body.messages, ['role is invalid']);
++});
++
++test('rejects an invalid email', () => {
++  const result = inviteUser(storeWith(), { body: { email: 'bob', role: 'member' } });
++  assert.deepEqual(result.body.messages, ['email is invalid']);
++});
++
++test('stores the email in lowercase', () => {
++  const result = inviteUser(storeWith(), { body: { email: ' Bob@Example.com ', role: 'viewer' } });
++  assert.equal(result.body.email, 'bob@example.com');
++});
++
++test('answers 409 when a pending invitation has the email in another case', () => {
++  const store = storeWith();
++  inviteUser(store, { body: { email: 'bob@example.com', role: 'viewer' } });
++  const result = inviteUser(store, { body: { email: 'BOB@example.com', role: 'viewer' } });
++  assert.equal(result.status, 409);
++});
+diff --git a/test/updateUser.test.js b/test/updateUser.test.js
+index 0d9af47..ba4d6fc 100644
+--- a/test/updateUser.test.js
++++ b/test/updateUser.test.js
+@@ -20,8 +20,31 @@ test('rejects a present but invalid email', () => {
+   assert.deepEqual(result.body.messages, ['email is invalid']);
+ });
+ 
+ test('answers 409 when the email belongs to another user', () => {
+   const store = storeWith(ann(), ann({ email: 'bob@example.com', name: 'Bob' }));
+   const result = updateUser(store, { params: { id: '2' }, body: { email: 'Ann@example.com' } });
+   assert.equal(result.status, 409);
+ });
++
++test('holds present fields to the same rules as when creating', () => {
++  const result = updateUser(storeWith(ann()), {
++    params: { id: '1' },
++    body: { email: '  ', name: 'a'.repeat(81), role: 'god' },
++  });
++  assert.deepEqual(result.body.messages, ['email is required', 'name must be at most 80 characters', 'role is invalid']);
++});
++
++test('rejects a present name that is not a string', () => {
++  const result = updateUser(storeWith(ann()), { params: { id: '1' }, body: { name: 7 } });
++  assert.deepEqual(result.body.messages, ['name is required']);
++});
++
++test('stores a changed email trimmed and in lowercase', () => {
++  const result = updateUser(storeWith(ann()), { params: { id: '1' }, body: { email: ' Anna@Example.com ' } });
++  assert.equal(result.body.email, 'anna@example.com');
++});
++
++test('rejects a body without any of the fields', () => {
++  const result = updateUser(storeWith(ann()), { params: { id: '1' }, body: {} });
++  assert.deepEqual(result.body.messages, ['no fields to update']);
++});

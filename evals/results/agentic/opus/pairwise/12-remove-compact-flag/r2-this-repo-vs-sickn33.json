@@ -1,0 +1,81 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "5ac61e79cdf790c6",
+    "sickn33": "cd9fe026c8744de2"
+  },
+  "score": 0.75,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same code edits: they remove the flag, its warning, the `compact` field, the render path, the help text and the README row, and add a CHANGELOG entry. Both leave `-c`/`--compact` rejected as unknown options. The tests differ only in placement: A checks both spellings in one integration test, while B checks both at the unit level and only `--compact` at the integration level. A's report is accurate on test counts and also mentions clippy, while B's report miscounts the deleted tests, so A has a slight edge.",
+        "a_issues": [
+          "The new integration test loops over both flags in one test, so a failure message is a little less specific (minor)."
+        ],
+        "b_issues": [
+          "The report says five compact tests were deleted, but six were removed or replaced.",
+          "The integration test covers only `--compact`, not `-c`. The `-c` case is covered only at the unit level."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both changes make the same code edits: they remove the flag, its warning, the Options field, the help line, the render path and its helpers, and the README row, and both add a Removed entry to the CHANGELOG. They differ only in where the regression test sits. A checks both flags at the unit level and only `--compact` at the integration level, while B checks both flags in one integration test. Both reports give correct test counts (A 14/12, B 13/12) and correctly note the breaking change and the unchanged version. B also reports clippy and fmt checks, which can't be confirmed from the diff.",
+        "a_issues": [
+          "The integration regression test covers only `--compact`; `-c` is checked only at the unit level."
+        ],
+        "b_issues": [
+          "No unit-level test checks that the removed flags are rejected by `parse_args`; this is covered only through `run`.",
+          "The report's clippy and fmt claims can't be checked from the diff."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

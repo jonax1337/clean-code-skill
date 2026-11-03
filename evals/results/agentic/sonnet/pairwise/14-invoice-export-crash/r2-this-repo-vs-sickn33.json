@@ -1,0 +1,86 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "944d175d31f77bd9",
+    "sickn33": "fd4bf7c71d927aa4"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make essentially the same code change: they normalize the CRM `customer_id` field to `customerId` at load time and route the export lookup through the existing `requireCustomer`, which matches the README's data-error convention. The tests are of comparable value. A's `deepEqual` checks that the normalized record has exactly the expected shape, while B also checks a billing customer. A's report is a little more candid about what was and was not verified, which tips it slightly.",
+        "a_issues": [
+          "The sources test reads the real `data/` directory instead of a fixture, so a data change could break it."
+        ],
+        "b_issues": [
+          "The sources test reads the real `data/` directory instead of a fixture, so a data change could break it.",
+          "The unknown-customer test reuses `INV-1` as the orphan's id, which makes the assertion a little less clearly about the orphan.",
+          "The sources test does not check the normalized record's full shape, so a leftover `customer_id` field would go unnoticed.",
+          "The report does not say what was left unverified, for example whether the new tests fail on the old code."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes fix the actual cause in the same way: they rename the CRM `customer_id` field when the records are loaded and route the export lookup through the existing `requireCustomer`, so the code is effectively identical. B's sources test uses deepEqual on the full record, which also proves no stray `customer_id` field survives. Its export test uses a distinct invoice id, which makes it clear the error message names the referencing invoice. B's report is also more candid about what was and was not verified.",
+        "a_issues": [
+          "The sources test only checks `.name` lookups through the index, so a leftover `customer_id` field or other shape problem would go unnoticed.",
+          "The sources test reads the real `data/` files instead of a fixture, so it breaks whenever the production data changes.",
+          "The export error test reuses INV-1's id, so it shows less clearly that the message names the referencing invoice.",
+          "The report does not mention what verification was left undone."
+        ],
+        "b_issues": [
+          "The sources test reads the real `data/` files instead of a fixture, so it breaks whenever the production data changes.",
+          "The sources test does not check that billing customers are still loaded correctly."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

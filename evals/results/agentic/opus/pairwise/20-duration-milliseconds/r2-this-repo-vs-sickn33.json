@@ -1,0 +1,83 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "f8621663ced04e09",
+    "sickn33": "24d795d42d6da9e4"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both diffs make the same correct conversion and adapt every caller properly, including the callers that still need seconds (http, report, validate). A also adds tests for `Retry-After`, the settings report, and the TTL minimum and boundaries, and reports checking them against the old code first. Those are exactly the paths this unit change could silently break. B leaves them untested; its report says so honestly, but the gap remains.",
+        "a_issues": [
+          "Introduces and exports a new `MS_PER_SECOND` constant from `duration.ts`, which is a small addition beyond what the task needed.",
+          "The `describeSettings` line is long and repeats the division by `MS_PER_SECOND` twice."
+        ],
+        "b_issues": [
+          "No tests protect the `http.ts` and `report.ts` conversions or the `validateTtl` minimum and boundary checks. These are the riskiest spots after a unit change.",
+          "Uses the literal 1000 in several places rather than a single named constant (minor)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both diffs convert `parseDuration` to milliseconds correctly and update every caller the same way, so behavior is equivalent. B also adds tests for the callers that must keep producing seconds: the `http.ts` `Retry-After` header, the `report.ts` text, and the validate minimum and boundaries. B reports that these tests were checked against the old code first. A changes the same risky places but leaves them untested, and says so.",
+        "a_issues": [
+          "No tests protect `rateLimitHeaders` or `describeSettings`, which are the callers most likely to regress from this unit change.",
+          "The `validateTtl` minimum and the exact-boundary behavior are still untested after the limit constants changed units."
+        ],
+        "b_issues": [
+          "Adds a new exported `MS_PER_SECOND` constant to `duration.ts`, which is a small API addition beyond the task.",
+          "The `describeSettings` template line, which repeats `/ MS_PER_SECOND`, is long and slightly harder to read."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

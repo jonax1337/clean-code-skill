@@ -1,0 +1,77 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4185f882b618ce6a",
+    "ertugrul-dmr": "ed78b944032024d9"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "The two source diffs are identical: the same event type, the same reducer guards, the same audit format and the same notifier case. The new tests cover the same cases (pause from active, no-op otherwise, payment events while paused, cancel clears resumeOn) and differ only in small construction details. Both reports are accurate; A notes it skipped date validation, and B notes that adding a field to the exported Subscription type affects outside code. I would merge either.",
+        "a_issues": [
+          "The report does not mention that adding `resumeOn` to the exported `Subscription` interface changes the public type."
+        ],
+        "b_issues": [
+          "The report does not mention that `resumeOn` is not checked for format or for being a future date."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "The source changes in both PRs are byte-for-byte identical and correctly cover state, audit, and notifications, including the edge cases: non-active statuses ignore a pause, payment events leave a paused subscription unchanged, and cancelling clears resumeOn. The tests are effectively the same and cover every rule in the spec. The reports differ only in small extras that are each accurate and useful: A notes the new required field on Subscription, and B notes that resumeOn is not validated and states the test breakdown. I would be equally happy merging either.",
+        "a_issues": [],
+        "b_issues": [
+          "Test fixtures use the placeholder reason \"x\", which is slightly less descriptive than A's values."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

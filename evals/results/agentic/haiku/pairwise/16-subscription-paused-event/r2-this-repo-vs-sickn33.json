@@ -1,0 +1,81 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "dde994ff23d4766c",
+    "sickn33": "214c1261f8c48e4c"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "The source changes are effectively the same: same event type, same reducer guards, cancel clears resumeOn, same audit format and same notification. The tests cover the same edge cases. Change A also commits a 408-line package-lock.json that the repository does not track, and its report does not mention it. B removed that npm install leftover and said so in its report.",
+        "a_issues": [
+          "Adds an untracked, unrelated package-lock.json (408 lines) left over from npm install.",
+          "Report says nothing about the added lockfile, so it is incomplete about what was changed."
+        ],
+        "b_issues": [
+          "Pause tests sit between the existing start and plan-change tests rather than grouped at the end. This is minor and purely about ordering."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "The code and tests in the two changes are nearly identical and both implement the spec correctly: pause only from active, payment events ignored while paused, cancel clears resumeOn, and the audit and notification output match. B also commits a 408-line package-lock.json that the repository does not track, and its report does not mention it. A noticed the generated lockfile, removed it and said so. That makes A the cleaner and more honest PR.",
+        "a_issues": [
+          "The new pause tests sit between the existing 'started' and 'plan change' tests, which slightly breaks the file's flow."
+        ],
+        "b_issues": [
+          "Adds an unrelated, untracked package-lock.json (408 lines) to the diff.",
+          "The report does not disclose the added lockfile, so it is incomplete about what changed."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

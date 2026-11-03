@@ -1,0 +1,81 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "cd1a9da0e604d76c",
+    "this-repo": "aec379d7cd46bba6"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The code changes are identical: both cleanly remove the flag, the field, the render path, the helpers, the docs and the obsolete tests, and both add a test that the flag is now rejected. B's report is more useful to a reviewer. It states plainly that six tests were deleted. It also points out that removing the `pub compact` field from the public `Options` struct is a compile-time break for library users, which A does not mention. A's changelog sentence reads slightly better than B's fragment, but that is minor.",
+        "a_issues": [
+          "Report does not mention that removing the public `Options.compact` field is a breaking change for library users.",
+          "Report does not say how many tests were deleted, only that the three integration tests were replaced."
+        ],
+        "b_issues": [
+          "CHANGELOG entry is a sentence fragment (\"`--compact` (`-c`), deprecated since 0.8.0.\") with no verb saying it was removed.",
+          "Report does not mention that the version is still 0.9.0."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The code, test and README changes are identical in both PRs. Both remove the flag, the warning, the field, the render branch and its helpers, and both add a test that the removed flags are rejected. The changelog entries differ only in wording. A's report is slightly more useful because it points out that removing the `pub` field `compact` from the public `Options` struct breaks library users at compile time, and it mentions running clippy. B's report omits the library API break, though it usefully notes that the version has not been bumped.",
+        "a_issues": [
+          "The report does not mention that the Cargo.toml version is still 0.9.0 while the changelog frames this as a 1.0 removal."
+        ],
+        "b_issues": [
+          "The report does not mention that removing the public `Options::compact` field is a compile-time break for library users."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

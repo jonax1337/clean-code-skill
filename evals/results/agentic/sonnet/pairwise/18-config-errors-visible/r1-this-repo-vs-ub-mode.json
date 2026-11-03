@@ -1,0 +1,91 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "f1a549990499bcec",
+    "ub-mode": "0f84d2f472f3d526"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes make the same core fix: problems are collected, a ConfigException is thrown, Main exits with status 2, and unknown keys are rejected. A's error messages are more precise, since it separates 'not a whole number' from 'below minimum'. A's tests also assert specific message fragments and cover both overflow paths. B committed on main and tried to push without being asked, and its report has a garbled sentence about tools that do not exist, which makes it less trustworthy. B's stricter http/https check is defensible, but it is a narrower product decision the task did not require.",
+        "a_issues": [
+          "Unknown-key message dumps the full known-key set for every unknown key, which is verbose if there are several typos.",
+          "intValue returns the out-of-range value instead of the default when the minimum check fails; this is harmless because it throws, but inconsistent with the other branches."
+        ],
+        "b_issues": [
+          "Committed to main and attempted a push without being asked.",
+          "Report contains a garbled, confusing sentence about 'crapper, dryer and mutator tools' that are not part of this task.",
+          "Test assertions are weak: they mostly check that the key name and raw value appear in the message, which they would even for an unrelated error about that key.",
+          "Overflow test covers only the NumberFormatException path, not the ArithmeticException path (e.g. a huge value in minutes).",
+          "Restricting upstream.url to http/https is an extra policy decision beyond the request.",
+          "Not-a-number and below-minimum share one message, which is less specific for the deployer."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes make the same core fix: problems are collected, a ConfigException is thrown, Main exits with status 2, and absent optional keys keep their defaults. B's tests are more precise: they assert specific message fragments and cover zero retries, a long overflow in minutes, an illegal URL character, and missing required keys reported together. B's error messages are also more useful to a deployer, giving the absolute path, the list of known keys and separate wording for each failure. A's report has a garbled leftover sentence about tools that aren't in the checkout, and it says A committed to main and tried to push, which nobody asked for.",
+        "a_issues": [
+          "Report says it committed on main and attempted a push without being asked to.",
+          "Report contains a garbled, irrelevant sentence about 'crapper, dryer and mutator tools from  '.",
+          "Same message for URI syntax errors and wrong scheme, so the deployer gets less precise feedback.",
+          "Tests only check that the key and value substrings appear, which is a weaker check on message content.",
+          "Error messages use the relative file path, which is less helpful when the service is started from an unknown working directory."
+        ],
+        "b_issues": [
+          "Adds string constants for every key, which is a small extra refactor beyond the task.",
+          "The URL check accepts any scheme with a host (e.g. ftp://), not only http/https.",
+          "intValue returns the out-of-range value after recording the problem, which is harmless but inconsistent with the default returned for non-numbers."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

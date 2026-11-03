@@ -1,0 +1,85 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4b3d1f2201ff8f5a",
+    "ertugrul-dmr": "083ee8d1e33779b2"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs make the same functional change. Each converts the unit table to milliseconds, drops the `* 1000` in cache, retry and scheduler, divides by a constant in http and report, and rescales the validate bounds. B also makes unrelated churn in test/duration.test.ts: it reorders the imports and renames all three tests. A keeps its edit to the expected values only. A also ran the type checker as well as the tests, which makes its verification slightly more thorough.",
+        "a_issues": [
+          "No tests were added for `rateLimitHeaders` or `describeSettings`, the two callers that now convert back to seconds.",
+          "The report says the seconds conversion is 'checked only by the type checker', but the type checker cannot verify the numeric value of that conversion."
+        ],
+        "b_issues": [
+          "It makes unrelated edits in test/duration.test.ts: it swaps the import order and renames all three existing tests.",
+          "No tests were added for `rateLimitHeaders` or `describeSettings`, the two callers that now convert back to seconds.",
+          "It did not report running `tsc --noEmit`; only the tests were run."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes are functionally identical. They convert the unit table to milliseconds, drop the `* 1000` in the millisecond callers, divide in `http.ts` and `report.ts` to keep seconds output, and rescale the validate bounds. A also reorders imports and renames all three tests in `duration.test.ts`, which is churn the task did not need. B leaves the test names alone and only updates the expected values. B's report slightly overstates what the type checker verifies, but the cleaner diff tips it.",
+        "a_issues": [
+          "Needlessly swapped import order in test/duration.test.ts",
+          "Renamed existing test cases (e.g. 'parses each unit' -> 'parses units into milliseconds') without reason, adding diff noise",
+          "No tests added for the seconds conversion in http.ts/report.ts (acknowledged in report)"
+        ],
+        "b_issues": [
+          "Report says the seconds conversion in http.ts/report.ts is 'checked only by the type checker'. The type checker cannot catch a missing or extra division, so in practice it is unchecked.",
+          "No tests added for the seconds conversion in http.ts/report.ts"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

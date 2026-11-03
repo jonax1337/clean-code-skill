@@ -1,0 +1,89 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d152fe152f0e9628",
+    "sickn33": "91d9743c6a4f855c"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes reuse `allocate`, add a required mutually exclusive `--with`/`--percent` group, and validate that percentages total 100, so the behaviour is nearly the same. A parses `NAME=PCT` with an idiomatic argparse type, and its CLI tests are stronger: they check exit codes, malformed values, and the case where neither option is given. B gives a more consistent `error:` format for every input problem, but it adds an unrequested ban on 0% and its tests are weaker at the command-line level. Both reports are accurate and flag the 0% decision.",
+        "a_issues": [
+          "A malformed `--percent` prints argparse's usage-style error, while a wrong total prints the app's `error:` format. The report discloses this, but the output is still inconsistent.",
+          "A uses `partition`, so a name containing '=' cannot be expressed. This is a minor edge case."
+        ],
+        "b_issues": [
+          "B rejects 0%, a policy the task did not ask for.",
+          "B never tests at the CLI level that leaving out both `--with` and `--percent` is rejected.",
+          "B's test for combining `--with` and `--percent` does not check the exit code.",
+          "B puts parsing of user input (`parse_percent`) in the splitting module rather than the CLI. This is defensible but blurs responsibilities."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes add a correct mutually exclusive --percent option, reuse allocate and the duplicate check, and give consistent exit codes. B follows the task more closely: it allows 0%, which is a whole number, while A adds a rejection of 0% that nobody asked for. B's CLI tests are also broader, covering malformed values end to end, the case where neither option is given, and asserted exit codes. A's advantages are a single error-message format and keeping parsing out of the CLI layer, but these do not outweigh B's tighter scope and stronger tests.",
+        "a_issues": [
+          "Rejects 0% shares even though the task only asks for whole numbers that add up to 100. This adds a restriction nobody asked for, though the report flags it.",
+          "Uses rpartition, so 'a=b=50' is accepted with the name 'a=b' instead of being rejected.",
+          "Reports percentage parse errors as MoneyError, which is a slightly odd error type for a malformed argument.",
+          "The mutually exclusive test does not assert the exit code, and nothing tests the case where neither --with nor --percent is given.",
+          "No CLI-level test for malformed --percent values; these are covered only by unit tests on parse_percent."
+        ],
+        "b_issues": [
+          "Error output comes in two formats: argparse usage errors for malformed values and 'error:' for wrong totals. The report acknowledges this.",
+          "The CLI imports the vaguely named WHOLE constant from splitting just to build an error message, a small piece of coupling.",
+          "Percent parsing lives in cli.py while the rest of the splitting logic lives in splitting.py."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

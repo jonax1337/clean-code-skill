@@ -1,0 +1,5 @@
+[
+  { "customer_id": "C-2201", "name": "Birch & Co", "country": "NL" },
+  { "customer_id": "C-2202", "name": "Lindqvist AB", "country": "SE" },
+  { "customer_id": "C-2203", "name": "Tulpen BV", "country": "NL" }
+]

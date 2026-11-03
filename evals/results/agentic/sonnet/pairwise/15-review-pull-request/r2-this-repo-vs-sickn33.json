@@ -1,0 +1,88 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ba64f2dd10ba7272",
+    "sickn33": "c0e5037ba31d47b0"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.75,
+    "report": 0.5
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find the same core problems in a sensible order: the SQL injection in search, the swallowed audit errors, the forgeable actor, the floor-division page count, unvalidated paging input and the silent change to list_users. B gives real post-patch file:line references, which is what the developer asked for, and the ones I checked (search.py:13, audit.py:10-16, api.py:37, api.py:62) are correct. A cites lines of the diff file instead, and several of those are off by one. B also notes duplicate ids in the bulk path and asks whether schema init runs on existing deployments, which gives it a small edge.",
+        "a_issues": [
+          "Line numbers point to lines of the diff file rather than the patched files, which is less useful than the file-and-line format the task asked for.",
+          "Several of those diff line references are off by one (paging around 19-21, actor at 41 rather than 38-40).",
+          "Does not mention that duplicate ids in the bulk request produce duplicate audit rows."
+        ],
+        "b_issues": [
+          "Some line references are approximate (api.py:~47).",
+          "Classing the list_users default-truncation change as 'should fix' rather than blocking may understate a silent breaking change for existing clients.",
+          "Calling the fixes for items 1-5 'small' and predicting a same-day merge is somewhat optimistic given the authentication question in item 3."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find the same core blockers: SQL injection in search, swallowed audit errors, a forgeable actor, floor-division `pages`, and unvalidated paging input. Both reach the correct verdict, and both are honest that they did not run the tests. B checks the README and uses it in two findings: the `?`-placeholder rule makes the injection a documented-convention violation, and the documented 'all users' contract makes the 25-row default a breaking change. B also proposes a concrete audit-rollback test. A's line numbers refer to the post-patch files, which is more convenient, but B's diff-relative numbers are accurate and clearly explained, so B is slightly more thorough and better grounded.",
+        "a_issues": [
+          "Does not check the README, so it misses that the injection breaks the documented `?`-placeholder convention and that `list_users` is documented as returning all users.",
+          "Ranks the `list_users` breaking change only as 'should fix'.",
+          "Item 5 cites a stray `:29` with no clear referent.",
+          "Raises an unnecessary doubt about whether schema init runs on existing databases, although `connect()` always runs the schema script."
+        ],
+        "b_issues": [
+          "Line numbers point into the diff rather than the post-patch files, which is less convenient for the author.",
+          "Somewhat longer, with a 'Good' section that adds little to the decision.",
+          "Does not mention that duplicate ids in the request produce duplicate audit rows."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

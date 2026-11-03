@@ -1,0 +1,87 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "10ae7b61a562c348",
+    "this-repo": "ba64f2dd10ba7272"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 0.25,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both reviews find the SQL injection, the swallowed audit errors, the wrong `pages` value, missing paging validation and the forgeable actor. A labels its line numbers as positions in the new files, but they are actually lines of the diff (for example `search.py:105` in a 17-line file), so its locations point to the wrong place. B correctly says its numbers are diff lines. B also finds real issues A misses: the single-user `deactivate_user` writes no audit entry, `per_page=-1` becomes `LIMIT -1` and returns every row, and the change conflicts with the README's documented `list_users` contract.",
+        "a_issues": [
+          "Says line numbers refer to the new file versions, but they are diff line numbers (e.g. search.py:105, audit.py:66-67, users.py:159-166), so the locations are wrong",
+          "Misses that the existing single-user deactivate_user is not audited, which contradicts the 'every deactivation audited' claim",
+          "Misses that per_page=-1 passes the min() cap and becomes LIMIT -1, returning all rows",
+          "Does not tie the list_users default-25 change to the README's documented contract or the placeholder rule"
+        ],
+        "b_issues": [
+          "Somewhat longer, with a 'Good' section that adds little to the merge decision",
+          "Item 9 (duplicated paging logic) partly overlaps item 6"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both reviews find the same main defects: SQL injection, swallowed audit errors, wrong `pages`, unvalidated paging input, a forgeable actor, and bulk deactivation auditing ids that never changed. B's line references are mislabeled: it says they are lines of the new files, but it cites `search.py:105` and `audit.py:66-67` for files of 17 and 16 lines. A correctly says its numbers are lines of `pr/482.diff`. A also catches that single-user `deactivate_user` writes no audit entry, and that `per_page=-1` becomes an unlimited LIMIT; B misses both.",
+        "a_issues": [
+          "Treats the `list_users` default-page change as must-fix, which may be stricter than needed",
+          "Does not mention duplicate ids or that `ORDER BY name` has no tie-breaker for paging"
+        ],
+        "b_issues": [
+          "Says line numbers are lines of the new files, but cites lines that do not exist in those files (`search.py:105`, `audit.py:66`)",
+          "Misses that the existing single-user `deactivate_user` path writes no audit entry, despite the 'every deactivation audited' claim",
+          "Notes negative `per_page` is not rejected but misses that SQLite treats `LIMIT -1` as no limit, so it returns every row",
+          "Ranks the silent breaking change to `list_users` only as non-blocking"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "69ec8ee675ba45f1",
+    "sickn33": "1af6e7ece6ad7c18"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The production code is effectively the same in both changes: same handler shape, same status check, a cumulative cap against amountPaid, and the same Order.recordRefund. A's tests are a little more thorough. They cover the PLACED, PAID and CANCELLED rejections, a zero, negative and too-precise amount, and the amountPaid-versus-total boundary as an exact accept-and-reject pair. A also documents the refund cap in the README prose.",
+        "a_issues": [
+          "The `refund(bus, ...)` helper is static but takes the instance's bus as a parameter, which is slightly awkward."
+        ],
+        "b_issues": [
+          "The tests only check one invalid amount (zero); they do not cover negative or too-precise amounts.",
+          "There is no test that an order in the PLACED status cannot be refunded.",
+          "The new README table row breaks the column alignment, and the README prose does not mention the refund cap."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production code in A and B is essentially the same and equally correct: same validation, status check, cumulative cap against amountPaid, recordRefund, and wiring. B's tests are a little broader: an explicit test that the cap is the amount paid rather than the total, refunds rejected in PLACED, PAID and CANCELLED, and negative and too-precise amounts. A tests only zero and leaves PLACED untested. Both reports are accurate.",
+        "a_issues": [
+          "Tests skip the PLACED status and negative or too-precise refund amounts.",
+          "The README table row is wider than its column, which breaks the alignment."
+        ],
+        "b_issues": [
+          "Adds an extra README sentence about refund rules, slightly beyond the minimal change.",
+          "The `refund` test helper takes `bus` as a parameter even though it is a field, which is a small oddity."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+diff --git a/REVIEW.md b/REVIEW.md
+new file mode 100644
+index 0000000..2063eaf
+--- /dev/null
++++ b/REVIEW.md
+@@ -0,0 +1,69 @@
++# Review of PR 482: user search, paged list, bulk deactivation with audit log
++
++I applied the patch to a clean copy of `main`. It applies, and the 28 tests pass. Several of the problems below are not covered by those tests.
++
++## Blocking
++
++1. **SQL injection in search** (`adminhub/search.py:12-13`, G4/G16).
++   `term` is interpolated into the SQL with an f-string. Only `LIMIT` and `OFFSET` are parameterised. Any console user can send a `q` such as `' OR 1=1 --`, or a UNION query, and read or probe the database.
++   - Fix: pass `f"%{term}%"` as a bound parameter.
++   - Also escape `%` and `_` in the term (`LIKE ... ESCAPE`), or searching for `_` matches everything.
++
++2. **The audit log can silently lose entries** (`adminhub/audit.py:15-16`).
++   `record` catches `sqlite3.Error` and does `pass`. Compliance requires every deactivation to be audited, but if the insert fails (missing table, locked database, bad data), the users are still deactivated and committed with no audit row and no error. The swallowed exception also defeats the rollback in `users.py:65-67`, which exists to keep the update and the audit atomic.
++   - Fix: remove the `try/except`. Let the error propagate so the transaction rolls back.
++   - No test covers the failure path.
++
++3. **`pages` is computed wrongly, so the pager breaks** (`adminhub/api.py:37`).
++   `count // per_page` rounds down. With 5 users and `per_page=3` it returns 1 page, so the last 2 users are unreachable. With fewer users than `per_page` it returns 0 pages. This is the feature the console team is waiting for.
++   - Fix: use ceiling division, `-(-count // per_page)`, and decide what an empty table should report.
++   - The new test only checks the length of `users` and never looks at `page` or `pages`.
++
++## Should fix before merge
++
++4. **The audit actor comes from the request** (`adminhub/api.py:62`).
++   `params["actor"]` is trusted as sent, so any caller can attribute deactivations to someone else. That undermines an audit trail. Derive the actor from the authenticated session, if the codebase has one.
++   - A missing `actor` raises `KeyError` and returns a 500, not a 400.
++
++5. **Bulk deactivation audits ids that were not changed** (`adminhub/users.py:61-63`).
++   - Unknown or already-inactive ids still get an audit row saying "deactivate", while `rowcount` excludes the unknown ones. The count and the audit log can disagree.
++   - Duplicate ids produce duplicate audit rows.
++   - Unlike `deactivate_user` (`users.py:50`), unknown ids are not reported as `NotFound`.
++   - Fix: dedupe the ids, and either validate that they exist or audit only the rows that actually changed.
++
++6. **Input is not validated** (`adminhub/api.py:35-36, 61`; `users.py:38`; `search.py:15`).
++   - Non-numeric `page`, `per_page` or `ids` raise `ValueError` and return a 500. `_user_id` already shows the 400 pattern.
++   - `per_page=0` raises `ZeroDivisionError`.
++   - A negative `per_page` becomes `LIMIT -n`, which SQLite treats as unlimited, so it bypasses the cap of 100.
++   - `page < 1` gives a negative offset.
++   - The README says pages start at 1, so reject these with a 400.
++   - `ids` has no upper bound. A large list exceeds SQLite's bound-variable limit and fails with an `OperationalError`.
++   - `search` does the same unvalidated `int(page)`, and its `per_page` is not capped.
++
++## Minor
++
++7. **`search` does not return `page` or `pages`** (`adminhub/api.py:42-47`), although the description says it is "paged the same way". The console cannot build a pager for search results.
++
++8. **Duplicated paging logic and constants** (G5/G25).
++   - `search.py:9` hard-codes `per_page=25`, which duplicates `users.DEFAULT_PAGE_SIZE`.
++   - The offset calculation and the `SELECT` column list are repeated. Reuse `users.SELECT_USER`.
++   - The cap `100` in `api.py:36` is a magic number. Name it, for example `MAX_PAGE_SIZE`.
++
++9. **Dead code and leftovers** (G9/C-rules).
++   - Unused `import os` at `search.py:3`.
++   - The TODO at `search.py:10` should be an issue, not a comment.
++
++10. **Test gaps** (T1/T5/T6).
++    - No tests for `pages` values, the last partial page, or invalid paging input.
++    - No tests for search injection or LIKE wildcards.
++    - No tests for an audit failure rolling back the deactivation.
++    - No tests for unknown or duplicate ids in bulk deactivation.
++    - The 28 passing tests mostly show the happy path works.
++
++## Verdict
++
++**I would not merge this as it is.**
++
++- Items 1, 2 and 3 are blockers. Item 1 is a security hole, item 2 breaks the compliance requirement, and item 3 breaks the pager the console team is waiting for.
++- Item 4 (spoofable actor) should be settled before merge, because it undermines the audit trail.
++- Items 1 to 3 are small, local fixes, so a quick follow-up commit should get this ready to merge today.

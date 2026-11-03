@@ -1,0 +1,87 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "601d3e468a9a5f24",
+    "sickn33": "80dc5a6fd451f5bd"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors behave the same: they keep the documented messages and the email, name, role order, and both fix the drifted inviteUser lowercase bug the same way. B's API is slightly tidier (collectChecks returns the values, plus a FIELD_CHECKS table), but A's handler-level tests protect the refactor better. They cover the full message order on create, `role: null`, a pending-invitation 409, the create rules applied on update, and the stored lowercased email on update. A also wrote these as characterization tests before changing code. Both reports get the test count wrong by one, so neither has an edge there.",
+        "a_issues": [
+          "Report says 27 tests (and 26 of 27 against the original code), but the diff adds 11 tests to the 15 existing ones, which makes 26.",
+          "The separate checkName and checkOptionalName functions, plus passing ROLES explicitly at every call site, add a little ceremony compared with B."
+        ],
+        "b_issues": [
+          "Report says 26 tests pass, but the diff gives 25 (15 existing, 3 new handler tests, 7 validation tests).",
+          "Handler-level coverage is thin: no handler test for the email/name/role message order, the pending-invitation 409 or the create rules on update. Most edge cases are tested only on the helpers.",
+          "The test 'allows a missing name but not the owner role' only asserts that owner is rejected, so its name overstates what it checks."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs move the email, name and role rules into one module. Both keep the documented messages and their order, and both fix the drifted invite-email lowercasing. B adds more handler-level characterization tests that guard the refactor: message order across all three fields, the 80/81 boundary, null role, update held to create rules, and a duplicate pending invitation. A relies more on unit tests of the helpers. A's `collectChecks` is a little tidier, but B's explicit `checkOptionalName` and required `allowedRoles` are just as clear, and B's tests protect the refactor better.",
+        "a_issues": [
+          "The test 'allows a missing name but not the owner role' only checks the owner rejection. It never asserts that a missing name is accepted and stored as ''.",
+          "There is no handler-level test that create or update report all failing fields in email, name, role order. Order is only tested through `collectChecks` directly.",
+          "No test covers a duplicate pending invitation (409).",
+          "The reported total of 26 tests does not match the diff, which shows 25."
+        ],
+        "b_issues": [
+          "The test 'stores the email in lowercase so it matches existing users' only checks the 409. It never asserts the stored invitation email is lowercase.",
+          "Callers must pass `ROLES` explicitly to `checkRole` even in the common case. This is slightly more verbose but harmless.",
+          "The reported total of 27 tests appears to be off by one from the diff, which shows 26."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

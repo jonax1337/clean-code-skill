@@ -1,0 +1,84 @@
+{
+  "case": "02-bugfix-legacy-module",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "d682c8db37a5d269",
+    "this-repo": "7951f0c1f66bfda9"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.75,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes fix the December crash and the matching Q4 crash correctly. B adds regression tests at the range level and the report level, including the 31 Dec and 1 Jan boundaries, and says it ran pytest. A is minimal and readable but has no tests and was not run. B's divmod helper does weaken input validation: invalid months and quarters (13, 0, Q5) now roll over silently instead of raising ValueError. Because of that cost, B wins only slightly.",
+        "a_issues": [
+          "No regression tests for the December or Q4 boundary.",
+          "Not run or verified; the report says so honestly.",
+          "The month == 12 and quarter == 4 special cases are repeated as two inline conditionals."
+        ],
+        "b_issues": [
+          "_first_of_month uses divmod on the start month too, so invalid inputs such as month_range(2026, 13), month 0 or quarter 5 now return shifted dates instead of raising ValueError. This silent behavior change is not mentioned in the report.",
+          "The new helper is a slightly larger restructure than the bug needed."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes fix the December crash and the matching Q4 crash correctly for valid inputs. A adds regression tests at the period level and the report level, checking the year boundary on both sides, and reports a test run it actually did. B has no tests and was never run, which it states honestly. One downside of A is that its divmod helper now silently accepts out-of-range months and quarters (month 13, quarter 5) instead of raising, while B keeps that validation. Even so, A's tests make it the safer merge.",
+        "a_issues": [
+          "`_first_of_month` is also used for the start date, so invalid input such as `month_range(2026, 13)` or `quarter_range(2026, 5)` now silently rolls into the next year instead of raising `ValueError`.",
+          "The new helper is a small abstraction where an inline year-rollover check would have been enough."
+        ],
+        "b_issues": [
+          "No regression tests for the December or Q4 boundaries.",
+          "The code was not run, so the fix is unverified (the report says so)."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

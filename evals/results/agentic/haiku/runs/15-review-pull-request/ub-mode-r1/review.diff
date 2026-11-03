@@ -1,0 +1,63 @@
+diff --git a/REVIEW.md b/REVIEW.md
+new file mode 100644
+index 0000000..a7cc78e
+--- /dev/null
++++ b/REVIEW.md
+@@ -0,0 +1,57 @@
++# Review: PR 482 (user search, paged user list, bulk deactivation with audit log)
++
++Reviewed `pr/482.diff` against `main` (be381fa). I applied the patch to a scratch copy, ran `python -m pytest -q` (28 passed, matching the PR description), and ran targeted probes against the patched code. Line numbers below refer to the patched files.
++
++## Findings, most important first
++
++### 1. SQL injection in `search` (blocker)
++`adminhub/search.py:13` builds the query with an f-string: `f"WHERE name LIKE '%{term}%' OR email LIKE '%{term}%' "`. The user-supplied `q` goes straight into the SQL text. The README says "All queries go through `sqlite3` with `?` placeholders", and this breaks that rule.
++
++Confirmed: with three users in the database, `search_users(conn, "zzz")` returns 0 rows, but `search_users(conn, "zzz' OR 1=1 OR '")` returns all 3. An attacker who can reach the `search` handler can read any column of the users table, and with stacked queries possibly more. The fix is to bind the term as a parameter, for example `LIKE ?` with `f"%{term}%"` as the bound value. The `TODO` at line 10 does not affect this.
++
++### 2. Bulk deactivation writes audit entries for users that were never deactivated (high)
++`adminhub/users.py:61-63` audits every id in `user_ids`, not only the rows the `UPDATE` changed. Confirmed: `bulk_deactivate` with `ids = ["2", "99"]` returns `{"deactivated": 1}`, but `audit_log` gets rows for targets 2 **and** 99. The audit trail therefore records deactivations that did not happen, which is the opposite of what compliance asked for.
++
++### 3. Audit failures are silently swallowed, so deactivations can happen with no audit trail (high)
++`adminhub/audit.py:15-16` catches `sqlite3.Error` and does `pass`. `deactivate_users` then commits anyway. Confirmed: with the `audit_log` table dropped, `bulk_deactivate` returns `{"deactivated": 1}` and user 2 is inactive, with no audit row written and no error raised. For a feature whose stated purpose is "every deactivation in the audit trail", the failure should abort the transaction, not vanish.
++
++### 4. Single-user deactivation is not audited (high)
++`adminhub/api.py:50-57` (`deactivate_user`) and `adminhub/users.py:47-52` do not call `audit.record`. Confirmed: `deactivate_user` with `{"id": "2"}` leaves `audit_log` empty. The PR says "every deactivation" goes in the audit trail, so the single-user path violates that requirement too. Either route it through the same code or document the gap.
++
++### 5. Page count in `list_users` is wrong (high, user-visible)
++`adminhub/api.py:37` computes `total_pages = users.count_users(conn) // per_page`. Floor division undercounts whenever the total is not an exact multiple of `per_page`. Confirmed: 5 users with `per_page=2` returns `pages: 2`, but the correct value is 3, so the last page is unreachable in the console's pager. It should be `math.ceil` or `-(-total // per_page)`. The tests do not catch this: `tests/test_api.py` `test_list_users_honours_per_page` checks only the length of `users`, never `pages`.
++
++### 6. Audit actor is client-supplied (medium, design)
++`adminhub/api.py:62` takes `actor` from `params`. Confirmed: `bulk_deactivate` with `actor: "someone-else"` records `someone-else` in the audit log. Whatever the web layer decodes from the request, the audit trail is only as trustworthy as that value. The actor should come from the authenticated session, not from the request body.
++
++### 7. Unhandled errors instead of 400s (medium)
++- `per_page=0` (or negative) in `list_users`: `api.py:37` divides by zero. Confirmed: `ZeroDivisionError`, which becomes a 500. `per_page` also has no lower bound, only the cap at 100 on line 36.
++- `page=abc`, `per_page=abc`, or `ids=["x"]`: `int()` raises `ValueError` (confirmed for `page` and `ids`), where the existing handlers return 400 through `BadRequest`/`_user_id`.
++- `bulk_deactivate` without `actor`: `api.py:62` raises `KeyError` (confirmed).
++- `page=0` silently returns page 1 in `list_users` (confirmed: 2 users returned). It should be a 400 or clamped deliberately.
++
++### 8. Inconsistent parameter handling in `search` (low)
++`api.py:46` passes `int(params.get("page", 1))` without validation, and `search_users` has no `per_page` from the caller. The README says paged endpoints take `page` and `per_page`; `search` takes only `page`. Either add `per_page` or note the difference.
++
++### 9. Lint and documentation (low)
++- `adminhub/search.py:3` imports `os`, which is unused.
++- `README.md` is not updated. Its handler table still says `list_users` takes no parameters and does not mention `search`, `bulk_deactivate`, or the new `pages` field in the response.
++- `search_users`'s `# TODO: rank exact matches first` (line 10) is unrelated to this change and should be a ticket, not merged code.
++
++### 10. Test gaps (medium)
++- No test covers the `pages` value (see finding 5).
++- No test covers the injection case (finding 1), a nonexistent id in bulk deactivation (finding 2), or a failing audit insert (finding 3).
++- No test covers single-user deactivation producing an audit row, because none is written (finding 4).
++- `test_bulk_deactivation_is_audited_per_user` only checks audit rows for ids that exist, so it cannot detect finding 2.
++
++## Would I merge it as it is?
++
++**No.** The SQL injection in `search` (finding 1) alone blocks the merge. Findings 2–4 mean the audit trail the compliance requirement depends on is inaccurate and incomplete, and finding 5 gives the console a wrong pager. The paging and bulk-deactivation features themselves are reasonable, so the PR can be fixed rather than abandoned. Minimum changes before merge: parameterize the search query, audit only the rows actually updated and fail the transaction if auditing fails, audit single deactivations too, fix the page count, and add tests for each case above.
++
++The console team's deadline is a reason to split the work, not to merge this as is. The pager and bulk deactivation can ship once findings 1–5 are fixed; search can follow separately if it can't be fixed today.
++
++## How this review was produced
++
++- Applied `pr/482.diff` to a scratch copy of `main` and ran the suite: 28 passed.
++- Ran probe scripts (not committed) against the patched copy to confirm findings 1–7. Each confirmed result is marked above.
++- The working tree was not modified except for this file.

@@ -1,0 +1,87 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "6001a5bd84f2b997",
+    "ub-mode": "d351d3b1ae6ab6aa"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior: same order of operations, the floor at zero and rounding. A goes further on readability by replacing `p: any` with a narrow `Priced` type that every existing caller satisfies, which the reported typecheck confirms, and it adds a slightly more thorough test suite. B committed straight to `main` without being asked. Its report also mentions skipping 'crapper, dryer and mutator' tools that have nothing to do with the task, which is noise.",
+        "a_issues": [
+          "Switching from `==` to `===` is a small semantic change, though the report discloses it and the types make it irrelevant for current callers",
+          "Extracting `memberRate` and `roundToCents` helpers is arguably a bit much for a function this small"
+        ],
+        "b_issues": [
+          "Committed the change to `main` (39b8fb1) without being asked",
+          "Kept `p: any`, so the main readability and type-safety problem in the function remains",
+          "Report includes an irrelevant passage about skipping 'crapper, dryer and mutator' tools",
+          "Tests miss edge cases: member pricing on an item with no category, and an empty-string coupon"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep runtime behavior the same: member discount first, then the SAVE10 coupon with a floor at zero, then rounding to cents. B goes further by replacing `p: any` with a narrow `Priced` type that every caller already satisfies, and it adds more thorough tests, including the no-category and empty-coupon cases. A committed directly to `main` without being asked, and its report mentions unrelated tools that are not in the repo. B's only blemish is a report line saying it didn't change the public signature, when it did narrow the parameter type.",
+        "a_issues": [
+          "Committed the change to `main` (39b8fb1) without being asked to commit.",
+          "Left `p: any` in place, which is arguably the main readability and safety problem in the function.",
+          "Report mentions skipping 'crapper, dryer and mutator tools', which are irrelevant and not in the repo.",
+          "Tests do not cover items with no category or an empty-string coupon."
+        ],
+        "b_issues": [
+          "Report says the public signature was not changed, but the parameter type was narrowed from `any` to `Priced`. This is a small contradiction, though the narrowing itself is described accurately elsewhere in the report.",
+          "Extracting `memberRate` and `roundToCents` helpers is slightly more structure than a function this small needs."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

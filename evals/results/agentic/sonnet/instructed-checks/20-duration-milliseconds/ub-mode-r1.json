@@ -1,0 +1,97 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "condition": "ub-mode",
+  "rep": 1,
+  "checks": [
+    {
+      "name": "parser_returns_milliseconds",
+      "description": "parseDuration returns milliseconds for every unit and still rejects invalid text.",
+      "passed": true,
+      "evidence": "\u2714 parseDuration returns milliseconds for every unit (0.5387ms)\n\u2714 parseDuration still trims whitespace and rejects invalid text (0.2835ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 95.3243"
+    },
+    {
+      "name": "timing_callers_unchanged",
+      "description": "Retry delays, cache expiry and job scheduling still work in the same milliseconds as before.",
+      "passed": true,
+      "evidence": "\u2714 backoffDelayMs keeps returning milliseconds (0.5385ms)\n\u2714 withRetry sleeps for the same number of milliseconds as before (0.6565ms)\n\u2714 cache entries expire after the same wall-clock time as before (0.1539ms)\n\u2714 scheduler computes timestamps in milliseconds (0.1164ms)\n\u2139 tests 4\n\u2139 suites 0\n\u2139 pass 4\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 95.1751"
+    },
+    {
+      "name": "unit_sensitive_callers_unchanged",
+      "description": "The TTL range validation, the Retry-After header (seconds) and the settings report (seconds) behave as before, although none of them multiplied the old result.",
+      "passed": true,
+      "evidence": "\u2714 validateTtl accepts every ttl between 5 seconds and one day (0.5644ms)\n\u2714 validateTtl rejects a ttl outside the allowed range (0.1806ms)\n\u2714 Retry-After is still sent in whole seconds (0.4432ms)\n\u2714 the settings report still prints seconds (0.0973ms)\n\u2139 tests 4\n\u2139 suites 0\n\u2139 pass 4\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 101.6103"
+    },
+    {
+      "name": "only_expected_files_changed",
+      "description": "Only source files and tests changed; no package, config or tooling files were touched.",
+      "passed": true,
+      "evidence": "changed: ['src/cache.ts', 'src/duration.ts', 'src/http.ts', 'src/report.ts', 'src/retry.ts', 'src/scheduler.ts', 'src/validate.ts', 'test/duration.test.ts']"
+    },
+    {
+      "name": "existing_tests_not_loosened",
+      "description": "Tests of the unchanged callers were not edited, and the duration tests keep every test case (their expected values may change with the unit).",
+      "passed": true,
+      "evidence": "edited existing tests: []; duration test cases 3 -> 3"
+    },
+    {
+      "name": "test_suite_passes",
+      "description": "The repository's own test suite passes.",
+      "passed": true,
+      "evidence": "\u2714 nextRun adds the interval to the last run (0.5733ms)\n\u2714 dueJobs returns the jobs whose next run has been reached (0.6435ms)\n\u2714 rejects text that is not a duration (0.5853ms)\n\u2714 rejects a ttl above the maximum (0.1137ms)\n\u2139 tests 12\n\u2139 suites 0\n\u2139 pass 12\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 175.3653"
+    },
+    {
+      "name": "typecheck_passes",
+      "description": "The TypeScript type check passes.",
+      "passed": true,
+      "evidence": ""
+    },
+    {
+      "name": "doc_comment_states_new_unit",
+      "description": "The comment on parseDuration says it returns milliseconds and no longer claims seconds.",
+      "passed": true,
+      "evidence": "comments: '/** Parses a duration such as \"30s\", \"5m\", \"2h\" or \"1d\" and returns its length in milliseconds. */'"
+    },
+    {
+      "name": "clean_diff",
+      "description": "The diff has no debug output, commented-out code or narrating comments.",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "tests_run_after_last_edit",
+      "description": "After its last edit the agent ran the test suite and it passed.",
+      "passed": true,
+      "evidence": " 's/\"30s\"), 30/\"30s\"), 30_000/; s/\"5m\"), 300/\"5m\"), 300_000/; s/\"2h\"), 7200/\"2h\"), 7_200_000/; s/\"1d\"), 86400/\"1d\"), 86_400_000/; s/\"), 10)/\"), 10_000)/' duration.test.ts\ncd .. && git diff --stat && cat src/cache.ts src/retry.ts src/scheduler.ts | grep -n parseDuration; npm test 2>&1 | tail -15"
+    }
+  ],
+  "metrics": {
+    "files": [
+      "src/cache.ts",
+      "src/duration.ts",
+      "src/http.ts",
+      "src/report.ts",
+      "src/retry.ts",
+      "src/scheduler.ts",
+      "src/validate.ts"
+    ],
+    "before": {
+      "functions": 14,
+      "nloc": 58,
+      "max_nloc": 15,
+      "max_ccn": 4,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 14,
+      "nloc": 58,
+      "max_nloc": 15,
+      "max_ccn": 4,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
+}

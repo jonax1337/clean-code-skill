@@ -1,0 +1,87 @@
+{
+  "case": "04-cleanup-report-module",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "e097ed8b48252cef",
+    "this-repo": "23cf05cab567af14"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both PRs restructure the file the same way: a REGIONS table, shared helpers, named constants and dead code removed. A's `formatRowMoney` treats NaN, from a missing price, as negative, so DE and UK rows print '-.NaN,\u2026' and '\u00a3-,NaN\u2026' where the original printed 'NaN,\u2026'. That breaks the strict output-preservation requirement, and A's report says outputs were identical. B's `formatRowAmount` reproduces the original exactly, including NaN. B also adds tests that pin the FR, UK, month, error and negative-amount behavior and that pass against the original code, while A adds no tests and leaves its fuzz script in /tmp.",
+        "a_issues": [
+          "`formatRowMoney` routes NaN amounts to the negative branch, so DE and UK rows print '-.NaN,undefined \u20ac' and '\u00a3-,NaN.undefined' instead of the original 'NaN,undefined \u20ac' and '\u00a3NaN.undefined'. That changes output for missing prices.",
+          "The report says there are no differences from the original, but its fuzzing missed the NaN case.",
+          "No tests added, although the existing suite covers only DE and the empty case and the file was fully rewritten.",
+          "The comparison script was left in /tmp instead of being turned into a test."
+        ],
+        "b_issues": [
+          "`buildReport` evaluates `options || {}` twice, which is a minor wrinkle.",
+          "There are two money formatters with a switch per region, so adding a region means editing both. B's report says this openly."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both PRs collapse the three region blocks into one table-driven loop with similar helpers. A keeps the original string slicing in `formatMoney` and the original split behaviour for row amounts, so its output matches even for odd inputs like a missing price (NaN). B's `split('.')` destructuring and its `amount >= 0` shortcut change the output for NaN in `formatMoney` (which the digest also uses) and in DE/UK rows. A also adds tests that pass on the old code and pin FR, UK, the month filter, errors and the negative-amount quirk; B adds none and leaves its fuzz script in /tmp.",
+        "a_issues": [
+          "`formatRowAmount` repeats part of `formatMoney`'s logic, although this is needed to keep the original quirks.",
+          "`buildReport` reads `options` twice (`options || {}` used in two places), which is a little untidy."
+        ],
+        "b_issues": [
+          "`formatMoney` now uses `split('.')`, so non-finite amounts change: a missing price used to give `,aN \u20ac` and now gives `NaN,undefined \u20ac`. This affects subtotals and `digest.js`.",
+          "In `formatRowMoney`, the `amount >= 0` check is false for NaN, so DE/UK rows wrongly get a '-' (`-.NaN,undefined \u20ac` where the original printed `NaN,undefined \u20ac`).",
+          "No tests were added, even though existing coverage is only DE and the empty case. The fuzz script stays in /tmp and is not committed.",
+          "The report says the output is unchanged, but the fuzz run did not include NaN or missing prices, so that claim does not fully hold."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

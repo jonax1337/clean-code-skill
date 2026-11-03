@@ -1,0 +1,73 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4185f882b618ce6a",
+    "sickn33": "52efc2b6b82082db"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "The source changes are identical: same event type, same reducer guards, cancel clears `resumeOn`, same audit format and same notification. The tests cover the same cases with the same assertions, apart from naming and where the event literals are inlined. Both reports are accurate (13 existing + 6 new = 19 tests). B adds a helpful note that, until resume exists, only cancellation moves a subscription out of `paused`, but that is not enough to prefer one merge over the other.",
+        "a_issues": [
+          "Report does not mention that, without resume, a paused subscription can only leave `paused` by being cancelled."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "The source changes in A and B are identical, line for line, across events, subscription state, audit and notifier, and both implement every requirement correctly. Their tests cover the same cases with the same assertions and differ only in names and small layout choices. Both reports are accurate, mention leaving out resume and date validation, and correctly count 6 new tests out of 19.",
+        "a_issues": [],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "62b5fd2906c15d51",
+    "sickn33": "df9a6e8edd675608"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs fix the same root cause the same way: they map the CRM `customer_id` to `customerId` at load time and route the lookup through `requireCustomer`, so behavior is equivalent and follows the README conventions. A's sources test runs `loadCustomerRecords` against a temp directory, so it protects the actual wiring. B's tests call `normalizeCrmCustomer` directly, so they would still pass if someone removed the `.map` call. B also exports a helper only so the tests can reach it. B's unknown-customer test asserts the exact message, which is stronger than A's, but the coverage gap in its loader tests matters more.",
+        "a_issues": [
+          "The unknown-customer test only checks that the message includes the invoice id, not the full message naming the customer.",
+          "The temp directories created by the sources test are never cleaned up.",
+          "The `requireCustomer` import is placed out of alphabetical order (trivial)."
+        ],
+        "b_issues": [
+          "The sources tests exercise `normalizeCrmCustomer` and `buildCustomerIndex` directly but never `loadCustomerRecords`, so dropping the `.map(normalizeCrmCustomer)` wiring would go undetected.",
+          "`normalizeCrmCustomer` is exported only for tests, which widens the module's public surface.",
+          "Spreading `...rest` after `customerId` would let a stray `customerId` field in CRM data override the mapped id (minor)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs make the same correct fix: CRM records get `customerId` when they are loaded, and the export lookup goes through `requireCustomer`. B's sources test goes through `loadCustomerRecords` itself, so it would catch the `.map` being dropped from the loader. A only tests a helper it exported for that purpose, which leaves the wiring in the loader untested. B's report is also more specific about what it verified: the test count, the export exit code and row count, and what it did not run. A's export test pins the exact error message more tightly, but that does not outweigh B's advantage.",
+        "a_issues": [
+          "`normalizeCrmCustomer` is exported only so tests can reach it, which widens the public surface of `sources.js`.",
+          "The sources tests call the helper directly and never exercise `loadCustomerRecords`, so removing the `.map(normalizeCrmCustomer)` call would not fail any test.",
+          "The report claims the export runs but gives no explicit verification of the actual `npm run export` output, such as exit code or row count."
+        ],
+        "b_issues": [
+          "The new import of `requireCustomer` is placed above `./csv.js`, which breaks the alphabetical import order the file had.",
+          "The unknown-customer test only checks `message.includes(\"INV-9\")`, which is looser than asserting the full message.",
+          "The temp directories created in `sources.test.js` are never removed."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

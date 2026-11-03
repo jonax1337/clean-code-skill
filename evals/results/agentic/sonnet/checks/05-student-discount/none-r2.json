@@ -1,0 +1,105 @@
+{
+  "case": "05-student-discount",
+  "split": "dev",
+  "condition": "none",
+  "rep": 2,
+  "checks": [
+    {
+      "name": "student_discount_applies",
+      "description": "A STUDENT without loyalty points gets 10% off in the quote, the catalog unit price and the receipt, with the discount rounded half up like every other amount.",
+      "passed": true,
+      "evidence": "exit 0, tests ran: True\n[         4 containers started    ]\n[         0 containers aborted    ]\n[         4 containers successful ]\n[         0 containers failed     ]\n[         7 tests found           ]\n[         0 tests skipped         ]\n[         7 tests started         ]\n[         0 tests aborted         ]\n[         7 tests successful      ]\n[         0 tests failed          ]\n\nstty: /dev/tty: No such device or address"
+    },
+    {
+      "name": "larger_discount_wins_without_stacking",
+      "description": "The prompt: a student who is also a loyalty member gets whichever discount is bigger, never both; silver loyalty loses to 10%, gold loyalty (15%) wins, employees are unaffected.",
+      "passed": true,
+      "evidence": "exit 0, tests ran: True\n[         4 containers started    ]\n[         0 containers aborted    ]\n[         4 containers successful ]\n[         0 containers failed     ]\n[         6 tests found           ]\n[         0 tests skipped         ]\n[         6 tests started         ]\n[         0 tests aborted         ]\n[         6 tests successful      ]\n[         0 tests failed          ]\n\nstty: /dev/tty: No such device or address"
+    },
+    {
+      "name": "existing_behavior_unchanged",
+      "description": "Regular and employee customers get exactly the same rates, quotes, catalog prices and receipts as before.",
+      "passed": true,
+      "evidence": "exit 0, tests ran: True\n[         4 containers started    ]\n[         0 containers aborted    ]\n[         4 containers successful ]\n[         0 containers failed     ]\n[         7 tests found           ]\n[         0 tests skipped         ]\n[         7 tests started         ]\n[         0 tests aborted         ]\n[         7 tests successful      ]\n[         0 tests failed          ]\n\nstty: /dev/tty: No such device or address"
+    },
+    {
+      "name": "only_expected_files_changed",
+      "description": "Only library sources, tests and the README changed; no build files, resources or configuration were added for a single rule.",
+      "passed": true,
+      "evidence": "changed: ['README.md', 'src/main/java/pricing/CustomerType.java', 'src/main/java/pricing/DiscountPolicy.java', 'src/main/java/pricing/ReceiptFormatter.java', 'src/test/java/pricing/DiscountPolicyTest.java']"
+    },
+    {
+      "name": "existing_tests_not_loosened",
+      "description": "No existing test line was changed or removed; tests may only be added. An import line may change, for example to a wildcard: it cannot loosen a test.",
+      "passed": true,
+      "evidence": "tests only added to"
+    },
+    {
+      "name": "test_suite_passes",
+      "description": "The repository's own test suite passes.",
+      "passed": true,
+      "evidence": "[         7 containers started    ]\n[         0 containers aborted    ]\n[         7 containers successful ]\n[         0 containers failed     ]\n[        14 tests found           ]\n[         0 tests skipped         ]\n[        14 tests started         ]\n[         0 tests aborted         ]\n[        14 tests successful      ]\n[         0 tests failed          ]\n\nstty: /dev/tty: No such device or address"
+    },
+    {
+      "name": "student_tests_added",
+      "description": "The prompt adds behavior, so the agent added at least one test that uses CustomerType.STUDENT.",
+      "passed": true,
+      "evidence": "\n  src/test/java/pricing/DiscountPolicyTest.java: assertRate(\"0.10\", new Customer(\"Sam\", CustomerType.STUDENT, 0));\n  src/test/java/pricing/DiscountPolicyTest.java: assertRate(\"0.10\", new Customer(\"Sam\", CustomerType.STUDENT, 500));\n  src/test/java/pricing/DiscountPolicyTest.java: assertRate(\"0.15\", new Customer(\"Sam\", CustomerType.STUDENT, 2000));"
+    },
+    {
+      "name": "no_new_abstraction_layers",
+      "description": "One rate rule in an existing method needs no interface, abstract class, sealed hierarchy or factory/registry/strategy type, and at most 1 new main source file.",
+      "passed": true,
+      "evidence": "no matching added code; new main files: []"
+    },
+    {
+      "name": "money_stays_bigdecimal_with_one_rounding",
+      "description": "The codebase keeps money in BigDecimal and rounds only in Money.round; the change adds no double, float or floating-point literal, RoundingMode, setScale or Math.round of its own (comments and strings do not count).",
+      "passed": true,
+      "evidence": "no matching added code"
+    },
+    {
+      "name": "price_calculation_not_duplicated",
+      "description": "Choosing the rate is DiscountPolicy's job and PriceCalculator already turns a rate into a price for both quote and catalog: the change adds no price arithmetic to the main sources and does not special-case customer types in PriceCalculator.",
+      "passed": true,
+      "evidence": "[pass] price_calculation_not_duplicated: no matching added code\n[pass] price_calculation_not_duplicated: no matching added code"
+    },
+    {
+      "name": "clean_diff",
+      "description": "The diff has no debug output (System.out, System.err, printStackTrace), commented-out code or narrating comments.",
+      "passed": true,
+      "evidence": "[pass] clean_diff: clean\n[pass] clean_diff: no matching added code"
+    },
+    {
+      "name": "tests_run_after_last_edit",
+      "description": "After its last edit the agent ran the test suite and it passed.",
+      "passed": true,
+      "evidence": "ls lib 2>&1 | head; java tools/RunTests.java 2>&1 | tail -20"
+    }
+  ],
+  "metrics": {
+    "files": [
+      "src/main/java/pricing/CustomerType.java",
+      "src/main/java/pricing/DiscountPolicy.java",
+      "src/main/java/pricing/ReceiptFormatter.java"
+    ],
+    "before": {
+      "functions": 5,
+      "nloc": 38,
+      "max_nloc": 14,
+      "max_ccn": 3,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 5,
+      "nloc": 40,
+      "max_nloc": 14,
+      "max_ccn": 4,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c079f3de1e5d6745",
+    "sickn33": "34c96667b0000fc2"
+  },
+  "score": 0.25,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "The source changes are effectively identical. Both add the event, the paused status, the resumeOn field cleared on cancel, the guards for pause-only-when-active and for payment_failed while paused, and the audit and notifier cases. The only source difference is the order of the status union. A's audit test uses a reason containing quotes, which exercises the escaping better; B's uses the task's exact example line. Both reports are accurate and raise different but useful caveats (A: the new required field breaks hand-built Subscription objects; B: plan changes still apply while paused, and resumeOn is not validated), so I would be equally happy merging either.",
+        "a_issues": [
+          "The report's claims about CRLF line endings and about writing the tests first cannot be checked from the diff, and they add little for the reviewer.",
+          "The report does not raise whether plan changes should apply while paused."
+        ],
+        "b_issues": [
+          "The audit test uses a plain reason without quotes, so it does not check escaping for the new event, although it reuses the same JSON.stringify as the cancellation case.",
+          "The report does not mention that the new required `resumeOn` field breaks external code that builds Subscription objects by hand."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The source changes are functionally identical: same event type, same reducer guards, same cancel clearing `resumeOn`, same audit and notifier cases. A's audit test uses the exact example line from the task, and its report flags a real gap in the spec: plan changes are still allowed while paused. B's audit test adds a check that quotes in the reason are escaped, which is slightly stronger. However, B's report makes claims about writing the tests first and about CRLF line endings that cannot be checked from the diff. Overall the two are very close.",
+        "a_issues": [
+          "The audit test does not use a reason containing quotes. Escaping is only covered indirectly by the existing cancellation test, which uses the same JSON.stringify."
+        ],
+        "b_issues": [
+          "The report claims the tests were written first and that test/subscription.test.ts uses CRLF line endings. Neither claim can be checked from the diff.",
+          "The audit test does not use the task's literal example line.",
+          "The report does not point out that plan changes still apply while paused, which the spec leaves open."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

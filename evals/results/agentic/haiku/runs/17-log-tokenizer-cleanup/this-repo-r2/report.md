@@ -1,0 +1,3 @@
+The background command that was killed was the stray Python invocation from the benchmark setup. Its file copies had already completed, and I confirmed them before using them. Nothing it was doing is still needed, so no restart is required.
+
+The tokenizer cleanup in `src/token.rs` is finished and unchanged since my last report: tests pass, the differential check shows no mismatches, and the real-path benchmark is about 20% faster than HEAD. The change is still uncommitted in the working tree. Say if you want it committed.

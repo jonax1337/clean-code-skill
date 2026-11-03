@@ -1,0 +1,172 @@
+diff --git a/REVIEW.md b/REVIEW.md
+new file mode 100644
+index 0000000..11cff40
+--- /dev/null
++++ b/REVIEW.md
+@@ -0,0 +1,166 @@
++# Review of PR 482: user search, paged user list, bulk deactivation with audit log
++
++Line numbers point into the files *after* the patch is applied. I applied `pr/482.diff` to a separate worktree,
++ran the test suite there (`python -m pytest -q`: **28 passed**, which matches the description) and checked each
++finding below with a short script against an in-memory database. The test suite passes, but none of its tests
++exercise the problems listed here.
++
++## Must fix before merge
++
++### 1. SQL injection in search: `adminhub/search.py:13`
++
++```python
++f"WHERE name LIKE '%{term}%' OR email LIKE '%{term}%' "
++```
++
++`q` comes straight from the request and is pasted into the SQL. What I saw:
++
++- `q = "zzz' OR 1=1 OR name LIKE '"` returns **every user**.
++- `q = "zzz' OR 1=1 --"` comments out the rest of the statement, including `LIMIT ? OFFSET ?` (the call then
++  fails with "Incorrect number of bindings").
++- An ordinary name like `O'Brien` raises `sqlite3.OperationalError` (a 500 for a normal search).
++
++The README says "All queries go through `sqlite3` with `?` placeholders". This query breaks that rule.
++
++**Fix:** bind the pattern:
++
++```python
++"WHERE name LIKE ? ESCAPE '\\' OR email LIKE ? ESCAPE '\\' ORDER BY name LIMIT ? OFFSET ?"
++```
++
++with `pattern = "%" + escaped_term + "%"`, where `escaped_term` escapes `\`, `%` and `_`, so that a search for `_` does not
++match everything. **Test:** a search for `"' OR 1=1 OR name LIKE '"` returns `[]`, and a search for `O'Brien` returns
++200.
++
++### 2. Audit failures are silently swallowed: `adminhub/audit.py:10-16`
++
++```python
++    try:
++        conn.execute("INSERT INTO audit_log ...", ...)
++    except sqlite3.Error:
++        pass
++```
++
++The PR says compliance wants *every* deactivation in the audit trail. With this `except: pass`, a failed audit
++insert is ignored. The deactivation still commits, and the handler reports success. I dropped `audit_log` and ran
++`bulk_deactivate(ids=["2"])`: response `200 {"deactivated": 1}`, user 2 inactive, no audit row. Because of the swallow,
++the `rollback()` in `users.deactivate_users` (`adminhub/users.py:61-68`) never runs for the one failure it was meant
++to handle.
++
++**Fix:** remove the `try/except` and let the error propagate. `deactivate_users` already rolls back and re-raises.
++**Test:** make the audit insert fail (for example drop the table, or monkeypatch `audit.record` to raise), then
++assert that `deactivate_users` raises and the users are still active.
++
++### 3. Audit trail records users that were never deactivated: `adminhub/users.py:62-64`
++
++```python
++cursor = conn.execute(f"UPDATE users SET active = 0 WHERE id IN ({placeholders})", user_ids)
++for user_id in user_ids:
++    audit.record(conn, actor, "deactivate", user_id)
++```
++
++Every *requested* ID gets an audit entry, including IDs that do not exist. `bulk_deactivate(ids=["1", "99"])`
++returned `deactivated: 1` but wrote audit rows for `[1, 99]`. A compliance log that records deactivations that did not
++happen is wrong data. Duplicate IDs (`[2, 2]`) also produce two entries.
++
++**Fix:** use `UPDATE ... WHERE id IN (...) RETURNING id` (SQLite ≥ 3.35), or select the matching IDs first, then
++audit exactly those rows. Deduplicate the input. Also decide whether unknown IDs should give a 404 or a per-ID result,
++as `deactivate_user` already does for a single ID. **Test:** bulk-deactivate `[1, 99]` and assert that the audit log
++holds only `[1]`.
++
++### 4. `pages` is wrong: `adminhub/api.py:37`
++
++```python
++total_pages = users.count_users(conn) // per_page
++```
++
++Floor division undercounts:
++
++- 5 users with `per_page=3` gives `pages: 1`, but there are 2 pages.
++- 5 users with `per_page=10` (or the default 25) gives `pages: 0`, so the pager the console team is waiting for will
++  show no pages for any list shorter than one page.
++
++**Fix:** `math.ceil(count / per_page)`, or `-(-count // per_page)`. **Test:** assert `pages` for 5 users at
++`per_page` 3 (→ 2), 5 (→ 1) and 10 (→ 1). The existing `test_list_users_honours_per_page` does not check `pages`.
++
++### 5. Request input is not validated, so bad input gives 500s instead of 400s: `adminhub/api.py:35-36, 46, 61-62`
++
++Each of these raised an exception instead of returning a response:
++
++| Input | Result |
++| --- | --- |
++| `list_users` with `per_page=0` | `ZeroDivisionError` |
++| `list_users` / `search` with `page=x` | `ValueError` |
++| `bulk_deactivate` without `actor` | `KeyError: 'actor'` |
++| `bulk_deactivate` with `ids=["a"]` | `ValueError` |
++
++Negative values do not raise but give nonsense: `per_page=-1` returns all users (SQLite treats `LIMIT -1` as no limit)
++with `pages: -5`. `page=0` silently returns page 1.
++
++The existing handlers turn bad input into `BadRequest` and then 400 (see `_user_id`, `api.py:18-22`). The new ones
++should follow the same pattern: add a small `_positive_int(params, name, default)` helper next to `_user_id`. Validate
++`page >= 1` and `1 <= per_page <= 100`. Require `actor` and a non-empty list of integer `ids`. **Tests:** one 400 test
++per row in the table above.
++
++### 6. Where does `actor` come from? `adminhub/api.py:62`
++
++`actor=params["actor"]` takes the audit identity from the decoded request parameters. If the web layer passes client
++input through unchanged, anyone can write any name into the compliance log. I cannot see the web layer from this repo,
++so this is a question rather than a finding: does the web layer set `actor` from the authenticated session and
++overwrite anything the client sent? If not, it has to be done before this audit log can be trusted.
++
++## Should fix
++
++### 7. `list_users` now silently returns only the first 25 users: `adminhub/users.py:35`, `adminhub/api.py:34-39`
++
++This changes behavior for existing callers. The README (`list_users` | none | "200 with all users") says the handler
++returns everyone. After this PR, any caller that does not send `page` gets 25 users and no sign that more exist
++(apart from the `pages` field, which is broken, see 4). `test_list_users_returns_everyone` still passes only because
++the fixture has 5 users. Please confirm that the console is the only caller. Update the README table and the test name,
++and add a test with more than 25 users.
++
++### 8. Search is not "paged the same way": `adminhub/api.py:42-47`, `adminhub/search.py:9`
++
++The description says search is paged like `list_users`, but:
++
++- the handler ignores `per_page`;
++- it does not return `page` / `pages`;
++- `search_users` hardcodes `per_page: int = 25` instead of reusing `users.DEFAULT_PAGE_SIZE`, so the two defaults can
++  drift apart.
++
++Either do the same as `list_users` (shared page parsing, see 5, plus a count query using the same `WHERE`) or
++describe the difference in the PR and the README.
++
++### 9. README is not updated
++
++The handler table has no `search` or `bulk_deactivate`, and `list_users` is still listed with no parameters and "all
++users".
++
++## Nits
++
++- `adminhub/search.py:3`: `import os` is unused.
++- `adminhub/search.py:10`: `# TODO: rank exact matches first`. Open an issue for it, or drop the comment.
++- `adminhub/search.py:16`: `res` → `rows`, to match `users.py`.
++- `search_users` could live in `users.py` next to `list_users` and reuse `SELECT_USER` instead of repeating the column
++  list. It is the only query on `users` outside that module.
++- `tests/test_search.py:4`: `test_search_matches_name_case_insensitively` searches for `"ann"`. That also matches the
++  email `ann@example.com`, so the test does not show case-insensitive matching on the name. Use `"LEE"`.
++
++## What is good
++
++- `deactivate_users` does the bulk update in one transaction and rolls back on error. That is the right structure,
++  once the audit no longer swallows errors (2).
++- The `IN (...)` list in `deactivate_users` is built from placeholders, not values.
++- `count_users`, `DEFAULT_PAGE_SIZE` and the `audit_log` schema are small and clear. The tests follow the existing
++  Arrange–Act–Assert style.
++
++## Verdict
++
++**I would not merge this as it is**, even with the console team waiting. Finding 1 is an exploitable SQL injection on a
++user-admin endpoint. Findings 2 and 3 mean the audit trail compliance asked for can be incomplete and can record
++deactivations that never happened. Finding 4 breaks the pager this PR exists to deliver. The fixes are small and
++local: placeholders, deleting the `try/except`, auditing only the rows that changed, `ceil`, and input validation
++with tests for each. A quick second round should be enough.
++
++If the console team cannot wait, one option is to merge only the `list_users` paging (with fixes 4, 5 and 7) and
++move search and bulk deactivation to a follow-up PR.

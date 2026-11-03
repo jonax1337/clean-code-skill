@@ -1,0 +1,92 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "a07a5b15cc705cfe",
+    "ub-mode": "27d03df8b91ad860"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors preserve behavior. Both remove the duplicate release loop and add characterization tests that they ran against the original code. A stays tighter: its helpers are private, it adds no new type, and its report is accurate. B makes every helper part of the public module API, adds a `Pricing` dataclass that wasn't needed, and committed to `main` without being asked. B's report also contradicts itself about a `dryer` tool. B's test suite is somewhat stronger, but that does not outweigh the scope and report problems.",
+        "a_issues": [
+          "The gateway-error characterization test pins likely-buggy behavior (stock left reserved on a non-decline error) as a passing test, which could get in the way of a later fix. It is clearly labeled, though.",
+          "No tests for country-specific tax rates, for the shipping threshold being checked after discount, or for a coupon staying unredeemed on decline."
+        ],
+        "b_issues": [
+          "Committed directly to `main` (two commits) without being asked to.",
+          "Made every helper public (`validate_items`, `settle`, `price_order`, etc.), which widens the module's API beyond the refactor's needs.",
+          "Introduces a `Pricing` dataclass that is only used to compute a total, an extra abstraction for this task.",
+          "The report says `dryer` isn't installed, then cites a 'dryer check' result. It also mentions unexplained tools (`crapper`, `mutator`).",
+          "`settle` is a vague name for commit, redeem and mark-paid."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors preserve behavior, including the coupon-before-reserve ordering and the release-on-decline path. Each was checked with a randomized comparison against the original. A's characterization tests are clearly stronger: they cover the exact free-shipping boundary, the threshold measured after discount, VIP without a coupon, per-country tax, the coupon not being redeemed on decline, and the reserve/commit call order. B's threshold test uses 6000, so it would not catch a `>=` vs `>` mutation. B is more conservative, with private helpers and a more honest report, but its test net is noticeably thinner for a production refactor.",
+        "a_issues": [
+          "Helpers are public (no underscore), which widens the module's API surface without need.",
+          "The `Pricing` dataclass is an extra abstraction the task did not strictly require.",
+          "The report contradicts itself: it says the dryer tool isn't installed, then cites a dryer check finding no duplication.",
+          "The report does not mention that the decline path now releases `order.items` instead of the `reserved` list.",
+          "Committed directly on local `main` without being asked.",
+          "No test pins the non-PaymentDeclined gateway error behavior that the report says is preserved on purpose."
+        ],
+        "b_issues": [
+          "The free-shipping test uses 6000 rather than the exact 5000 boundary, so it does not pin the `>=` comparison or the threshold check after discount.",
+          "Missing tests for VIP without a coupon, per-country tax rates, negative quantity, and coupon redemption or non-redemption.",
+          "`process_order` still inlines commit, redeem and status updates, so the main function is less decomposed than it could be.",
+          "`_reserve_stock` mixes reservation with setting order status and translating the exception."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "e0e7387d7f1c4175",
+    "sickn33": "c5842b8e83edc2b0"
+  },
+  "score": 0.75,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "The production code in both diffs is functionally identical and correct. Both add the paused status and the nullable resumeOn field, gate pausing on active, make payment_failed ignore paused subscriptions, clear resumeOn on cancel, and produce the exact audit line and customer-only email from the spec. A adds a short comment explaining why paused skips payment failures and folds the initial-null check into an existing test. B keeps that check as a separate test. Both reports are accurate, with correct test counts and the same honest caveats, so I would be equally happy merging either.",
+        "a_issues": [
+          "Edits an existing test to add the resumeOn null assertion instead of keeping it a separate test (very minor)."
+        ],
+        "b_issues": [
+          "The report says the tests were written first and seen failing, which the diff cannot confirm (minor).",
+          "Puts the new tests after the existing 'history rejected' test instead of next to the related state tests (cosmetic)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes have the same source code and behavior, and both match the spec on state, audit and notifications. They also cover the same edge cases in tests, and both reports are accurate (A: 20 tests, B: 19, consistent with what each added). B adds one short comment explaining why a paused subscription ignores payment failures, which helps the next reader. B also folds the initial-null check into the existing start test instead of adding a separate test, a marginally tidier choice.",
+        "a_issues": [
+          "No comment explaining why paused subscriptions ignore payment_failed; the reason has to be inferred from the spec."
+        ],
+        "b_issues": [
+          "The initial resumeOn=null check is folded into an existing test, so its intent is slightly less visible than a dedicated test (minor)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

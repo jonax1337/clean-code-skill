@@ -1,0 +1,89 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "e9bfc2799d7b9b42",
+    "ub-mode": "6a3733ebdbc0194c"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.25,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes implement --percent correctly, reuse `allocate` through a shared `_reject_duplicates` helper, and use a required mutually exclusive argparse group. A keeps all percent parsing and validation together in splitting.py and tests the parsing edge cases more thoroughly (decimals, negatives, a missing '=', an empty name, zero, duplicates). B's report is garbled and refers to instructions the reviewer cannot see (\"ub-mode\", unnamed push rules, Crapper/Dryer/Mutator). It also says B created a branch and made commits, which the task did not ask for. A's report is clean, and it states its one opinionated choice, rejecting 0%, openly.",
+        "a_issues": [
+          "`split_by_percent` does not check the total or duplicates itself and relies on callers to run `parse_percents` first.",
+          "Rejecting a 0% share goes slightly beyond the task, though the report explains it."
+        ],
+        "b_issues": [
+          "`parse_percent` lives in cli.py while the rest of the split logic is in splitting.py.",
+          "Names are not stripped of whitespace, and input like `bob= 30` is rejected with an unclear message.",
+          "The report is garbled: it has blank references to \"ub-mode\" and unnamed instructions, and it mentions tools (Crapper, Dryer, Mutator) unrelated to the task.",
+          "The agent created a branch and made commits with co-author trailers, which was not asked for.",
+          "No test checks that omitting both --with and --percent fails, and there are fewer parsing edge-case tests."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes add `--percent` correctly, use a mutually exclusive required group, and reuse `allocate` and a shared duplicate check. B's tests cover many more edge cases: negatives, decimals, a missing `=`, an empty name, zero, duplicates, totals above and below 100, and the case where neither option is given. B's report is clean and accurate. A's report refers to outside tooling and instructions (ub-mode, Crapper/Dryer/Mutator, a co-author trailer) with blank placeholders where references should be. A also made git commits on a new branch that nobody asked for. A's `split_by_percent` validating its own total is a slightly better domain design, but it does not outweigh B's stronger tests and cleaner delivery.",
+        "a_issues": [
+          "Report refers to unexplained external instructions and tools (ub-mode, Crapper, Dryer, Mutator) with blank placeholder text",
+          "Created a branch and made commits that were not requested",
+          "Fewer edge-case tests: no tests for negatives, a missing '=', an empty name, a total over 100, or omitting both options",
+          "`parse_percent` lives in cli.py rather than next to the other splitting logic"
+        ],
+        "b_issues": [
+          "`split_by_percent` does not validate its input, so callers must remember to call `parse_percents` first",
+          "Rejects 0% entries, an extra restriction the task did not ask for (though the report documents it)",
+          "`test_add_needs_with_or_percent` takes `capsys` but never uses it"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

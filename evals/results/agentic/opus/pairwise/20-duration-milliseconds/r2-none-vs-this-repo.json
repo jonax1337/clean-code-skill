@@ -1,0 +1,84 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "36e15ce21fbee80e",
+    "this-repo": "f8621663ced04e09"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 0.25,
+    "readability": 1.0,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes convert `parseDuration` to milliseconds correctly and fix all six callers, including the three that need seconds (`validate`, `http`, `report`). The difference is tests: before this work, nothing covered `http`, `report` or the TTL minimum boundary. B added tests for these and checked them against the old code first, so they protect the riskiest callers. A changed those callers with no test coverage at all. B's new `MS_PER_SECOND` export is a small addition but keeps the factor in one place.",
+        "a_issues": [
+          "No tests for `rateLimitHeaders`, `describeSettings` or the TTL minimum/boundary, even though these are the callers most likely to break from the unit change.",
+          "`Math.ceil` in `http.ts` is unnecessary because inputs are always whole units; harmless but adds noise."
+        ],
+        "b_issues": [
+          "Adds a new exported constant `MS_PER_SECOND` from `duration.ts`, a small expansion of module surface beyond what the task asked.",
+          "The `describeSettings` template line became long and harder to read with the inline divisions."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both diffs make the same correct code changes: they drop `* 1000` from the three millisecond callers and convert back to seconds in `http`, `report` and `validate`. A also adds tests for the seconds-based callers that previously had no coverage (`Retry-After`, `describeSettings`, the TTL minimum and its boundaries) and confirmed they passed before the change, so they lock in the behavior that should not change. B only updates the `parseDuration` expectations, which leaves the riskiest part of this refactor untested.",
+        "a_issues": [
+          "Adds a new exported `MS_PER_SECOND` constant, a small extra API surface that is arguably unnecessary.",
+          "The `describeSettings` template line becomes long and dense with two inline divisions."
+        ],
+        "b_issues": [
+          "No tests for the callers that needed a seconds conversion (`http.ts`, `report.ts`, the `validate.ts` minimum), so regressions there would go unnoticed.",
+          "Repeats the magic number 1000 in `http.ts`, `report.ts` and `validate.ts`.",
+          "`Math.ceil` in `rateLimitHeaders` is harmless but redundant, because durations are always whole seconds or more."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "B",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

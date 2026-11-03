@@ -1,0 +1,87 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "8a93070a66755558",
+    "ub-mode": "cbe948ab79aa72b7"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors split the tokenizer into per-token methods with a named state enum, and as far as I can trace by hand both keep the original tokens, errors and positions. A also adds seven regression tests for edge cases the existing suite missed: separator errors, nested brackets, invalid and trailing escapes, stray-quote positions and empty values. Those tests protect future edits to the line format, which is the developer's main concern. B adds no tests, made a local commit nobody asked for, and its report ends with a confusing line about unrelated tools.",
+        "a_issues": [
+          "`value()` sets `expect = Field` before parsing and relies on `next()` to override it on error, which is a bit indirect",
+          "The differential test against the old tokenizer was deleted, not kept as a guard"
+        ],
+        "b_issues": [
+          "No tests added for the refactored error paths, so later edits to the line format have only the original 8 tests as protection",
+          "Committed locally without being asked",
+          "The report contains a garbled, irrelevant sentence about 'crapper, dryer or mutator tools from .'",
+          "Error state is set through `fail()` at every error site rather than in one place in `next()`"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors look behavior-preserving: tracing timestamps, key/word, quoted, bare and empty values, the error positions, and the after-error state gives the same results as the original in both. B also adds seven regression tests for error variants and positions the old suite never covered, which protects exactly the behavior the user said must not change. A deleted its comparison test, committed without being asked, and ends its report with a garbled reference to tools that don't exist.",
+        "a_issues": [
+          "Deleted its differential test and added no tests, so separator, nested-bracket, escape and stray-quote error positions remain unprotected.",
+          "Committed locally (`7d55274`) although the user did not ask for a commit.",
+          "The report contains a confusing, garbled line about 'crapper, dryer or mutator tools from .' that has nothing to do with the task.",
+          "Its benchmark is reported as about 10% faster, but that comes from a small synthetic test."
+        ],
+        "b_issues": [
+          "Adds an `is_err()` check on every token in `next()`; negligible, but the error path is not marked cold.",
+          "`value()` sets `expect = Field` before parsing the value, so it relies on `next()` to override the state on error. This is correct but slightly indirect."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

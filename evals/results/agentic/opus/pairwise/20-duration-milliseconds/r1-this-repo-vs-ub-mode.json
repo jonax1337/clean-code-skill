@@ -1,0 +1,86 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "2a29f0f0d9192b06",
+    "ub-mode": "c881d62eafb342b7"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes convert parseDuration to milliseconds correctly and handle the three callers that need seconds (http, report, validate). A also tests validate.ts, the riskiest conversion: it adds a below-minimum case and accepted-boundary cases, while B's suite would not catch a wrong millisecond minimum in validateTtl. A's report is accurate and clean. B's report contains garbled text about 'Crapper, dryer and mutator checks', and B made local commits without being asked.",
+        "a_issues": [
+          "Exports a new MS_PER_SECOND constant from duration.ts, which is a small expansion of that module's surface.",
+          "The inSeconds helper in report.ts is a minor extra abstraction."
+        ],
+        "b_issues": [
+          "No test for the validateTtl minimum or boundaries, so a wrong millisecond limit in validate.ts would go unnoticed.",
+          "Uses the magic number 1000 in several places, and the inline expression in describeSettings is long.",
+          "Made two git commits that were not requested.",
+          "The report has garbled, incomplete text about 'Crapper, dryer and mutator checks' referring to tools that don't exist in the repo."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes convert `parseDuration` to milliseconds correctly and update every caller, including the three that still need seconds. B also adds tests for the TTL minimum and the accepted boundaries, which protects the `validate.ts` conversion; A leaves that path untested. B ties the validation limits to their `5s`/`1d` messages via `parseDuration`. A's report has garbled, placeholder-like text about 'Crapper, dryer and mutator checks' for tools that are not in the task or the repo, so it is less trustworthy.",
+        "a_issues": [
+          "No test covers the `validate.ts` minimum or the accepted boundaries, so a missed conversion in the minimum check would go unnoticed.",
+          "The report has garbled text about nonexistent 'Crapper, dryer and mutator' tools, with missing words.",
+          "The report talks about commits and a push that no one asked for."
+        ],
+        "b_issues": [
+          "Exports a new `MS_PER_SECOND` constant from `duration.ts`, which slightly widens the module surface.",
+          "The private `inSeconds` helper in `report.ts` is a small extra abstraction."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

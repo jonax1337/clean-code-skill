@@ -1,0 +1,80 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ac4665a864cd35ca",
+    "sickn33": "55f80094162ff8a2"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same code fix: a Map from normalized email to its first index, with new arrivals registered in the map. Both preserve the first-match and within-upload duplicate behavior of findIndex. A also adds a regression test for the duplicate-existing-email edge case, the subtle behavior the Map rewrite could most easily break. B instead relies on a one-off equivalence check that was never committed. B's report has the stronger verification claim (identical output on a subset), but the lasting test protection tips it toward A.",
+        "a_issues": [
+          "Did not compare old and new output field by field on the benchmark data, only the contact counts, as its report itself says."
+        ],
+        "b_issues": [
+          "Adds no test for the first-entry-wins case when the stored book already has duplicate emails, which is the main behavior the Map rewrite must preserve.",
+          "The equivalence check against the old implementation was not kept in the repo, so it gives no ongoing protection."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same fix to `src/import.ts`: a Map from normalized email to index, built once with first-entry-wins semantics, and updated as new contacts are appended. B also adds a regression test for the one subtle behavior the Map has to preserve: an incoming contact merges into the first of several existing entries with the same email. A's equivalence check against the old implementation is good evidence, but it was a one-off run and is not kept in the repo.",
+        "a_issues": [
+          "No test added for first-entry-wins when the stored book already has duplicate emails, though this is the main behavior the Map has to preserve."
+        ],
+        "b_issues": [
+          "Did not compare the old and new outputs field by field; the report says so openly."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

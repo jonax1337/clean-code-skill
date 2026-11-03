@@ -1,0 +1,85 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "518db6b08da57722",
+    "sickn33": "7f9db61e7610a06b"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews find the same core blockers: the SQL injection, the swallowed audit errors, the floor-division page count, the unvalidated input, and the actor taken from request params. Both back them with reproduced evidence and reach the correct no-merge verdict. A also catches that `list_users` now silently returns only 25 users by default, which breaks the documented \"all users\" contract for existing callers. A's line references are accurate. B adds a valid point that single-user deactivation is not audited, but it misses the list_users regression and cites a nonexistent `tests/test_api.py:176-179` location.",
+        "a_issues": [
+          "Does not point out that the existing single-user `deactivate_user` path writes no audit entry, despite the \"every deactivation\" requirement.",
+          "Does not mention that already-inactive users are counted and audited again on repeat bulk calls."
+        ],
+        "b_issues": [
+          "Misses the backward-incompatible change that `list_users` now returns only the first 25 users by default, contrary to the README's \"all users\".",
+          "Cites `tests/test_api.py:176-179`, a line range that does not exist in the patched file.",
+          "Places auditing of nonexistent ids under \"should fix\" rather than blocking, even though it corrupts the compliance trail."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find, reproduce and rank the same core blockers: the SQL injection in search, the swallowed audit errors, `pages` rounding down, and missing input validation. B also catches that `list_users` now silently returns only 25 users by default, which breaks the README contract and is a real regression for existing callers. It also correctly notes that the case-insensitivity test passes through the email match. A uniquely flags that single-user deactivation is still not audited, a valid point. However, A cites an impossible line range (`tests/test_api.py:176-179` in a roughly 48-line file) and misses the default-paging regression, so B's review is slightly more accurate and useful.",
+        "a_issues": [
+          "Misses that `list_users` without `page` now returns only 25 users, breaking the README's 'all users' contract for existing callers",
+          "Cites `tests/test_api.py:176-179`, a line range that does not exist in the patched file",
+          "Its note on the case-insensitivity test is about non-ASCII folding rather than the real flaw: the term 'ann' also matches the email"
+        ],
+        "b_issues": [
+          "Does not flag that the existing single-user `deactivate_user` path still writes no audit entry, despite the stated 'every deactivation' compliance requirement",
+          "Somewhat longer, with a 'What is good' section and minor nits (e.g. renaming `res`) that add little"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

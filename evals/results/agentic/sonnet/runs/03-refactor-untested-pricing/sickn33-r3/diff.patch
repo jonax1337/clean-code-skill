@@ -1,43 +1,44 @@
 diff --git a/src/pricing.ts b/src/pricing.ts
-index 422859f..4304af2 100644
+index 422859f..946ef3f 100644
 --- a/src/pricing.ts
 +++ b/src/pricing.ts
-@@ -1,17 +1,26 @@
-+const BOOK_MEMBER_DISCOUNT_FACTOR = 0.9;
-+const DEFAULT_MEMBER_DISCOUNT_FACTOR = 0.95;
+@@ -1,17 +1,31 @@
++const BOOK_MEMBER_MULTIPLIER = 0.9;
++const DEFAULT_MEMBER_MULTIPLIER = 0.95;
 +const SAVE10_COUPON = "SAVE10";
-+const SAVE10_AMOUNT = 10;
++const SAVE10_DISCOUNT = 10;
 +
  export function getPrice(p: any, isMember: boolean, coupon?: string) {
    let price = p.price;
--  if (isMember) {
+   if (isMember) {
 -    if (p.category == "books") {
 -      price = price * 0.9;
 -    } else {
 -      price = price * 0.95;
 -    }
--  }
--  if (coupon) {
++    price = applyMemberDiscount(price, p.category);
+   }
+   if (coupon) {
 -    if (coupon == "SAVE10") {
 -      price = price - 10;
 -      if (price < 0) price = 0;
 -    }
--  }
++    price = applyCoupon(price, coupon);
+   }
 -  return Math.round(price * 100) / 100;
-+  if (isMember) price = applyMemberDiscount(price, p.category);
-+  if (coupon) price = applyCoupon(price, coupon);
 +  return roundToCents(price);
 +}
 +
 +function applyMemberDiscount(price: number, category: string): number {
-+  const factor =
-+    category == "books" ? BOOK_MEMBER_DISCOUNT_FACTOR : DEFAULT_MEMBER_DISCOUNT_FACTOR;
-+  return price * factor;
++  const multiplier = category == "books" ? BOOK_MEMBER_MULTIPLIER : DEFAULT_MEMBER_MULTIPLIER;
++  return price * multiplier;
 +}
 +
 +function applyCoupon(price: number, coupon: string): number {
-+  if (coupon != SAVE10_COUPON) return price;
-+  return Math.max(price - SAVE10_AMOUNT, 0);
++  if (coupon == SAVE10_COUPON) {
++    return Math.max(price - SAVE10_DISCOUNT, 0);
++  }
++  return price;
 +}
 +
 +function roundToCents(amount: number): number {

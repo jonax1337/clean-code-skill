@@ -1,0 +1,322 @@
+diff --git a/src/audit.ts b/src/audit.ts
+index 8db4703..277be6c 100644
+--- a/src/audit.ts
++++ b/src/audit.ts
+@@ -13,14 +13,16 @@ function auditDetails(event: SubscriptionEvent): string {
+     case "subscription_started":
+       return `plan=${event.plan}`;
+     case "plan_changed":
+       return `from=${event.from} to=${event.to}`;
+     case "payment_failed":
+       return `attempt=${event.attempt}`;
+     case "payment_recovered":
+       return "";
++    case "subscription_paused":
++      return `resumeOn=${event.resumeOn} reason=${JSON.stringify(event.reason)}`;
+     case "subscription_canceled":
+       return `reason=${JSON.stringify(event.reason)}`;
+     default:
+       return assertNever(event);
+   }
+ }
+diff --git a/src/events.ts b/src/events.ts
+index e42e30f..336d214 100644
+--- a/src/events.ts
++++ b/src/events.ts
+@@ -27,14 +27,22 @@ export interface PaymentRecovered extends EventBase {
+   type: "payment_recovered";
+ }
+ 
+ export interface SubscriptionCanceled extends EventBase {
+   type: "subscription_canceled";
+   reason: string;
+ }
+ 
++export interface SubscriptionPaused extends EventBase {
++  type: "subscription_paused";
++  /** The date billing picks up again, as YYYY-MM-DD. */
++  resumeOn: string;
++  reason: string;
++}
++
+ export type SubscriptionEvent =
+   | SubscriptionStarted
+   | PlanChanged
+   | PaymentFailed
+   | PaymentRecovered
+-  | SubscriptionCanceled;
++  | SubscriptionCanceled
++  | SubscriptionPaused;
+diff --git a/src/notifier.ts b/src/notifier.ts
+index e54194a..d8f5ad8 100644
+--- a/src/notifier.ts
++++ b/src/notifier.ts
+@@ -16,16 +16,18 @@ export function notificationsFor(event: SubscriptionEvent): Notification[] {
+     case "subscription_started":
+       return [{ audience: "customer", template: "welcome", data: { plan: event.plan } }];
+     case "plan_changed":
+       return [{ audience: "customer", template: "plan-changed", data: { from: event.from, to: event.to } }];
+     case "payment_failed":
+       return paymentFailedNotifications(event);
+     case "payment_recovered":
+       return [];
++    case "subscription_paused":
++      return [{ audience: "customer", template: "subscription-paused", data: { resumeOn: event.resumeOn } }];
+     case "subscription_canceled":
+       return [{ audience: "customer", template: "subscription-canceled", data: { reason: event.reason } }];
+     default:
+       return assertNever(event);
+   }
+ }
+ 
+ function paymentFailedNotifications(event: PaymentFailed): Notification[] {
+diff --git a/src/subscription.ts b/src/subscription.ts
+index 9b6603e..efb9692 100644
+--- a/src/subscription.ts
++++ b/src/subscription.ts
+@@ -1,19 +1,21 @@
+ import { assertNever } from "./assert-never.ts";
+ import type { Plan, SubscriptionEvent, SubscriptionStarted } from "./events.ts";
+ 
+-export type SubscriptionStatus = "active" | "past_due" | "canceled";
++export type SubscriptionStatus = "active" | "past_due" | "paused" | "canceled";
+ 
+ export interface Subscription {
+   id: string;
+   plan: Plan;
+   status: SubscriptionStatus;
+   /** The attempt number of the latest failed charge; 0 while payments are fine. */
+   failedAttempts: number;
++  /** When billing resumes, as YYYY-MM-DD; set only while paused. */
++  resumeOn: string | null;
+   startedAt: string;
+   canceledAt: string | null;
+ }
+ 
+ /** The state of a subscription after all of its events, oldest first. The first event must be the start. */
+ export function replay(events: readonly SubscriptionEvent[]): Subscription {
+   const [first, ...rest] = events;
+   if (first?.type !== "subscription_started") {
+@@ -25,37 +27,45 @@ export function replay(events: readonly SubscriptionEvent[]): Subscription {
+ export function reduceSubscription(state: Subscription, event: SubscriptionEvent): Subscription {
+   switch (event.type) {
+     case "subscription_started":
+       // A repeated start event changes nothing.
+       return state;
+     case "plan_changed":
+       return { ...state, plan: event.to };
+     case "payment_failed":
+-      if (state.status === "canceled") {
++      // Nothing is billed while paused, so a payment cannot fail then.
++      if (state.status === "canceled" || state.status === "paused") {
+         return state;
+       }
+       return { ...state, status: "past_due", failedAttempts: event.attempt };
+     case "payment_recovered":
+       if (state.status !== "past_due") {
+         return state;
+       }
+       return { ...state, status: "active", failedAttempts: 0 };
++    case "subscription_paused":
++      // Only an active subscription can be paused.
++      if (state.status !== "active") {
++        return state;
++      }
++      return { ...state, status: "paused", resumeOn: event.resumeOn };
+     case "subscription_canceled":
+       if (state.status === "canceled") {
+         return state;
+       }
+-      return { ...state, status: "canceled", canceledAt: event.occurredAt };
++      return { ...state, status: "canceled", resumeOn: null, canceledAt: event.occurredAt };
+     default:
+       return assertNever(event);
+   }
+ }
+ 
+ function startedSubscription(event: SubscriptionStarted): Subscription {
+   return {
+     id: event.subscriptionId,
+     plan: event.plan,
+     status: "active",
+     failedAttempts: 0,
++    resumeOn: null,
+     startedAt: event.occurredAt,
+     canceledAt: null,
+   };
+ }
+diff --git a/test/audit.test.ts b/test/audit.test.ts
+index 23af255..0015cba 100644
+--- a/test/audit.test.ts
++++ b/test/audit.test.ts
+@@ -27,16 +27,27 @@ test("a recovery entry has no details", () => {
+   const entry = serializeAuditEntry({
+     type: "payment_recovered",
+     subscriptionId: "sub_1",
+     occurredAt: "2025-02-06T00:00:00Z",
+   });
+   assert.equal(entry, "2025-02-06T00:00:00Z sub_1 payment_recovered");
+ });
+ 
++test("a pause entry names the resume date, then the quoted reason", () => {
++  const entry = serializeAuditEntry({
++    type: "subscription_paused",
++    subscriptionId: "sub_9",
++    occurredAt: "2025-04-02T08:30:00Z",
++    resumeOn: "2025-05-01",
++    reason: "vacation",
++  });
++  assert.equal(entry, '2025-04-02T08:30:00Z sub_9 subscription_paused resumeOn=2025-05-01 reason="vacation"');
++});
++
+ test("a cancellation entry quotes the reason", () => {
+   const entry = serializeAuditEntry({
+     type: "subscription_canceled",
+     subscriptionId: "sub_1",
+     occurredAt: "2025-03-01T00:00:00Z",
+     reason: 'said "too expensive"',
+   });
+   assert.equal(entry, '2025-03-01T00:00:00Z sub_1 subscription_canceled reason="said \\"too expensive\\""');
+diff --git a/test/notifier.test.ts b/test/notifier.test.ts
+index 648ba43..6f51e7b 100644
+--- a/test/notifier.test.ts
++++ b/test/notifier.test.ts
+@@ -27,16 +27,29 @@ test("a recovery sends nothing", () => {
+   const notifications = notificationsFor({
+     type: "payment_recovered",
+     subscriptionId: "sub_1",
+     occurredAt: "2025-02-06T00:00:00Z",
+   });
+   assert.deepEqual(notifications, []);
+ });
+ 
++test("a pause tells only the customer the resume date", () => {
++  const notifications = notificationsFor({
++    type: "subscription_paused",
++    subscriptionId: "sub_1",
++    occurredAt: "2025-04-02T08:30:00Z",
++    resumeOn: "2025-05-01",
++    reason: "vacation",
++  });
++  assert.deepEqual(notifications, [
++    { audience: "customer", template: "subscription-paused", data: { resumeOn: "2025-05-01" } },
++  ]);
++});
++
+ test("a cancellation confirms to the customer with the reason", () => {
+   const notifications = notificationsFor({
+     type: "subscription_canceled",
+     subscriptionId: "sub_1",
+     occurredAt: "2025-03-01T00:00:00Z",
+     reason: "too expensive",
+   });
+   assert.deepEqual(notifications, [
+diff --git a/test/subscription.test.ts b/test/subscription.test.ts
+index f154a91..799f3a3 100644
+--- a/test/subscription.test.ts
++++ b/test/subscription.test.ts
+@@ -59,11 +59,104 @@ test("cancelling records when it happened and a canceled subscription stays canc
+     type: "payment_failed",
+     subscriptionId: "sub_1",
+     occurredAt: "2025-03-02T00:00:00Z",
+     attempt: 1,
+   });
+   assert.equal(afterFailure, canceled);
+ });
+ 
++test("an active subscription can be paused until a resume date", () => {
++  const active = replay([started]);
++  assert.equal(active.resumeOn, null);
++
++  const paused = reduceSubscription(active, {
++    type: "subscription_paused",
++    subscriptionId: "sub_1",
++    occurredAt: "2025-04-02T08:30:00Z",
++    resumeOn: "2025-05-01",
++    reason: "vacation",
++  });
++  assert.equal(paused.status, "paused");
++  assert.equal(paused.resumeOn, "2025-05-01");
++});
++
++test("only an active subscription can be paused", () => {
++  const pause: SubscriptionEvent = {
++    type: "subscription_paused",
++    subscriptionId: "sub_1",
++    occurredAt: "2025-04-02T08:30:00Z",
++    resumeOn: "2025-05-01",
++    reason: "vacation",
++  };
++  const pastDue = reduceSubscription(replay([started]), {
++    type: "payment_failed",
++    subscriptionId: "sub_1",
++    occurredAt: "2025-02-05T00:00:00Z",
++    attempt: 1,
++  });
++  assert.equal(reduceSubscription(pastDue, pause), pastDue);
++
++  const canceled = replay([
++    started,
++    { type: "subscription_canceled", subscriptionId: "sub_1", occurredAt: "2025-03-01T00:00:00Z", reason: "too expensive" },
++  ]);
++  assert.equal(reduceSubscription(canceled, pause), canceled);
++});
++
++test("pausing a paused subscription keeps its original resume date", () => {
++  const paused = reduceSubscription(replay([started]), {
++    type: "subscription_paused",
++    subscriptionId: "sub_1",
++    occurredAt: "2025-04-02T08:30:00Z",
++    resumeOn: "2025-05-01",
++    reason: "vacation",
++  });
++  const pausedAgain = reduceSubscription(paused, {
++    type: "subscription_paused",
++    subscriptionId: "sub_1",
++    occurredAt: "2025-04-03T08:30:00Z",
++    resumeOn: "2025-06-01",
++    reason: "still on vacation",
++  });
++  assert.equal(pausedAgain, paused);
++});
++
++test("payments leave a paused subscription as it is", () => {
++  const paused = replay([
++    started,
++    { type: "subscription_paused", subscriptionId: "sub_1", occurredAt: "2025-04-02T08:30:00Z", resumeOn: "2025-05-01", reason: "vacation" },
++  ]);
++  const failed = reduceSubscription(paused, {
++    type: "payment_failed",
++    subscriptionId: "sub_1",
++    occurredAt: "2025-04-03T00:00:00Z",
++    attempt: 1,
++  });
++  assert.equal(failed, paused);
++
++  const recovered = reduceSubscription(paused, {
++    type: "payment_recovered",
++    subscriptionId: "sub_1",
++    occurredAt: "2025-04-04T00:00:00Z",
++  });
++  assert.equal(recovered, paused);
++});
++
++test("cancelling a paused subscription clears the resume date", () => {
++  const paused = replay([
++    started,
++    { type: "subscription_paused", subscriptionId: "sub_1", occurredAt: "2025-04-02T08:30:00Z", resumeOn: "2025-05-01", reason: "vacation" },
++  ]);
++  const canceled = reduceSubscription(paused, {
++    type: "subscription_canceled",
++    subscriptionId: "sub_1",
++    occurredAt: "2025-04-10T00:00:00Z",
++    reason: "too expensive",
++  });
++  assert.equal(canceled.status, "canceled");
++  assert.equal(canceled.resumeOn, null);
++  assert.equal(canceled.canceledAt, "2025-04-10T00:00:00Z");
++});
++
+ test("a history that does not begin with the start is rejected", () => {
+   assert.throws(() => replay([]), /starts with subscription_started/);
+ });

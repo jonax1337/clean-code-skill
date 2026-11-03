@@ -1,0 +1,92 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "c547e2bf0e45bd8d",
+    "this-repo": "64a50938bd669fab"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both add a working `--percent` split that reuses `allocate`. B lets argparse enforce the either/or choice with a required mutually exclusive group and extracts the existing duplicate-name check into a shared helper instead of copying it. B also rejects 0% shares and says so in the report, and adds CLI tests for success, a bad total and conflicting options. A copies the duplicate check, hand-rolls the either/or validation, has no CLI-level test, and its new tests carry redundant inline imports.",
+        "a_issues": [
+          "Duplicates the duplicate-name check from split_equally instead of reusing it",
+          "Hand-rolled either/or validation raised as a MoneyError rather than using argparse's mutually exclusive group",
+          "No CLI test for --percent; relies on a manual check",
+          "New tests re-import pytest and other names inline even though they are already imported at module level",
+          "Accepts 0% entries silently, so a person can be listed but owe nothing"
+        ],
+        "b_issues": [
+          "Rejecting 0% is a small policy choice beyond the spec, though it is flagged in the report",
+          "test_with_and_percent_cannot_be_combined takes an unused capsys fixture"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes implement `--percent` correctly using the existing `allocate`. A enforces the `--with`/`--percent` choice with an argparse mutually exclusive group, shares the duplicate-name check instead of copying it, and rejects 0% shares. A's tests cover the CLI path, unit edge cases and specific error messages. B duplicates the duplicate-name check, reports a usage error as a `MoneyError`, has no CLI test for the new option, and its tests re-import `pytest` and `MoneyError` inside the test functions even though they are already imported at the top of the file.",
+        "a_issues": [
+          "Pulling the duplicate check into `_reject_duplicates` is a small refactor beyond what the task strictly needs.",
+          "The `FULL_PERCENT` constant is a minor extra abstraction.",
+          "The mutual-exclusion test asks for `capsys` but never uses it."
+        ],
+        "b_issues": [
+          "The duplicate-name check is copied into `split_by_percent` instead of reused.",
+          "The check that exactly one of `--with` or `--percent` is given is done by hand in `_add` and raises `MoneyError`, which is the wrong error type for a usage problem; argparse could enforce this declaratively.",
+          "0% shares are silently allowed, recording a person who owes nothing.",
+          "There is no CLI-level test for `--percent` or for combining or omitting both options.",
+          "The tests re-import `pytest`, `MoneyError` and the splitting functions inside test functions, which is sloppy because they are already imported at module level.",
+          "Error-message tests do not check the message content.",
+          "`rpartition` accepts names that contain `=`."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

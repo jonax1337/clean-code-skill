@@ -44,7 +44,7 @@
       "name": "suite_green",
       "description": "The full test suite passes, including the agent's own tests.",
       "passed": true,
-      "evidence": "........                                                                 [100%]\n8 passed in 0.02s"
+      "evidence": "........                                                                 [100%]\n8 passed in 0.03s"
     },
     {
       "name": "clean_diff",
@@ -58,5 +58,28 @@
       "passed": false,
       "evidence": "bash commands after the last edit: none"
     }
-  ]
+  ],
+  "metrics": {
+    "files": [
+      "shop/emails.py"
+    ],
+    "before": {
+      "functions": 3,
+      "nloc": 18,
+      "max_nloc": 10,
+      "max_ccn": 4,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 3,
+      "nloc": 19,
+      "max_nloc": 11,
+      "max_ccn": 4,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
 }

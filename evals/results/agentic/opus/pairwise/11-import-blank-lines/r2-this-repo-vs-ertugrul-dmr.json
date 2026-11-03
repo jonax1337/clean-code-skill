@@ -1,0 +1,81 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "53b646e96733aea2",
+    "ertugrul-dmr": "fd628c95b48830bf"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes apply the same correct fix: skip whitespace-only lines while keeping real line numbers in error messages. A also updates the README, whose CSV import section would otherwise wrongly imply that every unreadable line stops the import. A puts the check inline instead of in a one-line helper. B's tests and report are fine, but it leaves the user docs out of date and adds a small needless abstraction.",
+        "a_issues": [
+          "No test with a lone trailing blank line as the only extra line (it is covered alongside a mid-file blank line)."
+        ],
+        "b_issues": [
+          "README not updated to say blank lines are now skipped, so the documented import behavior is incomplete.",
+          "Adds a one-line `_is_blank` helper that does not make the code clearer than the inline check."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes apply the same correct fix: skip whitespace-only lines while still counting them in line numbers. Both add tests that protect the fix, including the line-number case. B also updates the README, which promised that unreadable lines stop the import, so the documented CSV behavior now matches the code. A wraps a one-line check in a separate `_is_blank` helper, which adds a little indirection for no gain.",
+        "a_issues": [
+          "Adds a trivial `_is_blank` helper for a one-expression check, a needless abstraction.",
+          "Leaves the README's CSV import section without any mention that blank lines are now skipped."
+        ],
+        "b_issues": [
+          "No test with tab-only lines, though `strip()` handles them the same way as spaces."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

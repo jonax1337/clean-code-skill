@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -20,11 +21,7 @@ RUNS_DIR = RESULTS_DIR / "runs"
 GRADES_DIR = RESULTS_DIR / "grades"
 CACHE_DIR = EVALS_DIR / ".cache"
 
-SICKN33_COMMIT = "bbfc66fe61e8b6ced7d38481c47600e8ac9b8eea"
-SICKN33_URL = (
-    "https://raw.githubusercontent.com/sickn33/agentic-awesome-skills/"
-    f"{SICKN33_COMMIT}/skills/clean-code/SKILL.md"
-)
+CANDIDATES_DIR = EVALS_DIR / "candidates"
 
 BASE_SYSTEM_PROMPT = (
     "You are a coding agent helping a developer in their codebase. In this session you cannot "
@@ -40,52 +37,212 @@ SKILL_FOOTER = "Files that the skill links to are not available in this session.
 class Case:
     case_id: str
     title: str
+    language: str
     prompt: str
     assertions: list[str]
 
 
+LANGUAGES = ("TypeScript", "JavaScript", "Python", "Kotlin", "Java", "Rust", "Go", "C#")
+
+
+def language_of(title: str) -> str:
+    """The language a case title names, as in "Bugfix in a legacy module (Python)" or "Error handling in Go"."""
+    for language in LANGUAGES:
+        if re.search(rf"(?<!\w){re.escape(language)}(?![\w#])", title):
+            return language
+    raise ValueError(f"Case title names none of {LANGUAGES}: {title!r}")
+
+
+@dataclass(frozen=True)
+class Skill:
+    """A skill as an agent has it installed: a folder, and the SKILL.md in it that gets loaded."""
+
+    directory: Path
+    entry: str = "SKILL.md"
+
+    def text(self) -> str:
+        return (self.directory / self.entry).read_text(encoding="utf-8")
+
+    @property
+    def name(self) -> str:
+        """The `name` in the frontmatter of the loaded SKILL.md."""
+        match = re.search(r"^name:\s*(\S+)", self.text(), flags=re.MULTILINE)
+        return match.group(1) if match else self.directory.name
+
+    def installed_folders(self) -> dict[str, Path]:
+        """The skill folders an installer puts into a skills directory, by folder name.
+
+        A single skill is one folder named after the skill; a pack (its loaded SKILL.md sits in a subfolder) installs
+        every subfolder that has a SKILL.md.
+        """
+        if (self.directory / self.entry).parent == self.directory:
+            return {self.name: self.directory}
+        return {path.parent.name: path.parent for path in sorted(self.directory.glob("*/SKILL.md"))}
+
+    def fingerprint(self) -> str:
+        """Hash of every file in the folder, so each result records which version of the skill it measured.
+
+        The `version:` line in a SKILL.md frontmatter is left out: a release bump changes no rule, so it must not
+        turn finished runs into stale ones.
+        """
+        digest = hashlib.sha256()
+        for path in sorted(path for path in self.directory.rglob("*") if path.is_file()):
+            content = path.read_bytes().replace(b"\r\n", b"\n")
+            if path.name == "SKILL.md":
+                content = _without_version_line(content)
+            digest.update(path.relative_to(self.directory).as_posix().encode())
+            digest.update(content)
+        return digest.hexdigest()[:16]
+
+
+FRONTMATTER_VERSION = re.compile(rb"^[ \t]*version:[^\n]*\n", re.MULTILINE)
+
+
+def _without_version_line(skill_md: bytes) -> bytes:
+    """The SKILL.md without the `version:` line of its frontmatter; the body is left as it is."""
+    if not skill_md.startswith(b"---\n"):
+        return skill_md
+    end = skill_md.find(b"\n---", 3)
+    if end < 0:
+        return skill_md
+    frontmatter, body = skill_md[: end + 1], skill_md[end + 1 :]
+    return FRONTMATTER_VERSION.sub(b"", frontmatter, count=1) + body
+
+
+@dataclass(frozen=True)
+class LocalSkill:
+    folder: str  # relative to the repo
+    entry: str = "SKILL.md"
+
+    def resolve(self) -> Skill:
+        return Skill(REPO_DIR / self.folder, self.entry)
+
+
+@dataclass(frozen=True)
+class GitHubSkill:
+    """A published skill pinned to a commit: the files its install instructions put into the skills folder."""
+
+    repo: str
+    commit: str
+    folder: str
+    files: tuple[str, ...]
+    entry: str = "SKILL.md"
+
+    def resolve(self) -> Skill:
+        directory = CACHE_DIR / "skills" / f"{self.repo.replace('/', '__')}@{self.commit[:10]}" / self.folder
+        for name in self.files:
+            target = directory / name
+            if not target.exists():
+                path = "/".join(part for part in (self.folder, name) if part)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                url = f"https://raw.githubusercontent.com/{self.repo}/{self.commit}/{path}"
+                with urllib.request.urlopen(url, timeout=30) as response:
+                    target.write_bytes(response.read())
+        return Skill(directory, self.entry)
+
+
+SkillSource = LocalSkill | GitHubSkill
+ANY_LANGUAGE = "*"
+
+
 @dataclass(frozen=True)
 class Condition:
+    """What the agent gets: no skill, or for each language the skill it would install for it.
+
+    A condition without a source for a case's language does not run that case; it is not counted as a loss.
+    """
+
     name: str
     label: str
-    skill_source: str | None
-    references: str | None = None  # folder with the skill's reference files, relative to the repo
+    sources: tuple[tuple[str, SkillSource], ...] = ()  # (language or ANY_LANGUAGE, source); empty: no skill
 
-    def skill_text(self) -> str | None:
-        if self.skill_source is None:
-            return None
-        if self.skill_source.startswith("https://"):
-            return _fetch_cached(self.skill_source)
-        return (REPO_DIR / self.skill_source).read_text(encoding="utf-8")
+    def applies_to(self, language: str) -> bool:
+        return not self.sources or self._source(language) is not None
 
-    def references_dir(self) -> Path | None:
-        return REPO_DIR / self.references if self.references else None
+    def skill(self, language: str) -> Skill | None:
+        source = self._source(language)
+        return source.resolve() if source else None
 
-    def system_prompt(self) -> str:
-        skill = self.skill_text()
+    def system_prompt(self, language: str) -> str:
+        skill = self.skill(language)
         if skill is None:
             return BASE_SYSTEM_PROMPT
-        return f"{BASE_SYSTEM_PROMPT}\n\n{SKILL_PREAMBLE}\n\n<skill>\n{skill}\n</skill>\n\n{SKILL_FOOTER}"
+        return (
+            f"{BASE_SYSTEM_PROMPT}\n\n{SKILL_PREAMBLE}\n\n<skill>\n{skill.text()}\n</skill>\n\n{SKILL_FOOTER}"
+        )
+
+    def _source(self, language: str) -> SkillSource | None:
+        by_language = dict(self.sources)
+        return by_language.get(language) or by_language.get(ANY_LANGUAGE)
 
 
-SKILL_REFERENCES = "skills/clean-code/references"
+def _ertugrul_track(track: str) -> GitHubSkill:
+    """One language track of ertugrul-dmr/clean-code-skills, loaded through its master skill as its README advises."""
+    skills = ("boy-scout", "clean-comments", "clean-functions", "clean-general", "clean-names", "clean-tests")
+    master = f"{track}-clean-code"
+    return GitHubSkill(
+        "ertugrul-dmr/clean-code-skills",
+        "1b6b3cc1264b8fbe921c65002d05a3bf90ede178",
+        f"skills/{track}",
+        tuple(f"{name}/SKILL.md" for name in (*skills, master)),
+        entry=f"{master}/SKILL.md",
+    )
 
+
+THIS_REPO = "this-repo"
+NO_SKILL = "none"
 CONDITIONS = [
-    Condition("baseline", "No skill", None),
-    Condition("sickn33", "sickn33/clean-code", SICKN33_URL),
-    Condition("v1", "This repo, v1", "evals/skills/v1.md"),
-    Condition("v2", "This repo, v2", "evals/skills/v2.md", SKILL_REFERENCES),
+    Condition(NO_SKILL, "No skill"),
+    Condition(THIS_REPO, "This repo", ((ANY_LANGUAGE, LocalSkill("skills/clean-code")),)),
+    Condition(
+        "ub-mode",
+        "unclebob/ub-mode",
+        (
+            (
+                ANY_LANGUAGE,
+                GitHubSkill(
+                    "unclebob/ub-mode", "3da62bf3fcfd2034de41f30d920d2739e566171f", "", ("SKILL.md",)
+                ),
+            ),
+        ),
+    ),
+    Condition(
+        "sickn33",
+        "sickn33/clean-code",
+        (
+            (
+                ANY_LANGUAGE,
+                GitHubSkill(
+                    "sickn33/agentic-awesome-skills",
+                    "bbfc66fe61e8b6ced7d38481c47600e8ac9b8eea",
+                    "skills/clean-code",
+                    ("SKILL.md",),
+                ),
+            ),
+        ),
+    ),
+    # Its two tracks cover Python and TypeScript only, so it does not run cases in other languages.
+    Condition(
+        "ertugrul-dmr",
+        "ertugrul-dmr/clean-code",
+        (("Python", _ertugrul_track("python")), ("TypeScript", _ertugrul_track("typescript"))),
+    ),
 ]
 
-# Versions measured only on the agentic track, so the published single-turn results stay as they are. v3a was
-# released as 3.0.0 (`skills/clean-code/SKILL.md` is v3a with the version number bumped); v3b is the shorter
-# alternative. Every version is a frozen copy, so changing the skill never changes what a past result measured.
-# All of them share the current skill's reference files, so their links resolve.
-CANDIDATE_CONDITIONS = [
-    Condition("v3a", "This repo, v3", "evals/skills/v3a.md", SKILL_REFERENCES),
-    Condition("v3b", "v3b: lean", "evals/skills/v3b.md", SKILL_REFERENCES),
-]
-ALL_CONDITIONS = CONDITIONS + CANDIDATE_CONDITIONS
+
+def candidate_conditions() -> list[Condition]:
+    """Skill drafts in `evals/candidates/<name>/` (not committed): measured while developing, never published."""
+    return [
+        Condition(
+            f"candidate-{folder.name}",
+            f"Candidate {folder.name}",
+            ((ANY_LANGUAGE, LocalSkill(folder.relative_to(REPO_DIR).as_posix())),),
+        )
+        for folder in sorted(path.parent for path in CANDIDATES_DIR.glob("*/SKILL.md"))
+    ]
+
+
+ALL_CONDITIONS = CONDITIONS + candidate_conditions()
 
 
 def load_cases() -> list[Case]:
@@ -97,7 +254,9 @@ def _parse_case(path: Path) -> Case:
     title = text.splitlines()[0].removeprefix("# ").strip()
     prompt = markdown_section(text, "Prompt")
     assertions = re.findall(r"^\d+\.\s+(.+)$", markdown_section(text, "Assertions"), flags=re.MULTILINE)
-    return Case(case_id=path.stem, title=title, prompt=prompt, assertions=assertions)
+    return Case(
+        case_id=path.stem, title=title, language=language_of(title), prompt=prompt, assertions=assertions
+    )
 
 
 def markdown_section(text: str, heading: str) -> str:
@@ -105,15 +264,6 @@ def markdown_section(text: str, heading: str) -> str:
     if match is None:
         raise ValueError(f"Case is missing the '## {heading}' section")
     return match.group(1).strip()
-
-
-def _fetch_cached(url: str) -> str:
-    CACHE_DIR.mkdir(exist_ok=True)
-    cached = CACHE_DIR / re.sub(r"[^A-Za-z0-9.]+", "_", url)
-    if not cached.exists():
-        with urllib.request.urlopen(url, timeout=30) as response:
-            cached.write_bytes(response.read())
-    return cached.read_text(encoding="utf-8")
 
 
 @dataclass(frozen=True)

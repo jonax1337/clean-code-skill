@@ -1,0 +1,87 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "3fc8c7b1e9052bd9",
+    "sickn33": "15b47533558e9f44"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.25,
+    "scope": 0.75,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.25,
+    "report": 0.5
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes add a required, mutually exclusive `--with`/`--percent` pair, reuse `allocate`, reject sums other than 100 and save nothing on error. A keeps every percentage rule in `split_by_percent`, and its extracted `_reject_duplicates` helper is shared by both split functions. B pulls `_reject_duplicates` out but uses it only in `split_equally`, a pointless refactor, and repeats the duplicate check by hand in its parser. B's regex parsing is stricter than A's `int()`, but A's tests and structure are a little cleaner.",
+        "a_issues": [
+          "`int()` accepts inputs like `+5`, ` 50` and `1_0`, so the whole-number check is looser than it looks.",
+          "No test for passing neither `--with` nor `--percent`.",
+          "The test for combining `--with` and `--percent` does not check the exit code."
+        ],
+        "b_issues": [
+          "`_reject_duplicates` is extracted but used only by `split_equally`, while the percent path repeats the duplicate check inline.",
+          "`split_by_percent` does no validation beyond the sum and relies on the parser for negative values, so the rules are split between two functions.",
+          "Names are stripped for `--percent` but not for `--with`, which is a small inconsistency.",
+          "No CLI test for malformed percent input reaching exit code 2."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes add a required, mutually exclusive `--with`/`--percent` group and reuse `allocate`, so they behave much the same on the happy path. A's parser is stricter: a regex allows only plain digits, so `+5`, `-5`, `5_0` and decimals are rejected while parsing. B relies on `int()`, which also accepts forms like `5_0` and `+50`. A also tests the parser directly over many malformed inputs and checks exit codes for both the conflicting and the missing case. B's tests are decent but skip the 'neither option' case and do not assert the exit code on the conflict test.",
+        "a_issues": [
+          "Accepts 0% shares, which leaves a person in the expense with a zero share. This is defensible and is disclosed in the report.",
+          "`_reject_duplicates` is factored out but only `split_equally` uses it. The percent parser does its own duplicate check."
+        ],
+        "b_issues": [
+          "`_parse_percent` uses `int()`, so it accepts `5_0`, `+50` and surrounding whitespace, and it does not strip the name.",
+          "Percent parsing lives in cli.py while validation lives in splitting.py, which spreads one feature across two modules.",
+          "No test for passing neither `--with` nor `--percent`, although the report describes that behavior. The combined-options test does not check the exit code."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

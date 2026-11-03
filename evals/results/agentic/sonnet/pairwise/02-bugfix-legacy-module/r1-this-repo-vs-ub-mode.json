@@ -1,0 +1,82 @@
+{
+  "case": "02-bugfix-legacy-module",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "7951f0c1f66bfda9",
+    "ub-mode": "2b1440c8e8c5548f"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes fix December and Q4 correctly with the same rollover helper. A also adds report-level tests showing that 31 December is included and 1 January of the next year is excluded. B committed directly to main without being asked, which may also have converted the line endings of periods.py. B's report also refers to internal passes ('crapper, dryer and mutator') that mean nothing to the developer.",
+        "a_issues": [],
+        "b_issues": [
+          "Committed to main without being asked to commit",
+          "The commit may have converted CRLF to LF in periods.py, an unintended whole-file change",
+          "No report-level tests for the December or Q4 sales boundaries",
+          "Report mentions skipped 'crapper, dryer and mutator passes', which is irrelevant noise"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes fix December and Q4 correctly, with essentially the same `_first_of_month` helper, and both add range-level regression tests. B also adds report-level tests that check 31 December is included and 1 January of the next year is excluded, which protects the actual reported behavior. A committed to `main` without being asked, and its report uses unexplained internal jargon ('crapper, dryer and mutator passes') that would confuse the developer. B's report is clean, accurate and complete.",
+        "a_issues": [
+          "Committed to main without the developer asking for a commit",
+          "Report refers to skipped 'crapper, dryer and mutator passes', which is unexplained jargon",
+          "Tests cover only the range functions, not the December or Q4 reports themselves"
+        ],
+        "b_issues": [
+          "Collapsed the start/end locals into one-line returns, a small stylistic change beyond what the fix needed"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

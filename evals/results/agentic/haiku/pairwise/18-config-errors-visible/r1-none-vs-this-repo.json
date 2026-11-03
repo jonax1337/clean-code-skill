@@ -1,0 +1,88 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "3bcc5312baf52b9f",
+    "this-repo": "d25be316cdeedc33"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same core fix: wrong values are collected and reported together, a missing file is an error, unknown keys are rejected, and Main exits with status 2. A also rejects a zero timeout, and its unknown-key message lists the valid keys, which helps whoever is fixing the typo. A's tests assert exact messages, including the retry minimum and an empty value. B is slightly tidier because it reuses `required` for the URL, and its report is cleaner, but A's validation and tests protect the behavior a bit better.",
+        "a_issues": [
+          "Report says '9 new' tests, but 11 were added and 2 removed, so 9 is the net gain.",
+          "Report's 'attribution line from the reminder' refers to injected context the developer never sees, which reads oddly.",
+          "Rejecting a zero timeout is a small extra rule beyond the reported incident (defensible)."
+        ],
+        "b_issues": [
+          "Zero `request.timeout` (e.g. `0s`) is still accepted.",
+          "Unknown-key message does not suggest the valid keys, so it gives less help with typos.",
+          "Some tests check only that the key name appears in the message (e.g. timeout, queue.capacity), which is weaker than checking the full message.",
+          "No test for the minimum of `retry.max-attempts`."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same core fix: every bad value is collected, nothing falls back to a default, and Main exits with status 2. B also rejects a zero timeout, which would otherwise make every delivery time out at once. Its unknown-key message lists the valid keys, which helps someone deploying, and its report names a remaining gap (duplicate keys). A reuses its `required` helper better and its report's test count is exact, while B's \"9 existing, 9 new\" split is wrong.",
+        "a_issues": [
+          "Accepts request.timeout=0s or 0ms, a misconfiguration that likely makes every delivery time out.",
+          "Repeated \"Never used\" comments with placeholder default returns are slightly awkward.",
+          "The unknown-key message does not suggest the valid keys."
+        ],
+        "b_issues": [
+          "upstream() and apiToken() repeat the same required-value check instead of sharing one helper.",
+          "The report's \"9 existing, 9 new\" is wrong: 7 original tests remain and 11 are new, though the total of 18 is right.",
+          "Placeholder default returns after recording a problem are uncommented, so their purpose is less obvious."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

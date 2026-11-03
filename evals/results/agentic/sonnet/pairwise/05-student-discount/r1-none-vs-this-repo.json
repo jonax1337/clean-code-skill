@@ -1,0 +1,79 @@
+{
+  "case": "05-student-discount",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "3747791a7e052530",
+    "this-repo": "c032e82f0840bb3f"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes implement the same correct logic: `STUDENT_RATE.max(loyaltyRateFor(...))`, the new enum constant, and the required receipt label. B also adds a receipt test that checks the new 'student' label and the 10% discount line end-to-end, so the ReceiptFormatter change is tested. B's report is a bit more informative: it explains why the formatter had to change and notes there is no verification that a customer really is a student. The reported test counts in both reports are consistent with the diffs (12+3=15, 12+4=16).",
+        "a_issues": [
+          "The ReceiptFormatter 'student' label is added but no test covers it",
+          "The report gives a test count but not the command used to run the tests"
+        ],
+        "b_issues": [
+          "Lists the Student row between the gold and silver loyalty rows, which mixes customer-type and points-based rows in the README table, though it keeps the table ordered by rate"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes have the same core logic: a STUDENT enum value, `STUDENT_RATE.max(loyaltyRateFor(...))` in the policy, and the receipt label. Both have the same three discount tests, and both report test counts that are accurate (12+4=16, 12+3=15). A also adds a receipt test for the new label and the 10% discount line, so the ReceiptFormatter change is covered. A's README places the Student row in descending rate order, matching the table's pattern. B's only extra is a short, useful comment in the switch.",
+        "a_issues": [],
+        "b_issues": [
+          "The new 'student' label in ReceiptFormatter has no test, so the receipt change is unprotected.",
+          "The README table puts Student (10%) above Gold loyalty (15%), which breaks the table's descending-rate order."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

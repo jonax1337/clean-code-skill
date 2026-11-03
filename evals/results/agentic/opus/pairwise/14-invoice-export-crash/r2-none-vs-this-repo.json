@@ -1,0 +1,82 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "e6c0038284b0a962",
+    "this-repo": "c247e8f6863d53c3"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes have the same production fix: CRM records are normalized from `customer_id` to `customerId` at load time, and the export now goes through `requireCustomer`, so behavior and the CSV format match. B keeps the mapping helper private and tests the real `loadCustomerRecords` path against temporary files. A exports `fromCrmRecord` only so its test can call the helper directly, which leaves `loadCustomerRecords` itself untested. B's report also says the new tests fail without the fix, which makes its verification claim stronger.",
+        "a_issues": [
+          "Exports `fromCrmRecord` from sources.js only so the test can reach it, which widens the module's API.",
+          "The CRM test calls the helper directly and never exercises `loadCustomerRecords`, so dropping the `.map(fromCrmRecord)` call would not fail any test."
+        ],
+        "b_issues": [
+          "The report says CRM customers were 'stored under an empty id'; they were actually all stored under the key `undefined`, overwriting each other. This is a minor inaccuracy."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes are almost the same fix: they map the CRM's `customer_id` to `customerId` at load time and send the export through `requireCustomer`, so behavior and CSV format are equally correct. A keeps the mapper private and tests it through `loadCustomerRecords` against real files, which protects the actual wiring. B exports `fromCrmRecord` only so it can be tested, and its test would still pass if `loadCustomerRecords` stopped calling the mapper. A's report also notes that the new tests fail without the fix, while B's has slightly more detail on which invoices were affected.",
+        "a_issues": [
+          "Report says CRM customers were 'stored under an empty id'; they were actually keyed under `undefined`, a minor imprecision"
+        ],
+        "b_issues": [
+          "Exports `fromCrmRecord` only to make it testable, which widens the module's API",
+          "The CRM test checks only the mapping function, not that `loadCustomerRecords` applies it, so a regression in the wiring would go uncaught",
+          "The CRM normalization test sits in `export.test.js` rather than with the sources code"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

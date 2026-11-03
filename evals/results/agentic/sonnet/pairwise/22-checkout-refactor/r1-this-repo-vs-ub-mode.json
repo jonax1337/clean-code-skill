@@ -1,0 +1,89 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "37075b9c61f427d6",
+    "ub-mode": "50a4fae33c011763"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior. In A, `_charge` releases `order.items`, which equals the reserved items at that point, so it behaves the same. A's tests are clearly stronger: they assert exact `inventory.log` sequences, check that a declined payment does not use up the coupon, cover exact free-shipping thresholds and country tax rates, and confirm that rejected orders never touch stock. B's report contains a garbled reference to tools that were never requested ('crapper, dryer and mutator'), and B made commits nobody asked for, which makes it a less trustworthy PR.",
+        "a_issues": [
+          "`_charge` releases `order.items` rather than an explicit reserved list. It behaves the same today, but it depends on an implicit invariant that all items were reserved.",
+          "Adds a new test file instead of extending `test_checkout.py`. This is minor."
+        ],
+        "b_issues": [
+          "Report refers to unrequested 'crapper, dryer and mutator' tools as if the task asked for them, which is confusing and inaccurate.",
+          "Committed locally without being asked, and mentions CRLF normalization, which could cause a line-ending change across the whole file.",
+          "Moved `process_order` to the bottom of the module, which enlarges the diff.",
+          "`test_shipping_is_free_from_5000_after_discount` involves no discount, so its name is misleading.",
+          "Tests check rollback only through `available()`, not the release/commit sequence. They do not cover the coupon not being redeemed on a declined payment, the exact threshold boundary, or country tax rates.",
+          "Odd hanging-indent formatting on the `_charge` signature."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior. In B, `_charge` releases `order.items` instead of the reserved list, but at that point every item has been reserved, so the result is the same. B's tests are much stronger: they check the exact `inventory.log` sequences, the free-shipping threshold boundaries, half-up rounding (9.5 to 10), country tax rates, exhausted coupons, and that a declined payment does not redeem the coupon. A's report contains a garbled sentence about unrequested 'crapper, dryer and mutator' tools, and A made commits that nobody asked for.",
+        "a_issues": [
+          "Report has a confusing, apparently hallucinated sentence ('also asks for the crapper, dryer and mutator tools') that is unrelated to the task.",
+          "Committed changes locally without being asked.",
+          "Tests are thinner: no `inventory.log` ordering checks, no threshold boundary at 4999/5000, no check that the coupon is not redeemed on a declined payment, and the half-up case is not isolated.",
+          "`_charge` takes six parameters, including a separate `reserved` list."
+        ],
+        "b_issues": [
+          "`_charge` releases `order.items` rather than the reserved list. This is equivalent here but adds an implicit assumption that all items were reserved.",
+          "The new test file duplicates `make_order` and `CUSTOMER` from `test_checkout.py` instead of reusing them."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

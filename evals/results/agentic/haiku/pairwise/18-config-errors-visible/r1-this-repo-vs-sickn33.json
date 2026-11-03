@@ -1,0 +1,87 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d25be316cdeedc33",
+    "sickn33": "ba61beb674a4ec57"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.25,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same core fix: problems are collected into one ConfigException, wrong values, unknown keys and missing files are rejected, and Main exits with status 2. A is slightly better because its URL check matches what the service actually does: it only accepts http or https, while B also accepts something like ftp://host. A's error message also names the config file, and its tests cover an empty optional value. B's report is a little more open about its choices and shows real output, but that does not outweigh A's stricter and better-tested validation.",
+        "a_issues": [
+          "Restricting `upstream.url` to http/https is a reasonable call, but the report does not discuss it as a choice the developer might want to change.",
+          "`request.timeout=0s` is still accepted, and the report does not mention it."
+        ],
+        "b_issues": [
+          "`upstream.url` accepts any absolute URL with a host, such as ftp://example.com, even though the upstream is HTTP.",
+          "Errors about invalid values do not say which config file they came from. Only the file-not-found and unreadable-file messages include the path.",
+          "The multi-problem test does not check `upstream.url` validation, and no test covers an empty value for an optional key."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two changes are nearly the same. Both stop silent fallbacks, reject unknown keys, collect every problem into one ConfigException, and exit with status 2 from Main. B pulls slightly ahead: its error message names the file, it tests an empty value for an optional key, its report says a valid config still starts, and the http/https check on upstream.url fits a URL that is used for POST requests. A's report is good about flagging its own choices, but its URL check accepts any absolute URI with a host, such as ftp://.",
+        "a_issues": [
+          "upstream.url accepts any absolute URI with a host, such as ftp://host, even though the relay POSTs to it.",
+          "The error message does not say which config file was read.",
+          "No test for an empty value of an optional key.",
+          "The report does not say a valid config was checked to still start."
+        ],
+        "b_issues": [
+          "The http/https restriction on upstream.url goes slightly beyond the request.",
+          "The 'Never used' comments on the fallback returns are a small smell; returning a sentinel value would be cleaner.",
+          "Reading and parse errors share one message format, which is slightly less specific than A's separate 'malformed' message."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

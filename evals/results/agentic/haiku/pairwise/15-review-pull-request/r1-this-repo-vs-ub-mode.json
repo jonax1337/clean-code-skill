@@ -1,0 +1,89 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d2035e3c299b17d4",
+    "ub-mode": "996208230d6a1205"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.25,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews confirm the main defects and both say do not merge: the SQL injection, the swallowed audit failures, audit rows for IDs that never changed, the wrong page count and the unhandled bad input. B also finds that single-user `deactivate_user` writes no audit row, which breaks the PR's own 'every deactivation' compliance claim, and that the audit `actor` comes from the request body. Those matter more than A's extra findings on LIKE wildcard escaping and the uncapped `IN` list. B also ties each test gap to a specific finding, but it has a small overstatement about stacked queries, which Python's sqlite3 `execute` does not run.",
+        "a_issues": [
+          "Misses that single-user deactivation is not audited, despite the 'every deactivation' compliance requirement",
+          "Misses that the audit actor is taken from client-supplied params",
+          "Line range for the audit try/except is slightly off (14-16 vs 15-16)"
+        ],
+        "b_issues": [
+          "Misses LIKE wildcard escaping (`%` and `_` in the search term)",
+          "Misses the uncapped IN (...) parameter list in bulk deactivation",
+          "Overstates the injection impact with 'stacked queries', which sqlite3 execute does not allow",
+          "Calls the TODO comment something that should not be merged, which is a debatable nit"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews find the blocking SQL injection, the swallowed audit errors, audits written for ids that were never deactivated, the wrong page count and the unhandled bad input, and both back these with reproductions. A also finds two problems that matter for compliance and that B misses: single-user `deactivate_user` writes no audit row even though the PR promises every deactivation is audited, and the audit `actor` comes from the client. B's extra findings (LIKE wildcard escaping, the uncapped IN list, `pages: 0` on an empty table) are useful but less serious. A has small accuracy slips, which keeps the margin slight.",
+        "a_issues": [
+          "Says 'with stacked queries possibly more', but sqlite3 `execute` rejects stacked statements, so this overstates the risk.",
+          "Its injection probe mentions 'three users in the database' while the fixture has five, a small inconsistency in what was verified.",
+          "Misses that `%` and `_` in the search term are not escaped.",
+          "Misses the unbounded IN-list size in bulk deactivation."
+        ],
+        "b_issues": [
+          "Misses that single-user `deactivate_user` writes no audit row, despite the PR's 'every deactivation' compliance claim.",
+          "Misses that the audit actor is taken from the request body, so the audit trail can be spoofed.",
+          "Ranks the audit-for-nonexistent-ids problem below blocking, although it corrupts the compliance trail."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

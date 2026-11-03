@@ -1,0 +1,90 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "64a50938bd669fab",
+    "ub-mode": "0c67a288ff0972d1"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.75,
+    "design": 0.75,
+    "readability": 0.25,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes add `--percent` correctly as a required mutually exclusive alternative to `--with`, and both reuse `allocate` and the duplicate-name check. A also rejects zero percentages, which it explains in its report, and tests parsing and splitting on their own with an exact rounding check. B's validation is a bit thinner and its tests are weaker: the cent test only checks the total. B's report also describes an unrequested commit and push attempt and mentions nonexistent tools, which is noise and an overreach.",
+        "a_issues": [
+          "The CLI mixing test takes an unused `capsys` fixture.",
+          "`parse_percent` is exported from the splitting module only so the CLI can call it, which adds a little API surface."
+        ],
+        "b_issues": [
+          "A 0% share is accepted, so a person can be listed but owe nothing; this is not tested or mentioned.",
+          "The cent-keeping test only checks the sum, not how the leftover cent is assigned.",
+          "The report says it committed to main and tried to push, neither of which was asked for, and it mentions nonexistent 'crapper, dryer, mutator' tools.",
+          "`split_by_percent` takes raw strings, which mixes CLI parsing into the splitting logic."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes implement `--percent` almost identically: a mutually exclusive argparse group, reuse of `allocate`, validation errors reported with exit code 2, and README and test updates. B also rejects zero percentages, says so in its report and invites the developer to change that, and pins down the rounding of one cent split 50/50. A's report is weaker: it mentions committing and attempting a push nobody asked for, and refers to 'crapper, dryer, mutator' tools unrelated to the task.",
+        "a_issues": [
+          "Accepts a 0% entry, so the expense records a person with a zero share; the report does not mention or flag this.",
+          "Report says it committed and tried to push to a remote, which was not requested.",
+          "Report refers to nonexistent 'crapper, dryer, mutator' tools, which is irrelevant noise.",
+          "Rejects values with surrounding whitespace such as 'alice= 50' without a clear reason (minor).",
+          "CLI test takes an unused `capsys` parameter."
+        ],
+        "b_issues": [
+          "The validation condition in `parse_percent` is a long one-liner calling `number.strip()` twice, which is harder to read.",
+          "The `FULL_PERCENT` constant is a mild bit of over-abstraction.",
+          "Rejecting 0% goes slightly beyond the task, though the report flags it and offers to change it.",
+          "CLI test takes an unused `capsys` parameter."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "B",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

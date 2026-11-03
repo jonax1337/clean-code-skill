@@ -1,0 +1,88 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "64a50938bd669fab",
+    "ertugrul-dmr": "a4dbf12c748934bf"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.75,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two changes are nearly identical: both use a mutually exclusive argparse group, add parse_percent and split_by_percent that reuse allocate, share the duplicate check through a helper, and update the README. A parses percentages more strictly: only ASCII digits are accepted, so int() quirks such as '+5', '1_0' or non-ASCII digits do not slip through. A's tests are also a little more precise: they assert exit code 2 for the mutual-exclusion case, check the add output, and pin the exact 1-cent rounding result. A's report also says plainly what it did not verify.",
+        "a_issues": [
+          "The mutual-exclusion test requests an unused capsys fixture.",
+          "No CLI test for a malformed --percent value; this is covered only at the unit level."
+        ],
+        "b_issues": [
+          "parse_percent relies on int(), which also accepts forms like '+50', '1_0' and non-ASCII digits.",
+          "The mutual-exclusion test does not check the exit code and requests an unused capsys fixture.",
+          "The keeps-every-cent test checks only the sum, not which person gets the leftover cent.",
+          "The report does not say what was left unverified, for example the CLI was not run by hand."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes are nearly identical and correct. Each uses a mutually exclusive argparse group, reuses `allocate`, factors out the duplicate check and updates the README. B's tests are a little stronger: the conflict test checks exit code 2, the CLI test checks the `added` line, and the rounding test pins the exact cent distribution. B's report is also more candid about what was and wasn't verified, and it flags the decision to reject 0%.",
+        "a_issues": [
+          "The test combining `--with` and `--percent` only checks for SystemExit, not exit code 2.",
+          "`parse_percent` uses bare `int()`, so oddities such as `1_0` or `+50` are accepted.",
+          "The unused `capsys` fixture is left in the new CLI test.",
+          "The report does not say how the tests were run and does not mention untested paths."
+        ],
+        "b_issues": [
+          "The error message says `NAME=PERCENT` while the metavar and README say `NAME=PCT`, which is a small inconsistency.",
+          "A negative input such as `alice=-5` is reported as a format error rather than a non-positive percentage, so the message is slightly misleading.",
+          "The unused `capsys` fixture is left in the new CLI test."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

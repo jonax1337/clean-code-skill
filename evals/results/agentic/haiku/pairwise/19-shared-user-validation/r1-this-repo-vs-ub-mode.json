@@ -1,0 +1,87 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "2912a14c096dd3a7",
+    "ub-mode": "6252d5752155657b"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 1.0,
+    "design": 0.0,
+    "readability": 0.25,
+    "tests": 0.75,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "B puts both normalization and validation in one module, so `parseEmail` lowercases every email. This fixes the documented invitation-lowercase discrepancy in one place, which is the goal of the task. A keeps `.toLowerCase()` in each handler, so the very kind of divergence the task wants to remove survives. A preserves behavior faithfully and its report is cleaner. B's behavior change is unrequested, but it matches `docs/api.md`, is covered by tests written first, and is clearly disclosed.",
+        "a_issues": [
+          "Email normalization (`.toLowerCase()`) stays in the create and update handlers, so a fix still has to be made in several places; the invite email is still not lowercased.",
+          "Leaves the documented bug in place: invitation emails are stored case-sensitively, against docs/api.md.",
+          "The required-role check is still handled inside inviteUser instead of the shared module."
+        ],
+        "b_issues": [
+          "Makes a behavior change (lowercasing invite emails) beyond a pure refactor, though it is disclosed and matches the docs.",
+          "The report mentions unrelated 'ub-mode crapper, dryer, mutator' tools and a local temp path, which is noise.",
+          "No direct unit tests for the new validation module; the parsers are only covered through the handler tests."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "B",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "A moves normalization and the field checks into one parser module, so the handlers only compose them. Unifying them also fixes the documented contract violation where invitation emails were not lowercased; A discloses this change and tests it. B is more conservative, but it leaves the trim/lowercase normalization and the 'role is required' check in each handler, which is the same divergence that let the invite bug happen. B does flag that bug well in its report. A's change goes beyond a pure refactor, but `docs/api.md` explicitly requires lowercase invitation emails, so the fix is justified and visible.",
+        "a_issues": [
+          "Changes behavior (invitation email lowercasing) inside a refactor task, though it is disclosed and matches the docs",
+          "No direct unit tests for the new parsers; they are covered only through handler tests",
+          "Report mentions irrelevant 'ub-mode' tools and an outside-repo scratch directory without saying whether it was removed"
+        ],
+        "b_issues": [
+          "Email normalization (trim + lowercase) stays duplicated in the handlers, so it is not centralized",
+          "'role is required' logic remains in inviteUser instead of the shared module",
+          "Keeps the known invite-email case bug that contradicts docs/api.md, flagging it instead of fixing it"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

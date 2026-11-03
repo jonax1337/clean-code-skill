@@ -1,0 +1,85 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "e76bf71abaad24da",
+    "sickn33": "694d723b25b18f4a"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors look behaviour-preserving and similarly readable. Both use named states, small per-token-kind functions, and the error-to-stop logic in one place. A also pins the old behaviour with 18 new in-repo tests covering every error kind with exact positions, empty values, non-ASCII text and post-error iteration. B's equivalence checking lives only in an out-of-repo scratch crate, so nothing in the repository protects the refactor going forward.",
+        "a_issues": [
+          "After an error, `pos` is no longer moved to the end of the line. This is invisible through the iterator but changes the internal state and `Debug` output, which the report discloses.",
+          "The `Scanned` struct adds a small extra abstraction layer."
+        ],
+        "b_issues": [
+          "Adds no regression tests to the repo. The old-vs-new comparison sits in a scratch crate outside the repository, which is left behind next to the repo.",
+          "The report says the stop code was copied at nine error returns; the original actually has eleven.",
+          "`read_value` resets `expect` to `Token` even on error and relies on `next()` to override it to `Nothing`, which is a slightly indirect state flow."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behaviour: tracing every path (separator skipping, empty bare values, timestamp and quote scanning, quote-in-run errors, stop-after-error) gives the same tokens and error positions as the original, and neither should be slower. B also adds 18 regression tests that pin every error kind with its exact position, plus empty values, non-ASCII text and iteration after errors. Those tests protect the format work the developer is dreading, while A adds no tests. B's scanners take `&self` and return a `Scanned` result, so all state changes happen in `next()`, which is a slightly cleaner design than A's helpers mutating `self`.",
+        "a_issues": [
+          "Adds no tests: the old-versus-new equivalence check lives only in a scratch crate outside the repo, so nothing guards future edits.",
+          "Report says the stop-on-error code was repeated at nine error returns; the original has eleven.",
+          "Leaves a scratch crate next to the repo (disclosed, but it is a leftover)."
+        ],
+        "b_issues": [
+          "Renames the private fields `src`/`st` to `line`/`state` and no longer moves `pos` to the end after an error; neither is observable through the iterator, and both are disclosed.",
+          "New test code uses rustfmt-style wrapping, slightly unlike the repo's existing style."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

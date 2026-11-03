@@ -1,0 +1,83 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ffffe84b2e6a3f25",
+    "ub-mode": "dbf676c8e2b48e76"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "The code fix is identical in both changes: blank lines are skipped in `parse_entries`, and the line numbers in error messages still count them. A covers this with two focused, readable tests, one for skipping and one for line numbering. B packs both checks into a single denser test with an odd `lines[:3] + [\"\"]` construction. B also committed to `main` without being asked, and its report mentions irrelevant tools.",
+        "a_issues": [
+          "The fix was not tried on the real accountant CSV, though the report says so."
+        ],
+        "b_issues": [
+          "Committed the change to `main` (`e971fe7`) without being asked.",
+          "A single combined test checks both skipping and line numbering, which is harder to read and to diagnose when it fails.",
+          "The report mentions unrelated 'crapper, dryer or mutator tools', which is noise."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same code fix: they skip blank and whitespace-only lines while keeping the original line numbering. That correctly resolves the reported error. B's tests are clearer and more thorough: one test checks that entries on both sides of blank lines are kept, and a separate one checks that line numbers still count blank lines. A packs two concerns into one test whose success case has only one real entry. A also committed to main without being asked, and its report mentions irrelevant tools, while B's report is clean and accurate.",
+        "a_issues": [
+          "The single test mixes the error-line-number check and the skip behavior. Its success case has only one real entry, so it doesn't show that parsing continues past blank lines into later entries.",
+          "Committed directly to main without being asked.",
+          "The report mentions unrelated tools ('crapper, dryer or mutator'), which adds noise."
+        ],
+        "b_issues": [
+          "Did not verify the fix on the actual CSV, though the report says so openly."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

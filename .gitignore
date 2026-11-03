@@ -3,5 +3,8 @@ __pycache__/
 .pytest_cache/
 *.partial
 evals/.cache/
+# Skill drafts and their results: measured while developing the skill, never published.
+evals/candidates/
+evals/results/**/*candidate-*
 .venv/
 .ruff_cache/

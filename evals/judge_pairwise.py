@@ -1,12 +1,13 @@
 """Compare agentic runs pairwise and blind: which of two changes would a strict reviewer rather merge?
 
 Usage: python evals/judge_pairwise.py [--model opus] [--coder sonnet] [--split test]
-                                      [--conditions baseline,sickn33,v2 | --pairs v3a:v2,v3b:v2] [--jobs 4]
+                                      [--pairs this-repo:none,this-repo:ub-mode | --conditions A,B,C] [--jobs 4]
 For every case, repetition and pair of conditions, the judge sees the fixture repo, both diffs and both final
 reports twice, once in each order, so position bias cancels out. Cues that reveal a skill (heuristic codes such
 as G25, mentions of "the skill", paths of its reference files) are removed first. Each verdict carries a
 rationale, so the results say why one change won, not only that it did.
-`--conditions` compares every pair of the listed conditions, `--pairs` only the listed ones.
+By default this repo's skill is compared with every other condition; `--pairs` judges only the listed pairs and
+`--conditions` every pair of the listed conditions.
 Writes results/agentic/<coder>/pairwise/<case>/r<n>-<X>-vs-<Y>.json. A verdict is kept until one of its runs changes.
 """
 
@@ -23,15 +24,27 @@ from itertools import combinations
 from pathlib import Path
 
 from agentic import AgenticCase, coder_models, load_agentic_cases, results_dir
-from harness import ALL_CONDITIONS, ask_claude, extract_json, write_text_atomic
+from harness import ALL_CONDITIONS, CONDITIONS, THIS_REPO, ask_claude, extract_json, write_text_atomic
 
-DEFAULT_CONDITIONS = "baseline,sickn33,v2"
+DEFAULT_PAIRS = ",".join(
+    f"{THIS_REPO}:{condition.name}" for condition in CONDITIONS if condition.name != THIS_REPO
+)
 CONDITION_ORDER = [condition.name for condition in ALL_CONDITIONS]
 JUDGE_SYSTEM_PROMPT = (
     "You are a strict senior engineer deciding which of two pull requests for the same task to merge. "
     "You only output JSON."
 )
 WINNER_SCORE = {"A": 1.0, "tie": 0.5, "B": 0.0}
+# Aspects of clean code the judge rates separately, so a result says where one change is better, not only that it is.
+DIMENSIONS = {
+    "correctness": "Does the change do the right thing, and does behavior that should stay the same stay the same?",
+    "scope": "Does it change only what the task needs, without unrelated edits or leftovers?",
+    "design": "Is the structure simple: existing code reused, no duplication, no needless abstraction, errors "
+    "handled visibly?",
+    "readability": "Are names, function size and comments easy for the next developer to follow?",
+    "tests": "Do the tests protect the new or changed behavior, including its edge cases?",
+    "report": "Is the final report accurate and complete about what was changed and verified?",
+}
 SKIPPED_REPO_DIRS = {"node_modules", "__pycache__"}
 SKILL_CUES = [
     re.compile(r"\s?\((?:[CEFGNT]\d{1,2}(?:\s*[,/]\s*)?)+\)"),
@@ -100,10 +113,10 @@ def main() -> None:
 
 def _pairs(args: argparse.Namespace) -> list[tuple[str, str]]:
     """Condition pairs to judge, each in the canonical condition order so results never split by direction."""
-    if args.pairs:
-        raw = [tuple(pair.split(":")) for pair in args.pairs.split(",")]
-    else:
+    if args.conditions:
         raw = list(combinations(args.conditions.split(","), 2))
+    else:
+        raw = [tuple(pair.split(":")) for pair in args.pairs.split(",")]
     unknown = {name for pair in raw for name in pair} - set(CONDITION_ORDER)
     if unknown or any(len(pair) != 2 for pair in raw):
         raise SystemExit(f"Bad pairs or unknown conditions: {sorted(unknown) or raw}")
@@ -144,12 +157,23 @@ def _compare(comparison: Comparison, model: str) -> float:
         "judge_model": model,
         "fingerprints": comparison.fingerprints(),
         "score": sum(first_scores) / 2,
+        "dimension_scores": _dimension_scores(orders),
         # Each order picked a different winner; a tie in one order is not a contradiction.
         "contradictory": set(first_scores) == {0.0, 1.0},
         "orders": orders,
     }
     write_text_atomic(comparison.path, json.dumps(result, indent=2))
     return result["score"]
+
+
+def _dimension_scores(orders: list[dict]) -> dict[str, float]:
+    """Per aspect, the first condition's score averaged over both orders; aspects a verdict left out are skipped."""
+    scores = {}
+    for name in DIMENSIONS:
+        verdicts = [order["verdict"].get("dimensions", {}).get(name) for order in orders]
+        if all(verdict in WINNER_SCORE for verdict in verdicts):
+            scores[name] = (WINNER_SCORE[verdicts[0]] + 1 - WINNER_SCORE[verdicts[1]]) / 2
+    return scores
 
 
 def _change(comparison: Comparison, condition: str) -> str:
@@ -210,9 +234,17 @@ reuse of existing code; readability; tests that protect the change; a report tha
 changed and verified. Length is not a merit. You cannot run the code, so reason from the repository and the diffs.
 Answer "tie" only when you would be equally happy to merge either.
 
+Then compare the two changes on each of these aspects separately, "tie" where they do not differ:
+{_dimension_list()}
+
 Return only this JSON:
 {{"winner": "A" | "B" | "tie", "margin": "slight" | "clear", "rationale": "2-4 sentences",
-"a_issues": ["..."], "b_issues": ["..."]}}"""
+"a_issues": ["..."], "b_issues": ["..."],
+"dimensions": {{{", ".join(f'"{name}": "A" | "B" | "tie"' for name in DIMENSIONS)}}}}}"""
+
+
+def _dimension_list() -> str:
+    return "\n".join(f"- {name}: {question}" for name, question in DIMENSIONS.items())
 
 
 def _parse_args() -> argparse.Namespace:
@@ -221,9 +253,9 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--coder", help="judge only the runs of this coder model (default: all)")
     parser.add_argument("--split", choices=["dev", "test"], help="judge only this split (default: all cases)")
     parser.add_argument(
-        "--conditions", default=DEFAULT_CONDITIONS, help="judge every pair of these conditions"
+        "--pairs", default=DEFAULT_PAIRS, help="judge these pairs (default: this repo vs each other)"
     )
-    parser.add_argument("--pairs", help="judge only these pairs, e.g. v3a:v2,v3b:v2")
+    parser.add_argument("--conditions", help="instead, judge every pair of these conditions")
     parser.add_argument("--jobs", type=int, default=4, help="parallel comparisons")
     return parser.parse_args()
 

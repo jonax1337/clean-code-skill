@@ -1,0 +1,79 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "4c7a671984845877",
+    "this-repo": "e0e7387d7f1c4175"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make essentially the same source edits: the new event type, the paused status, a resumeOn field that is cleared on cancel, payment events ignored while paused, the audit line and the customer-only notification. All of it is correct and within scope. A's tests go a little further: an extra audit test checks that quotes in the pause reason are escaped, which protects the requirement to quote it like the cancellation reason. Both reports are accurate about the work and the test counts (21 for A, 19 for B).",
+        "a_issues": [
+          "No notable issues; the separate 'no resume date' test duplicates what could be one assertion in the existing started test."
+        ],
+        "b_issues": [
+          "No audit test for escaping quotes in the pause reason, so the 'quoted like the cancellation reason' requirement is only checked with a plain string."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes have identical production code and implement every requirement correctly: the new status, resumeOn that is null when not paused, the active-only pause guard, payment events ignored while paused, cancel clearing resumeOn, the audit format, and a customer-only notification. B's tests are slightly stronger: an extra audit test checks that quotes in the pause reason are escaped, and a dedicated test covers resumeOn being null on a new subscription. Both reports are accurate about what changed and the test counts.",
+        "a_issues": [
+          "No audit test for a pause reason containing quotes, so the escaping requirement ('quoted the way the cancellation reason is') is only checked with a plain string."
+        ],
+        "b_issues": [
+          "New subscription tests are placed after the existing 'history rejected' test rather than grouped with the other state tests, a trivial ordering nit."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

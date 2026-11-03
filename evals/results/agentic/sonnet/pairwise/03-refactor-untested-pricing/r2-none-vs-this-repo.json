@@ -1,0 +1,86 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "5388f7d814828fd2",
+    "this-repo": "f519d2171bf101ca"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.25,
+    "scope": 0.75,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep the pricing behavior the same, but B is the stronger change. It pins the behavior with characterization tests run against the original code and reports passing tests and a clean typecheck. It also replaces `p: any` with a `Priceable` type that accepts every existing call site, including the feed rows and the inline objects in `cart.ts` and `checkout.ts`. A ran nothing, added no tests, and its report wrongly claims a NaN behavior difference (`Math.max(0, NaN)` returns NaN, same as before), so it is both unverified and slightly inaccurate.",
+        "a_issues": [
+          "No tests were run and no typecheck was done, even though the task stresses that `getPrice` is used across the codebase.",
+          "No tests were added to protect the refactored `getPrice`.",
+          "The report claims NaN input now returns 0 with SAVE10. It does not, because `Math.max(0, NaN)` is NaN, so the stated edge case is wrong.",
+          "`p: any` is left in place, which keeps the main readability and type-safety problem."
+        ],
+        "b_issues": [
+          "Changing the parameter type from `any` to `Priceable` changes the public signature. It adds some risk beyond a pure readability cleanup, though B reports that `tsc` passes.",
+          "`getPrice` is now a single dense function using ternaries, which is a little terser than needed."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior. A also replaces `p: any` with a `Priceable` type that fits every call site, so the type checker now guards the many callers. A pins the behavior with characterization tests that it ran against the original code first, and its report accurately states that tests and tsc were run. B added no tests, ran nothing, and its report wrongly claims a NaN price now returns 0, when `Math.max(0, NaN)` actually returns NaN.",
+        "a_issues": [
+          "Exporting a new `Priceable` interface slightly widens the public surface of the module, though it is justified by removing `any`."
+        ],
+        "b_issues": [
+          "Keeps `p: any`, so callers get no type safety and `memberFactor(p.category)` accepts an untyped value.",
+          "Still uses loose `==` comparisons.",
+          "No tests added, and neither tests nor the type checker were run.",
+          "The report claims NaN input now returns 0 with SAVE10, which is false because `Math.max(0, NaN)` is NaN; behavior is actually unchanged there."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

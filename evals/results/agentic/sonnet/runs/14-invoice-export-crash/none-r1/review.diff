@@ -1,0 +1,87 @@
+diff --git a/src/customers.js b/src/customers.js
+index 4ba264d..2536046 100644
+--- a/src/customers.js
++++ b/src/customers.js
+@@ -6,17 +6,19 @@ import { UnknownReferenceError } from "./errors.js";
+  * @property {string} name
+  * @property {string} country
+  */
+ 
+ /** Customers by id, for lookups. */
+ export function buildCustomerIndex(records) {
+   const index = new Map();
+   for (const record of records) {
+-    index.set(record.customerId, record);
++    // The CRM export names the key `customer_id`, the billing export `customerId`.
++    const customerId = record.customerId ?? record.customer_id;
++    index.set(customerId, { ...record, customerId });
+   }
+   return index;
+ }
+ 
+ /** The customer with this id; `referencedBy` names the record that asked for it, for the error message. */
+ export function requireCustomer(index, id, referencedBy) {
+   const customer = index.get(id);
+   if (!customer) {
+diff --git a/src/export.js b/src/export.js
+index 2ad1481..a7a66e5 100644
+--- a/src/export.js
++++ b/src/export.js
+@@ -1,15 +1,16 @@
+ import { toCsv } from "./csv.js";
++import { requireCustomer } from "./customers.js";
+ import { invoiceTotalCents } from "./invoices.js";
+ import { formatCents } from "./money.js";
+ 
+ const HEADER = ["invoice_id", "customer", "issued_on", "total"];
+ 
+ function invoiceRow(invoice, customers) {
+-  const customer = customers.get(invoice.customerId);
++  const customer = requireCustomer(customers, invoice.customerId, `invoice ${invoice.id}`);
+   return [invoice.id, customer.name, invoice.issuedOn, formatCents(invoiceTotalCents(invoice))];
+ }
+ 
+ /** One CSV row per invoice, in the order given, for the accounting import. */
+ export function exportInvoices(invoices, customers) {
+   return toCsv([HEADER, ...invoices.map((invoice) => invoiceRow(invoice, customers))]);
+ }
+diff --git a/tests/customers.test.js b/tests/customers.test.js
+index d3ea6b7..50203f2 100644
+--- a/tests/customers.test.js
++++ b/tests/customers.test.js
+@@ -3,26 +3,32 @@ import { test } from "node:test";
+ import { buildCustomerIndex, requireCustomer } from "../src/customers.js";
+ import { UnknownReferenceError } from "../src/errors.js";
+ 
+ const acme = { customerId: "C-1", name: "Acme", country: "DE" };
+ const nordwind = { customerId: "C-2", name: "Nordwind", country: "US" };
+ 
+ test("buildCustomerIndex finds customers by id", () => {
+   const index = buildCustomerIndex([acme, nordwind]);
+-  assert.equal(index.get("C-1"), acme);
+-  assert.equal(index.get("C-2"), nordwind);
++  assert.deepEqual(index.get("C-1"), acme);
++  assert.deepEqual(index.get("C-2"), nordwind);
+   assert.equal(index.size, 2);
+ });
+ 
+ test("requireCustomer returns the customer", () => {
+-  assert.equal(requireCustomer(buildCustomerIndex([acme]), "C-1"), acme);
++  assert.deepEqual(requireCustomer(buildCustomerIndex([acme]), "C-1"), acme);
+ });
+ 
+ test("requireCustomer names the unknown customer and who asked for it", () => {
+   const index = buildCustomerIndex([acme]);
+   assert.throws(
+     () => requireCustomer(index, "C-9", "invoice INV-7"),
+     (error) =>
+       error instanceof UnknownReferenceError &&
+       error.message === 'Unknown customer "C-9" (referenced by invoice INV-7)',
+   );
+ });
++
++test("buildCustomerIndex accepts CRM records keyed by customer_id", () => {
++  const index = buildCustomerIndex([{ customer_id: "C-5", name: "Birch", country: "NL" }]);
++  assert.equal(index.get("C-5").name, "Birch");
++  assert.equal(index.get("C-5").customerId, "C-5");
++});

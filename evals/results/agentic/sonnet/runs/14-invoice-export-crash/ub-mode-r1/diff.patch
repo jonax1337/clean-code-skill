@@ -1,0 +1,123 @@
+diff --git a/src/export.js b/src/export.js
+index 2ad1481..bddb66c 100644
+--- a/src/export.js
++++ b/src/export.js
+@@ -1,15 +1,16 @@
+-import { toCsv } from "./csv.js";
+-import { invoiceTotalCents } from "./invoices.js";
+-import { formatCents } from "./money.js";
+-
+-const HEADER = ["invoice_id", "customer", "issued_on", "total"];
+-
+-function invoiceRow(invoice, customers) {
+-  const customer = customers.get(invoice.customerId);
+-  return [invoice.id, customer.name, invoice.issuedOn, formatCents(invoiceTotalCents(invoice))];
+-}
+-
+-/** One CSV row per invoice, in the order given, for the accounting import. */
+-export function exportInvoices(invoices, customers) {
+-  return toCsv([HEADER, ...invoices.map((invoice) => invoiceRow(invoice, customers))]);
+-}
++import { toCsv } from "./csv.js";
++import { requireCustomer } from "./customers.js";
++import { invoiceTotalCents } from "./invoices.js";
++import { formatCents } from "./money.js";
++
++const HEADER = ["invoice_id", "customer", "issued_on", "total"];
++
++function invoiceRow(invoice, customers) {
++  const customer = requireCustomer(customers, invoice.customerId, `invoice ${invoice.id}`);
++  return [invoice.id, customer.name, invoice.issuedOn, formatCents(invoiceTotalCents(invoice))];
++}
++
++/** One CSV row per invoice, in the order given, for the accounting import. */
++export function exportInvoices(invoices, customers) {
++  return toCsv([HEADER, ...invoices.map((invoice) => invoiceRow(invoice, customers))]);
++}
+diff --git a/src/sources.js b/src/sources.js
+index 637fd82..7d0aded 100644
+--- a/src/sources.js
++++ b/src/sources.js
+@@ -1,18 +1,21 @@
+-import { readFileSync } from "node:fs";
+-import { join } from "node:path";
+-
+-function readJson(directory, file) {
+-  return JSON.parse(readFileSync(join(directory, file), "utf8"));
+-}
+-
+-export function loadInvoices(directory) {
+-  return readJson(directory, "invoices.json");
+-}
+-
+-/** The customers of both systems in one list: billing first, then the CRM. */
+-export function loadCustomerRecords(directory) {
+-  return [
+-    ...readJson(directory, "billing-customers.json"),
+-    ...readJson(directory, "crm-customers.json"),
+-  ];
+-}
++import { readFileSync } from "node:fs";
++import { join } from "node:path";
++
++function readJson(directory, file) {
++  return JSON.parse(readFileSync(join(directory, file), "utf8"));
++}
++
++export function loadInvoices(directory) {
++  return readJson(directory, "invoices.json");
++}
++
++/** The customers of both systems in one list: billing first, then the CRM. */
++export function loadCustomerRecords(directory) {
++  return [
++    ...readJson(directory, "billing-customers.json"),
++    ...readJson(directory, "crm-customers.json").map(({ customer_id, ...rest }) => ({
++      customerId: customer_id,
++      ...rest,
++    })),
++  ];
++}
+diff --git a/tests/export.test.js b/tests/export.test.js
+index de0aa44..dab4b78 100644
+--- a/tests/export.test.js
++++ b/tests/export.test.js
+@@ -31,8 +31,13 @@ test("exportInvoices writes the header and one row per invoice in order", () =>
+     exportInvoices(invoices, customers),
+     ["invoice_id,customer,issued_on,total", 'INV-1,"Nordwind, Inc.",2026-10-01,30.00', "INV-2,Acme,2026-10-02,17.50", ""].join("\n"),
+   );
+ });
+ 
+ test("exportInvoices of no invoices is just the header", () => {
+   assert.equal(exportInvoices([], customers), "invoice_id,customer,issued_on,total\n");
+ });
++
++test("exportInvoices names the invoice whose customer is unknown", () => {
++  const orphan = { ...invoices[0], id: "INV-9", customerId: "C-404" };
++  assert.throws(() => exportInvoices([orphan], customers), /Unknown customer "C-404" \(referenced by invoice INV-9\)/);
++});
+diff --git a/tests/sources.test.js b/tests/sources.test.js
+new file mode 100644
+index 0000000..2330842
+--- /dev/null
++++ b/tests/sources.test.js
+@@ -0,0 +1,19 @@
++import assert from "node:assert/strict";
++import { test } from "node:test";
++import { buildCustomerIndex } from "../src/customers.js";
++import { exportInvoices } from "../src/export.js";
++import { loadCustomerRecords, loadInvoices } from "../src/sources.js";
++
++test("customers from both systems are keyed by customerId", () => {
++  const records = loadCustomerRecords("data");
++  for (const record of records) {
++    assert.equal(typeof record.customerId, "string", JSON.stringify(record));
++  }
++  assert.equal(buildCustomerIndex(records).get("C-2201").name, "Birch & Co");
++});
++
++test("the real data exports every invoice", () => {
++  const invoices = loadInvoices("data");
++  const csv = exportInvoices(invoices, buildCustomerIndex(loadCustomerRecords("data")));
++  assert.equal(csv.trim().split("\n").length, invoices.length + 1);
++});

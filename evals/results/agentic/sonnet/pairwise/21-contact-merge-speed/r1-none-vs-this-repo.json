@@ -1,0 +1,83 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "e189290b7f4ef9bb",
+    "this-repo": "6055b6aaeb3cc9a8"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same fix: build a Map from normalized email to the first index once, register new entries as they are appended, and keep the existing merge semantics and output order. B also adds a test pinning the subtle behavior that the first of several existing duplicates receives the merge, which the Map rewrite could easily have broken. B's report is more complete, stating a measured timing, the test and typecheck results, and that the rest of the pipeline was not profiled. B also checks `undefined` directly instead of mapping it to -1, which reads slightly better.",
+        "a_issues": [
+          "No test added for the existing-duplicates edge case that the index map must preserve",
+          "Uses `?? -1` sentinel conversion instead of checking `undefined` directly, a minor readability cost",
+          "Report does not mention running typecheck and gives no timing measurement"
+        ],
+        "b_issues": [
+          "Timing came from an uncommitted throwaway script, so the 79 ms figure cannot be reproduced from the PR"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix: build a Map from normalized email to the first index, then register new contacts as they are appended. Both preserve first-entry merge semantics and in-upload deduplication. A adds a test that pins the existing-duplicates behavior and reports a measured timing, and it compares against `undefined` directly instead of mapping to the sentinel -1. B is fine but adds no test and did not measure the speedup, though its report says so honestly.",
+        "a_issues": [
+          "The timing figure comes from an uncommitted throwaway script, so the reviewer cannot reproduce it."
+        ],
+        "b_issues": [
+          "No test added for the changed lookup, including the case where the existing book already has duplicate emails.",
+          "`?? -1` keeps the old findIndex sentinel when the code could check for `undefined` directly.",
+          "The speedup was not measured on the reported 30k-into-50k scenario."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

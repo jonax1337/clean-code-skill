@@ -1,0 +1,84 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d0771495562166b5",
+    "sickn33": "4d76b58f486431b4"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes have the same handler, command record, registration and `Order.recordRefund`, so they behave the same: they check the status, cap refunds at amountPaid minus amountRefunded, and leave the status unchanged. A's tests are somewhat more thorough. They test a cancelled order directly and include a case where the refund is below the total but above the amount paid. They also test accumulation and the exact-paid boundary in separate tests. B's README text is slightly tidier, and its `recordRefund` doc comment helps. Overall that edges A ahead on tests.",
+        "a_issues": [
+          "The README table row is much longer than the other rows and breaks the column alignment.",
+          "`recordRefund` has no note that the caller must enforce the cap."
+        ],
+        "b_issues": [
+          "There is no explicit test that a cancelled order is rejected; only `PAID` is tested as a disallowed status.",
+          "The cumulative-cap test combines rejection and the exact-boundary success in one test method."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes ship the same handler: the same validation order, the cap at amountPaid minus amountRefunded, the same error codes, and the status left unchanged. They differ only in tests and documentation. B's tests are somewhat more thorough. They cover a cancelled order, an amount between the paid amount and the order total, and accumulation of several refunds. B's setup helper is misnamed, since it also ships the order, but that is a small cost against the extra coverage.",
+        "a_issues": [
+          "Tests do not cover a cancelled order.",
+          "The paid-versus-total case is only covered indirectly, through the 80.01 boundary, and not by a clearly named test."
+        ],
+        "b_issues": [
+          "The helper `placeAndPartlyPay` also ships the order, but neither its name nor its doc comment says so.",
+          "The new README table row is wider than the column, which breaks the table's alignment.",
+          "Some negative tests skip `assertFalse(isOk())`. `error()` would still throw if the result were ok, so they would still fail correctly."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

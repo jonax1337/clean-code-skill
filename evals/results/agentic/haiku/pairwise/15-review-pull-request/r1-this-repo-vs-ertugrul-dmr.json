@@ -1,0 +1,87 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d2035e3c299b17d4",
+    "ertugrul-dmr": "e6b5eb1d3528f4f7"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 0.25,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews catch the two real blockers, the SQL injection in search and the swallowed audit errors, plus the floor-division page count and the unvalidated input. B also finds two substantive issues that A misses: single-user `deactivate_user` writes no audit row despite the 'every deactivation' requirement, and the audit `actor` is taken from client params. B also notes that `rowcount` counts users who were already inactive. B's review contains garbled leftover fragments ('(; contradicts README)', '(: don't override safeties)', 'the rule it breaks from .') that hurt its polish, but its findings are more complete on the compliance requirement.",
+        "a_issues": [
+          "Misses that single-user deactivate_user is never audited, though compliance requires every deactivation to be recorded",
+          "Misses that the audit actor is caller-supplied, which lets clients spoof audit entries",
+          "Does not note that rowcount includes already-inactive users, so 'returns how many changed' is inaccurate"
+        ],
+        "b_issues": [
+          "Leftover garbled fragments in REVIEW.md and the report ('(; contradicts README)', '(: don't override safeties)', 'the rule it breaks from .')",
+          "SQL injection probe only shows a binding error, which is a weaker demonstration than A's full-table read",
+          "Lists the TODO and the magic number as findings, which is somewhat nitpicky"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews correctly identify the two blockers: the SQL injection in search and the swallowed audit failures. Both also catch the floor-division page count, the unhandled bad input, the over-auditing and the stale README. A also flags two substantive issues B misses, given that compliance wants every deactivation recorded: single-user deactivation is never audited, and the audit actor is taken from caller-supplied params. B has the stronger injection proof (an actual row leak rather than a binding error) and more concrete fix guidance. However, A's broader coverage of the compliance-relevant gaps outweighs B's stronger evidence, despite A's garbled text fragments.",
+        "a_issues": [
+          "Garbled leftover fragments in headings and report, e.g. '(; contradicts README)', '(: don't override safeties)', 'the rule it breaks from .'",
+          "SQL injection probe only showed a binding error rather than demonstrating data exposure, so the evidence is weaker",
+          "Some findings (magic number, TODO) are padding relative to the real issues"
+        ],
+        "b_issues": [
+          "Misses that single-user deactivate_user writes no audit row, despite the 'every deactivation' requirement",
+          "Misses that the audit actor is taken from request params, a trust-boundary issue for an audit log",
+          "Treats negative OFFSET as a concern without noting SQLite clamps it, a minor imprecision"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

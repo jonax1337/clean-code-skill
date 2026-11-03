@@ -1,0 +1,87 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4dd2900bd86cee80",
+    "ub-mode": "6b5d7b33981366ff"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement `--percent` correctly on top of `allocate`, use a required mutually exclusive group, and update the README; B's shared `_split` helper and argparse-level parsing are a little more idiomatic. B, however, committed straight to `main` without being asked, and its report refers to tools nobody requested (with a garbled sentence), which lowers trust in it. A's report is accurate, and it raises the 0% rejection as a decision for the developer instead of settling it silently.",
+        "a_issues": [
+          "Malformed `--percent` values are only tested at the unit level, not end to end through the CLI.",
+          "Rejecting 0% is an extra rule the task did not ask for, though the report flags it clearly."
+        ],
+        "b_issues": [
+          "Committed to `main` (dee933a) without being asked.",
+          "The report mentions `crapper`, `dryer` and `mutator` tools that were never part of the task, in a broken sentence.",
+          "Allows 0% shares, which stores a zero entry for that person; acceptable, but not called out as a choice the developer should make."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes reuse `allocate`, make `--with` and `--percent` a required mutually exclusive group, and reject totals other than 100. A parses `NAME=PCT` in the CLI layer as an argparse type and routes both splits through one `_split` helper, which is clean. A's CLI tests also cover malformed input and the missing-split case. B puts parsing in the splitting module, adds a regex and a constant, rejects 0% beyond what was asked (it does flag this), and its CLI test for the mutually exclusive flags only checks that SystemExit is raised. A's report is weaker: it says it committed to `main` without being asked, and it has a garbled reference to tools.",
+        "a_issues": [
+          "Report says it committed directly to `main`, which was not requested.",
+          "Report has a garbled, dangling sentence (\"asks for the crapper, dryer and mutator tools\") that refers to instructions not in the task.",
+          "Allows 0% shares, which records 0.00 entries; this is acceptable but undocumented in the README."
+        ],
+        "b_issues": [
+          "Rejects 0% percentages, a restriction the task did not ask for (though the report flags it).",
+          "Puts user-input parsing (`parse_percentage`, regex) in `splitting.py` instead of the CLI layer, and raises MoneyError for a format error.",
+          "Greedy regex makes `a=b=5` parse as name `a=b`.",
+          "CLI test for combined flags only checks that SystemExit is raised, not the exit code or message; there is no test for omitting both flags."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

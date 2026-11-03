@@ -1,0 +1,81 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "10a286f5e87c078d",
+    "this-repo": "4185f882b618ce6a"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production code in both changes is identical and correct: new paused status, resumeOn cleared on cancel, payment events ignored while paused, the audit line in the requested format, and a customer-only notification. The difference is in the tests. B also covers re-pausing an already-paused subscription, which must not overwrite resumeOn, and it asserts reference identity (assert.equal) for no-op events, which matches the existing test style and is a stricter check. A uses deepEqual, which would still pass if the reducer returned a changed copy, and it skips the already-paused case.",
+        "a_issues": [
+          "No test that a second pause event on an already-paused subscription leaves resumeOn unchanged",
+          "No-op assertions use deepEqual rather than reference identity, which is weaker than the existing test's assert.equal convention"
+        ],
+        "b_issues": [
+          "Report does not mention that, until resuming exists, a paused subscription can only leave that state by being cancelled"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The production code in both changes is identical and correctly implements the paused state, the audit line and the notification. A's tests are slightly stronger. They use reference equality (`assert.equal`) for the 'changes nothing' cases, which matches the existing test style and catches needless object copies. A also covers pausing an already-paused subscription, which B does not test. Both reports are accurate.",
+        "a_issues": [
+          "Does not validate the `resumeOn` format, though the report says so and this matches the existing code"
+        ],
+        "b_issues": [
+          "Uses `deepEqual` where the existing tests use reference equality for the 'state unchanged' assertions, so the checks are weaker",
+          "No test for pausing an already-paused subscription"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

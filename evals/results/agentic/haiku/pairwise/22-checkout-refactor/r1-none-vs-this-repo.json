@@ -1,0 +1,85 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "16b654451bc32c9a",
+    "this-repo": "a07a5b15cc705cfe"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior. B's reordering of the tax calculation after the coupon check, and releasing order.items instead of the reserved list, are both equivalent because the steps are pure or happen only after every reservation succeeded. B adds eight characterization tests for branches the existing suite missed (VIP stacking, per-line tax rounding, free-shipping threshold, partial-reservation release, receipt failure, non-decline gateway error), which is what protects a refactor of production code. A has a slightly cleaner top-level flow but adds no tests; its equivalence evidence is a throwaway script outside the repo.",
+        "a_issues": [
+          "No tests added even though the existing suite misses VIP, rounding, shipping-threshold and partial-release branches; the randomized comparison lives in a temp folder and is not kept.",
+          "_charge takes six parameters, including inventory and reserved, only to handle rollback, which makes its interface awkward."
+        ],
+        "b_issues": [
+          "Line totals are computed twice, once in _total_cents and again in _tax_cents, which duplicates logic.",
+          "process_order still inlines the charge, commit and redeem steps, so the decomposition is less even than A's.",
+          "The test for a non-decline gateway error pins behavior that may be a bug; it is clearly labeled, but future fixes will have to update it."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior, as far as I can tell from the diffs. A also adds eight characterization tests that were run against the original code first. They cover branches the existing suite missed: VIP plus coupon stacking, the free-shipping threshold, per-line tax rounding, partial-reservation release, receipt failure and non-decline gateway errors. B ships the refactor with only the original 9 tests and a throwaway differential script kept outside the repo, so nothing protects the change going forward.",
+        "a_issues": [
+          "On a decline it releases `order.items` instead of the `reserved` list, a small non-literal change. It is equivalent here and the report discloses it.",
+          "Subtotal and tax now loop over the items separately, which slightly duplicates the line-price computation."
+        ],
+        "b_issues": [
+          "No tests added. The refactor relies on 9 existing tests that miss several branches (VIP, free shipping, per-line rounding, partial-reservation release, receipt failure).",
+          "The differential verification script lives in a temp directory outside the repo, so the verification cannot be reproduced or kept.",
+          "`_charge` takes six parameters and mixes charging with stock release, a somewhat awkward helper."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

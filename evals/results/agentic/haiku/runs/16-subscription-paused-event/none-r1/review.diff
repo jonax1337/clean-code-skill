@@ -1,0 +1,688 @@
+diff --git a/package-lock.json b/package-lock.json
+new file mode 100644
+index 0000000..5fcf5bd
+--- /dev/null
++++ b/package-lock.json
+@@ -0,0 +1,408 @@
++{
++  "name": "billing-events",
++  "version": "1.0.0",
++  "lockfileVersion": 3,
++  "requires": true,
++  "packages": {
++    "": {
++      "name": "billing-events",
++      "version": "1.0.0",
++      "devDependencies": {
++        "@types/node": "26.6.6",
++        "typescript": "7.0.2"
++      }
++    },
++    "node_modules/@types/node": {
++      "version": "26.6.6",
++      "resolved": "https://registry.npmjs.org/@types/node/-/node-26.6.6.tgz",
++      "integrity": "sha512-MzQj+8Kx3XI40OmUAE6Qoh58ZMNstNNMwn2nfd3qWsfe7nDNSqJNzes4njhz6AHwrSHOffSLwXU6yb474Q4aog==",
++      "dev": true,
++      "license": "MIT",
++      "dependencies": {
++        "undici-types": "~8.9.0"
++      }
++    },
++    "node_modules/@typescript/typescript-aix-ppc64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-aix-ppc64/-/typescript-aix-ppc64-7.0.2.tgz",
++      "integrity": "sha512-MTKKkWB7p/0E9xi1d1tHtZ5PiLkGEMIq88pK2CubZjOsLtYTLqhgIgi6zepFa+9GHZ6h05NMCkQxGKiPXMxXtQ==",
++      "cpu": [
++        "ppc64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "aix"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-darwin-arm64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-darwin-arm64/-/typescript-darwin-arm64-7.0.2.tgz",
++      "integrity": "sha512-gowzar9MwS/aRWp6f3a4KUqzRjAZjOsmGNCM6LcTgXum+dBfgsBVMN+AgvOCCbguXyick6LJhpBszxMebJ8syA==",
++      "cpu": [
++        "arm64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "darwin"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-darwin-x64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-darwin-x64/-/typescript-darwin-x64-7.0.2.tgz",
++      "integrity": "sha512-SZ9xZInqApNlNGc9s0W1VSsktYSOe9cFqNOIqmN1Gs8SmkjKZYFt017G4VwPxASInODuAdbTW7sXiFUf893RgA==",
++      "cpu": [
++        "x64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "darwin"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-freebsd-arm64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-freebsd-arm64/-/typescript-freebsd-arm64-7.0.2.tgz",
++      "integrity": "sha512-W5NH4y/J0plIIS5b2xvTEkU7JFxyqdMAOgf+Ilhl0vHQXKO5dZoxd+C/jEtq56c4F3wk71RB4BMRQ2XdI+bwYQ==",
++      "cpu": [
++        "arm64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "freebsd"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-freebsd-x64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-freebsd-x64/-/typescript-freebsd-x64-7.0.2.tgz",
++      "integrity": "sha512-UMGDx5sTpzNw3WiPebH7l90IWfJggEd+egHt/q6p7/Cm3zqoV7VxkGXt+3DxPIw8CcmvAB0j3sVVfbhX+M4Tpw==",
++      "cpu": [
++        "x64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "freebsd"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-linux-arm": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-linux-arm/-/typescript-linux-arm-7.0.2.tgz",
++      "integrity": "sha512-gffT3xPz9sR7j/YJExkyPntrI0P2EP9XbOyWzth2/Gs0RstK+90RBcO0ncXoXy/beYll1SXw846Nf2zdnEz0QQ==",
++      "cpu": [
++        "arm"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-linux-arm64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-linux-arm64/-/typescript-linux-arm64-7.0.2.tgz",
++      "integrity": "sha512-Qh4eU4/y3yDjnfjjyPYihMj5/ODIlmt+Bzu17OI+fiSRDW57QmU5SiN63exPRNJPKUzcc1INa1NXdrJ+MqHjUQ==",
++      "cpu": [
++        "arm64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-linux-loong64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-linux-loong64/-/typescript-linux-loong64-7.0.2.tgz",
++      "integrity": "sha512-uEHck9i8hoAzXPiYRib1O7miOnz23SxIeVl6F4LXox+qov1K35jHcEW6VHKvZI+pyvl7fZEP4MCU5LYvIq1GuQ==",
++      "cpu": [
++        "loong64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-linux-mips64el": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-linux-mips64el/-/typescript-linux-mips64el-7.0.2.tgz",
++      "integrity": "sha512-R4KvAMnE43W5Qeqb0Ly56O3mWMWIAgsMyz36DCaycd5nbg/9kzm0liw3JocfRqyJY0KPmzFjbswozXyW0DnIYA==",
++      "cpu": [
++        "mips64el"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-linux-ppc64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-linux-ppc64/-/typescript-linux-ppc64-7.0.2.tgz",
++      "integrity": "sha512-DORx5b3sd/4S7eayxm4FQv+A7CrkUIGRaHiwI8oiHTAI1fAPWhF4J0vAlkC8biAlHSVVwxMQ3tjZ2/DVbnQiiA==",
++      "cpu": [
++        "ppc64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-linux-riscv64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-linux-riscv64/-/typescript-linux-riscv64-7.0.2.tgz",
++      "integrity": "sha512-wf0jqEDOjrPRnKwYRyyJDRo11KMbvMFrU+q4zqKyChODBzvlkbhNQfKvLxQCcwTpdDaXSHZTVuh0JoCrKCUMHQ==",
++      "cpu": [
++        "riscv64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-linux-s390x": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-linux-s390x/-/typescript-linux-s390x-7.0.2.tgz",
++      "integrity": "sha512-IkwJc3L7yhytWd/ewjyxNDfOmswCm9GWMJT/ue/dU4aZNbwZeYAetq42VyLmsmSjvoX7z74X6ZaYCtzAr0EuGw==",
++      "cpu": [
++        "s390x"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-linux-x64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-linux-x64/-/typescript-linux-x64-7.0.2.tgz",
++      "integrity": "sha512-EYdf2cNg7rgCWJnxCdJ+F3V39O8ihb37eHAu1LK8oAFizgTQbPOK7zHHXbPt8rX24COqODXeI3sIf0fCXG7H/A==",
++      "cpu": [
++        "x64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "linux"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-netbsd-arm64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-netbsd-arm64/-/typescript-netbsd-arm64-7.0.2.tgz",
++      "integrity": "sha512-+polYF4MF04aPpO5FTkHran9yUQDSXqy5GiSDKpsll5jy3l3+g9QLhpf39T+ePtefhXLOGrLl0QIjkQP6VnelA==",
++      "cpu": [
++        "arm64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "netbsd"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-netbsd-x64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-netbsd-x64/-/typescript-netbsd-x64-7.0.2.tgz",
++      "integrity": "sha512-8YIT0EHM/3dq10ZOVF/A7pc/YSMtbcecct4rWtexrnSCHOPcpC2KTLXfTCR6vDpnSiY12heNb1GiN/wu+T/FyA==",
++      "cpu": [
++        "x64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "netbsd"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-openbsd-arm64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-openbsd-arm64/-/typescript-openbsd-arm64-7.0.2.tgz",
++      "integrity": "sha512-APT8+ClYnuYm1u9+kgGXoMj2VzWzcymwh2gNSQVySHfkRDGOTVkoWLjCmOQSaO+PoqQ57B0flRp9SA+7GnnkzQ==",
++      "cpu": [
++        "arm64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "openbsd"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-openbsd-x64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-openbsd-x64/-/typescript-openbsd-x64-7.0.2.tgz",
++      "integrity": "sha512-yX7s+Q0Dln0Dt9tEzZsAjXXR/+ytBM7AlglaqyeMPxQszJ1JhlJdZ6jLA+IzldHtflX81em7lDao1xXu+aRRkg==",
++      "cpu": [
++        "x64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "openbsd"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-sunos-x64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-sunos-x64/-/typescript-sunos-x64-7.0.2.tgz",
++      "integrity": "sha512-dLJDGaLZ1D4HPQn62u1n8mBDkJREwMsAkCdkwd4Ieqw+x3TUyTsqY0YiBCtE6H6OzzgGk3iuZ3vFWRS+E8/d1g==",
++      "cpu": [
++        "x64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "sunos"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-win32-arm64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-win32-arm64/-/typescript-win32-arm64-7.0.2.tgz",
++      "integrity": "sha512-Gyl1Vy6OsWesLzmq+EP0Fb7b4Nid5232AvcA2SFcdYreldpNtYFFofPjnt62y9hQy7VTaZp65ICJjuAQRaVcIQ==",
++      "cpu": [
++        "arm64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "win32"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/@typescript/typescript-win32-x64": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/@typescript/typescript-win32-x64/-/typescript-win32-x64-7.0.2.tgz",
++      "integrity": "sha512-0BQ3HkAHHlKLSp1qRvf3SUhGpGsDuhB/jgFw75guyqbxJqEaS0Cw/VFO8i2nHglJUzQCRtMMR/IBAKE3ETMC4g==",
++      "cpu": [
++        "x64"
++      ],
++      "dev": true,
++      "license": "Apache-2.0",
++      "optional": true,
++      "os": [
++        "win32"
++      ],
++      "engines": {
++        "node": ">=16.20.0"
++      }
++    },
++    "node_modules/typescript": {
++      "version": "7.0.2",
++      "resolved": "https://registry.npmjs.org/typescript/-/typescript-7.0.2.tgz",
++      "integrity": "sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==",
++      "dev": true,
++      "license": "Apache-2.0",
++      "bin": {
++        "tsc": "bin/tsc"
++      },
++      "engines": {
++        "node": ">=16.20.0"
++      },
++      "optionalDependencies": {
++        "@typescript/typescript-aix-ppc64": "7.0.2",
++        "@typescript/typescript-darwin-arm64": "7.0.2",
++        "@typescript/typescript-darwin-x64": "7.0.2",
++        "@typescript/typescript-freebsd-arm64": "7.0.2",
++        "@typescript/typescript-freebsd-x64": "7.0.2",
++        "@typescript/typescript-linux-arm": "7.0.2",
++        "@typescript/typescript-linux-arm64": "7.0.2",
++        "@typescript/typescript-linux-loong64": "7.0.2",
++        "@typescript/typescript-linux-mips64el": "7.0.2",
++        "@typescript/typescript-linux-ppc64": "7.0.2",
++        "@typescript/typescript-linux-riscv64": "7.0.2",
++        "@typescript/typescript-linux-s390x": "7.0.2",
++        "@typescript/typescript-linux-x64": "7.0.2",
++        "@typescript/typescript-netbsd-arm64": "7.0.2",
++        "@typescript/typescript-netbsd-x64": "7.0.2",
++        "@typescript/typescript-openbsd-arm64": "7.0.2",
++        "@typescript/typescript-openbsd-x64": "7.0.2",
++        "@typescript/typescript-sunos-x64": "7.0.2",
++        "@typescript/typescript-win32-arm64": "7.0.2",
++        "@typescript/typescript-win32-x64": "7.0.2"
++      }
++    },
++    "node_modules/undici-types": {
++      "version": "8.9.0",
++      "resolved": "https://registry.npmjs.org/undici-types/-/undici-types-8.9.0.tgz",
++      "integrity": "sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==",
++      "dev": true,
++      "license": "MIT"
++    }
++  }
++}
+diff --git a/src/audit.ts b/src/audit.ts
+index 8db4703..203cbad 100644
+--- a/src/audit.ts
++++ b/src/audit.ts
+@@ -15,12 +15,14 @@ function auditDetails(event: SubscriptionEvent): string {
+     case "plan_changed":
+       return `from=${event.from} to=${event.to}`;
+     case "payment_failed":
+       return `attempt=${event.attempt}`;
+     case "payment_recovered":
+       return "";
+     case "subscription_canceled":
+       return `reason=${JSON.stringify(event.reason)}`;
++    case "subscription_paused":
++      return `resumeOn=${event.resumeOn} reason=${JSON.stringify(event.reason)}`;
+     default:
+       return assertNever(event);
+   }
+ }
+diff --git a/src/events.ts b/src/events.ts
+index e42e30f..336d214 100644
+--- a/src/events.ts
++++ b/src/events.ts
+@@ -27,14 +27,22 @@ export interface PaymentRecovered extends EventBase {
+   type: "payment_recovered";
+ }
+ 
+ export interface SubscriptionCanceled extends EventBase {
+   type: "subscription_canceled";
+   reason: string;
+ }
+ 
++export interface SubscriptionPaused extends EventBase {
++  type: "subscription_paused";
++  /** The date billing picks up again, as YYYY-MM-DD. */
++  resumeOn: string;
++  reason: string;
++}
++
+ export type SubscriptionEvent =
+   | SubscriptionStarted
+   | PlanChanged
+   | PaymentFailed
+   | PaymentRecovered
+-  | SubscriptionCanceled;
++  | SubscriptionCanceled
++  | SubscriptionPaused;
+diff --git a/src/notifier.ts b/src/notifier.ts
+index e54194a..964b12e 100644
+--- a/src/notifier.ts
++++ b/src/notifier.ts
+@@ -18,16 +18,18 @@ export function notificationsFor(event: SubscriptionEvent): Notification[] {
+     case "plan_changed":
+       return [{ audience: "customer", template: "plan-changed", data: { from: event.from, to: event.to } }];
+     case "payment_failed":
+       return paymentFailedNotifications(event);
+     case "payment_recovered":
+       return [];
+     case "subscription_canceled":
+       return [{ audience: "customer", template: "subscription-canceled", data: { reason: event.reason } }];
++    case "subscription_paused":
++      return [{ audience: "customer", template: "subscription-paused", data: { resumeOn: event.resumeOn } }];
+     default:
+       return assertNever(event);
+   }
+ }
+ 
+ function paymentFailedNotifications(event: PaymentFailed): Notification[] {
+   const data = { attempt: String(event.attempt) };
+   const notifications: Notification[] = [{ audience: "customer", template: "payment-failed", data }];
+diff --git a/src/subscription.ts b/src/subscription.ts
+index 9b6603e..656d40b 100644
+--- a/src/subscription.ts
++++ b/src/subscription.ts
+@@ -1,21 +1,23 @@
+ import { assertNever } from "./assert-never.ts";
+ import type { Plan, SubscriptionEvent, SubscriptionStarted } from "./events.ts";
+ 
+-export type SubscriptionStatus = "active" | "past_due" | "canceled";
++export type SubscriptionStatus = "active" | "past_due" | "paused" | "canceled";
+ 
+ export interface Subscription {
+   id: string;
+   plan: Plan;
+   status: SubscriptionStatus;
+   /** The attempt number of the latest failed charge; 0 while payments are fine. */
+   failedAttempts: number;
+   startedAt: string;
+   canceledAt: string | null;
++  /** When billing resumes, as YYYY-MM-DD; null unless the subscription is paused. */
++  resumeOn: string | null;
+ }
+ 
+ /** The state of a subscription after all of its events, oldest first. The first event must be the start. */
+ export function replay(events: readonly SubscriptionEvent[]): Subscription {
+   const [first, ...rest] = events;
+   if (first?.type !== "subscription_started") {
+     throw new Error("A subscription history starts with subscription_started");
+   }
+@@ -25,37 +27,45 @@ export function replay(events: readonly SubscriptionEvent[]): Subscription {
+ export function reduceSubscription(state: Subscription, event: SubscriptionEvent): Subscription {
+   switch (event.type) {
+     case "subscription_started":
+       // A repeated start event changes nothing.
+       return state;
+     case "plan_changed":
+       return { ...state, plan: event.to };
+     case "payment_failed":
+-      if (state.status === "canceled") {
++      // Nothing is billed while paused, so a failed charge cannot happen then.
++      if (state.status === "canceled" || state.status === "paused") {
+         return state;
+       }
+       return { ...state, status: "past_due", failedAttempts: event.attempt };
+     case "payment_recovered":
+       if (state.status !== "past_due") {
+         return state;
+       }
+       return { ...state, status: "active", failedAttempts: 0 };
+     case "subscription_canceled":
+       if (state.status === "canceled") {
+         return state;
+       }
+-      return { ...state, status: "canceled", canceledAt: event.occurredAt };
++      return { ...state, status: "canceled", canceledAt: event.occurredAt, resumeOn: null };
++    case "subscription_paused":
++      // Only an active subscription can be paused.
++      if (state.status !== "active") {
++        return state;
++      }
++      return { ...state, status: "paused", resumeOn: event.resumeOn };
+     default:
+       return assertNever(event);
+   }
+ }
+ 
+ function startedSubscription(event: SubscriptionStarted): Subscription {
+   return {
+     id: event.subscriptionId,
+     plan: event.plan,
+     status: "active",
+     failedAttempts: 0,
+     startedAt: event.occurredAt,
+     canceledAt: null,
++    resumeOn: null,
+   };
+ }
+diff --git a/test/audit.test.ts b/test/audit.test.ts
+index 23af255..6b6f486 100644
+--- a/test/audit.test.ts
++++ b/test/audit.test.ts
+@@ -36,8 +36,19 @@ test("a cancellation entry quotes the reason", () => {
+   const entry = serializeAuditEntry({
+     type: "subscription_canceled",
+     subscriptionId: "sub_1",
+     occurredAt: "2025-03-01T00:00:00Z",
+     reason: 'said "too expensive"',
+   });
+   assert.equal(entry, '2025-03-01T00:00:00Z sub_1 subscription_canceled reason="said \\"too expensive\\""');
+ });
++
++test("a pause entry names the resume date and quotes the reason", () => {
++  const entry = serializeAuditEntry({
++    type: "subscription_paused",
++    subscriptionId: "sub_9",
++    occurredAt: "2025-04-02T08:30:00Z",
++    resumeOn: "2025-05-01",
++    reason: "vacation",
++  });
++  assert.equal(entry, '2025-04-02T08:30:00Z sub_9 subscription_paused resumeOn=2025-05-01 reason="vacation"');
++});
+diff --git a/test/notifier.test.ts b/test/notifier.test.ts
+index 648ba43..96ae510 100644
+--- a/test/notifier.test.ts
++++ b/test/notifier.test.ts
+@@ -38,8 +38,21 @@ test("a cancellation confirms to the customer with the reason", () => {
+     subscriptionId: "sub_1",
+     occurredAt: "2025-03-01T00:00:00Z",
+     reason: "too expensive",
+   });
+   assert.deepEqual(notifications, [
+     { audience: "customer", template: "subscription-canceled", data: { reason: "too expensive" } },
+   ]);
+ });
++
++test("a pause confirms to the customer with the resume date", () => {
++  const notifications = notificationsFor({
++    type: "subscription_paused",
++    subscriptionId: "sub_1",
++    occurredAt: "2025-04-02T08:30:00Z",
++    resumeOn: "2025-05-01",
++    reason: "vacation",
++  });
++  assert.deepEqual(notifications, [
++    { audience: "customer", template: "subscription-paused", data: { resumeOn: "2025-05-01" } },
++  ]);
++});
+diff --git a/test/subscription.test.ts b/test/subscription.test.ts
+index f154a91..2f59905 100644
+--- a/test/subscription.test.ts
++++ b/test/subscription.test.ts
+@@ -62,8 +62,72 @@ test("cancelling records when it happened and a canceled subscription stays canc
+     attempt: 1,
+   });
+   assert.equal(afterFailure, canceled);
+ });
+ 
+ test("a history that does not begin with the start is rejected", () => {
+   assert.throws(() => replay([]), /starts with subscription_started/);
+ });
++
++const paused: SubscriptionEvent = {
++  type: "subscription_paused",
++  subscriptionId: "sub_1",
++  occurredAt: "2025-04-02T08:30:00Z",
++  resumeOn: "2025-05-01",
++  reason: "vacation",
++};
++
++test("a new subscription is not paused and has no resume date", () => {
++  assert.equal(replay([started]).resumeOn, null);
++});
++
++test("pausing an active subscription pauses it until the resume date", () => {
++  const state = replay([started, paused]);
++  assert.equal(state.status, "paused");
++  assert.equal(state.resumeOn, "2025-05-01");
++  assert.equal(state.canceledAt, null);
++});
++
++test("only an active subscription can be paused", () => {
++  const pastDue = replay([
++    started,
++    { type: "payment_failed", subscriptionId: "sub_1", occurredAt: "2025-04-01T00:00:00Z", attempt: 1 },
++  ]);
++  assert.equal(reduceSubscription(pastDue, paused), pastDue);
++
++  const canceled = replay([
++    started,
++    { type: "subscription_canceled", subscriptionId: "sub_1", occurredAt: "2025-03-01T00:00:00Z", reason: "x" },
++  ]);
++  assert.equal(reduceSubscription(canceled, paused), canceled);
++
++  const alreadyPaused = replay([started, paused]);
++  assert.equal(reduceSubscription(alreadyPaused, { ...paused, resumeOn: "2025-06-01" }), alreadyPaused);
++});
++
++test("payment events leave a paused subscription as it is", () => {
++  const state = replay([started, paused]);
++  assert.equal(
++    reduceSubscription(state, {
++      type: "payment_failed",
++      subscriptionId: "sub_1",
++      occurredAt: "2025-04-10T00:00:00Z",
++      attempt: 1,
++    }),
++    state,
++  );
++  assert.equal(
++    reduceSubscription(state, { type: "payment_recovered", subscriptionId: "sub_1", occurredAt: "2025-04-11T00:00:00Z" }),
++    state,
++  );
++});
++
++test("cancelling a paused subscription cancels it and clears the resume date", () => {
++  const canceled = replay([
++    started,
++    paused,
++    { type: "subscription_canceled", subscriptionId: "sub_1", occurredAt: "2025-04-20T00:00:00Z", reason: "moved" },
++  ]);
++  assert.equal(canceled.status, "canceled");
++  assert.equal(canceled.canceledAt, "2025-04-20T00:00:00Z");
++  assert.equal(canceled.resumeOn, null);
++});

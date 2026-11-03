@@ -1,0 +1,82 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d2464bb22d7a58fc",
+    "ertugrul-dmr": "6dc8e37f2dba93f0"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The source changes are effectively identical and both meet the spec: a paused status, resumeOn cleared on cancel, payment events ignored while paused, the audit format, and a customer-only email. B's diff also adds a 408-line package-lock.json that the task did not ask for. B's report says it 'left alone' that file, yet it is part of the change. B's report does make a useful point about the stateless notifier emailing even for ignored pauses, but that does not outweigh the unrelated file.",
+        "a_issues": [
+          "Report does not mention that the notifier will still send a pause email for a pause the reducer ignores (e.g. past_due)."
+        ],
+        "b_issues": [
+          "Adds an unrelated 408-line package-lock.json to the change.",
+          "Report says package-lock.json was 'left alone' even though it appears in the diff."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The source changes are essentially identical and both meet the spec: paused status, resumeOn null outside a pause, pause only from active, payments ignored while paused, cancel clears resumeOn, and the audit and notification output as specified. A's diff also adds an unrelated 408-line package-lock.json from running npm install. Its report says it 'left alone' that file, yet the file is part of the change. Tests are comparable, and both reports raise useful open decisions, so B's clean scope tips it.",
+        "a_issues": [
+          "Diff includes an unrelated, newly generated package-lock.json (408 lines) that the task did not ask for.",
+          "Report says package-lock.json was left untracked and alone, but it appears in the change being proposed."
+        ],
+        "b_issues": [
+          "Pause test fixtures are repeated inline several times instead of sharing a constant, which makes the test file a bit more verbose.",
+          "Report does not mention that the stateless notifier still emails on pause events the reducer ignores (e.g. pausing a past-due subscription)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

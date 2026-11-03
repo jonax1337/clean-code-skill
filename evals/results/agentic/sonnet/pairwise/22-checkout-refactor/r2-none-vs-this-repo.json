@@ -1,0 +1,87 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "dffaf7ade9df84e0",
+    "this-repo": "b97cba07653d8e51"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep production behavior intact. B moves the tax-rate lookup after coupon validation, but that lookup is a pure dict get with no side effects. B's `_charge` releases `order.items` instead of the reserved list, which is equivalent because reservation is all-or-nothing. B's 18 characterization tests were run against the original code first, so they actually protect pricing, VIP/coupon stacking, the free-shipping boundary, per-line rounding and rollback ordering. A relies on 9 tests that miss most of these paths, which is risky for a production refactor.",
+        "a_issues": [
+          "No tests added for a production refactor. The VIP, free-shipping boundary, invalid-coupon, partial-rollback and receipt-failure paths stay unprotected.",
+          "Uses an untyped `list` for reserved items, and `_charge` takes six parameters, partly just to pass `reserved` through.",
+          "`process_order` still threads intermediate values (subtotal, discount, tax) through, so the pricing step is less encapsulated."
+        ],
+        "b_issues": [
+          "`_charge` releases `order.items` rather than the actually reserved items. This is correct only because `_reserve_stock` is all-or-nothing, an implicit coupling between the two helpers.",
+          "The tax-rate lookup now runs after coupon validation and items are iterated twice. Harmless today, but a small reordering the report doesn't mention."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior: B keeps the original order of operations exactly, and A's small reorderings are harmless (a pure tax-rate lookup, and releasing `order.items` when every item is already reserved). A wrote characterization tests before refactoring and ran them against the unchanged code. They cover the coupon, VIP, free-shipping, rounding, rollback and receipt paths, which are exactly the risky areas of this production change and are untested in the original suite. B relies only on the 9 existing tests and admits it did not check coverage, which leaves the 'behavior must not change' requirement poorly protected.",
+        "a_issues": [
+          "Tax computation recomputes `unit_price_cents * quantity` separately from the subtotal, a minor duplication.",
+          "`_charge` releases `order.items` rather than the reserved list; this is equivalent here but relies on the implicit fact that every item was reserved.",
+          "Coupon validation now runs before the tax-rate lookup; this is harmless because the lookup is pure, but it is a reorder."
+        ],
+        "b_issues": [
+          "No tests were added for a production refactor, and the coupon, VIP, shipping-threshold, rounding and rollback paths remain untested.",
+          "The `reserved` list is passed around and typed only as a bare `list`.",
+          "`_charge` takes 6 parameters, and the long signature line exceeds the usual width.",
+          "Pricing arithmetic is still spread across `process_order` instead of being encapsulated."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

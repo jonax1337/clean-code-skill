@@ -1,0 +1,178 @@
+diff --git a/shipsync/client.py b/shipsync/client.py
+index 3400bb4..3f52e32 100644
+--- a/shipsync/client.py
++++ b/shipsync/client.py
+@@ -1,21 +1,26 @@
+ import json
+ import time
+ from collections.abc import Callable
+ from datetime import date
+ from typing import Any
+ 
+-from shipsync.errors import ApiError, LabelNotReady
++from shipsync.errors import ApiError, LabelNotReady, TransportError
+ from shipsync.models import Address, Shipment
+ from shipsync.transport import Request, Response, Transport
+ 
+ DEFAULT_BASE_URL = "https://api.carrier.example/v2"
+ LABEL_POLL_ATTEMPTS = 5
+ LABEL_POLL_INTERVAL_S = 2.0
++# Carrier outages last about a minute. Waits of 2+4+8+16+30+30 s span roughly 90 s.
++MAX_ATTEMPTS = 7
++RETRY_INITIAL_DELAY_S = 2.0
++RETRY_MAX_DELAY_S = 30.0
++RETRYABLE_STATUSES = frozenset({502, 503})
+ 
+ 
+ class ShippingClient:
+     def __init__(
+         self,
+         transport: Transport,
+         api_key: str,
+         base_url: str = DEFAULT_BASE_URL,
+@@ -64,12 +69,35 @@ class ShippingClient:
+         headers: dict[str, str] | None = None,
+     ) -> Response:
+         request = Request(
+             method,
+             self._base_url + path,
+             {"Authorization": f"Bearer {self._api_key}", **(headers or {})},
+             json.dumps(payload).encode() if payload is not None else None,
+         )
+-        response = self._transport.send(request)
++        response = self._send_with_retries(request)
+         if response.status >= 400:
+             raise ApiError(response.status, response.body.decode(errors="replace"))
+         return response
++
++    def _send_with_retries(self, request: Request) -> Response:
++        """Retry transient failures, but only for requests that are safe to repeat."""
++        retryable = _is_safe_to_repeat(request)
++        delay_s = RETRY_INITIAL_DELAY_S
++        for attempt in range(1, MAX_ATTEMPTS + 1):
++            is_last_attempt = attempt == MAX_ATTEMPTS
++            try:
++                response = self._transport.send(request)
++            except TransportError:
++                if not retryable or is_last_attempt:
++                    raise
++            else:
++                if response.status not in RETRYABLE_STATUSES or not retryable or is_last_attempt:
++                    return response
++            self._sleep(delay_s)
++            delay_s = min(delay_s * 2, RETRY_MAX_DELAY_S)
++        raise AssertionError("unreachable: the last attempt returns or raises")
++
++
++def _is_safe_to_repeat(request: Request) -> bool:
++    """A repeated POST could create a duplicate, unless the carrier dedupes it by idempotency key."""
++    return request.method == "GET" or "Idempotency-Key" in request.headers
+diff --git a/tests/test_client.py b/tests/test_client.py
+index b76f3ee..7b188cd 100644
+--- a/tests/test_client.py
++++ b/tests/test_client.py
+@@ -1,15 +1,21 @@
+ import json
+ from datetime import date
+ 
+ import pytest
+ 
+-from shipsync.client import LABEL_POLL_ATTEMPTS, LABEL_POLL_INTERVAL_S
+-from shipsync.errors import ApiError, LabelNotReady
++from shipsync.client import (
++    LABEL_POLL_ATTEMPTS,
++    LABEL_POLL_INTERVAL_S,
++    MAX_ATTEMPTS,
++    RETRY_INITIAL_DELAY_S,
++    RETRY_MAX_DELAY_S,
++)
++from shipsync.errors import ApiError, ConnectionFailed, LabelNotReady, RequestTimeout
+ from shipsync.models import Address
+ from tests.fakes import FakeTransport, reply, shipment_payload
+ 
+ ADDRESS = Address("Ada Lovelace", "1 Analytical Way", "London", "N1 9GU", "GB")
+ 
+ 
+ def test_get_shipment_parses_the_payload(make_client):
+     transport = FakeTransport(reply(200, shipment_payload("sh-7", "A-7", "in_transit")))
+@@ -84,8 +90,80 @@ def test_wait_for_label_gives_up_when_the_label_never_arrives(make_client):
+ 
+ def test_error_status_raises_api_error_with_the_status(make_client):
+     transport = FakeTransport(reply(404, {"error": "no such shipment"}))
+ 
+     with pytest.raises(ApiError) as raised:
+         make_client(transport).get_shipment("sh-404")
+ 
+     assert raised.value.status == 404
++
++
++@pytest.mark.parametrize(
++    "failure",
++    [RequestTimeout("timed out"), ConnectionFailed("connection reset"), reply(502), reply(503)],
++)
++def test_get_retries_transient_failures(make_client, sleeps, failure):
++    transport = FakeTransport(failure, failure, reply(200, shipment_payload("sh-7")))
++
++    shipment = make_client(transport).get_shipment("sh-7")
++
++    assert shipment.id == "sh-7"
++    assert len(transport.requests) == 3
++    assert sleeps == [RETRY_INITIAL_DELAY_S, RETRY_INITIAL_DELAY_S * 2]
++
++
++def test_retries_back_off_up_to_the_cap_and_span_a_minute_long_outage(make_client, sleeps):
++    transport = FakeTransport(reply(503))
++
++    with pytest.raises(ApiError) as raised:
++        make_client(transport).get_shipment("sh-1")
++
++    assert raised.value.status == 503
++    assert len(transport.requests) == MAX_ATTEMPTS
++    assert max(sleeps) == RETRY_MAX_DELAY_S
++    assert sum(sleeps) >= 60
++
++
++def test_exhausted_retries_raise_the_transport_error(make_client):
++    transport = FakeTransport(RequestTimeout("timed out"))
++
++    with pytest.raises(RequestTimeout):
++        make_client(transport).get_shipment("sh-1")
++
++    assert len(transport.requests) == MAX_ATTEMPTS
++
++
++@pytest.mark.parametrize("status", [400, 404, 429, 500, 504])
++def test_other_error_statuses_are_not_retried(make_client, sleeps, status):
++    transport = FakeTransport(reply(status))
++
++    with pytest.raises(ApiError):
++        make_client(transport).get_shipment("sh-1")
++
++    assert len(transport.requests) == 1
++    assert sleeps == []
++
++
++def test_create_shipment_with_idempotency_key_is_retried(make_client):
++    transport = FakeTransport(ConnectionFailed("connection reset"), reply(201, shipment_payload()))
++
++    make_client(transport).create_shipment("A-1001", ADDRESS, idempotency_key="order-A-1001")
++
++    assert len(transport.requests) == 2
++
++
++def test_create_shipment_without_idempotency_key_is_not_retried(make_client):
++    transport = FakeTransport(ConnectionFailed("connection reset"), reply(201, shipment_payload()))
++
++    with pytest.raises(ConnectionFailed):
++        make_client(transport).create_shipment("A-1001", ADDRESS)
++
++    assert len(transport.requests) == 1
++
++
++def test_request_pickup_is_not_retried(make_client):
++    transport = FakeTransport(reply(503), reply(201, {"id": "pk-3"}))
++
++    with pytest.raises(ApiError):
++        make_client(transport).request_pickup(date(2026, 3, 2), ["sh-1"])
++
++    assert len(transport.requests) == 1

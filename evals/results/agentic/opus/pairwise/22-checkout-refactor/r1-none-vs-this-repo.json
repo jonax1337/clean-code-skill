@@ -1,0 +1,85 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "0a6bae6dc4b47173",
+    "this-repo": "7b5cfa904064fe15"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors split the function into nearly the same helpers and both preserve behavior, including the safe swap from `reserved` to `order.items` on a declined payment. A wins slightly on its characterization tests, which also cover exception chaining, the default tax rate and used-up coupons. A's docstrings on the helpers also explain the non-obvious steps. B's report is the more transparent of the two: it calls out the `reserved` \u2192 `order.items` swap and the CRLF slip. That does not outweigh A's stronger test safety net.",
+        "a_issues": [
+          "The report says each step does exactly what the old code did, without mentioning that the declined-payment release now uses `order.items` instead of the `reserved` list. The two are equivalent, but the change is not called out.",
+          "Adds a separate characterization test file that partly overlaps the existing `test_checkout.py`."
+        ],
+        "b_issues": [
+          "`_tax` recomputes the line totals already computed for the subtotal, a small duplication.",
+          "Fewer edge cases are pinned: no check of exception chaining (`from error`), the default tax rate for unknown countries, or a used-up coupon being rejected.",
+          "Helpers have no docstrings explaining the non-obvious ordering, such as releasing stock on a declined payment or best-effort receipt sending."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors preserve behavior. Each extracts the same pipeline of helpers and swaps the reserved list for order.items in the payment-decline path, which is safe because payment only runs after every item is reserved. B keeps the subtotal/tax loop intact, which stays closer to the original code, and adds short docstrings that explain the non-obvious steps. B's characterization tests also cover more: VIP without a coupon, the shipping threshold measured after discounts, the default tax rate, used-up coupons, negative quantities and exception chaining.",
+        "a_issues": [
+          "Tests miss several edge cases: the default tax rate for unknown countries, used-up coupons, negative quantities and exception chaining.",
+          "Splitting subtotal and tax into separate passes computes line_cents twice, a small departure from the original structure.",
+          "The report spends space on an accidental CRLF conversion that was fixed during the work."
+        ],
+        "b_issues": [
+          "Leans on the existing odd pattern of calling coupons.redeem in tests to infer the remaining coupon uses.",
+          "Does not mention the existing weak test in test_coupon_discount_is_applied_and_redeemed, which calls redeem itself before its final assertion."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

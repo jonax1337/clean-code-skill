@@ -1,0 +1,85 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "f1ebafe12dd05cf3",
+    "this-repo": "e9bfc2799d7b9b42"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes are correct. Both use a required mutually exclusive argparse group, reuse `allocate` and move the duplicate check into a shared helper. A has a cleaner split of work: `parse_percent` only reads one `NAME=PCT` entry, and `split_by_percent` itself checks for duplicates and that the total is 100, so the split function is safe on its own. B puts all validation into `parse_percents` and leaves `split_by_percent` unchecked. A also tests the bad-value path at the CLI level.",
+        "a_issues": [
+          "The `test_percent_and_with_cannot_be_combined` call is one very long line, unlike the formatted multi-line calls around it.",
+          "The per-entry check for values up to 100 is redundant with the total-equals-100 check (harmless)."
+        ],
+        "b_issues": [
+          "`split_by_percent` accepts any dict without checking the total or the names; all validation sits in `parse_percents`, which mixes parsing with business rules.",
+          "`parse_percents` builds a dict, which would silently overwrite a repeated name; this is only avoided because a separate `names` list is checked for duplicates.",
+          "No CLI-level test for a malformed percentage value; it is covered only by unit tests."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes are correct. Both use a required mutually exclusive group, reuse `allocate`, factor out the duplicate check and update the README in the same way. B's `split_by_percent` checks its own preconditions (no duplicate names, total of 100), and `parse_percent` checks each value is in the 1\u2013100 range, so the splitting function is safe to call directly. A's `split_by_percent` trusts its caller to have checked the total. A's tests are slightly stronger: they check exact error messages and include a unit test where leftover cents must be handed out, while B's CLI test named \"keep every cent\" uses percentages that divide evenly.",
+        "a_issues": [
+          "`split_by_percent` does not check that the percentages add up to 100 or that names are unique. It relies on `parse_percents` having been called first, so calling it directly can give shares that do not sum to the amount's intended split.",
+          "`parse_percents` both parses the input and checks the total, which mixes two concerns in one function."
+        ],
+        "b_issues": [
+          "`test_percent_shares_keep_every_cent` uses 34/33/33 of 10.00, which divides evenly, so it never exercises handing out leftover cents. No B test exercises remainder allocation for percentages.",
+          "One CLI test call is on a single line well beyond the line length used elsewhere in the file.",
+          "Unit tests for bad input only check that `MoneyError` is raised, not which message is shown."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

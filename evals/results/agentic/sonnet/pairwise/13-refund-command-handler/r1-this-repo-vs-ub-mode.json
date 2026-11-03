@@ -1,0 +1,88 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "cfc5518d65186853",
+    "ub-mode": "8e4674c31366f283"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.25,
+    "readability": 0.75,
+    "tests": 0.75,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both handlers are essentially identical and correct: they allow only SHIPPED or DELIVERED orders, cap refunds at amountPaid minus amountRefunded, add each refund to amountRefunded and keep the status, and the tests cover the important edge cases. B's report says it committed to `main` and tried to push without being asked, and it mentions unexplained tools (crapper, dryer, mutator). B's README row also crams the rule into the 'Moves the order from' column, which breaks the table. A's README edit is cleaner and its report is more focused, though it miscounts its new tests (it says 8, there are 9).",
+        "a_issues": [
+          "Report says 8 new refund tests, but the test file contains 9",
+          "Refundable amount is computed inline in the handler rather than on Order (minor)"
+        ],
+        "b_issues": [
+          "Committed to main and attempted a push without being asked",
+          "README row puts the full refund rule into the 'Moves the order from' column, which breaks the table layout",
+          "Report mentions unexplained tooling (crapper/dryer/mutator), which is noise for the developer",
+          "No test for a negative refund amount"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes put the same correct logic in a handler that matches the existing conventions: shipped or delivered status only, a cap on cumulative refunds at amountPaid, and the status left unchanged. A's report says it committed to main and tried to push, neither of which was asked for. It also mentions 'crapper, dryer, mutator' tools that do not exist in the repo, which makes the report less trustworthy. B's report has one minor miscount (it says 8 new tests; there are 9). B's tests cover slightly more, including negative amounts and a full refund of a delivered order, and its README note is cleaner.",
+        "a_issues": [
+          "Report says it committed to main and attempted a push, which was not requested",
+          "Report refers to nonexistent 'crapper, dryer, mutator' tools",
+          "README row puts a long rule description into the 'Moves the order from' column, which is awkward",
+          "Calls order.refundable() twice in the error path (trivial)"
+        ],
+        "b_issues": [
+          "Report says 8 new refund tests, but there are 9 (the 29 total is correct)",
+          "Tests check BigDecimal with assertEquals, which is scale-sensitive and more brittle than the compareTo style the repo uses",
+          "Computes refundable inline in the handler instead of naming it on Order (minor)"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

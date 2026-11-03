@@ -1,0 +1,294 @@
+diff --git a/README.md b/README.md
+index e464899..d5ad939 100644
+--- a/README.md
++++ b/README.md
+@@ -1,26 +1,27 @@
+-# pricing
+-
+-Small pricing library for the web shop: turns an order into a quote (subtotal, discount, tax, total) and renders
+-a plain-text receipt.
+-
+-## Discounts
+-
+-The discount rate for a customer is decided in one place, `DiscountPolicy.rateFor`:
+-
+-| Customer                      | Rate |
+-|-------------------------------|------|
+-| Employee                      | 20%  |
+-| Loyalty points >= 2000        | 15%  |
+-| Loyalty points >= 500         | 5%   |
+-| Everyone else                 | 0%   |
+-
+-All money is `BigDecimal` with two decimals, rounded half up (see `Money`).
+-
+-## Running the tests
+-
+-The project has no build tool. Put the JUnit 5 console launcher at `lib/junit-platform-console-standalone.jar`,
+-then run
+-
+-    java tools/RunTests.java
+-
+-It compiles everything under `src/` into `build/` and runs every test.
++# pricing
++
++Small pricing library for the web shop: turns an order into a quote (subtotal, discount, tax, total) and renders
++a plain-text receipt.
++
++## Discounts
++
++The discount rate for a customer is decided in one place, `DiscountPolicy.rateFor`:
++
++| Customer                      | Rate |
++|-------------------------------|------|
++| Employee                      | 20%  |
++| Student                       | 10%, or the loyalty rate if that is bigger (never combined) |
++| Loyalty points >= 2000        | 15%  |
++| Loyalty points >= 500         | 5%   |
++| Everyone else                 | 0%   |
++
++All money is `BigDecimal` with two decimals, rounded half up (see `Money`).
++
++## Running the tests
++
++The project has no build tool. Put the JUnit 5 console launcher at `lib/junit-platform-console-standalone.jar`,
++then run
++
++    java tools/RunTests.java
++
++It compiles everything under `src/` into `build/` and runs every test.
+diff --git a/src/main/java/pricing/CustomerType.java b/src/main/java/pricing/CustomerType.java
+index d3c4183..1adc244 100644
+--- a/src/main/java/pricing/CustomerType.java
++++ b/src/main/java/pricing/CustomerType.java
+@@ -1,6 +1,7 @@
+ package pricing;
+ 
+ public enum CustomerType {
+     REGULAR,
+-    EMPLOYEE
++    EMPLOYEE,
++    STUDENT
+ }
+diff --git a/src/main/java/pricing/DiscountPolicy.java b/src/main/java/pricing/DiscountPolicy.java
+index a413735..e398715 100644
+--- a/src/main/java/pricing/DiscountPolicy.java
++++ b/src/main/java/pricing/DiscountPolicy.java
+@@ -1,29 +1,31 @@
+-package pricing;
+-
+-import java.math.BigDecimal;
+-
+-/** Decides which discount rate a customer gets. */
+-public class DiscountPolicy {
+-    private static final BigDecimal EMPLOYEE_RATE = new BigDecimal("0.20");
+-    private static final BigDecimal GOLD_RATE = new BigDecimal("0.15");
+-    private static final BigDecimal SILVER_RATE = new BigDecimal("0.05");
+-    private static final int GOLD_POINTS = 2000;
+-    private static final int SILVER_POINTS = 500;
+-
+-    public BigDecimal rateFor(Customer customer) {
+-        return switch (customer.type()) {
+-            case EMPLOYEE -> EMPLOYEE_RATE;
+-            case REGULAR -> loyaltyRateFor(customer.loyaltyPoints());
+-        };
+-    }
+-
+-    private BigDecimal loyaltyRateFor(int loyaltyPoints) {
+-        if (loyaltyPoints >= GOLD_POINTS) {
+-            return GOLD_RATE;
+-        }
+-        if (loyaltyPoints >= SILVER_POINTS) {
+-            return SILVER_RATE;
+-        }
+-        return BigDecimal.ZERO;
+-    }
+-}
++package pricing;
++
++import java.math.BigDecimal;
++
++/** Decides which discount rate a customer gets. */
++public class DiscountPolicy {
++    private static final BigDecimal EMPLOYEE_RATE = new BigDecimal("0.20");
++    private static final BigDecimal STUDENT_RATE = new BigDecimal("0.10");
++    private static final BigDecimal GOLD_RATE = new BigDecimal("0.15");
++    private static final BigDecimal SILVER_RATE = new BigDecimal("0.05");
++    private static final int GOLD_POINTS = 2000;
++    private static final int SILVER_POINTS = 500;
++
++    public BigDecimal rateFor(Customer customer) {
++        return switch (customer.type()) {
++            case EMPLOYEE -> EMPLOYEE_RATE;
++            case STUDENT -> STUDENT_RATE.max(loyaltyRateFor(customer.loyaltyPoints()));
++            case REGULAR -> loyaltyRateFor(customer.loyaltyPoints());
++        };
++    }
++
++    private BigDecimal loyaltyRateFor(int loyaltyPoints) {
++        if (loyaltyPoints >= GOLD_POINTS) {
++            return GOLD_RATE;
++        }
++        if (loyaltyPoints >= SILVER_POINTS) {
++            return SILVER_RATE;
++        }
++        return BigDecimal.ZERO;
++    }
++}
+diff --git a/src/main/java/pricing/ReceiptFormatter.java b/src/main/java/pricing/ReceiptFormatter.java
+index 773af2e..1f2caa9 100644
+--- a/src/main/java/pricing/ReceiptFormatter.java
++++ b/src/main/java/pricing/ReceiptFormatter.java
+@@ -1,32 +1,33 @@
+-package pricing;
+-
+-import java.math.BigDecimal;
+-
+-public class ReceiptFormatter {
+-
+-    public String format(Order order, Quote quote) {
+-        StringBuilder receipt = new StringBuilder();
+-        receipt.append("Receipt for ").append(order.customer().name())
+-                .append(" (").append(label(order.customer().type())).append(")\n");
+-        for (OrderLine line : order.lines()) {
+-            receipt.append(line.quantity()).append(" x ").append(line.product().name())
+-                    .append("  ").append(line.subtotal().toPlainString()).append('\n');
+-        }
+-        appendAmount(receipt, "Subtotal", quote.subtotal());
+-        appendAmount(receipt, "Discount", quote.discount().negate());
+-        appendAmount(receipt, "Tax", quote.tax());
+-        appendAmount(receipt, "Total", quote.total());
+-        return receipt.toString();
+-    }
+-
+-    private static String label(CustomerType type) {
+-        return switch (type) {
+-            case REGULAR -> "regular customer";
+-            case EMPLOYEE -> "employee";
+-        };
+-    }
+-
+-    private static void appendAmount(StringBuilder receipt, String label, BigDecimal amount) {
+-        receipt.append(String.format("%-10s%10s%n", label, amount.toPlainString()));
+-    }
+-}
++package pricing;
++
++import java.math.BigDecimal;
++
++public class ReceiptFormatter {
++
++    public String format(Order order, Quote quote) {
++        StringBuilder receipt = new StringBuilder();
++        receipt.append("Receipt for ").append(order.customer().name())
++                .append(" (").append(label(order.customer().type())).append(")\n");
++        for (OrderLine line : order.lines()) {
++            receipt.append(line.quantity()).append(" x ").append(line.product().name())
++                    .append("  ").append(line.subtotal().toPlainString()).append('\n');
++        }
++        appendAmount(receipt, "Subtotal", quote.subtotal());
++        appendAmount(receipt, "Discount", quote.discount().negate());
++        appendAmount(receipt, "Tax", quote.tax());
++        appendAmount(receipt, "Total", quote.total());
++        return receipt.toString();
++    }
++
++    private static String label(CustomerType type) {
++        return switch (type) {
++            case REGULAR -> "regular customer";
++            case EMPLOYEE -> "employee";
++            case STUDENT -> "student";
++        };
++    }
++
++    private static void appendAmount(StringBuilder receipt, String label, BigDecimal amount) {
++        receipt.append(String.format("%-10s%10s%n", label, amount.toPlainString()));
++    }
++}
+diff --git a/src/test/java/pricing/DiscountPolicyTest.java b/src/test/java/pricing/DiscountPolicyTest.java
+index d442185..3483f90 100644
+--- a/src/test/java/pricing/DiscountPolicyTest.java
++++ b/src/test/java/pricing/DiscountPolicyTest.java
+@@ -1,36 +1,47 @@
+-package pricing;
+-
+-import static org.junit.jupiter.api.Assertions.assertEquals;
+-
+-import java.math.BigDecimal;
+-import org.junit.jupiter.api.Test;
+-
+-class DiscountPolicyTest {
+-    private final DiscountPolicy policy = new DiscountPolicy();
+-
+-    @Test
+-    void regularCustomerWithoutPointsGetsNoDiscount() {
+-        assertRate("0", new Customer("Ada", CustomerType.REGULAR, 0));
+-    }
+-
+-    @Test
+-    void silverLoyaltyStartsAtFiveHundredPoints() {
+-        assertRate("0", new Customer("Ada", CustomerType.REGULAR, 499));
+-        assertRate("0.05", new Customer("Ada", CustomerType.REGULAR, 500));
+-    }
+-
+-    @Test
+-    void goldLoyaltyStartsAtTwoThousandPoints() {
+-        assertRate("0.05", new Customer("Ada", CustomerType.REGULAR, 1999));
+-        assertRate("0.15", new Customer("Ada", CustomerType.REGULAR, 2000));
+-    }
+-
+-    @Test
+-    void employeesGetTwentyPercent() {
+-        assertRate("0.20", new Customer("Eve", CustomerType.EMPLOYEE, 0));
+-    }
+-
+-    private void assertRate(String expected, Customer customer) {
+-        assertEquals(0, new BigDecimal(expected).compareTo(policy.rateFor(customer)));
+-    }
+-}
++package pricing;
++
++import static org.junit.jupiter.api.Assertions.assertEquals;
++
++import java.math.BigDecimal;
++import org.junit.jupiter.api.Test;
++
++class DiscountPolicyTest {
++    private final DiscountPolicy policy = new DiscountPolicy();
++
++    @Test
++    void regularCustomerWithoutPointsGetsNoDiscount() {
++        assertRate("0", new Customer("Ada", CustomerType.REGULAR, 0));
++    }
++
++    @Test
++    void silverLoyaltyStartsAtFiveHundredPoints() {
++        assertRate("0", new Customer("Ada", CustomerType.REGULAR, 499));
++        assertRate("0.05", new Customer("Ada", CustomerType.REGULAR, 500));
++    }
++
++    @Test
++    void goldLoyaltyStartsAtTwoThousandPoints() {
++        assertRate("0.05", new Customer("Ada", CustomerType.REGULAR, 1999));
++        assertRate("0.15", new Customer("Ada", CustomerType.REGULAR, 2000));
++    }
++
++    @Test
++    void employeesGetTwentyPercent() {
++        assertRate("0.20", new Customer("Eve", CustomerType.EMPLOYEE, 0));
++    }
++
++    @Test
++    void studentsGetTenPercent() {
++        assertRate("0.10", new Customer("Sam", CustomerType.STUDENT, 0));
++        assertRate("0.10", new Customer("Sam", CustomerType.STUDENT, 500));
++    }
++
++    @Test
++    void studentWithGoldLoyaltyGetsTheBiggerDiscountNotBoth() {
++        assertRate("0.15", new Customer("Sam", CustomerType.STUDENT, 2000));
++    }
++
++    private void assertRate(String expected, Customer customer) {
++        assertEquals(0, new BigDecimal(expected).compareTo(policy.rateFor(customer)));
++    }
++}

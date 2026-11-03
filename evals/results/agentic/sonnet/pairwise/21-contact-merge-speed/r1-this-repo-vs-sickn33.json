@@ -1,0 +1,81 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "6055b6aaeb3cc9a8",
+    "sickn33": "60329ba62599f4fb"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix: an email-to-index Map built once, with new contacts registered as they are appended, so first-occurrence and in-upload merging behave as before. A adds a test for the one subtle behavior the Map has to keep, which is that duplicates already in the stored book send the merge to the first entry. A also measured the speedup and reports the test count accurately. B's code is equally correct and slightly more factored, but it leaves the first-occurrence behavior untested and does not measure the improvement.",
+        "a_issues": [
+          "Benchmark was a throwaway script and not committed, so the 79 ms figure cannot be reproduced from the repo"
+        ],
+        "b_issues": [
+          "No test protects the first-occurrence choice when the existing book already contains duplicate emails, which is exactly what the Map-building logic must preserve",
+          "Speedup is unmeasured, so the report does not confirm the task's goal was met"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes swap the quadratic findIndex scan for the same Map-based lookup with the same first-occurrence semantics, so their correctness and scope are equivalent. B adds a test for the one subtle edge case the rewrite could break: duplicates already in the existing book must still merge into the first entry. B also measured the speedup and reported test and typecheck results concretely. A's small helper extraction is fine, but A leaves the edge case it describes untested and its speedup unmeasured.",
+        "a_issues": [
+          "No test for merging into the first of several pre-existing duplicates, the edge case the map rewrite could most easily get wrong.",
+          "The speedup was not measured, so the performance claim is unverified."
+        ],
+        "b_issues": [
+          "The timing came from a throwaway script, so no benchmark guards against future regressions."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

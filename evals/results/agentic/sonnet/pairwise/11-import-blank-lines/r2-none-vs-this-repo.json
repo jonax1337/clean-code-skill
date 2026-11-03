@@ -1,0 +1,80 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "4ff49b4ba963466b",
+    "this-repo": "07abbb78b8dfd0ee"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both make the same code change: skip blank or whitespace-only lines in `parse_entries` while keeping line numbering from `enumerate`. B is slightly better on tests and verification. Its two focused tests separately check skipping, including multiple entries around the blanks, and line numbering after a blank line. B also ran the full suite, and its 20-test count is consistent with the repository. A ran only the importer tests, and its single test mixes two concerns.",
+        "a_issues": [
+          "The single test combines the skip check and the line-number check, and the success case yields only one entry, so it is a weaker check that entries after a blank line are still parsed.",
+          "Only the importer tests were run. The CLI tests were not run, although the import path is exercised end to end there."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The production code is identical: both skip blank and whitespace-only lines while keeping line numbering correct, which is the minimal right fix. A's tests are clearer and separately check that a valid entry after blank lines is still parsed and that line numbers count skipped lines. B packs both checks into one test, and its success case only has trailing blanks after a single entry. A also ran the full suite (its count of 20 matches the repository), while B ran only the importer tests, though B says so honestly.",
+        "a_issues": [
+          "Did not test the CLI end to end with a trailing blank line in the CSV, though the parser change covers that path."
+        ],
+        "b_issues": [
+          "A single test mixes the error-line-number check with the success-path check, which is harder to read.",
+          "The success path never checks a valid entry that comes after a blank line; only trailing blank lines are tested.",
+          "Ran only the importer tests, not the full suite (reported honestly)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

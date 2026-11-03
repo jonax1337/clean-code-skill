@@ -1,0 +1,89 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4f3f6b65055eb365",
+    "ertugrul-dmr": "2b1a48b1935a8bf7"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 1.0,
+    "readability": 0.25,
+    "tests": 1.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior: B's release of `order.items` on decline is equivalent to the reserved list once every reservation has succeeded, and reordering the pure tax computation has no side effects. A adds ten characterization tests to the repository, checked against the original code, which pin per-line rounding, the coupon-before-stock ordering, rollback logs and receipt failure. B's 20,000-case randomized comparison is not committed, so it gives no lasting protection. A has minor flaws (two misleading test names, `refund_order` moved within the file), but its committed safety net makes it the better merge for production code.",
+        "a_issues": [
+          "Moved `refund_order` above the helpers, which adds diff noise unrelated to the refactor.",
+          "Test name 'releases_stock_in_reverse_of_reserve' is misleading: there is a single item, and the original releases in forward order.",
+          "Test name 'vip_customer_gets_five_percent_off_after_coupon' uses no coupon, so the VIP-after-coupon interaction is not tested.",
+          "`_charge` takes six parameters, as acknowledged in the report."
+        ],
+        "b_issues": [
+          "No tests added; the randomized equivalence check is not committed, so nothing protects the refactor in future.",
+          "`_charge` releases `order.items` rather than the items actually reserved. This is equivalent today but couples rollback correctness to the caller having reserved everything.",
+          "Tax is now computed in a separate pass after the discount, changing the evaluation order. Harmless because tax computation is pure, but it is not mentioned in the report."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors preserve the checkout behavior and decompose it sensibly. B stays closer to the original by passing `reserved` explicitly into the rollback and keeping tax and subtotal in one loop. It also adds characterization tests that ran against the original code, which leaves a lasting safety net for a live-production refactor. A's 20k randomized equivalence check was not committed, so it protects nothing going forward. Some of B's test names and report claims overstate what the tests check, and B needlessly moves `refund_order`.",
+        "a_issues": [
+          "No tests added. The claimed 20,000-order randomized equivalence check is not in the diff, so future changes get no protection and the claim cannot be reproduced.",
+          "`_charge` releases `order.items` instead of the items actually reserved. This is equivalent today only because `_reserve_stock` either reserves everything or raises, and the coupling is implicit.",
+          "Tax and coupon checks now run in a different order: the subtotal is summed separately and the coupon is checked before tax is computed. This is harmless here, but it is a small deviation from a strict move-only refactor."
+        ],
+        "b_issues": [
+          "`refund_order` is moved above the helpers for no functional reason, which adds diff noise to a production refactor.",
+          "`test_vip_customer_gets_five_percent_off_after_coupon` uses no coupon, yet the report says it verifies 'VIP discount applies after the coupon'.",
+          "`test_declined_payment_releases_stock_in_reverse_of_reserve` uses a single item, so it cannot check any 'reverse' ordering. The name is misleading.",
+          "`_charge` takes six parameters, which the report acknowledges."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "B",
+          "readability": "A",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "538c1c503ab8cb19",
+    "this-repo": "f1a549990499bcec"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.75,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the relay refuse to start on a bad config, collect every problem, reject unknown keys and exit with status 2, so they are close. A keeps the existing static structure and still accepts `metrics.enabled=TRUE`, which `Boolean.parseBoolean` accepted before; B now rejects it, so B breaks a config that used to work. A also rejects a zero timeout, which would otherwise be accepted without complaint. B has more precise tests that check message content, but its refactor into an instance-based loader with key constants is churn the task did not need, and its report wrongly says a missing upstream.url used to cause an NPE.",
+        "a_issues": [
+          "Tests mostly check only that the key name appears in the message, not the actual error text",
+          "The http/https-only URL restriction and the zero-timeout check go slightly beyond the request (the report flags only the unknown-key check)",
+          "No test that a valid boundary value is accepted, such as `retry.max-attempts=0`"
+        ],
+        "b_issues": [
+          "`metrics.enabled` now accepts only lowercase `true`/`false`, so a previously working `TRUE` fails to start",
+          "Turns ConfigLoader into a stateful instance and adds constants for every key, which is extra restructuring the task did not need",
+          "`request.timeout=0s` is still accepted",
+          "Report says a missing upstream.url used to cause an NPE, but the old code caught it and returned null"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same core fix. Each collects every problem, rejects bad values, unknown keys and a missing file, and exits with status 2, so they are close. A's tests are tighter: they assert specific message text and cover timeout overflow and the accepted zero-retries edge case. A's error output also names the absolute file path, and its report covers manual runs against both a bad file and a missing file. Each breaks one input that used to work: A rejects `TRUE`/`True` for metrics.enabled, and B rejects `0s` and non-http(s) schemes without documenting either rule.",
+        "a_issues": [
+          "metrics.enabled is now case-sensitive, so `TRUE` or `True` (previously accepted by Boolean.parseBoolean) now stops startup; the report does not call out this narrowing.",
+          "The unknown-key message prints the full set of known keys every time, which is a little noisy."
+        ],
+        "b_issues": [
+          "Adds a rule that `request.timeout` must be greater than zero, which the README does not state; `0s` used to be accepted.",
+          "Restricts upstream.url to http/https schemes, an extra rule beyond what was asked and not documented.",
+          "Tests only check that the key name appears in the message, not what the message says; there is no test for timeout overflow or for valid edge values such as zero retries."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

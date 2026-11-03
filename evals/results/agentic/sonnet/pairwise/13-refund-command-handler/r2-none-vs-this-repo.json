@@ -1,0 +1,83 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "fdd59481c46e8043",
+    "this-repo": "69ec8ee675ba45f1"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both implementations are functionally identical and correct: same state check, a cumulative cap against amountPaid, the same reuse of Validator, and recordRefund on Order. B also updates the README command table and money section, which matter here because the README documents every command. B's tests cover more cases: cancelled and placed statuses, too-precise and negative amounts, and an explicit check that the cap is amountPaid rather than the total. B's report clearly states how it read the requirement that the status stays the same.",
+        "a_issues": [
+          "README command table and money notes not updated for the new RefundOrder command.",
+          "Tests do not cover PLACED or CANCELLED orders being rejected, nor negative or too-precise refund amounts."
+        ],
+        "b_issues": [
+          "Test helpers hardcode order id \"o-1\", and `refund` takes the bus as a parameter even though the field is in scope. Both are minor."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both handlers behave the same: same status check, same cumulative cap against amountPaid, and the same Validator reuse and error codes. A also updates the README command table and money note, which the README's own structure invites. A's tests are more thorough, covering PLACED, PAID and CANCELLED rejections, the decimal-precision rejection, and the cap against amountPaid on a fresh order. A's `refundable` local also reads a little more clearly than B's inline arithmetic.",
+        "a_issues": [
+          "The tests use a static `refund(bus, ...)` helper that takes `bus` as a parameter even though it is an instance field, which is a small inconsistency.",
+          "The README table row 'stays SHIPPED or DELIVERED' bends the 'Moves the order from' column header slightly."
+        ],
+        "b_issues": [
+          "The README is not updated, so the command table no longer lists every command and handler.",
+          "The tests check only PAID among the rejected statuses, not PLACED or CANCELLED, and do not check the decimal-precision rejection.",
+          "The cap check recomputes `amountPaid - amountRefunded` inline for the message instead of naming it once."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "6fcf4b5af6f5f751",
+    "this-repo": "c0a6be3a392b3869"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes make the same correct one-line fix in `parse_entries`: they skip whitespace-only lines while keeping the original line numbering. A's tests cover more of the change: whitespace-only and CRLF blank lines, blank lines in the middle and at the end, and a test that a bad line after a blank line still reports its real line number. B says line numbers are preserved but has no test for it. A also adds one README sentence, which is appropriate because the README documents the CSV format.",
+        "a_issues": [
+          "Did not show that the new tests fail without the fix, though it says plainly that it did not run the accountant's file"
+        ],
+        "b_issues": [
+          "Only an end-to-end CLI test with plain `\\n` blank lines; no test for whitespace-only or CRLF blank lines",
+          "Says error line numbers still count skipped lines, but no test protects that",
+          "README still describes the CSV format without saying that blank lines are now accepted"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes make the same correct one-line fix: skip whitespace-only lines while keeping the original line numbering. B's tests protect more of that behavior. They cover whitespace-only and CRLF blank lines, and they check that a bad line after a blank line still reports its real line number, which A's report claims but never tests. B also updates the README, which describes the import format, so the documented behavior matches the code.",
+        "a_issues": [
+          "No test covers the claim that line numbers still count skipped blank lines.",
+          "The only test is at the CLI level and does not cover whitespace-only or CRLF blank lines.",
+          "The README import section is not updated, so it no longer fully describes how blank lines are handled."
+        ],
+        "b_issues": [
+          "The inline comment is slightly redundant given the obvious check, though harmless."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

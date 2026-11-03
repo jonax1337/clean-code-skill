@@ -1,0 +1,85 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "bd554876b54f75f3",
+    "this-repo": "751f6b2e4f9cbc9b"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors are correct: they keep the same tokens, error variants and positions, and both turn the magic `st: u8` into a `State` enum with a single place that handles errors. B also keeps the old internal behaviour of moving `pos` to the end of the line after an error. B adds a much broader regression suite that pins every error's exact position, non-ASCII slicing, empty quoted values and staying exhausted after the end or an error. A's committed tests are thinner, though its throwaway exhaustive check was stronger. Readability and design are comparable, so B's tests tip the balance.",
+        "a_issues": [
+          "Committed tests are fairly thin: two tests, with no coverage of non-ASCII input, empty quoted values, or repeated `next()` after the end of the line.",
+          "No longer moves `pos` to the end of the line after an error. This is harmless, and the report says so.",
+          "The strongest equivalence evidence (exhaustive short lines) lives only in a discarded scratch crate."
+        ],
+        "b_issues": [
+          "`value()` sets `state = Token` before knowing whether the value succeeds and relies on `next()` to override it to `Failed`. This is slightly indirect.",
+          "`find_closing_quote` still scans byte by byte, while the other scans use `position`. This is minor and has no correctness impact.",
+          "The report's benchmark shows a speedup that it rightly calls noise, so it adds little evidence beyond \"not slower\"."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors look behavior-preserving: they produce the same token and error order, the same positions, and the stream stops after an error, all dispatched through a named State enum with per-token-kind functions. A adds a much broader set of regression tests to the repo, covering exhaustion after the end of the line and after an error in a value, non-ASCII slicing, `a==b`, `[]` and every error position. These tests protect future edits to the line format. B's exhaustive differential check was thorough, but it was thrown away, and its in-repo tests are thinner.",
+        "a_issues": [
+          "The report does not mention that the derived Debug output of `Tokens` changes (`st: 2` becomes `state: Failed`).",
+          "Splitting into both methods and free functions (`find_timestamp_end`, `scan_unquoted`, etc.) gives a slightly wider surface than needed."
+        ],
+        "b_issues": [
+          "Only two new tests in the repo; exhaustion after an error in a value, non-ASCII input and empty timestamps are not pinned.",
+          "`pos` no longer moves to the end on error. This is harmless and disclosed, but it is a small internal divergence from the original."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

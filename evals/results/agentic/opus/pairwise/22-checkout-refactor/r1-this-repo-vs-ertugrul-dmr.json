@@ -1,0 +1,88 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "7b5cfa904064fe15",
+    "ertugrul-dmr": "bee64b09b3f31095"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors split the function the same way and preserve behavior: the invalid-coupon check still runs before any stock is reserved, and both release `order.items` on a declined payment, which matches the old `reserved` list. B's characterization tests are a bit stronger. They test free shipping exactly at the threshold after a discount, the default tax rate, negative quantities, and both log messages in order. B's short docstrings also explain the non-obvious rules. B's report has a visibly garbled section and omits the reserved\u2192order.items equivalence note that A explains, so the margin is slight.",
+        "a_issues": [
+          "`test_shipping_is_free_from_5000_cents_after_discounts` uses no discount at all, so the name overstates what it checks and the threshold-after-discount rule is untested.",
+          "No test for the default tax rate on unknown countries, or for negative quantities.",
+          "The receipt-failure test only searches `caplog.text`; it does not check the paid log line or that `exc_info` is attached."
+        ],
+        "b_issues": [
+          "The 'Changes, by rule' section of the report is garbled: the labels are empty and 'P2' refers to rules that are never explained.",
+          "The report does not mention that the declined-payment path now releases `order.items` instead of the `reserved` list, a spot a reviewer would want explained.",
+          "One test line runs well past normal line length."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two refactors are nearly identical: both pull out the same six steps, deduplicate the release loop and line-price calculation, and switch the decline path from releasing `reserved` to releasing `order.items`, which is equivalent because payment only happens after every item is reserved. Both added characterization tests first, with comparable coverage. A's tests are a bit sharper, since its free-shipping test hits the threshold after a discount and it checks exact log records. B's report is more accurate and transparent: it flags the reserved\u2192order.items substitution and the accidental CRLF conversion that it fixed. A's report has garbled rule labels and never mentions that substitution.",
+        "a_issues": [
+          "Report bullets have empty labels (\"**:**\") and a stray \"(P2)\" reference, which suggests a broken template.",
+          "Report does not mention that the declined-payment path now releases `order.items` instead of the `reserved` list.",
+          "The declined-payment test checks that the coupon was kept by running a second order, which is convoluted.",
+          "Adds an extra one-off helper, `_coupon_percent`, which fragments the code more than needed."
+        ],
+        "b_issues": [
+          "The free-shipping threshold test uses no discount, so it doesn't check that the threshold applies after discounts, despite its name.",
+          "Helpers take whole `Customer`/`Order` objects where only email or id is used, so their dependencies are wider than needed.",
+          "The receipt-failure test only checks a substring of `caplog.text`, not the log level, `exc_info`, or the paid log line."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

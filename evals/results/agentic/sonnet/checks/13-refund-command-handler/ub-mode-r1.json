@@ -1,0 +1,106 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "condition": "ub-mode",
+  "rep": 1,
+  "checks": [
+    {
+      "name": "refund_follows_business_rules",
+      "description": "Only shipped or delivered orders are refunded; refunds add up and never exceed what was paid (not the order total); the exact remaining amount works at any scale; failures change nothing; the command is reachable through the bus.",
+      "passed": true,
+      "evidence": "[         4 containers started    ]\n[         0 containers aborted    ]\n[         4 containers successful ]\n[         0 containers failed     ]\n[         9 tests found           ]\n[         0 tests skipped         ]\n[         9 tests started         ]\n[         0 tests aborted         ]\n[         9 tests successful      ]\n[         0 tests failed          ]\n\nstty: /dev/tty: No such device or address"
+    },
+    {
+      "name": "refund_rejects_bad_input",
+      "description": "A blank or missing order id and a missing, zero, negative or three-decimal amount come back as INVALID_INPUT failures, before the order is looked up, without throwing.",
+      "passed": true,
+      "evidence": "[         4 containers started    ]\n[         0 containers aborted    ]\n[         4 containers successful ]\n[         0 containers failed     ]\n[         6 tests found           ]\n[         0 tests skipped         ]\n[         6 tests started         ]\n[         0 tests aborted         ]\n[         6 tests successful      ]\n[         0 tests failed          ]\n\nstty: /dev/tty: No such device or address"
+    },
+    {
+      "name": "refund_money_is_exact",
+      "description": "Repeated small refunds and very large amounts add up to the cent, which floating point cannot do.",
+      "passed": true,
+      "evidence": "[         4 containers started    ]\n[         0 containers aborted    ]\n[         4 containers successful ]\n[         0 containers failed     ]\n[         3 tests found           ]\n[         0 tests skipped         ]\n[         3 tests started         ]\n[         0 tests aborted         ]\n[         3 tests successful      ]\n[         0 tests failed          ]\n\nstty: /dev/tty: No such device or address"
+    },
+    {
+      "name": "only_expected_files_changed",
+      "description": "New files are only sources or tests; the only existing files touched are the order, its status and error codes, the validator, the handler registration, the README and tests. The other handlers, the bus, the result type and the repository stay as they are.",
+      "passed": true,
+      "evidence": "changed: ['README.md', 'src/main/java/shop/Order.java', 'src/main/java/shop/OrderServices.java', 'src/main/java/shop/RefundOrder.java', 'src/main/java/shop/RefundOrderHandler.java', 'src/test/java/shop/RefundOrderHandlerTest.java']"
+    },
+    {
+      "name": "existing_tests_not_loosened",
+      "description": "No line of a test that existed before was changed or removed; tests may only be added.",
+      "passed": true,
+      "evidence": "tests only added to"
+    },
+    {
+      "name": "new_tests_cover_refund",
+      "description": "At least 2 test methods that mention RefundOrder were added to the project's tests; the rules in the request (accepted status, rejected status, amount limit) need that many at the minimum.",
+      "passed": true,
+      "evidence": "7 test methods added; tests mention RefundOrder: True"
+    },
+    {
+      "name": "test_suite_passes",
+      "description": "The repository's own test suite passes.",
+      "passed": true,
+      "evidence": "[        11 containers started    ]\n[         0 containers aborted    ]\n[        11 containers successful ]\n[         0 containers failed     ]\n[        27 tests found           ]\n[         0 tests skipped         ]\n[        27 tests started         ]\n[         0 tests aborted         ]\n[        27 tests successful      ]\n[         0 tests failed          ]\n\nstty: /dev/tty: No such device or address"
+    },
+    {
+      "name": "handler_follows_the_pattern",
+      "description": "A new *Handler class implements CommandHandler like the existing ones, validates through the existing Validator instead of its own checks, and reports failures as Result values instead of throwing (judged on the code, not on comments or strings).",
+      "passed": true,
+      "evidence": "checked ['src/main/java/shop/RefundOrderHandler.java']"
+    },
+    {
+      "name": "money_stays_decimal",
+      "description": "No double or float and no BigDecimal built from a floating-point literal: the codebase keeps money in BigDecimal.",
+      "passed": true,
+      "evidence": "no matching added lines"
+    },
+    {
+      "name": "no_console_output",
+      "description": "The change prints nothing to the console: the service reports problems through Result.",
+      "passed": true,
+      "evidence": "no matching added lines"
+    },
+    {
+      "name": "clean_diff",
+      "description": "The diff has no debug output, commented-out code or narrating comments.",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "tests_run_after_last_edit",
+      "description": "After its last edit the agent ran the test suite and it passed.",
+      "passed": true,
+      "evidence": "s)\nEOF\njava tools/RunTests.java 2>&1 | tail -12; git status --short"
+    }
+  ],
+  "metrics": {
+    "files": [
+      "src/main/java/shop/Order.java",
+      "src/main/java/shop/OrderServices.java",
+      "src/main/java/shop/RefundOrder.java",
+      "src/main/java/shop/RefundOrderHandler.java"
+    ],
+    "before": {
+      "functions": 15,
+      "nloc": 60,
+      "max_nloc": 9,
+      "max_ccn": 1,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 19,
+      "nloc": 98,
+      "max_nloc": 28,
+      "max_ccn": 6,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
+}

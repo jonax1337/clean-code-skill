@@ -1,0 +1,85 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "40fe011a4fc9cbf9",
+    "ub-mode": "de9bad178f5c71d6"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 0.75,
+    "readability": 1.0,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes swap the linear scan for a normalized-email Map, keep the first-index-wins behavior, register appended contacts, and add a test pinning duplicate handling, so they behave the same. A wins on readability: it uses a small documented helper instead of B's `result.push(contact) - 1` trick. B also adds a wall-clock test that can fail on slow machines and commits locally without being asked. B's report contains a garbled line about 'crapper, dryer and mutator checks' that the repository never mentions.",
+        "a_issues": [
+          "No automated guard against a performance regression; the benchmark was a throwaway script."
+        ],
+        "b_issues": [
+          "Wall-clock performance test with a 1s threshold can fail intermittently in CI.",
+          "Committed the change locally without being asked.",
+          "Report contains a garbled sentence about tools ('crapper, dryer and mutator') that the repository never mentions.",
+          "`remember(contact.email, result.push(contact) - 1)` is terse and a little clever."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes replace the quadratic scan with the same first-index Map lookup, and both preserve ordering, within-upload merging and first-duplicate merging. B is easier to read: a named helper with a comment, and no `result.push(...) - 1` trick. B also avoids adding a wall-clock test that could fail on slow CI machines. A's report contains a garbled sentence about tools that are not part of this task, while B's report is accurate and well verified.",
+        "a_issues": [
+          "Adds a timing-based test with a 1-second threshold that can fail on slow CI machines.",
+          "`remember(contact.email, result.push(contact) - 1)` packs the push and the index into one expression, which is harder to read.",
+          "The report has a garbled line ('asks for crapper, dryer and mutator checks') about tools that are not part of the task."
+        ],
+        "b_issues": [
+          "No permanent performance regression guard; the benchmark script was deleted after use.",
+          "The new helper takes a whole Contact when it only needs the email, which is minor."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,226 @@
+diff --git a/README.md b/README.md
+index 175bb8d..c1be9e6 100644
+--- a/README.md
++++ b/README.md
+@@ -8,16 +8,17 @@ unknown order, wrong status) as a failed `Result`; they do not throw.
+ 
+ | Command        | Handler               | Moves the order from              |
+ |----------------|-----------------------|-----------------------------------|
+ | `PlaceOrder`   | `PlaceOrderHandler`   | (new) to `PLACED`                 |
+ | `PayOrder`     | `PayOrderHandler`     | `PLACED` to `PAID`                |
+ | `ShipOrder`    | `ShipOrderHandler`    | `PAID` to `SHIPPED`               |
+ | `DeliverOrder` | `DeliverOrderHandler` | `SHIPPED` to `DELIVERED`          |
+ | `CancelOrder`  | `CancelOrderHandler`  | `PLACED` or `PAID` to `CANCELLED` |
++| `RefundOrder`  | `RefundOrderHandler`  | `SHIPPED` or `DELIVERED`, status unchanged; total refunds never exceed the amount paid |
+ 
+ All handlers are registered in `OrderServices.createBus`. Commands are sent through `CommandBus.dispatch`.
+ 
+ An order's amount paid can be lower than its total, for example when a voucher covered part of it. Money is
+ `BigDecimal` with at most two decimal places.
+ 
+ ## Tests
+ 
+diff --git a/src/main/java/shop/Order.java b/src/main/java/shop/Order.java
+index 72812b4..0cca8c2 100644
+--- a/src/main/java/shop/Order.java
++++ b/src/main/java/shop/Order.java
+@@ -65,12 +65,21 @@ public final class Order {
+     public void markShipped() {
+         this.status = OrderStatus.SHIPPED;
+     }
+ 
+     public void markDelivered() {
+         this.status = OrderStatus.DELIVERED;
+     }
+ 
++    /** What can still be refunded: everything paid minus what was already refunded. */
++    public BigDecimal refundable() {
++        return amountPaid.subtract(amountRefunded);
++    }
++
++    public void refund(BigDecimal amount) {
++        this.amountRefunded = amountRefunded.add(amount);
++    }
++
+     public void cancel() {
+         this.status = OrderStatus.CANCELLED;
+     }
+ }
+diff --git a/src/main/java/shop/OrderServices.java b/src/main/java/shop/OrderServices.java
+index 88ea463..cdcf316 100644
+--- a/src/main/java/shop/OrderServices.java
++++ b/src/main/java/shop/OrderServices.java
+@@ -7,11 +7,12 @@ public final class OrderServices {
+ 
+     public static CommandBus createBus(OrderRepository orders) {
+         CommandBus bus = new CommandBus();
+         bus.register(PlaceOrder.class, new PlaceOrderHandler(orders));
+         bus.register(PayOrder.class, new PayOrderHandler(orders));
+         bus.register(ShipOrder.class, new ShipOrderHandler(orders));
+         bus.register(DeliverOrder.class, new DeliverOrderHandler(orders));
+         bus.register(CancelOrder.class, new CancelOrderHandler(orders));
++        bus.register(RefundOrder.class, new RefundOrderHandler(orders));
+         return bus;
+     }
+ }
+diff --git a/src/main/java/shop/RefundOrder.java b/src/main/java/shop/RefundOrder.java
+new file mode 100644
+index 0000000..38aee82
+--- /dev/null
++++ b/src/main/java/shop/RefundOrder.java
+@@ -0,0 +1,5 @@
++package shop;
++
++import java.math.BigDecimal;
++
++public record RefundOrder(String orderId, BigDecimal amount) {}
+diff --git a/src/main/java/shop/RefundOrderHandler.java b/src/main/java/shop/RefundOrderHandler.java
+new file mode 100644
+index 0000000..afd80b6
+--- /dev/null
++++ b/src/main/java/shop/RefundOrderHandler.java
+@@ -0,0 +1,41 @@
++package shop;
++
++import java.util.Optional;
++
++public final class RefundOrderHandler implements CommandHandler<RefundOrder> {
++    private final OrderRepository orders;
++
++    public RefundOrderHandler(OrderRepository orders) {
++        this.orders = orders;
++    }
++
++    @Override
++    public Result<Order> handle(RefundOrder command) {
++        Validator validator = new Validator()
++                .requireText("orderId", command.orderId())
++                .requireMoney("amount", command.amount());
++        if (!validator.isValid()) {
++            return validator.failure();
++        }
++        Optional<Order> found = orders.find(command.orderId());
++        if (found.isEmpty()) {
++            return Result.failure(ErrorCode.NOT_FOUND, "Order " + command.orderId() + " does not exist");
++        }
++        Order order = found.get();
++        if (order.status() != OrderStatus.SHIPPED && order.status() != OrderStatus.DELIVERED) {
++            return Result.failure(
++                    ErrorCode.INVALID_STATE,
++                    "Only shipped or delivered orders can be refunded, but order " + order.id() + " is "
++                            + order.status());
++        }
++        if (command.amount().compareTo(order.refundable()) > 0) {
++            return Result.failure(
++                    ErrorCode.INVALID_INPUT,
++                    "Refund " + command.amount() + " is more than the refundable " + order.refundable()
++                            + " of order " + order.id());
++        }
++        order.refund(command.amount());
++        orders.save(order);
++        return Result.ok(order);
++    }
++}
+diff --git a/src/test/java/shop/RefundOrderHandlerTest.java b/src/test/java/shop/RefundOrderHandlerTest.java
+new file mode 100644
+index 0000000..0b0a0e1
+--- /dev/null
++++ b/src/test/java/shop/RefundOrderHandlerTest.java
+@@ -0,0 +1,97 @@
++package shop;
++
++import static org.junit.jupiter.api.Assertions.assertEquals;
++import static org.junit.jupiter.api.Assertions.assertFalse;
++import static org.junit.jupiter.api.Assertions.assertTrue;
++
++import java.math.BigDecimal;
++import org.junit.jupiter.api.Test;
++
++class RefundOrderHandlerTest {
++    private final OrderRepository orders = new InMemoryOrderRepository();
++    private final CommandBus bus = OrderServices.createBus(orders);
++
++    private void shippedOrder(String paid) {
++        bus.dispatch(new PlaceOrder("o-1", "c-1", new BigDecimal("100.00")));
++        bus.dispatch(new PayOrder("o-1", new BigDecimal(paid)));
++        bus.dispatch(new ShipOrder("o-1"));
++    }
++
++    private Result<Order> refund(String amount) {
++        return bus.dispatch(new RefundOrder("o-1", new BigDecimal(amount)));
++    }
++
++    private Order stored() {
++        return orders.find("o-1").orElseThrow();
++    }
++
++    @Test
++    void refundsPartOfAShippedOrderAndKeepsStatus() {
++        shippedOrder("100.00");
++
++        assertTrue(refund("30.00").isOk());
++
++        assertEquals(0, new BigDecimal("30.00").compareTo(stored().amountRefunded()));
++        assertEquals(OrderStatus.SHIPPED, stored().status());
++    }
++
++    @Test
++    void refundsADeliveredOrder() {
++        shippedOrder("100.00");
++        bus.dispatch(new DeliverOrder("o-1"));
++
++        assertTrue(refund("10.00").isOk());
++        assertEquals(OrderStatus.DELIVERED, stored().status());
++    }
++
++    @Test
++    void accumulatesRefundsUpToExactlyWhatWasPaid() {
++        shippedOrder("80.00");
++
++        assertTrue(refund("50.00").isOk());
++        assertTrue(refund("30.00").isOk());
++
++        assertEquals(0, new BigDecimal("80.00").compareTo(stored().amountRefunded()));
++    }
++
++    @Test
++    void rejectsRefundsBeyondWhatWasPaidNotTheTotal() {
++        shippedOrder("80.00");
++
++        Result<Order> result = refund("80.01");
++
++        assertFalse(result.isOk());
++        assertEquals(ErrorCode.INVALID_INPUT, result.error().code());
++        assertEquals(0, BigDecimal.ZERO.compareTo(stored().amountRefunded()));
++    }
++
++    @Test
++    void rejectsARefundThatTogetherWithEarlierOnesExceedsPayment() {
++        shippedOrder("80.00");
++        refund("50.00");
++
++        assertFalse(refund("30.01").isOk());
++        assertEquals(0, new BigDecimal("50.00").compareTo(stored().amountRefunded()));
++    }
++
++    @Test
++    void rejectsOrdersThatAreNotShippedOrDelivered() {
++        bus.dispatch(new PlaceOrder("o-1", "c-1", new BigDecimal("100.00")));
++        assertEquals(ErrorCode.INVALID_STATE, refund("10.00").error().code());
++
++        bus.dispatch(new PayOrder("o-1", new BigDecimal("100.00")));
++        assertEquals(ErrorCode.INVALID_STATE, refund("10.00").error().code());
++
++        bus.dispatch(new CancelOrder("o-1"));
++        assertEquals(ErrorCode.INVALID_STATE, refund("10.00").error().code());
++    }
++
++    @Test
++    void rejectsBadAmountsAndUnknownOrders() {
++        shippedOrder("100.00");
++        assertEquals(ErrorCode.INVALID_INPUT, refund("0").error().code());
++        assertEquals(ErrorCode.INVALID_INPUT, refund("1.234").error().code());
++        assertEquals(ErrorCode.NOT_FOUND,
++                bus.dispatch(new RefundOrder("missing", BigDecimal.ONE)).error().code());
++    }
++}

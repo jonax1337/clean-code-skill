@@ -8,7 +8,7 @@
       "name": "hidden_behavior",
       "description": "Behavior is preserved for every input the old code handled: member rates, missing category, coupon after the discount and floored at 0, ignored coupons, no clamp without a coupon, rounding (hidden tests).",
       "passed": true,
-      "evidence": "\u2714 SAVE10 never takes the price below 0 (0.0744ms)\n\u2714 unknown, lowercase and empty coupons are ignored (0.0837ms)\n\u2714 without a coupon the price is not clamped (0.0724ms)\n\u2714 results are rounded to cents (0.1049ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 9\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 91.132"
+      "evidence": "\u2714 SAVE10 never takes the price below 0 (0.073ms)\n\u2714 unknown, lowercase and empty coupons are ignored (0.0804ms)\n\u2714 without a coupon the price is not clamped (0.0719ms)\n\u2714 results are rounded to cents (0.0968ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 9\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 105.1543"
     },
     {
       "name": "callers_compatible",
@@ -44,7 +44,7 @@
       "name": "suite_green",
       "description": "The full test suite passes, including the agent's own tests.",
       "passed": true,
-      "evidence": "\u2714 members get the member price on every line (0.5263ms)\n\u2714 a cart coupon applies once to the whole cart (0.1189ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 92.9836"
+      "evidence": "\u2714 members get the member price on every line (0.5876ms)\n\u2714 a cart coupon applies once to the whole cart (0.1147ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 97.4165"
     },
     {
       "name": "clean_diff",
@@ -58,5 +58,28 @@
       "passed": false,
       "evidence": "[fail] tests: bash commands after the last edit: none\n[fail] typecheck: bash commands after the last edit: none"
     }
-  ]
+  ],
+  "metrics": {
+    "files": [
+      "src/pricing.ts"
+    ],
+    "before": {
+      "functions": 1,
+      "nloc": 17,
+      "max_nloc": 17,
+      "max_ccn": 6,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 4,
+      "nloc": 17,
+      "max_nloc": 6,
+      "max_ccn": 3,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
 }

@@ -1,0 +1,85 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "38d338b7d1d05f35",
+    "this-repo": "c574043ff7e8c196"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix. They map CRM `customer_id` to `customerId` at load time and switch the export to `requireCustomer`, so unknown customers produce the documented error and exit 1. A pulls the mapping into a named, documented helper (`fromCrmRecord`). A's sources test uses its own temp-dir fixture, while B's test depends on the real `data/` files and on the working directory. A's export test also checks the error with `instanceof` rather than by its name string.",
+        "a_issues": [
+          "Import order in export.js puts customers.js before csv.js, which is not alphabetical (cosmetic).",
+          "The temp directory created by the sources test is never removed."
+        ],
+        "b_issues": [
+          "tests/sources.test.js reads the real `data/` directory through a relative path, so the test depends on the working directory and breaks if the production data changes.",
+          "The unknown-customer test checks `error.name` as a string instead of `instanceof UnknownReferenceError`.",
+          "The CRM mapping is an inline lambda and the doc comment becomes one long line, which is slightly harder to read than a named helper."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes fix the actual cause the same way: they map the CRM's `customer_id` onto `customerId` at load time, leave the data files as delivered, and route the export through `requireCustomer` as the README requires. B's version is a little cleaner, using a small documented `fromCrmRecord` helper that keeps the original billing-then-CRM structure. B's tests are also more robust: the sources test uses an isolated temp-dir fixture and checks merge order, and the error test checks `instanceof UnknownReferenceError`. A's sources test depends on the real `data/` files and on the working directory, and its error test only compares the error name string.",
+        "a_issues": [
+          "tests/sources.test.js reads the real `data/` directory, so it depends on the cwd and on production data contents and breaks if those files change.",
+          "The unknown-customer test checks `error.name === \"UnknownReferenceError\"` instead of `instanceof`, which is weaker than the existing test style.",
+          "Restructuring `loadCustomerRecords` (CRM read first into a local, then spread) is slightly less readable than a mapped spread in place."
+        ],
+        "b_issues": [
+          "The temp directory created in tests/sources.test.js is never cleaned up.",
+          "The new import in export.js is placed out of alphabetical order (trivial)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

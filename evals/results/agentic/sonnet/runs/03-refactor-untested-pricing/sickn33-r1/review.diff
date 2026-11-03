@@ -1,5 +1,5 @@
 diff --git a/src/pricing.ts b/src/pricing.ts
-index 422859f..1f6f9a4 100644
+index 422859f..eae8eda 100644
 --- a/src/pricing.ts
 +++ b/src/pricing.ts
 @@ -1,17 +1,25 @@
@@ -19,7 +19,7 @@ index 422859f..1f6f9a4 100644
 -    }
 -  }
 -  return Math.round(price * 100) / 100;
-+const BOOK_MEMBER_MULTIPLIER = 0.9;
++const BOOKS_MEMBER_MULTIPLIER = 0.9;
 +const DEFAULT_MEMBER_MULTIPLIER = 0.95;
 +const SAVE10_COUPON = "SAVE10";
 +const SAVE10_DISCOUNT = 10;
@@ -32,7 +32,7 @@ index 422859f..1f6f9a4 100644
 +}
 +
 +function applyMemberDiscount(price: number, category: string): number {
-+  const multiplier = category == "books" ? BOOK_MEMBER_MULTIPLIER : DEFAULT_MEMBER_MULTIPLIER;
++  const multiplier = category == "books" ? BOOKS_MEMBER_MULTIPLIER : DEFAULT_MEMBER_MULTIPLIER;
 +  return price * multiplier;
 +}
 +

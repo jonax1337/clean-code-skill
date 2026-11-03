@@ -1,0 +1,86 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "518db6b08da57722",
+    "ertugrul-dmr": "808c74729367f13c"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 1.0,
+    "tests": 0.75,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews find the same core blockers and reproduced each one: the SQL injection, the swallowed audit errors, the inaccurate audit rows, the floor-divided page count, and the 500s on bad input. B adds two useful points: the single-user `deactivate_user` writes no audit row, and `_` matches everything. However, B's REVIEW.md contains leaked fragments like \"(: don't override safeties)\", \"(: be consistent)\" and \"(P2)\" that make it look unedited. A is cleanly written, raises the important question of whether `actor` can be spoofed from client input, and gives a concrete test for each fix.",
+        "a_issues": [
+          "Misses that the existing single-user deactivate_user writes no audit row, so the 'every deactivation audited' requirement is still unmet",
+          "Line reference for the UPDATE/audit loop (users.py:62-64) is off by one; the UPDATE is at line 61"
+        ],
+        "b_issues": [
+          "REVIEW.md contains stray artifacts '(: don't override safeties)', '(: be consistent)' and '(P2)' that read like leaked notes",
+          "Does not ask whether `actor` comes from authenticated context; it can be supplied by the client, which lets anyone forge the audit identity",
+          "Gives fewer concrete test suggestions per finding"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find the same blocking issues and reproduced each one: SQL injection, the swallowed audit errors, audit rows for ids that never changed, floor-division `pages`, and unvalidated input. B gives a concrete fix and a test for each finding, raises the `actor`-from-request trust question, and offers a split-merge fallback. A catches the unaudited single-user `deactivate_user`, which B misses. However, A's REVIEW.md contains stray artifacts like \"(: don't override safeties)\" and \"(: be consistent)\" that read as leaked notes.",
+        "a_issues": [
+          "Stray artifacts in REVIEW.md (\"(: don't override safeties)\", \"(: be consistent)\", \"(P2)\") that look like leaked internal notes",
+          "Does not question that the audit `actor` is taken from client-supplied request params",
+          "Fix suggestions mostly lack the specific test that would prove each fix"
+        ],
+        "b_issues": [
+          "Misses that the existing single-user `deactivate_user` writes no audit row, so 'every deactivation audited' is still unmet",
+          "Suggested `RETURNING id` fix does not mention filtering already-inactive users (`AND active = 1`)",
+          "Somewhat longer, with an extra 'what is good' section"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

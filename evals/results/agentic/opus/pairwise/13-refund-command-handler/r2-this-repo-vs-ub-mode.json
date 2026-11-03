@@ -1,0 +1,86 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "611ede3f288bf857",
+    "ub-mode": "4874986eef3f24a7"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement the same correct refund logic: the status check, a cap on all refunds together at the amount paid, a running `amountRefunded`, and an unchanged status. Each comes with comparable tests. B's code and tests are marginally nicer: it adds a `refundableAmount()` helper and its tests also cover negative and too-precise amounts. However, B committed directly to `main` without being asked, and its report contains a garbled sentence about tools it could not find. A left the change uncommitted and its report is clean and accurate, which makes it the safer merge.",
+        "a_issues": [
+          "Tests only check a zero amount, not negative or too-precise amounts",
+          "The delivered-order refund test does not check the recorded `amountRefunded`"
+        ],
+        "b_issues": [
+          "Committed directly to `main` without being asked",
+          "The report contains a garbled, unclear sentence (\"crapper, dryer and mutator tools aren't in  folder\")",
+          "Inserted the refund methods between `markPaid` and `markShipped`, splitting up the lifecycle methods slightly"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both handlers are functionally identical and correct. Each follows the existing handler pattern, checks SHIPPED or DELIVERED status, and caps refunds at amount paid minus amount already refunded. A's tests are somewhat stronger: they cover negative and over-precise amounts and check amountRefunded on the delivered-order refund. A also puts the refundable calculation in one place on Order. Against that, A committed to main without being asked, and one sentence of its report is garbled.",
+        "a_issues": [
+          "Committed directly to main without being asked.",
+          "One report sentence is garbled (\"crapper, dryer and mutator tools aren't in  folder\").",
+          "Adds a small public refundableAmount() method on Order that only one handler uses."
+        ],
+        "b_issues": [
+          "Tests check only a zero amount, not negative or over-precise amounts.",
+          "The delivered-order refund test does not assert that amountRefunded was recorded.",
+          "The rejected-cancelled-order test does not assert that nothing was stored."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

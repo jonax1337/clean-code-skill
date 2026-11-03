@@ -1,0 +1,75 @@
+diff --git a/REVIEW.md b/REVIEW.md
+new file mode 100644
+index 0000000..20ef3f4
+--- /dev/null
++++ b/REVIEW.md
+@@ -0,0 +1,69 @@
++# Review of PR 482: user search, paged user list, bulk deactivation with audit log
++
++I reviewed `pr/482.diff` and `pr/482.md`. I did not apply the patch or run the tests, so the "28 passed" in the description is unchecked. Line numbers are in the new version of each file.
++
++## Must fix before merge
++
++### 1. SQL injection in search (`adminhub/search.py:13`)
++```python
++f"WHERE name LIKE '%{term}%' OR email LIKE '%{term}%' "
++```
++`q` comes straight from the request (`api.search`) and is pasted into the SQL. A term like `' OR 1=1) --` changes the query. On an admin console that holds user data, this is the most serious problem in the PR.
++Fix: bind the term as a parameter. Use `WHERE name LIKE ? OR email LIKE ?` with `f"%{term}%"` passed twice. Escape `%` and `_` in the term and add `ESCAPE '\'` if a literal match is wanted.
++Test: a search for `"' OR '1'='1"` returns no users. A search for `%` does not match everyone.
++
++### 2. The audit log silently drops failures (`adminhub/audit.py:15-16`)
++```python
++except sqlite3.Error:
++    pass
++```
++Compliance requires every deactivation to be in the audit trail. If the insert fails (missing table on an unmigrated database, a locked database), the error is swallowed. `deactivate_users` then commits the deactivations with no audit entries, and its `try/rollback` never runs. Remove the `try/except` so the error reaches `deactivate_users` and the whole transaction rolls back.
++Test: break the `audit_log` table, call `deactivate_users`, and assert it raises and that no user was deactivated.
++
++### 3. The page count is wrong (`adminhub/api.py:37`)
++`total_pages = users.count_users(conn) // per_page` rounds down. With 5 users and `per_page=3`, it returns `pages: 1` although there are 2 pages. Any total that is not an exact multiple loses the last page in the pager, which is the feature the console team is waiting for.
++Fix: use ceiling division, `-(-total // per_page)`. Decide what an empty list returns (0 or 1) and test it.
++Test: 5 users with `per_page=2` gives `pages == 3`. An exact multiple gives the exact count.
++
++### 4. Paging parameters are not validated (`adminhub/api.py:35-36`, `:46`)
++- `per_page=0` raises `ZeroDivisionError` (a 500).
++- `per_page=-1` passes `min(..., 100)`, and SQLite treats `LIMIT -1` as no limit. So the cap of 100 can be bypassed and the whole table returned.
++- `page=0` or a negative page gives a negative offset. `page=abc` raises `ValueError`, and so do bad values in `ids`.
++- The `BadRequest` error already exists in `adminhub/errors.py` and is imported in `api.py`. Use it, or return `error(400, ...)` as the other handlers do.
++Fix: one small helper that parses `page >= 1` and `1 <= per_page <= 100`, used by both `list_users` and `search`.
++Test: `page=0`, `per_page=0`, `per_page=-1` and `per_page=abc` each give a 400.
++
++### 5. Bulk deactivation audits users that were not changed (`adminhub/users.py:58-70`)
++- The `UPDATE ... WHERE id IN (...)` silently skips unknown ids, but the loop then writes an audit entry for every requested id. The log can claim a deactivation of a user that does not exist. Already-inactive users and duplicate ids are audited again as well.
++- The single `deactivate_user` raises `NotFound` for an unknown id. The bulk version just returns a lower count, so the two behave differently.
++- The `except Exception: rollback; raise` block is reasonable, but nothing tests it.
++Fix: de-duplicate the ids. Check which ids exist and are active, and audit only those, or raise `NotFound` for unknown ids to match the single call.
++Test: `deactivate_users(conn, [1, 99], ...)` and `[1, 1]` write audit entries only for real changes. Add a rollback test for the failure case in finding 2.
++
++### 6. The actor is taken from the request and may be missing (`adminhub/api.py:62`)
++`params["actor"]` raises `KeyError` if it is absent, and any caller can claim to be anyone. For an audit trail the actor should come from the authenticated session. If the console already passes a trusted value, this is acceptable, but please confirm that and return a 400 when it is missing.
++
++## Should fix
++
++### 7. `search` does not match its description (`adminhub/api.py:42-47`)
++The description says search is "paged the same way". The handler does not accept `per_page` and returns no `page` or `pages`, so the console cannot page search results. `search_users` also has its own default of 25 instead of using `users.DEFAULT_PAGE_SIZE`.
++
++### 8. Bulk input size (`adminhub/users.py:62`)
++One `?` per id means a large list can hit SQLite's bound-variable limit and fail with an opaque error. Cap the number of ids in the handler, or chunk them.
++
++## Nits
++- `adminhub/search.py:3` has an unused `import os`.
++- `adminhub/search.py:10` has a `# TODO: rank exact matches first`. Either do it or drop it from the PR.
++- The `audit_log` table is added with `CREATE TABLE IF NOT EXISTS`, so existing databases get it on the next schema run. Please confirm that the schema is run at startup. Otherwise finding 2 would turn into a production failure.
++
++## Tests
++The new tests cover the happy paths. None of them would catch findings 1 to 6: there is no test for the page count, injection, invalid paging input, audit failure, or auditing of unknown or duplicate ids. The search tests also call `search_users` directly with well-behaved terms.
++
++## What is good
++- Paging in `users.list_users` is parameterised and uses the 1-based pages that the README documents.
++- Bulk deactivation runs in one transaction with an explicit rollback.
++- `audit.record` leaves the commit to the caller, so the audit entries and the updates commit together.
++- The new modules are small and well named, and tests are included.
++
++## Verdict
++**I would not merge it as it is.** The SQL injection (1), the swallowed audit errors (2) and the wrong page count (3) must be fixed first. Findings 4 to 6 should be fixed in the same PR, because they affect the pager and the compliance trail that this PR is meant to deliver. Each fix is small. Findings 7 and 8 and the nits could follow in a later PR.

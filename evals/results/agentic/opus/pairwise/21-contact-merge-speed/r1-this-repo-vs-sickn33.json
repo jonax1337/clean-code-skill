@@ -1,0 +1,83 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "70920b8ef3a9c02c",
+    "sickn33": "e697d83ce90c898c"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes replace the linear `findIndex` scan with a normalized-email \u2192 index Map. Both keep first-occurrence merge semantics and arrival order, and both add a test pinning the duplicate-existing-entries behavior. B adds a 1-second wall-clock assertion over 80k generated contacts, which can fail on slow CI machines. A deliberately left that test out and explained why. B's code reads slightly cleaner, but the possibly flaky test in the permanent suite tips it toward A.",
+        "a_issues": [
+          "The `remember(contact.email, result.push(contact) - 1)` line relies on push's return value, which is a bit too clever.",
+          "New contacts have their email normalized twice (once for the lookup, again inside `remember`).",
+          "The benchmark was not kept, so no automated test guards against a performance regression."
+        ],
+        "b_issues": [
+          "The added timing test (`< 1_000` ms on 50k+30k contacts) can fail on slow or loaded CI machines.",
+          "The timing test also slows the suite by generating 80k contact objects on every run."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "B",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes swap the linear `findIndex` scan for a normalized-email Map that keeps the first position, so behavior is preserved, and both add a test for the duplicate-existing-entries case. A adds a wall-clock test (under 1 s for 50k+30k) to the suite; it can fail at random on slow CI and its report admits this. B leaves timing out of the suite, benchmarked in a throwaway script, and confirmed its new test passes against the old code. A's code reads a little more clearly, but B's suite is more reliable.",
+        "a_issues": [
+          "Adds a wall-clock timing test (`< 1_000` ms) that can fail at random on slow or loaded CI machines and makes every test run slower."
+        ],
+        "b_issues": [
+          "`remember(contact.email, result.push(contact) - 1)` is a bit terse; using the push return value as an index is easy to misread.",
+          "New contacts have their email normalized twice (once for the lookup, again inside `remember`), a minor redundancy."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

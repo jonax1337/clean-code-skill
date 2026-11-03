@@ -1,6 +1,6 @@
 # Smells and heuristics (Clean Code, ch. 17)
 
-The catalog from chapter 17 of *Clean Code*. Titles are the book's; descriptions and fixes are a condensed paraphrase. Cite the code in reviews.
+The catalog from chapter 17 of *Clean Code*. Titles are the book's; descriptions and fixes are a condensed paraphrase. In a review, state the problem in plain words; the code may follow in parentheses.
 
 Every entry is subject to the precedence in `SKILL.md` section 0: project conventions and language idioms come first.
 

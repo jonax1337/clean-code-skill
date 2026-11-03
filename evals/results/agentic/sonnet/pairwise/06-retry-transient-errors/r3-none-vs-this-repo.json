@@ -1,0 +1,87 @@
+{
+  "case": "06-retry-transient-errors",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "3014d7a76ea624a0",
+    "this-repo": "ddc70f24adbe19f1"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.0,
+    "design": 0.25,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes retry only GETs and keyed POSTs, and both correctly refuse to retry pickup booking. A's backoff totals about 15 s, so the minute-long 502/503 outages the task describes would still kill the job. B's capped backoff of about 91 s outlasts them. B's tests are also stronger: they cover 500 and other 4xx not being retried, the backoff cap and total, and label polling. B's report garbles what a re-run does after a failed pickup step, but that matters less than A missing the stated outage length.",
+        "a_issues": [
+          "Total backoff is about 15 s, too short for the minute-long carrier outages described in the task, so the job still dies in that case (the report admits this but does not fix it).",
+          "Adds 504, which was not asked for (reasonable, but beyond the request).",
+          "No test that 500 is not retried, and no test of retries during label polling."
+        ],
+        "b_issues": [
+          "The report says a re-run after a failed pickup step would create the pickup. In fact the already-open shipments are skipped, so `created` is empty and no pickup is booked.",
+          "Splitting out `_send_once`, `_is_safe_to_repeat` and `_is_transient`, plus an unreachable AssertionError, adds slightly more structure than needed."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes retry only safe requests: GETs and keyed shipment creates, never the pickup booking. Only A's backoff (about 91 s capped at 30 s) outlasts the minute-long 502/503 outages the task describes. B's 5 attempts total about 15 s, so the job would still die in exactly that scenario, which B concedes in its report instead of fixing. A's code also separates the single send from the retry policy more cleanly, and its parametrized tests cover each transient failure type, the backoff cap and duration, and pickup non-retry for every failure kind.",
+        "a_issues": [
+          "test_label_polling_survives_a_blip makes no assertion about sleeps or request count.",
+          "The unreachable `raise AssertionError` after the loop is slightly awkward.",
+          "The new test file's ADDRESS postal code is ' 9GU' (a typo-looking value, though harmless)."
+        ],
+        "b_issues": [
+          "Total backoff of about 15 s does not survive the roughly one-minute 502/503 outages the task describes, so the main failure mode remains.",
+          "Adds 504, which was not requested (minor scope expansion, though reasonable).",
+          "The mixed try/except/else loop, which reads `response` after the loop, is harder to follow than a separate send-once helper.",
+          "Pickup non-retry is tested only for 503, not for timeouts or connection resets."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

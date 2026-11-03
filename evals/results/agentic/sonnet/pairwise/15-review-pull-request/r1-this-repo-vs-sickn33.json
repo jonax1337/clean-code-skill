@@ -1,0 +1,88 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "8d1934add5a82d08",
+    "sickn33": "afcb63340d2c5eb8"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.25,
+    "tests": 0.25,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both reviews find the same core blockers, and both say not to merge: SQL injection in search, swallowed audit errors, wrong `pages` value, unvalidated paging, and bulk audit entries for ids that never changed. B's line references match the patched files. A's are often off, and `users.py:160-167` points far beyond the end of a file of about 68 lines. B also finds more real problems: single-user deactivation is not audited, and the search ordering is not unique. It also gives practical advice to split out the urgent pager.",
+        "a_issues": [
+          "Several wrong line references: `users.py:160-167` (the file has about 68 lines), `api.py:36` for pages (it is line 37), `api.py:43` for the search page parsing (it is line 46), `api.py:33` for list_users.",
+          "Misses that single-user `deactivate_user` is still not audited, despite the compliance claim.",
+          "Treats actor spoofing as a side note rather than an audit-integrity issue.",
+          "Misses the non-unique `ORDER BY name` in search, which can move users between pages."
+        ],
+        "b_issues": [
+          "Calling `UNION SELECT` reading other tables possible is stated without a probe, but it is a reasonable inference.",
+          "Two of its 'Minor' items (the shared paging helper and search not exposing per_page) partly repeat the main findings."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both reviews find the same core problems: SQL injection in search, swallowed audit errors, `pages` rounded down, unvalidated paging, bulk audit entries for ids that never changed, and an actor that can be spoofed. A's line references are accurate throughout. B has several wrong ones, including `users.py:160-167` for a 68-line file and `api.py:36` and `:43`. That matters because the task asked for file and line. A also catches that single-user deactivation is never audited, which undermines the compliance goal. A gives a practical option to split out the pager, and it rates the forged actor as blocking, which fits a compliance-driven audit trail.",
+        "a_issues": [
+          "Does not mention that `per_page=-1` disables the LIMIT and returns every user; it only says negative values aren't rejected.",
+          "Does not note that the README table wasn't updated for the new handlers or for the changed `list_users` behaviour.",
+          "Does not point out that `search` returns no `page` or `pages` for the pager."
+        ],
+        "b_issues": [
+          "Several line references are wrong: `users.py:160-167` (the file is about 68 lines), `api.py:36` for `pages` (it is line 37), `api.py:34-35` and `:43` for paging, and `api.py:33` (a blank line).",
+          "Misses that single-user `deactivate_user` writes no audit entry despite the requirement to audit every deactivation.",
+          "Ranks the spoofable actor below blocking and folds it into another item, which understates a compliance risk.",
+          "Calls items 1-5 'small fixes', although deciding where the actor comes from needs a design decision."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "8d1934add5a82d08",
+    "ub-mode": "5d2874bb4ce84810"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both reviews find the same core blockers: the f-string SQL injection, the swallowed audit errors, floor-divided `pages`, unvalidated paging input and an inaccurate bulk-deactivation audit trail. Both reach the right verdict. A applied the patch, ran the tests and checked each finding with concrete probes, and its line numbers are mostly right (search.py:13, audit.py:15-16). B did not run anything, which it states honestly, and most of its line references are badly wrong (search.py:105, audit.py:66-67, api.py:20), so the findings are much harder to act on.",
+        "a_issues": [
+          "Some line references are off: users.py:160-167 does not exist in a file of about 70 lines, and the api.py lines are off by one.",
+          "Does not point out that already-inactive users also get audit entries.",
+          "Has fewer explicit test-gap items for some edge cases, such as a missing actor or already-inactive ids."
+        ],
+        "b_issues": [
+          "Did not apply the patch or run the tests, so no findings are verified, although this is disclosed.",
+          "Most line numbers are wrong (search.py:105, audit.py:66-67, api.py:20 and 40, users.py:134), apparently taken from the diff file's own line numbering.",
+          "Includes speculative or low-value items, such as handlers missing from a router that does not exist in the repo and an index on audit_log.",
+          "Does not mention that the README handler table is now stale and lacks the new handlers."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both reviews find the same main blockers: SQL injection in search, swallowed audit errors, floor-divided `pages`, unvalidated paging input, and inaccurate bulk-deactivation auditing. Both reach the correct do-not-merge verdict. B's line numbers point at the actual post-patch lines, are mostly exact, and are at most one line off. A's line numbers (`search.py:105`, `audit.py:66-67`, `api.py:20`) look like diff-file offsets and are wrong for the files, which makes the findings harder to act on even though A flags them as approximate. B also confirms the existing tests pass, backs its findings with concrete probes, notes the README rule violation and the stale README table, and adds a short note on what is good.",
+        "a_issues": [
+          "Line references are wrong for the patched files (e.g. search.py:105 for a 17-line file, audit.py:66-67, api.py:20), so findings are hard to locate",
+          "Did not apply the patch or run the tests, so nothing is verified; it is honest about this",
+          "Speculative item about a router or dispatch table that does not exist in the repo",
+          "Does not mention that the README table is now stale or that the change breaks the README's `?`-placeholder rule"
+        ],
+        "b_issues": [
+          "Some `api.py` line numbers are off by one (the `pages` computation is at line 37, not 36)",
+          "Probe results cannot be independently checked from the review, though they are consistent with the code"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

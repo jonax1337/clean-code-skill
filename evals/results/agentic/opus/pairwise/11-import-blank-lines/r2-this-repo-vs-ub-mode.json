@@ -1,0 +1,83 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "53b646e96733aea2",
+    "ub-mode": "09cb85a8a043f8ba"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same two-line fix in parse_entries and the same README edit. Their tests are equivalent: blank and whitespace-only lines are skipped, and error line numbers still count the skipped lines. The difference is in the reports. A's report is concise and accurate, and it is clear about what was not verified. B's report claims a commit and a manual run that cannot be checked from the diff, and it mentions unrelated tooling ('crapper, dryer or mutator') that means nothing to the developer.",
+        "a_issues": [
+          "No end-to-end CLI test that a file ending in a blank line imports cleanly, though the unit tests cover the behavior."
+        ],
+        "b_issues": [
+          "The report includes a step-by-step process log and references unexplained tools ('crapper, dryer or mutator'), which adds noise.",
+          "The report says the change was committed as f85cc38 and that a manual run was done. Neither can be verified from the diff, and nobody asked for a commit.",
+          "The added empty-string case in the test is redundant, since file iteration never yields an empty string."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The code and README changes are byte-identical: blank or whitespace-only lines are skipped before parsing, and line numbers still count them, so the reported bug is fixed in both. The tests are nearly the same; A also feeds an empty string `\"\"`, which iterating a real file never yields, so it adds little. The difference is the reports. B's is accurate and states what wasn't verified (the accountant's actual file). A's mentions unexplained \"crapper, dryer or mutator tools\", a commit hash and an offer to push to main, which is noise to the developer.",
+        "a_issues": [
+          "Report mentions unexplained internal tools (\"crapper, dryer or mutator\") that mean nothing to the developer.",
+          "Report adds process detail that isn't needed (commit hash, offer to push to main).",
+          "Test input includes `\"\"`, which file iteration never produces, so it adds little protection."
+        ],
+        "b_issues": [
+          "No CLI-level test that a file ending in a blank line imports cleanly end to end; the coverage is unit-level only, though that is enough here."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

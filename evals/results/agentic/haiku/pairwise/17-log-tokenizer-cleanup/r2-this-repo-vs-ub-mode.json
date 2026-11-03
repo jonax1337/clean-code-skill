@@ -1,0 +1,89 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "28a4cc6d1dc7bef0",
+    "ub-mode": "4aba663f72db2626"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors look behaviour-preserving: each splits the 170-line `next()` into a three-state enum plus small scanners with the same error offsets and stop-after-error semantics. B also pins every LexError variant and its byte offset, plus edge cases, in tests that pass on the original code. A adds no tests at all. B's report gives a verifiable account of the differential check and noisy benchmarks, while A's report describes a killed background command and an earlier report instead of the change, and claims an unexplained 20% speedup.",
+        "a_issues": [
+          "No tests were added to pin the existing tokens and error offsets before a large rewrite of a hot-path tokenizer.",
+          "The report is mostly about a killed background process and points to an earlier report, so it does not say what changed or how it was verified.",
+          "The report claims about 20% faster than HEAD for a pure refactor, with no method or numbers, which is implausible.",
+          "Blanket #[inline] on every helper with a 'Keep them' comment is asserted rather than justified."
+        ],
+        "b_issues": [
+          "It created commits on a new branch the user did not ask for, though it did not merge or push.",
+          "The scan functions repeat `Scanned { ..., next: State::Start }` construction several times.",
+          "The report mentions tools ('crapper, dryer, mutator') that are irrelevant to the task."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors keep the tokens, errors and offsets the same as the original, as far as I can tell from the code: same scan order, same separator checks, same escape handling. A also adds tests that pin every LexError variant with its offset, plus several edge cases, and explains how it verified equivalence and speed. B adds no tests and spreads #[inline] hints everywhere on an unverified claim. B's report depends on earlier context, mentions a killed command, gives no evidence for its '20% faster' claim and leaves the change uncommitted.",
+        "a_issues": [
+          "On error A no longer sets pos to the line end as the original did. Callers cannot see this except through the derived Debug output.",
+          "The report mentions tool names ('crapper, dryer, mutator') that mean nothing in this repo, with a stray leading space.",
+          "The scan results go through an extra Scanned struct and an emit step, which adds some indirection."
+        ],
+        "b_issues": [
+          "No tests were added to protect the refactor's behavior, even though it touches every error path.",
+          "#[inline] is added to nearly every function, with a 'Keep them' comment that no included benchmark backs up.",
+          "The report is not self-contained: it refers to a killed background command and a 'last report', claims a 20% speedup with no numbers or method, and the change is left uncommitted.",
+          "Every function is marked inline, and `lex_value` sets state to Start before it can fail and relies on next() to override it on error. Both make the control flow harder to follow."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

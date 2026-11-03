@@ -1,0 +1,24 @@
+{
+  "model": "sonnet",
+  "model_ids": [
+    "claude-sonnet-5-5"
+  ],
+  "outcome": "success",
+  "is_error": false,
+  "cost_usd": 0.14727710000000002,
+  "duration_ms": 46001,
+  "num_turns": 18,
+  "output_tokens": 5694,
+  "permission_denials": 0,
+  "skill_fingerprint": "d493bfeebf32d72c",
+  "tools": [
+    "Bash",
+    "Edit",
+    "Glob",
+    "Grep",
+    "Read",
+    "Write"
+  ],
+  "skill_files_read": [],
+  "returncode": 0
+}

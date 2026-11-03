@@ -1,0 +1,10 @@
+{
+  "name": "invoice-export",
+  "version": "1.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "export": "node src/cli.js data"
+  }
+}

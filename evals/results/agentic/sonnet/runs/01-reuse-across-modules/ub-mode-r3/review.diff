@@ -1,0 +1,52 @@
+diff --git a/shop/emails.py b/shop/emails.py
+index e053caa..3bbaf0f 100644
+--- a/shop/emails.py
++++ b/shop/emails.py
+@@ -1,25 +1,27 @@
+ # Order confirmation emails. Sent by the worker in jobs/send_mail.py.
+ 
+-from shop.orders import Order
++from shop.money import format_eur
++from shop.orders import Order, gross_total
+ 
+ SENDER = "shop@example.com"
+ 
+ 
+ def subject(o):
+     return "Ihre Bestellung " + o.number + " ist eingegangen"
+ 
+ 
+ def confirmation_body(o: Order) -> str:
+     s = "Hallo " + o.customer_name + ",\n\n"
+     s += "vielen Dank für Ihre Bestellung " + o.number + ".\n\n"
+     s += "Sie haben bestellt:\n"
+     for it in o.items:
+         s += "  " + str(it.quantity) + " x " + it.name + "\n"
++    s += "Gesamtbetrag: " + format_eur(gross_total(o)) + "\n"
+     s += "\n"
+     s += "Wir melden uns, sobald Ihre Bestellung versandt wurde.\n\n"
+     s += "Viele Grüße\nIhr Shop-Team\n"
+     return s
+ 
+ 
+ def is_sendable(o):
+     if o.customer_email == None or o.customer_email == "":
+diff --git a/tests/test_emails.py b/tests/test_emails.py
+index 58152f6..2fa6836 100644
+--- a/tests/test_emails.py
++++ b/tests/test_emails.py
+@@ -21,8 +21,14 @@ def test_subject_contains_order_number():
+ def test_body_greets_customer_and_lists_items():
+     body = confirmation_body(make_order())
+     assert body.startswith("Hallo Erika Mustermann,\n")
+     assert "  1 x Clean Code\n" in body
+ 
+ 
+ def test_order_without_email_is_not_sendable():
+     assert not is_sendable(make_order(customer_email=""))
++
++
++def test_body_shows_gross_total_right_after_items():
++    body = confirmation_body(make_order())
++    # 30.00 net + 7% VAT (2.10) = 32.10
++    assert "  1 x Clean Code\nGesamtbetrag: 32,10 EUR\n" in body

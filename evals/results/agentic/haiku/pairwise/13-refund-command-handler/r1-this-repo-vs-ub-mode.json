@@ -1,0 +1,87 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d0771495562166b5",
+    "ub-mode": "e1e399e62575959c"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The production code is identical in both changes, and it correctly covers the status check, the paid-based cumulative cap, recording the refund and keeping the status. The test suites are comparable. A asserts that rejected refunds leave amountRefunded unchanged and covers cancelled orders; B covers tighter boundaries (80.01, 30.01), negative amounts and decimal-place validation. A's report is clean and accurate. B's report ends with a confusing, unexplained reference to an 'ub-mode' and to 'crapper, dryer, and mutator tools', which is noise for the developer.",
+        "a_issues": [
+          "No test for amounts with more than two decimal places or for negative amounts",
+          "The delivered-order test only checks a small refund, not a full refund"
+        ],
+        "b_issues": [
+          "Report contains an unexplained reference to 'ub-mode' and to 'crapper, dryer, mutator' tools, which confuses the reader",
+          "The wrong-status rejection test does not assert that amountRefunded stays zero",
+          "No test for cancelled orders"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes have identical production code: the same handler, Order method, registration and cap of amountPaid - amountRefunded, so correctness and design are the same. B's tests cover the cases Support cares about more directly: a refund above what was paid but below the total, an exact full refund, a cancelled order, the delivered status staying unchanged, and amountRefunded staying unchanged after rejections. A's report also contains a garbled, unexplained passage about \"ub-mode\" and \"crapper, dryer, and mutator tools\", and it claims cancelled orders are rejected without a test for it.",
+        "a_issues": [
+          "Report includes a confusing, apparently out-of-context paragraph about 'ub-mode' and 'crapper, dryer, and mutator tools'.",
+          "No test for refunding a cancelled order, although the report presents that as a deliberate choice.",
+          "The delivered-refund test does not check that the status stays DELIVERED or that the refund is recorded.",
+          "The wrong-status test does not check that amountRefunded stays unchanged."
+        ],
+        "b_issues": [
+          "No test for amounts with more than two decimal places or for negative amounts.",
+          "The over-refund boundary test uses 31.00 instead of a tight 30.01.",
+          "The README row is longer than the table's column width, which breaks the alignment."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

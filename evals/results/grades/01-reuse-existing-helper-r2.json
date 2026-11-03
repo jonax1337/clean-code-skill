@@ -3,13 +3,15 @@
   "rep": 2,
   "judge_model": "opus",
   "blind_map": {
-    "A": "baseline",
-    "B": "v1",
-    "C": "v2",
-    "D": "sickn33"
+    "A": "ub-mode",
+    "B": "none",
+    "C": "ertugrul-dmr",
+    "D": "sickn33",
+    "E": "this-repo"
   },
+  "replies_fingerprint": "6c85176b64aeba1e",
   "results": {
-    "baseline": {
+    "ub-mode": {
       "assertions": [
         {
           "text": "The new function calls the existing `format_currency` instead of reimplementing number formatting.",
@@ -19,85 +21,85 @@
         {
           "text": "The new function calls the existing `invoice_total` (or the existing calc functions) instead of recomputing the total with new logic.",
           "passed": true,
-          "evidence": "Calls invoice_total(items) directly"
+          "evidence": "Calls invoice_total(items) and adds no new calculation logic."
         },
         {
           "text": "The existing functions `calc_net`, `calc_vat`, `invoice_total` and `format_currency` are left unchanged (no renames, no rewrites, no added type hints).",
           "passed": true,
-          "evidence": "Diff only adds lines after invoice_total; \"I left that unchanged\""
+          "evidence": "Function is appended at the end. \"I added no new logic and changed nothing else.\""
         },
         {
           "text": "No speculative additions: no new classes, no new configuration parameters such as locale or rounding mode that were not asked for.",
           "passed": false,
-          "evidence": "Adds an unrequested `currency: str = \"EUR\"` configuration parameter"
+          "evidence": "Adds a `currency: str = \"EUR\"` parameter that was not asked for. The footer only needs EUR."
         },
         {
           "text": "No comments that narrate the edit (e.g. \"added new function\", \"uses existing helper\").",
           "passed": true,
-          "evidence": "The docstring describes behavior, not the edit"
+          "evidence": "No code comments. The test comments describe values, not the edit."
         }
       ],
       "quality": 7
     },
-    "v1": {
+    "none": {
       "assertions": [
         {
           "text": "The new function calls the existing `format_currency` instead of reimplementing number formatting.",
           "passed": true,
-          "evidence": "return format_currency(invoice_total(items))"
+          "evidence": "return format_currency(invoice_total(items), currency)"
         },
         {
           "text": "The new function calls the existing `invoice_total` (or the existing calc functions) instead of recomputing the total with new logic.",
           "passed": true,
-          "evidence": "Calls invoice_total(items)"
+          "evidence": "Calls invoice_total(items)."
         },
         {
           "text": "The existing functions `calc_net`, `calc_vat`, `invoice_total` and `format_currency` are left unchanged (no renames, no rewrites, no added type hints).",
           "passed": true,
-          "evidence": "Diff only appends; \"Das habe ich nicht angefasst\""
+          "evidence": "Diff only adds lines. Says \"I left that alone since it would change existing behavior.\""
         },
         {
           "text": "No speculative additions: no new classes, no new configuration parameters such as locale or rounding mode that were not asked for.",
           "passed": false,
-          "evidence": "No new classes or parameters, but adds an unrequested test file"
+          "evidence": "Adds an unrequested `currency` parameter."
         },
         {
           "text": "No comments that narrate the edit (e.g. \"added new function\", \"uses existing helper\").",
           "passed": true,
-          "evidence": "No code comments narrate the edit; the test comment explains the expected value"
+          "evidence": "The docstring describes behavior and does not narrate the edit."
         }
       ],
-      "quality": 6
+      "quality": 8
     },
-    "v2": {
+    "ertugrul-dmr": {
       "assertions": [
         {
           "text": "The new function calls the existing `format_currency` instead of reimplementing number formatting.",
           "passed": true,
-          "evidence": "return format_currency(invoice_total(items))"
+          "evidence": "return format_currency(invoice_total(items), currency)"
         },
         {
           "text": "The new function calls the existing `invoice_total` (or the existing calc functions) instead of recomputing the total with new logic.",
           "passed": true,
-          "evidence": "Calls invoice_total(items)"
+          "evidence": "Calls invoice_total(items)."
         },
         {
           "text": "The existing functions `calc_net`, `calc_vat`, `invoice_total` and `format_currency` are left unchanged (no renames, no rewrites, no added type hints).",
           "passed": true,
-          "evidence": "Diff only appends; \"a change to calc_vat, which I left alone\""
+          "evidence": "\"I kept it out of this change\". The diff only adds lines."
         },
         {
           "text": "No speculative additions: no new classes, no new configuration parameters such as locale or rounding mode that were not asked for.",
-          "passed": true,
-          "evidence": "\"I didn't add a `currency` parameter, since nothing needs one yet\""
+          "passed": false,
+          "evidence": "Adds an unrequested `currency` parameter."
         },
         {
           "text": "No comments that narrate the edit (e.g. \"added new function\", \"uses existing helper\").",
           "passed": true,
-          "evidence": "Code has no comments"
+          "evidence": "No comments in the code."
         }
       ],
-      "quality": 9
+      "quality": 6
     },
     "sickn33": {
       "assertions": [
@@ -109,25 +111,55 @@
         {
           "text": "The new function calls the existing `invoice_total` (or the existing calc functions) instead of recomputing the total with new logic.",
           "passed": true,
-          "evidence": "Calls invoice_total(items)"
+          "evidence": "Calls invoice_total(items)."
         },
         {
           "text": "The existing functions `calc_net`, `calc_vat`, `invoice_total` and `format_currency` are left unchanged (no renames, no rewrites, no added type hints).",
           "passed": true,
-          "evidence": "invoice_total is shown only as unchanged context; \"Nothing else in the file changes\""
+          "evidence": "\"I didn't rename calc_net, calc_vat, t, or i.\" The diff only adds lines."
         },
         {
           "text": "No speculative additions: no new classes, no new configuration parameters such as locale or rounding mode that were not asked for.",
           "passed": false,
-          "evidence": "Adds an unrequested `currency` parameter"
+          "evidence": "Adds an unrequested `currency` parameter."
         },
         {
           "text": "No comments that narrate the edit (e.g. \"added new function\", \"uses existing helper\").",
           "passed": true,
-          "evidence": "No narrating comments in code"
+          "evidence": "No narrating comments in the code."
         }
       ],
-      "quality": 6
+      "quality": 5
+    },
+    "this-repo": {
+      "assertions": [
+        {
+          "text": "The new function calls the existing `format_currency` instead of reimplementing number formatting.",
+          "passed": true,
+          "evidence": "return format_currency(invoice_total(items))"
+        },
+        {
+          "text": "The new function calls the existing `invoice_total` (or the existing calc functions) instead of recomputing the total with new logic.",
+          "passed": true,
+          "evidence": "Calls invoice_total(items)."
+        },
+        {
+          "text": "The existing functions `calc_net`, `calc_vat`, `invoice_total` and `format_currency` are left unchanged (no renames, no rewrites, no added type hints).",
+          "passed": true,
+          "evidence": "\"I put it at the end of the file\". No existing function is modified."
+        },
+        {
+          "text": "No speculative additions: no new classes, no new configuration parameters such as locale or rounding mode that were not asked for.",
+          "passed": true,
+          "evidence": "\"I didn't add a currency parameter since nothing needs one yet.\""
+        },
+        {
+          "text": "No comments that narrate the edit (e.g. \"added new function\", \"uses existing helper\").",
+          "passed": true,
+          "evidence": "No code comments. The test comment explains the arithmetic, which is correct (1234.625 rounds to 1.234,63)."
+        }
+      ],
+      "quality": 9
     }
   }
 }

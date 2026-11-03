@@ -1,0 +1,88 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "e9bfc2799d7b9b42",
+    "ertugrul-dmr": "ee467ae619be82c7"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes are correct and close in structure: each uses a required mutually exclusive group, reuses `allocate`, factors out the shared duplicate check, and errors cleanly with exit code 2. A's tests actually exercise leftover-cent rounding (10 cents at 33/33/34 gives 3/3/4). B's tests named for odd cents and keeping every cent use amounts that divide evenly, so rounding is never tested. B's report also presents 34/33/33 on 10.00 as a rounding example when nothing is rounded. A rejecting 0% is a debatable extra restriction, but it is stated clearly in A's report.",
+        "a_issues": [
+          "Rejects 0% even though the task only asks for whole numbers adding to 100; this is an extra restriction, though the report flags it",
+          "`parse_percents` mixes parsing with the total-of-100 check, so `split_by_percent` relies on its caller having validated the input"
+        ],
+        "b_issues": [
+          "`test_percentage_split_keeps_odd_cents` and `test_split_by_percent_keeps_every_cent` use amounts with no remainder, so the leftover-cent rounding path is untested",
+          "The report's rounding example (34/33/33 on 10.00) involves no rounding, which is misleading",
+          "Does not strip whitespace around the name or percentage, so `bob= 30` is rejected"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes add a mutually exclusive `--with`/`--percent` group, reuse `allocate` and the shared duplicate check, and handle errors through `MoneyError`. B's tests actually exercise leftover-cent rounding (10 cents at 33/33/34), and it strips whitespace around names. A's \"odd cents\" test and its report example (34/33/33 on 10.00) divide evenly, so A's rounding claim is never really tested. A keeps validation inside `split_by_percent`, which is more robust, but B's tests protect the behaviour better overall.",
+        "a_issues": [
+          "`test_percentage_split_keeps_odd_cents` and `test_split_by_percent_keeps_every_cent` use amounts that divide evenly, so no leftover-cent rounding is exercised.",
+          "The report gives 34/33/33 on 10.00 as a rounding example, but no rounding happens there.",
+          "Names are not stripped, so `alice =50` creates a person named 'alice '.",
+          "Accepts 0% entries, which leaves a zero share in the stored expense (documented in the report)."
+        ],
+        "b_issues": [
+          "`split_by_percent` does no validation of its own and relies on callers running `parse_percents` first.",
+          "String parsing lives in the splitting module rather than the CLI layer, which mixes responsibilities slightly.",
+          "Rejecting 0% is an extra policy the task did not ask for (documented in the report).",
+          "No CLI-level test for malformed `--percent` input; this is covered only at the unit level."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

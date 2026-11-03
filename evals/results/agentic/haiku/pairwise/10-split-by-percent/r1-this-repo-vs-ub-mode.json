@@ -1,0 +1,89 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "3fc8c7b1e9052bd9",
+    "ub-mode": "e5b22c60d2679634"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes implement `--percent` correctly. Both reuse `allocate`, put `--with` and `--percent` in a required mutually exclusive group, and share the duplicate check. A reports a malformed or non-integer percentage through the existing `TabtallyError` path, so the user gets the usual `error:` message and exit code 2, and its tests cover the format, whole-number, zero/negative, total and combination cases. B's tests are thinner, and its report cites a 'ub-mode', 'crapper, dryer or mutator tools' and a push to `main` that appear nowhere in the repository or the request, which makes the report less trustworthy.",
+        "a_issues": [
+          "`int(value)` accepts forms like `+50` or ` 50`. This is harmless but slightly looser than 'whole numbers'.",
+          "Rejecting 0% is a policy choice the task did not ask for, though the report discloses it."
+        ],
+        "b_issues": [
+          "The report refers to a 'ub-mode', 'crapper, dryer or mutator tools' and a request to push to `main`. None of these exist in the repository or the task, so the report is confusing and partly fabricated.",
+          "Percentage format errors are reported as argparse usage errors, while the other validation errors use the tool's own `error:` path. The two kinds of error therefore look different to the user.",
+          "No test covers a malformed `NAME=PCT` value such as a missing `=` or an empty name.",
+          "No test covers zero, negative or over-100 percentages.",
+          "A 0% entry is allowed, which records a person with a zero share. This is not tested or justified."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes put `--with` and `--percent` in a required mutually exclusive group, reuse `allocate`, and pull out the same `_reject_duplicates` helper, so the core work is nearly identical. B reports bad percent input through the existing `error:` path with exit code 2, rejects zero and negative percentages explicitly, and its tests cover malformed `NAME=PCT`, rounding with exact shares, and zero/negative cases. A's report refers to an 'ub-mode', 'crapper, dryer or mutator' tools and a push-to-main policy that appear nowhere in this repository, which makes its claims less trustworthy.",
+        "a_issues": [
+          "Report mentions 'ub-mode' commit/push rules and 'crapper, dryer or mutator' tools that are not in the repository or the task.",
+          "Percent parse errors exit through argparse's usage message rather than the project's `error:` path.",
+          "Allows 0% entries without comment, so a person ends up with a zero share.",
+          "No test for malformed input such as a missing '='."
+        ],
+        "b_issues": [
+          "`int()` accepts forms such as '+50', ' 50' or '5_0', which is slightly loose.",
+          "The both-options test only checks that SystemExit is raised, not the exit code.",
+          "Percent parsing runs inside the handler rather than at argparse level; minor and arguably more consistent."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c247e8f6863d53c3",
+    "sickn33": "5fa590a583933c12"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.75,
+    "scope": 1.0,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make the same core fix: they normalize the CRM `customer_id` to `customerId` at load time and route the lookup through `requireCustomer`, so the README's error behavior holds. A's mapper keeps any other CRM fields and stays private, and its source test removes its temp directory. B exports a helper nothing else uses, hard-codes the field list so extra fields are silently dropped, and leaves temp directories behind. A's report has one small inaccuracy, but A is still the slightly cleaner PR to merge.",
+        "a_issues": [
+          "Report says CRM customers were 'stored under an empty id'; they were actually stored under the `undefined` key."
+        ],
+        "b_issues": [
+          "`fromCrmRecord` is exported but only used inside the module, which widens the API for no reason.",
+          "`fromCrmRecord` picks only `name` and `country`, so any other field the CRM delivers is silently dropped.",
+          "`tests/sources.test.js` creates a temp directory and never removes it.",
+          "The unknown-customer test matches the error's `name` string instead of checking `instanceof UnknownReferenceError`."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix: they normalize CRM `customer_id` to `customerId` when loading, and they route the export through `requireCustomer`, which gives the error behavior the README describes. B's mapper keeps any other CRM fields via a rest spread and stays module-private, while A exports a helper nobody imports and silently drops any fields beyond name and country. B's test removes its temp directory, and B's report says the new tests fail without the fix. Its one small inaccuracy is calling the missing id 'empty' when it is actually undefined.",
+        "a_issues": [
+          "`fromCrmRecord` is exported although only `sources.js` uses it, which widens the module's public surface for no reason.",
+          "`fromCrmRecord` keeps only name and country, so any other field the CRM delivers would be silently dropped.",
+          "The sources test creates a temp directory and never removes it.",
+          "The report wording 'missing customers are now looked up with requireCustomer' is muddled, and the report does not say the new tests fail without the fix."
+        ],
+        "b_issues": [
+          "The report says CRM customers were 'stored under an empty id'; they were actually keyed under `undefined`, so this is a minor inaccuracy.",
+          "The rest-spread mapper would pass through any unexpected CRM fields unchanged, which is a small trade-off against strict shaping."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

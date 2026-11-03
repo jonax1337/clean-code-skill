@@ -1,0 +1,84 @@
+{
+  "case": "05-student-discount",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c032e82f0840bb3f",
+    "ub-mode": "969d82255a24f751"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes have identical production code: they add STUDENT to the enum, take the max of the student and loyalty rates in DiscountPolicy, and add the receipt label. A adds a receipt test for the new label and the discount line, and keeps the silver and gold cases as separate, well-named tests. A's report is accurate, including the test count. B's report contains a garbled reference to 'crapper, dryer or mutator tools' that don't exist in this repo, and mentions an unrequested commit.",
+        "a_issues": [
+          "Minor: the README places Student between the loyalty tiers, mixing customer types with point thresholds in the table, though this does keep the table ordered by rate."
+        ],
+        "b_issues": [
+          "No test covers the new 'student' receipt label.",
+          "The report has a garbled sentence about running 'crapper, dryer or mutator tools  calls for', which this repo doesn't have.",
+          "The report says the change was committed to main, which wasn't requested.",
+          "The silver case is folded into the generic studentsGetTenPercent test instead of being named as the max-of-two edge case."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs make the same production change: `STUDENT` in the enum, `STUDENT_RATE.max(loyaltyRateFor(...))` in `DiscountPolicy`, and a receipt label. That logic correctly gives a student whichever discount is bigger without combining them. B also adds a receipt test covering the new `ReceiptFormatter` label and the student discount line, and splits the silver and gold cases into clearly named tests. B's report is accurate and clear, while A's report contains a garbled sentence about unspecified tools and mentions committing on main, which nobody asked for.",
+        "a_issues": [
+          "No test covers the new \"student\" label in `ReceiptFormatter`.",
+          "The report has a garbled sentence (\"didn't run the crapper, dryer or mutator tools  calls for\") that refers to tools without context.",
+          "It committed directly to main, which the task did not ask for."
+        ],
+        "b_issues": [
+          "The README table puts Student between the two loyalty tiers. The table is now ordered by rate, but it mixes customer types with loyalty thresholds and reads a little oddly."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

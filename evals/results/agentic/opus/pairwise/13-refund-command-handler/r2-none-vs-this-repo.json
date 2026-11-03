@@ -1,0 +1,83 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "e6fadc80df33faa8",
+    "this-repo": "611ede3f288bf857"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement the refund the same way: same handler structure, same status check, the cap set at amountPaid minus amountRefunded, and the same `Order.recordRefund`. Both are correct and well scoped. A's tests do more to protect the new input rules. They cover null, zero, negative and too-precise amounts and check that the stored refund stays unchanged. They also test a full refund and that refunding exactly the amount paid succeeds when it is lower than the total. B checks only a zero amount. B's tests do use the voucher (paid less than total) setup throughout, and its README row keeps the table aligned.",
+        "a_issues": [
+          "The new README table row is longer than the column width, so the table's alignment breaks.",
+          "The report does not explicitly say which command was run to verify the 29 passing tests."
+        ],
+        "b_issues": [
+          "Invalid-amount tests cover only zero; null, negative and too-precise amounts are left untested for the new command.",
+          "The refund-on-delivered test does not assert the amountRefunded value."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both handlers are essentially the same and correct: same status check, same cap at amountPaid minus amountRefunded, same Validator reuse and same `recordRefund` on Order. B's tests are somewhat stronger. They check null, negative and too-precise amounts, and a full refund on a delivered order. Its paid-less-than-total test checks both the rejected 80.01 and the accepted 80.00. B's error message also says what was paid and what was already refunded. A's tests are solid but leave a few edge cases out, so B wins narrowly.",
+        "a_issues": [
+          "Invalid-amount coverage only tests zero, not null, negative or more than two decimals.",
+          "Every test uses the same paid-less-than-total setup, so there is no full refund of a fully paid order."
+        ],
+        "b_issues": [
+          "The new README table row is wider than the header columns, which breaks the table's alignment.",
+          "The over-refund error message is a bit long, though it is informative."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

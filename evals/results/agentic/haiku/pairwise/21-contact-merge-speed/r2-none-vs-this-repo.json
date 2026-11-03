@@ -1,0 +1,80 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "468eddd5612f1ca1",
+    "this-repo": "ac4665a864cd35ca"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs make the same change to `src/import.ts`: a Map from normalized email to index, built once with first-match semantics and updated as new contacts are appended, so behavior is preserved. B also adds a regression test pinning the first-match rule for duplicate stored emails, which is the subtle behavior the rewrite could most easily break. Both reports are accurate, and B is candid that it did not compare outputs field by field.",
+        "a_issues": [
+          "No test added to protect the first-match semantics the new index must preserve when the stored book has duplicate emails"
+        ],
+        "b_issues": [
+          "Benchmark only compared output counts, not contents (disclosed in the report)"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both diffs make the same correct change: a Map from normalized email to first index, built once and updated as contacts are appended, which preserves first-match and intra-upload merge behavior. A adds a regression test pinning the subtle first-match behavior when the stored book already has duplicate emails, which is exactly what this rewrite could have broken. A's report is also careful about what it did not verify. B claims the output is identical but lists only timing in its verification.",
+        "a_issues": [
+          "The benchmark compared only output counts, not full output, though the report says so."
+        ],
+        "b_issues": [
+          "No test added for the first-match behavior when stored entries share an email, which is the main risk of switching from findIndex to a Map.",
+          "The report says the output is identical, but the verification section describes only a timing run, so the equivalence claim appears unsupported."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

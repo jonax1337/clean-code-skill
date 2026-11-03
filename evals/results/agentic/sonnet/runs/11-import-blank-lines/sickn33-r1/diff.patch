@@ -1,0 +1,51 @@
+diff --git a/hourlog/importer.py b/hourlog/importer.py
+index f8fac60..16e6a29 100644
+--- a/hourlog/importer.py
++++ b/hourlog/importer.py
+@@ -8,16 +8,18 @@ from hourlog.entries import Entry
+ 
+ class ImportFormatError(ValueError):
+     """A line of the import file cannot be read; the message names the line."""
+ 
+ 
+ def parse_entries(lines: Iterable[str]) -> list[Entry]:
+     entries = []
+     for number, line in enumerate(lines, start=1):
++        if not line.strip():
++            continue
+         try:
+             entries.append(_parse_line(line))
+         except ValueError as error:
+             raise ImportFormatError(f"line {number}: {error}") from error
+     return entries
+ 
+ 
+ def _parse_line(line: str) -> Entry:
+diff --git a/tests/test_cli.py b/tests/test_cli.py
+index bb98c22..906efea 100644
+--- a/tests/test_cli.py
++++ b/tests/test_cli.py
+@@ -23,15 +23,23 @@ def test_import_stores_every_entry(run, tmp_path):
+     csv_file = tmp_path / "export.csv"
+     csv_file.write_text("2025-03-03,Acme,90\n2025-03-04,Acme,30\n2025-03-04,Globex,45\n", encoding="utf-8")
+     code, out, _ = run("import", str(csv_file))
+     assert code == 0
+     assert out == "imported 3 entries\n"
+     assert run("report")[1] == "Acme 2h00\nGlobex 0h45\n"
+ 
+ 
++def test_import_ignores_blank_lines(run, tmp_path):
++    csv_file = tmp_path / "export.csv"
++    csv_file.write_text("2025-03-03,Acme,90\n\n2025-03-04,Acme,30\n  \n\n", encoding="utf-8")
++    code, out, _ = run("import", str(csv_file))
++    assert code == 0
++    assert out == "imported 2 entries\n"
++
++
+ def test_import_of_a_bad_file_stores_nothing(run, tmp_path):
+     csv_file = tmp_path / "export.csv"
+     csv_file.write_text("2025-03-03,Acme,90\n2025-03-04,Acme,soon\n", encoding="utf-8")
+     code, _, err = run("import", str(csv_file))
+     assert code == 1
+     assert err.startswith("error: line 2")
+     assert run("report")[1] == ""

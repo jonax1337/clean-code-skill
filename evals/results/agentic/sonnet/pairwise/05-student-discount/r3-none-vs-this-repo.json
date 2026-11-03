@@ -1,0 +1,83 @@
+{
+  "case": "05-student-discount",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "f14d34ea9de6293b",
+    "this-repo": "4f981c38a9c144ab"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.25,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Change A adds STUDENT to the enum but leaves the exhaustive switch expression in ReceiptFormatter.label without a STUDENT case. A Java switch expression over an enum with no default must cover every constant, so A does not compile. B adds the missing case and a test for the student receipt label and discount. Its report is consistent with the change: 12 existing plus 4 new tests makes 16. Both apply the same correct max(student, loyalty) rule.",
+        "a_issues": [
+          "Does not compile: the switch expression in ReceiptFormatter.label is no longer exhaustive after adding STUDENT.",
+          "The README table puts Student between the two loyalty tiers, which mixes customer types and point tiers in a slightly confusing order.",
+          "The report admits nothing was compiled or run. Even a compile would have caught the break."
+        ],
+        "b_issues": [
+          "Minor: the README note does not spell out that it is the student rate versus the loyalty rate, though it is clear enough."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes put the same max(student, loyalty) rule in DiscountPolicy, but B does not compile. ReceiptFormatter.label uses an exhaustive switch expression over CustomerType with no default, so adding STUDENT without a matching case is a compile error. A adds the 'student' label, tests the policy edge cases and the receipt, and reports that the tests were run. B honestly says it never compiled, but that is how the build break got through.",
+        "a_issues": [
+          "README places the Student row above the loyalty tiers, so the table's order no longer matches rate magnitude (minor)."
+        ],
+        "b_issues": [
+          "ReceiptFormatter.label switch has no STUDENT case, which causes a compile error because the switch expression is no longer exhaustive.",
+          "No receipt test for students.",
+          "Never compiled or ran the tests, so the build break went unnoticed."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

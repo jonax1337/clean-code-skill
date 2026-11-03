@@ -1,87 +1,53 @@
+Here is the refactor. The exported signature `getPrice(p: any, isMember: boolean, coupon?: string)` is unchanged, so the ~40 call sites don't need to change.
+
 ```ts
-const MEMBER_DISCOUNT_RATE_BOOKS = 0.10;
-const MEMBER_DISCOUNT_RATE_DEFAULT = 0.05;
+const BOOK_MEMBER_DISCOUNT_RATE = 0.9;
+const DEFAULT_MEMBER_DISCOUNT_RATE = 0.95;
 const SAVE10_COUPON_CODE = "SAVE10";
 const SAVE10_AMOUNT_OFF = 10;
 
-export function getPrice(product: any, isMember: boolean, coupon?: string) {
-  let price = product.price;
+export function getPrice(p: any, isMember: boolean, coupon?: string) {
+  const memberPrice = applyMemberDiscount(p.price, p.category, isMember);
+  const finalPrice = applyCoupon(memberPrice, coupon);
+  return roundToCents(finalPrice);
+}
 
-  if (isMember) {
-    price = applyMemberDiscount(price, product.category);
+function applyMemberDiscount(price: number, category: string, isMember: boolean) {
+  if (!isMember) return price;
+  return price * memberDiscountRateFor(category);
+}
+
+function memberDiscountRateFor(category: string) {
+  return category == "books"
+    ? BOOK_MEMBER_DISCOUNT_RATE
+    : DEFAULT_MEMBER_DISCOUNT_RATE;
+}
+
+function applyCoupon(price: number, coupon?: string) {
+  if (coupon == SAVE10_COUPON_CODE) {
+    return Math.max(0, price - SAVE10_AMOUNT_OFF);
   }
-  if (coupon === SAVE10_COUPON_CODE) {
-    price = applySave10Coupon(price);
-  }
-
-  return roundToCents(price);
+  return price;
 }
 
-function applyMemberDiscount(price: number, category: string): number {
-  const multiplier = category === "books" ? 0.9 : 0.95;
-  return price * multiplier;
-}
-
-function applySave10Coupon(price: number): number {
-  return Math.max(0, price - SAVE10_AMOUNT_OFF);
-}
-
-function roundToCents(amount: number): number {
-  return Math.round(amount * 100) / 100;
-}
-```
-
-I left two unused constants in that draft, so here is the tidied version without them:
-
-```ts
-const SAVE10_COUPON_CODE = "SAVE10";
-const SAVE10_AMOUNT_OFF = 10;
-const BOOKS_MEMBER_MULTIPLIER = 0.9;
-const DEFAULT_MEMBER_MULTIPLIER = 0.95;
-
-export function getPrice(product: any, isMember: boolean, coupon?: string) {
-  let price = product.price;
-
-  if (isMember) {
-    price *= memberMultiplierFor(product.category);
-  }
-  if (coupon === SAVE10_COUPON_CODE) {
-    price = Math.max(0, price - SAVE10_AMOUNT_OFF);
-  }
-
-  return roundToCents(price);
-}
-
-function memberMultiplierFor(category: string): number {
-  return category === "books"
-    ? BOOKS_MEMBER_MULTIPLIER
-    : DEFAULT_MEMBER_MULTIPLIER;
-}
-
-function roundToCents(amount: number): number {
+function roundToCents(amount: number) {
   return Math.round(amount * 100) / 100;
 }
 ```
 
 **What changed**
-- **Nested ifs removed.** The duplicated `isMember` branches became a single check plus a `memberMultiplierFor` helper.
-- **Magic numbers named.** The multipliers, coupon code, and coupon amount are now constants.
-- **One level of abstraction.** `getPrice` reads as: member discount, coupon, round. The details live in small helpers.
-- **Coupon check simplified.** `if (coupon) { if (coupon == "SAVE10") ...}` is equivalent to `coupon === "SAVE10"`. The `Math.max(0, …)` floor matches the old `if (price < 0) price = 0`, and it is still applied only when the coupon is used.
+- `getPrice` now reads as three steps: member discount, coupon, rounding. Each step is its own small function.
+- The magic numbers and the coupon code are named constants.
+- The nested `if`s are replaced with guard clauses and a ternary.
+- The `if (price < 0) price = 0` clamp became `Math.max(0, …)`.
 
-**Preserved on purpose**
-- The export name, parameter order, and return type are unchanged, so the ~40 call sites are unaffected.
-- I kept `product: any`. Tightening it to something like `{ price: number; category?: string }` would be a good follow-up, but it could cause compile errors at call sites I can't see, so I left it out of a behavior-preserving change.
-- The parameter `p` is now `product`. This is only a rename, since TypeScript callers don't depend on parameter names.
+**Behavior I deliberately preserved**
+- I kept `==` rather than `===`. Since `p` is `any`, `===` could in theory change results for odd inputs (e.g. a non-string category that coerces to `"books"`). If you know categories are always strings, switching to `===` is a safe follow-up.
+- Non-members are not multiplied by anything, which matches the original.
+- The clamp-at-zero applies only to the coupon step, not the member discount, as before.
+- Rounding happens last, exactly as before.
+- Unknown coupon codes are ignored. An empty or `undefined` coupon also changes nothing.
 
-**One subtle difference**
-- I changed `==` to `===`. For string values the result is identical. It would differ only if `category` were a non-string that loosely equals `"books"`, such as `["books"]` or a `String` object. That's very unlikely, but if any caller might do it, switch back to `==`.
-
-**Verification**
-I couldn't run anything here. Before merging, add characterization tests that pin the current outputs:
-- member and non-member prices, for books and for other categories
-- `SAVE10` on a price below 10, which floors at 0
-- an unknown coupon, which has no effect
-- rounding cases such as `19.999`
-
-Run them against the old implementation first, then against the new one.
+**Not done, on purpose**
+- I left `p: any` alone. Typing it (e.g. `{ price: number; category: string }`) would be an improvement, but it could cause compile errors at some of the 40 callers, so it should be done as a separate step where you can see the compiler's complaints.
+- I couldn't run anything here, so I haven't verified this against your tests. Before merging, I'd add characterization tests that pin the current outputs. Good cases are: books vs. non-books, member vs. non-member, `SAVE10` on a price under 10 (clamps to 0), an unknown coupon, and a price that needs rounding such as `19.99 * 0.95`. Run them against both the old and new versions.

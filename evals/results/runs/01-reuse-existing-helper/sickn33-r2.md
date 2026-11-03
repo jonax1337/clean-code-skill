@@ -1,26 +1,24 @@
-I added `format_invoice_total`, which composes the two existing functions:
+I added a small function that composes the two existing helpers, so rounding and the German number format stay in one place (`format_currency`) and the gross calculation stays in `invoice_total`.
 
-```python
-def invoice_total(items) -> Decimal:
-    return calc_net(items) + calc_vat(items)
-
-
-def format_invoice_total(items, currency: str = "EUR") -> str:
-    return format_currency(invoice_total(items), currency)
+```diff
+ def invoice_total(items) -> Decimal:
+     return calc_net(items) + calc_vat(items)
++
++
++def format_invoice_total(items, currency: str = "EUR") -> str:
++    return format_currency(invoice_total(items), currency)
 ```
 
-The new function goes directly below `invoice_total`. Nothing else in the file changes.
+For example, a gross total of `Decimal("1234.5")` returns `"1.234,50 EUR"`, which is the format you want for the PDF footer.
 
-- **Rounding:** `invoice_total` returns an unrounded `Decimal`, and `format_currency` already rounds with `ROUND_HALF_UP`. The footer string therefore rounds only once, at the end, and matches the existing display behavior.
-- **Currency:** The `currency` parameter defaults to `"EUR"`, like `format_currency`, so the PDF footer call is just `format_invoice_total(items)`.
-- **Format:** For a gross total of `Decimal("1234.50")` it returns `1.234,50 EUR`.
+- **Name:** `format_invoice_total` follows the verb style of `format_currency` and says it returns a display string. `invoice_total` still returns the `Decimal`, so numeric callers are unaffected.
+- **Rounding:** `format_currency` rounds half-up to two decimals only at display time. The VAT amount isn't rounded before it's added to the net, which is the existing behavior, and I left it alone. If your invoices need VAT rounded per line or per invoice for legal reasons, that would be a separate change.
+- **Scope:** I didn't rename `calc_net`, `calc_vat`, `t`, or `i`. They're a candidate for a later cleanup, but it would mix an unrelated refactor into this feature.
 
-I couldn't run anything in this session, so this is untested. A focused test could look like this:
+I haven't run anything, but a focused test would be:
 
 ```python
-def test_format_invoice_total_uses_german_separators():
-    items = [SimpleNamespace(price=Decimal("1000.00"), qty=1)]
-    assert format_invoice_total(items) == "1.190,00 EUR"
+def test_format_invoice_total_uses_german_format():
+    items = [SimpleNamespace(price=Decimal("1037.39"), qty=1)]  # 1037.39 * 1.19 = 1234.5041
+    assert format_invoice_total(items) == "1.234,50 EUR"
 ```
-
-I left the terse names in `calc_net` and `calc_vat` (`t`, `i`) alone, since renaming them is outside this request. I can tidy them in a separate change if you'd like.

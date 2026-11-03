@@ -1,0 +1,89 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d6a1786d0165b104",
+    "ub-mode": "600a5f07a21fecdc"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews correctly block the merge on the SQL injection, the swallowed audit failures and the floored page count, with probes and concrete fixes. A also finds two important audit-integrity problems that B misses: the single `deactivate_user` path still writes no audit row, despite the PR's 'every deactivation' compliance claim, and the audit actor is taken from the request. B catches the silent change of `list_users` to 25 rows, the LIKE wildcard issue and the missing pager metadata in `search`. A's audit findings bear more directly on the PR's stated purpose and on security, so A is slightly ahead.",
+        "a_issues": [
+          "Misses the breaking change that `list_users` now returns only 25 rows by default to existing callers",
+          "Wrong line for the unused `import os` (`search.py:4`; it is line 3)",
+          "The report says only the first three findings were confirmed by probes, while REVIEW.md describes probes for findings 4, 5 and 7 as well",
+          "Does not mention that `%` and `_` in `q` act as LIKE wildcards"
+        ],
+        "b_issues": [
+          "Misses that single `deactivate_user` is never audited, a direct gap against the PR's compliance claim",
+          "Misses that the audit actor is client-supplied and can be spoofed",
+          "Some smaller items are padding, such as the note on non-ASCII case-insensitivity and the absent audit reader endpoint"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews correctly block the merge on the SQL injection, the silently swallowed audit write, the floored page count and the missing input validation, and both say what they verified. B also finds two compliance problems at the core of the PR that A misses. The single-user `deactivate_user` path is never audited, and the audit actor is taken from the request parameters. A's best extra finding is that `list_users` now silently returns only 25 rows to existing callers, which is useful but less central to the PR's stated purpose.",
+        "a_issues": [
+          "Misses that the existing single-user `deactivate_user` path writes no audit row, although the PR says compliance wants every deactivation audited.",
+          "Misses that the audit actor comes from client-supplied `params[\"actor\"]`, so a caller can write any name into the trail.",
+          "The point about the hard-coded `per_page=25` default is worded confusingly (\"not the only place\")."
+        ],
+        "b_issues": [
+          "Misses the breaking change: `list_users` now returns only the first 25 users by default, which silently truncates existing callers. It only says the README table is out of date.",
+          "Line number for the unused `import os` is wrong (line 3, not 4).",
+          "Leaves a scratch temp directory behind, though the report says so.",
+          "Does not mention that `%` and `_` in the search term act as wildcards beyond the fix note."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

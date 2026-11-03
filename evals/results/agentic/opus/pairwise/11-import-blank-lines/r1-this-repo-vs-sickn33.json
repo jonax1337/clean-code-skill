@@ -1,0 +1,83 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "9110d257d31fd2c6",
+    "sickn33": "f2fc27dc3f6f4a9e"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both apply the same one-line fix in parse_entries, which skips empty and whitespace-only lines while keeping file line numbers. A also updates the README, which until now said every unreadable line stops the import. A also adds a test that error line numbers still count skipped blank lines, a property both reports claim but only A verifies. B's single CLI test covers the end-to-end case well, but B leaves the documentation inaccurate.",
+        "a_issues": [
+          "No end-to-end CLI test that reads an actual file with a trailing empty line; coverage is at the parse_entries level only."
+        ],
+        "b_issues": [
+          "README still says any line that cannot be read stops the import, which no longer matches the behavior for blank lines.",
+          "The report claims error line numbers still match the file, but no test checks this.",
+          "The new test does not check what is stored, for example by running report after the import."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes make the same fix: skip lines that are empty or whitespace-only, while still counting them so error line numbers stay correct. Both reports claim line numbers are preserved, but only B has a test for it, using an error that comes after a skipped blank line. B also updates the README, whose old wording said any unreadable line stops the import and so no longer matched the behavior. B's report is accurate and open about the reverted first attempt, and its test counts add up.",
+        "a_issues": [
+          "The report says line numbers in errors still match the file, but no test checks that after a skipped blank line.",
+          "The README still says any line that cannot be read stops the import, which is now wrong for blank lines.",
+          "The CLI-level test checks only the import count, not the stored entries or the report output."
+        ],
+        "b_issues": [
+          "No end-to-end CLI test that imports a file with blank lines, though the importer unit tests cover the logic."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

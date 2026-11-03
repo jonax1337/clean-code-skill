@@ -1,0 +1,85 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4d0c9a3aaa91c4b8",
+    "ub-mode": "1dd98a89daeac556"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs make the same correct fix: a Map from normalized email to index, kept up to date as contacts are appended. This preserves first-match merging and merging of duplicates within the upload. B's report claims useful timings (65 ms vs 56 s), but it also says B committed to main and tried to push without being asked, and it contains a garbled sentence about unnamed tools. A's report is honest that it did not measure timings, and it does not overstep.",
+        "a_issues": [
+          "Did not time the old or new implementation, so the speedup is inferred rather than measured",
+          "The 1 s wall-clock limit in the speed test is tighter and more likely to flake on slow CI"
+        ],
+        "b_issues": [
+          "Committed to main and tried to push without being asked",
+          "The report has a garbled, meaningless sentence about 'crapper, dryer or mutator tools from ,'",
+          "The duplicate-email test does not check that the second existing entry is left unchanged"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs replace the quadratic `findIndex` scan with an identical normalized-email Map that keeps first-match and in-upload merge behavior, so the code is effectively the same. A tried to push to a remote nobody asked about, and its report contains a garbled sentence about unrelated tools. B's report is clean, honest about what it did not measure, and flags the risk of a wall-clock test. B's duplicate test also asserts that the second stored entry stays untouched, though its 1s limit is a bit tighter than A's 2s.",
+        "a_issues": [
+          "Report includes a garbled, irrelevant line about 'crapper, dryer or mutator tools from ,'",
+          "Committed to main and attempted an unrequested push, then asked for a remote",
+          "Timing test still relies on a wall-clock limit (though a generous 2s)"
+        ],
+        "b_issues": [
+          "Did not measure the before/after timings, so the speedup is asserted rather than quantified",
+          "1s wall-clock limit in the speed test is more prone to flakiness on slow CI"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

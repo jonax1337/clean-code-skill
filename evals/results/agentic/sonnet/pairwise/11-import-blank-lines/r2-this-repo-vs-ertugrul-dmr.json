@@ -1,0 +1,82 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "07abbb78b8dfd0ee",
+    "ertugrul-dmr": "db5d97d179a5b8fa"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the identical one-line fix to skip blank and whitespace-only lines, so the code is the same. A's tests are stronger: they cover whitespace-only and CRLF blank lines and pin down that line numbers still count skipped lines. B claims that line-number behavior in its report but never tests it. B's CLI-level test is reasonable end-to-end coverage but checks less.",
+        "a_issues": [
+          "No end-to-end CLI test that imports a file with a trailing blank line, only unit tests on parse_entries."
+        ],
+        "b_issues": [
+          "No test that error line numbers stay correct after skipped blank lines, although the report asserts this.",
+          "No test for whitespace-only or CRLF blank lines, even though the fix explicitly handles them.",
+          "The CLI test checks only the import count, not the stored entries or the report output."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same code fix: they skip empty and whitespace-only lines in `parse_entries` before parsing, so line numbers stay true to the file. B's tests protect the fix better. They cover whitespace-only lines with `\\r\\n` and confirm that error line numbers still count skipped blank lines. A's report says line numbers are preserved, but no A test checks that.",
+        "a_issues": [
+          "No test that an error after a blank line still reports the correct file line number, though the report says it does.",
+          "The test does not cover whitespace-only lines or blank lines with `\\r\\n`."
+        ],
+        "b_issues": [
+          "The README's CSV section is not updated to say blank lines are ignored."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

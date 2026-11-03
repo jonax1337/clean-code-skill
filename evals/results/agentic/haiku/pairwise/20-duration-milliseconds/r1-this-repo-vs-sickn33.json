@@ -1,0 +1,82 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ef055682729a8867",
+    "sickn33": "0c47e00ac26647c4"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two diffs are functionally identical. Both convert the unit table to milliseconds, drop the `* 1000` in the cache, retry and scheduler code, divide by 1000 where seconds are needed (http, report), rescale the validate bounds and update the duration tests. B keeps the self-documenting arithmetic form (`24 * 60 * 60 * 1000`) that the original code used, while A swaps in opaque literals like `86_400_000`, so B's code reads a little better. A's report is more candid about what was not verified, but that does not outweigh B's slightly clearer code.",
+        "a_issues": [
+          "Replaces the readable `24 * 60 * 60` style with magic literals (`86_400_000`, `3_600_000`) in both `duration.ts` and `validate.ts`, which makes the constants harder to verify at a glance.",
+          "No tests added for the `rateLimitHeaders` and `describeSettings` seconds conversions, which were the riskiest call-site changes. The report does acknowledge this."
+        ],
+        "b_issues": [
+          "No tests added for the `rateLimitHeaders` and `describeSettings` seconds conversions, which were the riskiest call-site changes, and the report does not mention the gap.",
+          "The report states typecheck is 'clean' without the caveat about the exit code, and it does not flag which paths are covered only by reading the code."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs are functionally identical: the unit table is converted to ms, the \u00d71000 is dropped in cache, retry and scheduler, the seconds-facing outputs in http and report divide by 1000, the validate bounds move to ms, and the duration tests are updated. The only code difference is that A writes constants as `60 * 1000` products and B uses `60_000` literals, which is cosmetic. B's report is more careful: it notes that report.ts, http.ts and the TTL math have no tests and were checked only by reading, and it does not overstate the typecheck result.",
+        "a_issues": [
+          "No tests added for the changed seconds-facing outputs (`rateLimitHeaders`, `describeSettings`) or for `validateTtl`'s lower bound after the unit change.",
+          "The report does not mention that these call sites are untested."
+        ],
+        "b_issues": [
+          "No tests added for the changed seconds-facing outputs (`rateLimitHeaders`, `describeSettings`) or for `validateTtl`'s lower bound after the unit change."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

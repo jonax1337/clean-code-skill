@@ -1,0 +1,86 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "e9bfc2799d7b9b42",
+    "sickn33": "da07242b07f13759"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes add a correct mutually exclusive `--percent` option, reuse `allocate` and `_reject_duplicates`, and update the README. A's tests are stronger: they include a real leftover-cent case (10 cents at 33/33/34 gives 3/3/4) and a broad parametrized set of bad inputs, including negatives, an empty name, zero and duplicates. B's \"keeps every cent\" tests use amounts that divide exactly, so rounding is never exercised, and B's report still claims odd-cent rounding is covered.",
+        "a_issues": [
+          "`parse_percents` strips whitespace from names, which is inconsistent with `--with`, where names are taken exactly as given.",
+          "`split_by_percent` does not check that the percentages add up to 100 itself; it relies on the caller having used `parse_percents`."
+        ],
+        "b_issues": [
+          "The tests named as keeping every cent (CLI 10.00 at 34/33/33, unit 1000 at 33/33/34) divide exactly, so leftover-cent rounding is never tested.",
+          "The report says the tests cover odd-cent rounding, which is inaccurate.",
+          "`parse_percent` accepts a whitespace-only name such as ' =50'.",
+          "There are no tests for a negative percentage, a 0% share or an empty name."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes are correct. Both reuse `allocate` and a mutually exclusive argparse group, and both reject bad input through `MoneyError`. A keeps the sum-to-100 and duplicate checks inside `split_by_percent`, so the function enforces its own rule. A also matches names exactly, the same way `--with` does. B moves validation into a parser that also strips whitespace from names, which `--with` does not do. B's tests cover more edge cases, but A's design is the more consistent one to merge.",
+        "a_issues": [
+          "No test for a zero or negative percent, or for an empty name.",
+          "Parsing lives in `cli.py` while `parse_amount` lives in `money.py`, so the placement is slightly inconsistent."
+        ],
+        "b_issues": [
+          "`parse_percents` strips whitespace from names but `--with` does not, so the two forms can treat the same name differently.",
+          "`split_by_percent` accepts any weights; the sum-to-100 rule is enforced only in the parsing function, which separates the rule from the split.",
+          "`parse_percents` both parses and validates the total, mixing parsing with business rules in `splitting.py`."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

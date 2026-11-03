@@ -1,0 +1,86 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ef055682729a8867",
+    "ertugrul-dmr": "d9e39029c95df3e8"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes are functionally equivalent and correct. `parseDuration` returns milliseconds, the `* 1000` multiplications are removed, and the callers that need seconds (`http.ts`, `report.ts`, `validate.ts`) are adapted. A is the more minimal diff, while B adds a new exported `MS_PER_SECOND` constant to the module surface that the task did not need. A's report is also more candid about what was and wasn't verified.",
+        "a_issues": [
+          "Literal `86_400_000` for `MAX_TTL_MS` is a bit less self-documenting than deriving it",
+          "No tests added for `http.ts`, `report.ts` or `validate.ts` seconds/ms conversions (acknowledged in the report)"
+        ],
+        "b_issues": [
+          "Exports a new `MS_PER_SECOND` constant from `duration.ts`, which widens the API surface beyond what the task needed",
+          "Computes the module-level TTL bounds by calling `parseDuration`, which couples the constants to parser behavior at import time",
+          "No tests added for the `http.ts` and `report.ts` conversions, and the report doesn't flag this coverage gap",
+          "Report states the typecheck is clean without the caveats about how that was checked"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes are functionally the same and correct: the unit table moves to ms, the `* 1000` multiplications are removed, and the callers that need seconds (`http.ts`, `report.ts`) divide back so their behavior is unchanged. A adds a new exported `MS_PER_SECOND` constant and imports it in two modules, which is small extra surface the task did not need, though deriving the TTL bounds from `parseDuration(\"5s\")` and `parseDuration(\"1d\")` is a readable touch. B's report is more careful: it says it did not capture the typecheck exit code and that `report.ts` and `http.ts` were checked only by reading. A's report states the typecheck is clean without that caveat.",
+        "a_issues": [
+          "Adds a new exported `MS_PER_SECOND` constant from `duration.ts` that the task did not need, enlarging the module's API.",
+          "No tests added for the seconds conversions in `http.ts` and `report.ts`.",
+          "The report does not mention that `report.ts` and `http.ts` are untested."
+        ],
+        "b_issues": [
+          "Uses a bare `1000` divisor in two places and bare ms literals in `validate.ts`, which are slightly less self-describing.",
+          "No tests added for the seconds conversions in `http.ts` and `report.ts`, though the report says so."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

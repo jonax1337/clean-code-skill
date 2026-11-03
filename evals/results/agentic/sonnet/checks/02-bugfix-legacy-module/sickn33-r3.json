@@ -8,7 +8,7 @@
       "name": "hidden_behavior",
       "description": "December works at the root: `month_range` returns the first day of the next month for all 12 months, and the December report includes Dec 31 but not Jan 1 (hidden tests).",
       "passed": true,
-      "evidence": "..                                                                       [100%]\n2 passed in 0.02s"
+      "evidence": "..                                                                       [100%]\n2 passed in 0.03s"
     },
     {
       "name": "regression_test",
@@ -20,7 +20,7 @@
       "name": "sibling_bug",
       "description": "The same crash in `quarter_range` for Q4 is fixed or reported to the user (bugs cluster, T6).",
       "passed": true,
-      "evidence": "[pass] q4_fixed: .                                                                        [100%]\n1 passed in 0.01s\n[pass] q4_reported: `quarter_range` had the same bug for Q4, so the Q4 quarterly report would have crashed too. I fixed it the same way. `quarter_range(2026, 4)` now returns `(2026-10-"
+      "evidence": "[pass] q4_fixed: .                                                                        [100%]\n1 passed in 0.02s\n[pass] q4_reported: `quarter_range` had the same bug for Q4, because its end date also landed on month 13. I switched it to the same helper"
     },
     {
       "name": "scope_files",
@@ -56,7 +56,30 @@
       "name": "verified",
       "description": "The agent ran the tests after its last edit.",
       "passed": false,
-      "evidence": "bash commands after the last edit: ['&& python -I -c \"\\nfrom reports.periods import *\\nprint(month_range(2026,12), quarter_range(2026,4), month_range(2026,1))\"', 'ATH=. python -c \"\\nfrom reports.periods import *\\nprint(month_range(2026,12), quarter_range(2026,4), month_range(2026,1))\"']"
+      "evidence": "bash commands after the last edit: ['python -I -c \"\\nfrom reports.periods import *\\nprint(month_range(2026,12), quarter_range(2026,4), month_range(2026,1))\"', 'ATH=. python -c \"\\nfrom reports.periods import *\\nprint(month_range(2026,12), quarter_range(2026,4), month_range(2026,1))\"']"
     }
-  ]
+  ],
+  "metrics": {
+    "files": [
+      "reports/periods.py"
+    ],
+    "before": {
+      "functions": 3,
+      "nloc": 11,
+      "max_nloc": 4,
+      "max_ccn": 1,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 4,
+      "nloc": 15,
+      "max_nloc": 4,
+      "max_ccn": 2,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
 }

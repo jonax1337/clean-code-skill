@@ -1,0 +1,86 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d25be316cdeedc33",
+    "ub-mode": "f98ccbf66ea4463e"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes do the same thing: they collect every problem, reject present-but-invalid values, missing files and unknown keys, and exit with status 2 from Main. A's upstream check requires an http or https URL with a host, which fits an HTTP upstream; B accepts any absolute URL, so ftp://host passes. A also separates the 'below the minimum' message from the 'not a number' message, and its test suite covers an empty optional value and a missing required key combined with other errors. B's tests cover more keys, but B never tests the empty-value rejection its report highlights.",
+        "a_issues": [
+          "Unreachable 'Never used' default returns remain in the helpers, which is slightly awkward.",
+          "There is no test for the queue.capacity or retry.max-attempts minimums."
+        ],
+        "b_issues": [
+          "The upstream.url check only requires an absolute URI with a host, so non-HTTP schemes like ftp:// are accepted.",
+          "ServiceConfig is built with null or default placeholder values before the problems are checked, which reads less clearly.",
+          "The report lists empty optional values as an error, but no test covers it.",
+          "The same message is used for a non-numeric value and a value below the minimum, so the message is less precise."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two changes are nearly the same: both collect every problem, reject unknown keys, treat a missing file as an error, exit 2 from Main and update the README. B validates upstream.url more tightly as http or https, which fits a relay that POSTs, where A also accepts ftp:// or any other absolute URI with a host. B also gives separate messages for 'not a number' and 'below minimum', and its tests cover empty optional values and a broader set of problems reported together. Both reports are accurate, and the test counts (18 and 17) match their diffs.",
+        "a_issues": [
+          "upstream.url accepts any absolute URI with a host (for example ftp://), although the relay forwards over HTTP.",
+          "The report says an empty value for an optional key is now an error, but no test covers that.",
+          "The same error message is used whether a value is not a number or is below the minimum."
+        ],
+        "b_issues": [
+          "The repeated 'Never used' comments after recording a problem add some noise.",
+          "No tests for negative queue.capacity or retry.max-attempts; only worker.threads=0 is tested for the minimum."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

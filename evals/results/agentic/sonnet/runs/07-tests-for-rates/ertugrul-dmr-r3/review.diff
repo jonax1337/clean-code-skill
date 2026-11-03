@@ -1,0 +1,220 @@
+diff --git a/test/rates.test.ts b/test/rates.test.ts
+new file mode 100644
+index 0000000..cba7c95
+--- /dev/null
++++ b/test/rates.test.ts
+@@ -0,0 +1,214 @@
++import assert from "node:assert/strict";
++import { describe, test } from "node:test";
++import { InvalidAmountError, UnknownCurrencyError } from "../src/errors.ts";
++import { convert, feeFor, minorUnitsOf, quote } from "../src/rates.ts";
++
++describe("minorUnitsOf", () => {
++  test("returns the decimal places of each supported currency", () => {
++    assert.equal(minorUnitsOf("EUR"), 2);
++    assert.equal(minorUnitsOf("USD"), 2);
++    assert.equal(minorUnitsOf("CHF"), 2);
++    assert.equal(minorUnitsOf("JPY"), 0);
++    assert.equal(minorUnitsOf("KWD"), 3);
++  });
++
++  test("rejects unknown and wrongly cased currencies", () => {
++    assert.throws(() => minorUnitsOf("XXX"), UnknownCurrencyError);
++    assert.throws(() => minorUnitsOf("eur"), UnknownCurrencyError);
++    assert.throws(() => minorUnitsOf(""), UnknownCurrencyError);
++  });
++
++  test("reports the offending currency on the error", () => {
++    assert.throws(
++      () => minorUnitsOf("XXX"),
++      (error: unknown) => error instanceof UnknownCurrencyError && error.currency === "XXX",
++    );
++  });
++});
++
++describe("convert", () => {
++  test("converts via the euro rate", () => {
++    assert.equal(convert(10000, "EUR", "USD"), 11000);
++    assert.equal(convert(11000, "USD", "EUR"), 10000);
++    assert.equal(convert(10000, "EUR", "CHF"), 9500);
++  });
++
++  test("keeps an amount unchanged when both currencies are the same", () => {
++    assert.equal(convert(12345, "EUR", "EUR"), 12345);
++    assert.equal(convert(777, "JPY", "JPY"), 777);
++  });
++
++  test("shifts the decimal places between currencies with different minor units", () => {
++    assert.equal(convert(10000, "EUR", "JPY"), 16250);
++    assert.equal(convert(16250, "JPY", "EUR"), 10000);
++    assert.equal(convert(10000, "EUR", "KWD"), 32500);
++    assert.equal(convert(32500, "KWD", "EUR"), 10000);
++  });
++
++  test("converts zero to zero", () => {
++    assert.equal(convert(0, "EUR", "JPY"), 0);
++  });
++
++  test("rounds non-ties to the nearest minor unit", () => {
++    assert.equal(convert(1, "EUR", "JPY"), 2); // 1.625
++    assert.equal(convert(1, "EUR", "USD"), 1); // 1.1
++  });
++
++  describe("ties", () => {
++    test("half-up targets round ties away from zero", () => {
++      assert.equal(convert(5, "EUR", "USD"), 6); // 5.5
++      assert.equal(convert(15, "EUR", "USD"), 17); // 16.5
++      assert.equal(convert(4, "EUR", "JPY"), 7); // 6.5
++    });
++
++    test("half-even targets round ties to the even neighbor", () => {
++      assert.equal(convert(2, "EUR", "KWD"), 6); // 6.5 -> 6
++      assert.equal(convert(6, "EUR", "KWD"), 20); // 19.5 -> 20
++      assert.equal(convert(10, "EUR", "CHF"), 10); // 9.5 -> 10
++      assert.equal(convert(30, "EUR", "CHF"), 28); // 28.5 -> 28
++    });
++
++    test("the rounding mode of the target currency applies, not the source's", () => {
++      // EUR is half-even, but the USD target is half-up: 16.5 rounds up to 17
++      assert.equal(convert(15, "EUR", "USD"), 17);
++      // USD is half-up, but the KWD target is half-even: 2 EUR cents = 6.5 mills -> 6
++      assert.equal(convert(2, "EUR", "KWD"), 6);
++    });
++  });
++
++  describe("negative amounts", () => {
++    test("convert symmetrically to positive amounts", () => {
++      assert.equal(convert(-10000, "EUR", "USD"), -11000);
++    });
++
++    test("round half-up ties away from zero", () => {
++      assert.equal(convert(-15, "EUR", "USD"), -17);
++      assert.equal(convert(-4, "EUR", "JPY"), -7);
++    });
++
++    test("round half-even ties to the even neighbor", () => {
++      assert.equal(convert(-2, "EUR", "KWD"), -6);
++      assert.equal(convert(-6, "EUR", "KWD"), -20);
++    });
++  });
++
++  test("stays exact for very large amounts", () => {
++    const large = Number.MAX_SAFE_INTEGER;
++    assert.equal(convert(large, "EUR", "EUR"), large);
++    assert.equal(convert(large, "JPY", "JPY"), large);
++  });
++
++  test("rejects amounts that are not whole safe integers", () => {
++    for (const amount of [1.5, Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, 2 ** 53]) {
++      assert.throws(() => convert(amount, "EUR", "USD"), InvalidAmountError, `amount ${amount}`);
++    }
++  });
++
++  test("rejects unknown currencies on either side", () => {
++    assert.throws(() => convert(100, "XXX", "EUR"), UnknownCurrencyError);
++    assert.throws(() => convert(100, "EUR", "XXX"), UnknownCurrencyError);
++  });
++});
++
++describe("feeFor", () => {
++  test("charges 2.5% between the minimum and maximum", () => {
++    assert.equal(feeFor(4000, "EUR"), 100);
++    assert.equal(feeFor(100000, "EUR"), 2500);
++  });
++
++  test("returns no fee for a zero amount", () => {
++    assert.equal(feeFor(0, "EUR"), 0);
++    assert.equal(feeFor(0, "JPY"), 0);
++  });
++
++  test("applies the minimum fee to small non-zero amounts", () => {
++    assert.equal(feeFor(1, "EUR"), 30);
++    assert.equal(feeFor(1000, "EUR"), 30); // 25 before the minimum
++    assert.equal(feeFor(1000, "JPY"), 50);
++    assert.equal(feeFor(100, "KWD"), 300);
++  });
++
++  test("applies the minimum exactly at the point where the percentage reaches it", () => {
++    assert.equal(feeFor(1199, "EUR"), 30); // 29.975 -> 30
++    assert.equal(feeFor(1200, "EUR"), 30);
++    assert.equal(feeFor(1240, "EUR"), 31);
++  });
++
++  test("caps the fee at the maximum", () => {
++    assert.equal(feeFor(200000, "EUR"), 5000);
++    assert.equal(feeFor(1000000, "EUR"), 5000);
++    assert.equal(feeFor(400000, "JPY"), 8000);
++    assert.equal(feeFor(100000, "KWD"), 1500);
++  });
++
++  test("rounds the percentage using the currency's rounding mode", () => {
++    assert.equal(feeFor(1700, "EUR"), 42); // 42.5, half-even
++    assert.equal(feeFor(1700, "USD"), 43); // 42.5, half-up
++    assert.equal(feeFor(1500, "EUR"), 38); // 37.5, half-even goes up to the even 38
++    assert.equal(feeFor(1500, "USD"), 38); // 37.5, half-up
++  });
++
++  test("rounds non-ties to the nearest minor unit", () => {
++    assert.equal(feeFor(16250, "JPY"), 406); // 406.25
++    assert.equal(feeFor(16270, "JPY"), 407); // 406.75
++  });
++
++  test("rejects negative amounts", () => {
++    assert.throws(() => feeFor(-1, "EUR"), InvalidAmountError);
++    assert.throws(() => feeFor(-100000, "EUR"), InvalidAmountError);
++  });
++
++  test("rejects amounts that are not whole safe integers", () => {
++    assert.throws(() => feeFor(10.5, "EUR"), InvalidAmountError);
++    assert.throws(() => feeFor(Number.NaN, "EUR"), InvalidAmountError);
++    assert.throws(() => feeFor(2 ** 53, "EUR"), InvalidAmountError);
++  });
++
++  test("rejects unknown currencies", () => {
++    assert.throws(() => feeFor(100, "XXX"), UnknownCurrencyError);
++  });
++});
++
++describe("quote", () => {
++  test("converts and subtracts the fee in the target currency", () => {
++    assert.deepEqual(quote(10000, "EUR", "USD"), { converted: 11000, fee: 275, net: 10725 });
++  });
++
++  test("handles currencies without minor units", () => {
++    assert.deepEqual(quote(10000, "EUR", "JPY"), { converted: 16250, fee: 406, net: 15844 });
++  });
++
++  test("handles currencies with three minor units", () => {
++    assert.deepEqual(quote(10000, "EUR", "KWD"), { converted: 32500, fee: 812, net: 31688 }); // fee 812.5, half-even
++  });
++
++  test("always satisfies converted = fee + net", () => {
++    for (const amount of [100, 999, 12345, 500000]) {
++      const result = quote(amount, "USD", "CHF");
++      assert.equal(result.fee + result.net, result.converted);
++    }
++  });
++
++  test("allows an amount that exactly covers the fee, leaving nothing", () => {
++    assert.deepEqual(quote(30, "EUR", "EUR"), { converted: 30, fee: 30, net: 0 });
++  });
++
++  test("rejects an amount smaller than the fee", () => {
++    assert.throws(() => quote(29, "EUR", "EUR"), InvalidAmountError);
++    assert.throws(() => quote(1, "EUR", "EUR"), InvalidAmountError);
++  });
++
++  test("quotes a zero amount as zero everywhere", () => {
++    assert.deepEqual(quote(0, "EUR", "USD"), { converted: 0, fee: 0, net: 0 });
++  });
++
++  test("rejects negative amounts", () => {
++    assert.throws(() => quote(-100, "EUR", "USD"), InvalidAmountError);
++  });
++
++  test("rejects invalid amounts and unknown currencies", () => {
++    assert.throws(() => quote(1.5, "EUR", "USD"), InvalidAmountError);
++    assert.throws(() => quote(100, "XXX", "USD"), UnknownCurrencyError);
++    assert.throws(() => quote(100, "EUR", "XXX"), UnknownCurrencyError);
++  });
++});

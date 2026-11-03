@@ -1,0 +1,88 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "75acf66871ab0044",
+    "sickn33": "6ec5874055d85d64"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.25,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 0.75
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors preserve the documented messages and their order, and both fix the same drift where invitation emails were not lowercased. B's shared module is a little more cohesive: each check returns a value or a message, and INVITABLE_ROLES and the 'role is required' rule live in the shared file rather than in inviteUser. B also adds direct unit tests for the shared rules. A's handler-level tests are strong and were run against the original code first, so the gap is small.",
+        "a_issues": [
+          "The 'role is required' rule and the invitable role list stay in inviteUser, so part of the role validation is still outside the shared module.",
+          "Normalization and error checks are separate functions that callers must pair correctly; updateUser needs an identity normalizer for role.",
+          "The reported test count (29) appears one higher than the tests visible in the diff."
+        ],
+        "b_issues": [
+          "Messages come out in object key insertion order inside collectResults, so the documented email, name, role order depends on how callers write their object literals.",
+          "Fewer handler-level boundary tests: the 80/81 name limit and an empty invite name are only covered through unit tests of the module.",
+          "The reported test count (28) appears one higher than the tests visible in the diff."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes correctly move the email, name and role rules into one module, keep the messages and their order, and fix the same invitation-lowercasing drift. B's tests run through the handlers and cover the cases most likely to break in a refactor: the 80/81 name boundary, non-string and blank input, an empty invite name, and the full rule set on update. B also reports pinning these against the original code first. A's shared API is a little tighter, because each check returns both the cleaned value and the message, so callers cannot pair them wrongly. Even so, B's behavior-level tests give more confidence that this refactor preserved behavior.",
+        "a_issues": [
+          "Report says 28 tests pass, but the diff appears to give 27 (15 existing plus 12 new).",
+          "Many new tests target the internal `userFields` functions; fewer handler-level tests cover the 80-character boundary, an empty invite name, or non-string update fields.",
+          "`collectResults` relies on object key insertion order to keep the documented message order, which is easy to miss."
+        ],
+        "b_issues": [
+          "Report says 29 tests pass, but the diff appears to give 28 (15 existing plus 13 new).",
+          "Normalizing and checking are separate functions, so each caller must remember to normalize before checking. That leaves room for mistakes in future handlers.",
+          "`INVITABLE_ROLES` and the required-role check live in `inviteUser` rather than in the shared module, so not every role rule is in one place.",
+          "The README edit is small and reasonable, but it goes slightly beyond what was asked."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

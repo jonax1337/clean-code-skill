@@ -1,0 +1,74 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d22fedb569e807ad",
+    "sickn33": "67fbc7144dfa58fd"
+  },
+  "score": 0.75,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both changes make identical source edits: the same event type, the same `paused` status and nullable `resumeOn`, the same reducer guards, and the same audit and notifier cases. All of these match the spec, including clearing `resumeOn` on cancel and leaving a paused subscription alone on payment events. The tests cover the same cases. A checks the initial null `resumeOn` in its own test, while B folds that check into the pause test. Both reports are accurate about what changed and their test counts (20 and 19) match their diffs, so I would be equally happy merging either.",
+        "a_issues": [],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production code in both changes is identical and correct: new event type, `paused` status, `resumeOn` field, payment no-ops while paused, cancel clears `resumeOn`, audit line and notification. The tests cover the same behaviors, and the reported test counts (19 vs 20) are accurate. B splits the initial-null check into its own test, and its report warns that a paused subscription currently has no way back to active. That caveat is useful for the developer and tips this slightly to B.",
+        "a_issues": [
+          "Report doesn't point out that paused subscriptions are now stuck until resume is implemented",
+          "Bundles the initial `resumeOn === null` check into the pause test rather than testing it separately"
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

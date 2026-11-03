@@ -1,0 +1,86 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "518db6b08da57722",
+    "ub-mode": "18549723e03e9daa"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews reproduce the same core problems: the SQL injection in search, the swallowed audit errors, audit rows written for unknown or duplicate ids, the floor-division page count, unvalidated input, and an untrusted `actor`. B also finds that single-user `deactivate_user` writes no audit row, which defeats the PR's own compliance goal. It adds the matched-vs-changed `rowcount` issue and the missing `ORDER BY` tie-breaker, and it does this more concisely. A uniquely calls out that `list_users` now silently returns only 25 users to existing callers, which is a real contract change. On balance, B's extra blocking findings weigh slightly more.",
+        "a_issues": [
+          "Misses that single-user `deactivate_user` is never audited, despite the 'every deactivation' requirement",
+          "Misses that `rowcount` counts already-inactive users and writes duplicate audit rows for them",
+          "Longer than necessary, with some repetition between the findings and the verdict"
+        ],
+        "b_issues": [
+          "Does not flag that `list_users` now returns only the first 25 users to existing callers by default; it only notes that the README table is stale",
+          "A few line ranges are off by one (`users.py:46-51` should be 47-52, `54-67` should be 55-68)"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews reproduce the same blocking problems: SQL injection in search, the audit insert swallowing errors, the floor-division page count and unvalidated paging input. Both reach the same correct verdict. A also finds that single-user `deactivate_user` writes no audit row, which misses the 'every deactivation' requirement. It further notes that rowcount counts already-inactive users and that sorting search by name alone needs a tie-breaker, and it gives a sharper critique of the tests, all in a tighter document. B's unique catch is that `list_users` now returns only 25 users by default, a real compatibility break. It also adds useful framing (positives, a partial-merge option), but it is longer and misses A's extra audit gaps.",
+        "a_issues": [
+          "Does not flag that `list_users` now returns only 25 users to existing callers that send no paging parameters, contradicting the README",
+          "Some line ranges are off by one (e.g. `deactivate_user` cited as users.py:46-51)"
+        ],
+        "b_issues": [
+          "Misses that single-user `deactivate_user` is never audited, despite the 'every deactivation' compliance requirement",
+          "Misses that rowcount counts already-inactive users, so the count and audit entries are inflated",
+          "Longer, with some sections (e.g. 'What is good', nits) that add length without changing the decision",
+          "Some line references slightly off (e.g. users.py:62-64 for the update and audit loop)"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

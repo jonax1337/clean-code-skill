@@ -1,0 +1,86 @@
+{
+  "case": "04-cleanup-report-module",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "3c27c83b7aa2bca7",
+    "this-repo": "bf53e3ebd684ac2c"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors use a REGIONS table plus a shared grossAmount, and both keep the odd DE/UK negative-row grouping. A also keeps NaN output byte-identical, including FR rows, while B changes FR NaN rows and says so. B adds characterization tests, which it ran against the original file first. They pin region order, bulk rebate, large-order marks, name truncation, month filtering, the negative-amount quirk and error messages, which is the protection a module where 'every change takes a day' needs. That lasting safety net outweighs B's small, disclosed NaN deviation.",
+        "a_issues": [
+          "No tests added. The 20,000-input equivalence check is not committed, so the next change to this hard-to-read module has only the existing 3 report tests to protect it.",
+          "The negative-row quirk is only documented in a comment, not pinned by a test, so a later 'cleanup' could silently change what finance imports."
+        ],
+        "b_issues": [
+          "FR report lines with a NaN amount now print ',aN \u20ac' instead of the original 'NaN,undefined \u20ac'. The task required identical output; this is disclosed but still a deviation.",
+          "The report's description of the NaN change is imprecise: DE and UK NaN rows still print 'NaN,undefined \u20ac', and only FR changed.",
+          "Somewhat more decomposition than needed (findRegion over an array, validateOptions returning its input, buildSection returning a tuple-like object)."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors collapse the three copy-pasted region blocks into a REGIONS table and a single gross-amount function, and both preserve the odd negative-amount grouping for DE and UK rows. A also adds focused regression tests that pin exact report output: region order, bulk rebate, large-order marks, truncation, month filtering, the negative-amount quirk and the error messages. The task requires the output to stay exactly the same, so those tests are what protect future changes. B adds no tests at all. B does keep one more edge case byte-identical (NaN on FR rows), but that does not outweigh leaving the refactor unprotected.",
+        "a_issues": [
+          "formatLineMoney sends FR NaN amounts through formatMoney, so FR rows print ',aN \u20ac' instead of the old 'NaN,undefined \u20ac'; a small, disclosed output change.",
+          "The report says NaN output changed in general, but it changes only for FR; DE and UK NaN rows still match the old output.",
+          "validateOptions returning its argument and splitting out selectSales is extra indirection for little gain."
+        ],
+        "b_issues": [
+          "No tests were added, so the only safeguard for an output-preserving refactor of finance-critical code is the original 3 report tests.",
+          "joinMoney hardcodes '\u00a3' and '\u20ac' behind a 'prefix'/'suffix' flag instead of storing the symbol per region, so adding the US region still means editing the formatting code.",
+          "The comment 'Output order of the sections is the order of this list' applies to an object, which depends on key insertion order."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

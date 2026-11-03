@@ -1,0 +1,82 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "1bed82f5001c2452",
+    "sickn33": "2e279b21c1a02bc8"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes remove the same code, help text, README row and struct field, and add the same CHANGELOG entry, so their behavior is identical. A's tests are stronger: they check that both `--compact` and `-c` fail with the exact `UnknownOption` error, and they add an end-to-end check in `tests/cli.rs`. B only checks `-c` with `is_err()` and has no integration test for the rejection. Both reports are accurate, including the test counts.",
+        "a_issues": [
+          "Removing the `pub compact` field from the public `Options` struct is a breaking library change. A does not mention this in the report, though B also does it."
+        ],
+        "b_issues": [
+          "The `-c` rejection is checked only with `is_err()`, not against the specific `UnknownOption` error.",
+          "No integration-level test protects that the removed flag is rejected through `run`.",
+          "Removing the `pub compact` field from the public `Options` struct is a breaking library change, and B does not mention it."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes remove the same things: the flag, its warning, the `compact` field, the render path and helpers, the help line and the README row, and both add the same CHANGELOG entry. B's tests are a little stronger. It checks that `-c` and `--compact` both produce the exact `UnknownOption` error, and it adds an integration test showing that the public `run` API rejects `--compact`. A checks `-c` only with `is_err()`, and its integration tests no longer cover the removal at all. Both reports state the test counts correctly.",
+        "a_issues": [
+          "The `-c` rejection is checked only with `is_err()`, not the exact `UnknownOption` error.",
+          "No integration-level test confirms that `run` rejects the removed flag."
+        ],
+        "b_issues": [
+          "The integration test covers only `--compact`, not `-c` (the unit test does cover `-c`)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

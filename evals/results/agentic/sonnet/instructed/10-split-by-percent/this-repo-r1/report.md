@@ -1,0 +1,7 @@
+`tabtally add` now takes `--percent NAME=PCT`, repeated once per person. The full suite passes (`python -m pytest -q`: 47 passed). I couldn't run the linter or formatter because `ruff` isn't installed here.
+
+- **Splitting:** `split_by_percent` in `tabtally/splitting.py` divides the amount by the given percentages. The shares always add up to the full amount, and any leftover cents go to the largest remainders. The CLI calls it when `--percent` is given.
+- **Validation:** each option must be `NAME=<whole number>`. The percentages must total exactly 100, and a name can't appear twice. Bad input exits with code 2 and an `error:` message, and nothing is saved.
+- **`--with` and `--percent`:** they are mutually exclusive, and exactly one is required. Before, `--with` was always required. Combining them is rejected by argparse, which exits with code 2.
+- **README and tests:** the README command table has a new row for `--percent`. I added unit tests for the split and its errors, and CLI tests for balances, a bad total, and combining `--with` with `--percent`.
+- **Parsing choice:** the `NAME=PCT` parsing lives in `splitting.py` as `_parse_percent`. I also moved the duplicate-name check into a shared `_reject_duplicates`, which both splits use.

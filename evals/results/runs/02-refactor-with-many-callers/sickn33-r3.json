@@ -1,6 +1,10 @@
 {
   "model": "sonnet",
-  "duration_ms": 13335,
-  "cost_usd": 0.016430900000000002,
-  "output_tokens": 1472
+  "model_ids": [
+    "claude-sonnet-5-5"
+  ],
+  "duration_ms": 14114,
+  "cost_usd": 0.0183916,
+  "output_tokens": 1668,
+  "skill_fingerprint": "9eae51f2338bb301"
 }

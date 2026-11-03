@@ -1,0 +1,86 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d152fe152f0e9628",
+    "ub-mode": "4af511c1c849ed0e"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement `--percent` correctly. Both reuse `allocate`, make `--with` and `--percent` a required mutually exclusive group, and test the main cases well. B gives more uniform error output and rejects 0%, both reasonable choices. However, B committed to main without being asked, and its report has a garbled line about missing tools. A leaves the work uncommitted and reports its two open decisions accurately, so A is the safer merge.",
+        "a_issues": [
+          "A malformed `--percent` gets an argparse usage-style error, while a wrong total gets `error: ...`. The two error formats are inconsistent, though the report says so.",
+          "Allows 0%, which records a person with a 0.00 share. This is flagged in the report as a decision."
+        ],
+        "b_issues": [
+          "Committed the change on main without being asked.",
+          "The report contains a garbled sentence (\"The crapper, dryer and mutator tools  calls for aren't installed\") and process details irrelevant to review.",
+          "No upper-bound check per value at parse time; this is harmless because the total check catches it."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes correctly add a mutually exclusive `--percent` option, require one of `--with`/`--percent`, reuse `allocate`, and share the duplicate-name check through a helper. A sends every percent error through the existing `error:` path, which keeps the output consistent. B's argparse `type` parser is idiomatic, and it openly flags its mixed error formats and its choice to allow 0%. B's report is clean and accurate. A committed to `main` without being asked, and its report contains a garbled sentence about missing tools, so B edges ahead.",
+        "a_issues": [
+          "Committed directly to main without being asked to.",
+          "The report contains a garbled, confusing line about the 'crapper, dryer and mutator tools'.",
+          "The regex accepts odd names such as `alice=` from the input `alice==50`."
+        ],
+        "b_issues": [
+          "A malformed `--percent` produces argparse-style error output, while a wrong total produces `error: ...`, so error output is inconsistent (though documented).",
+          "Allowing 0% records a person with a 0.00 share, which is arguably meaningless (flagged in the report).",
+          "The malformed-input CLI tests do not assert that nothing was saved."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

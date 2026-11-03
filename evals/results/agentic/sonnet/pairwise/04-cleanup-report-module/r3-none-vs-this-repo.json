@@ -1,0 +1,88 @@
+{
+  "case": "04-cleanup-report-module",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "9a83fadd2ceb2294",
+    "this-repo": "96e9db859ca3fd24"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors consolidate the three copy-pasted region sections into one table-driven loop. Both preserve the odd negative-row formatting in DE and UK, and both diverge from the original only on NaN edge cases (A on rows, B on subtotals). B also adds characterization tests that pass against the original file. They pin region order, truncation, large-order marking, month filtering, option errors, formatMoney per region and the negative-row quirk, which is exactly what a 'must stay identical' refactor needs. A relies only on a throwaway random comparison and leaves the existing three report tests as the sole guard.",
+        "a_issues": [
+          "No new tests: the preserved negative-row quirk, the FR and UK formatting, truncation and month filtering are not pinned, so the next change to this code is unprotected.",
+          "formatRowMoney reimplements the grouping loop already in formatMoney instead of sharing a helper.",
+          "For NaN amounts (e.g. a missing unitPrice parsed as NaN), row output changes from 'NaN,undefined \u20ac' to ',aN \u20ac'. The report's 'no differences' claim does not cover this."
+        ],
+        "b_issues": [
+          "Exported formatMoney changes on NaN input from ',aN \u20ac' to 'NaN,undefined \u20ac'. This affects subtotals and the digest, and the report's claim of 0 mismatches misses it.",
+          "Somewhat more abstraction than needed: a per-region format closure, plus validateOptions and selectSales helpers. The FR branch of formatRowMoney duplicates formatMoney's sign handling.",
+          "formatRow builds the row on one long line, which is a little harder to scan."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors collapse the three copy-pasted region blocks into one table-driven loop, and both keep the odd negative-row formatting on purpose. As far as I can trace, both preserve output on realistic inputs. A shares one grouping helper, while B copies the grouping loop into formatRowMoney. A also adds eight characterization tests, which its report says also pass against the original, pinning region order, truncation, large-order marking, month filtering, option errors and the negative-row quirk. B adds no tests, so a refactor whose whole requirement is identical output is left protected only by the original 5 tests.",
+        "a_issues": [
+          "formatMoney is rewritten with split('.'), so non-finite amounts such as a NaN subtotal from a missing unitPrice now print differently from the original (\"NaN,undefined \u20ac\" instead of \",aN \u20ac\"). The random comparison evidently missed this.",
+          "The comparison script is kept outside the repo, so the 40,000-case equivalence check cannot be reproduced from the PR.",
+          "formatRowMoney special-cases FR inline with a branch on region, which is slightly awkward."
+        ],
+        "b_issues": [
+          "No tests are added for a refactor whose main requirement is byte-identical output. The original 5 tests cover only DE and the empty case.",
+          "The thousands-grouping loop is duplicated between formatMoney and formatRowMoney.",
+          "formatRowMoney routes non-negative and NaN amounts through formatMoney, so a NaN row amount now prints as \",aN \u20ac\" instead of the original \"NaN,undefined \u20ac\".",
+          "The report says the file is about 125 lines, but the diff shows 139."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

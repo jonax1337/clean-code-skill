@@ -1,0 +1,77 @@
+{
+  "case": "01-reuse-across-modules",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "95475f3312bcd98c",
+    "this-repo": "8d822502a7614307"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both diffs make the identical, correct change to shop/emails.py: they reuse gross_total() and format_eur() and place the line right after the item list. B also adds a test that pins the exact placement and the German formatting, including VAT and shipping (1000.00 + 190.00 VAT + 4.90 = 1.194,90 EUR, which is correct). B's report of 9 passing tests is consistent with the 8 existing tests plus the new one. A changes the same code but leaves the behavior untested and unverified, though its report admits this.",
+        "a_issues": [
+          "No test for the new Gesamtbetrag line, so a regression in placement or formatting would go unnoticed",
+          "Tests were not run"
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes make the same edit to `shop/emails.py`, reusing `gross_total` and `format_eur`, so their behavior is identical and correct. A also adds a test that pins the total's exact format (1.000,00 net + 19% VAT + 4,90 shipping = 1.194,90 EUR) and its position right after the item list. A also reports a test run (9 passed), which matches the repository's 8 existing tests plus the new one. B adds no test and verified nothing, though it says so honestly.",
+        "a_issues": [],
+        "b_issues": [
+          "No test covers the new Gesamtbetrag line or its position after the item list.",
+          "Did not run the existing test suite before submitting."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

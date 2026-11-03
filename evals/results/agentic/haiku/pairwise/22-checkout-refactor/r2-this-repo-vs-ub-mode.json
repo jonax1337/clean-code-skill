@@ -1,0 +1,89 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4f3f6b65055eb365",
+    "ub-mode": "2550e5af3a910b96"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors split process_order into nearly identical helpers and preserve behavior, but B's characterization tests are sharper. They pin the free-shipping boundary at exactly 5000, shipping decided after the coupon, half-up versus banker's rounding, and the non-PaymentDeclined gateway path where stock is not released. B also keeps refund_order in place instead of moving it, which keeps the diff smaller. B's report usefully flags the gateway-error stock leak as a separate fix, though it has a couple of garbled sentences.",
+        "a_issues": [
+          "Moves refund_order above the helpers for no reason, which adds diff churn to a live-production refactor.",
+          "Tests miss key boundaries: the exact 5000 free-shipping threshold, half-up versus banker's rounding, shipping after a coupon discount, and non-decline gateway errors.",
+          "Test name 'releases_stock_in_reverse_of_reserve' is misleading: it covers a single item, so order is not checked."
+        ],
+        "b_issues": [
+          "The report contains garbled fragments ('crapper, dryer and mutator tools', ' asks for commits and a push to main') that refer to context the reader doesn't have.",
+          "Shipping calculation stays inline in _total_cents rather than in a named helper; a minor point.",
+          "The manual mutation checks it describes cannot be verified from the diff."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors split process_order into nearly the same helpers and both preserve behavior. A's characterization tests are clearly stronger: they cover the exact 5000 free-shipping boundary, shipping decided after the coupon, ROUND_HALF_UP versus banker's rounding, the non-decline gateway error path, and coupon redemption when the receipt fails. Several of B's tests are weaker than their names claim, for example the VIP 'after coupon' test uses no coupon and the threshold test uses 6000. B also moves refund_order for no reason, which adds diff churn to a production change.",
+        "a_issues": [
+          "The report contains garbled references to tools and instructions that are not part of the task ('crapper, dryer and mutator', '  asks for commits and a push to main').",
+          "_subtotal_and_tax takes the whole order and customer when it only needs the items and the country."
+        ],
+        "b_issues": [
+          "refund_order is moved above the helpers for no reason, which adds unrelated diff churn.",
+          "test_vip_customer_gets_five_percent_off_after_coupon uses no coupon, so the coupon-then-VIP ordering is not tested, yet the report claims it is.",
+          "The free-shipping test uses 6000 instead of the exact 5000 boundary, and nothing tests the coupon-then-shipping order.",
+          "The rounding test checks per-line rounding but not half-up versus half-even.",
+          "test_declined_payment_releases_stock_in_reverse_of_reserve has a misleading name: it uses a single item and checks no reversal.",
+          "The non-decline gateway error path is not pinned or flagged."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

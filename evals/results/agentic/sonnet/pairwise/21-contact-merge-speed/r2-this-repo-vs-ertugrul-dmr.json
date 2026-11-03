@@ -1,0 +1,84 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4d0c9a3aaa91c4b8",
+    "ertugrul-dmr": "4623026f37a945ad"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both diffs make the same correct change to `mergeContacts`: a Map from normalized email to its first index, updated as new contacts are appended. That keeps first-match, intra-upload merging and append order unchanged. A also adds a test for repeated emails in the stored book and a scale test, and reports running tests and typecheck. B adds no tests, ran nothing, and its report ends with a garbled, meaningless sentence.",
+        "a_issues": [
+          "The speed test uses a wall-clock limit that could be flaky on slow CI (the report says so)."
+        ],
+        "b_issues": [
+          "No tests protect the new Map-based behavior, such as first-match with repeated stored emails.",
+          "Nothing was run or typechecked; the report admits this.",
+          "The report has a garbled sentence ('This follows -style cleanup only loosely')."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "The two `mergeContacts` rewrites are functionally identical. Both use a correct Map-based lookup that keeps the first-match-wins behavior and still merges duplicates within the upload. B also adds a test that pins the first-entry-wins behavior for repeated stored emails, plus a scale test whose expected count (55,000) is correct. B also ran the suite and the typecheck. A added no tests, verified nothing, and its report contains a garbled stray sentence.",
+        "a_issues": [
+          "No tests added for the new lookup behavior, such as repeated emails in the stored list or performance.",
+          "The change was not run, tested or timed.",
+          "The report has a garbled, meaningless line: \"This follows -style cleanup only loosely\"."
+        ],
+        "b_issues": [
+          "The speed test uses a wall-clock limit, which can be flaky on slow CI, though the report flags this.",
+          "The report does not give actual before/after timings."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

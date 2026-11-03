@@ -1,0 +1,82 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "40fe011a4fc9cbf9",
+    "sickn33": "19c77c8d2e336206"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.25,
+    "tests": 0.5,
+    "report": 0.75
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes replace the linear `findIndex` with the same first-index Map. Both keep the 'merge into the first duplicate' behavior and add an equivalent regression test. B normalizes each incoming email once and reuses it for both the lookup and the insert. A's `rememberFirstIndex` normalizes again and repeats a `has` check that is never needed for appended contacts. B's report also states the invariant that keeps map entries valid after a merge (the email never changes), while A's report gains a little by confirming its new test also passed on the old code.",
+        "a_issues": [
+          "Normalizes each newly appended incoming email twice (once for the lookup, again in `rememberFirstIndex`).",
+          "`rememberFirstIndex` runs a redundant `has` check for appended contacts, which by then are known to be absent from the map."
+        ],
+        "b_issues": [
+          "The report does not say whether the new test was run against the old code to confirm that behavior is preserved.",
+          "The comparison count in the report (30k \u00d7 65k) is a loose estimate."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix: a Map from normalized email to the first index, extended as new contacts are appended. That keeps the first-match semantics of findIndex and still merges duplicates within the same upload, and both add the same test for an existing book with duplicate emails. A's code is slightly tidier because it normalizes each incoming email only once. B's report is more convincing: it says the new test was run against the old code to confirm unchanged behavior, and it lists the exact checks and benchmark setup. The difference is small.",
+        "a_issues": [
+          "The report does not say whether the new test was checked against the original implementation to confirm the behavior is preserved."
+        ],
+        "b_issues": [
+          "For each new contact, normalizeEmail is called twice: once for the lookup and again inside rememberFirstIndex.",
+          "rememberFirstIndex does a redundant has() check for contacts that are known to be absent."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

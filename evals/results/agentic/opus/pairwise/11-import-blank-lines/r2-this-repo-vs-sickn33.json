@@ -1,0 +1,81 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "53b646e96733aea2",
+    "sickn33": "b45989c96fcd169a"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both make the same correct one-line fix: blank and whitespace-only lines are skipped and the original line numbering is kept. A also updates the README's CSV import section, which describes exactly which lines stop an import, so the docs stay accurate. B leaves that section silent about blank lines. Both test the skipping and the line numbering after a blank line (A at parser level, B end-to-end through the CLI), and both reports are accurate.",
+        "a_issues": [
+          "Tests are only at the parser level; no end-to-end check through the import command."
+        ],
+        "b_issues": [
+          "README CSV import section not updated to say blank lines are now skipped.",
+          "The blank-line CLI test checks the imported count but not the stored or reported entries."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same minimal, correct fix: they skip lines that are empty or whitespace-only and keep the original line numbering for errors. B also updates the README, which documents the CSV format and would otherwise not mention the new blank-line behavior. B's tests sit at the unit level in test_importer.py, next to the other parsing rules. B's report also states plainly that the fix was not tried on the accountant's actual file.",
+        "a_issues": [
+          "README's CSV import section still describes the old format rules and does not mention that blank lines are now skipped.",
+          "The new blank-line tests are CLI-level only; the parser's new rule has no unit test alongside the other parse_entries tests."
+        ],
+        "b_issues": [
+          "No end-to-end CLI test that a file ending in a blank line imports successfully, though the unit test covers the same logic."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

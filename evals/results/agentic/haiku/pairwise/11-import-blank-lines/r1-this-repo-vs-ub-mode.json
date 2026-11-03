@@ -1,0 +1,83 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c0a6be3a392b3869",
+    "ub-mode": "a90fd7ecbbc9f0af"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both make the same correct one-line fix: skip empty or whitespace-only lines, while line numbers still count them so later errors point at the right line. B's unit test also covers a whitespace-only `\\r\\n` line, which A's CLI test does not. B also adds one README sentence, since the README describes import behavior and this changes it. Both reports are accurate, and the 19-test count checks out for each.",
+        "a_issues": [
+          "Test does not cover whitespace-only lines, only fully empty ones.",
+          "The CLI test checks only the import count, not the stored entries.",
+          "README not updated, though it now omits that blank lines are skipped."
+        ],
+        "b_issues": [
+          "Report includes a somewhat redundant action log."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix in `parse_entries`: they skip whitespace-only lines and keep the original line numbering for later errors. A also tests whitespace-only and `\\r\\n` blank lines directly against the parser, and it updates the README, which otherwise describes import behaviour that no longer matches. B's end-to-end CLI test is useful but covers fewer edge cases, and B leaves the documentation out of date.",
+        "a_issues": [
+          "No end-to-end test of the actual file import path with a trailing empty line."
+        ],
+        "b_issues": [
+          "Does not update the README's CSV import section to say blank lines are skipped.",
+          "Test covers only empty `\\n` lines, not whitespace-only or `\\r\\n` blank lines.",
+          "Test does not check which entries were stored (for example via report), only the count message."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

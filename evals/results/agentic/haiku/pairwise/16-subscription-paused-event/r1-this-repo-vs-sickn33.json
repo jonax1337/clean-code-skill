@@ -1,0 +1,82 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d2464bb22d7a58fc",
+    "sickn33": "997039093417148a"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.75
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two production changes are essentially identical and both correct: same event type, same reducer guards, cancellation clears `resumeOn`, same audit format and same customer-only notification. B's tests cover the same edge cases (past-due, already-paused, canceled, payments while paused, cancel while paused) more compactly, using a small `paused()` helper. B also extends the existing start test to check `resumeOn` starts null. A's tests repeat the pause event literal several times but are otherwise just as thorough, and A's report usefully notes that `plan_changed` still applies while paused.",
+        "a_issues": [
+          "The `subscription_paused` event literal is written out again in several tests instead of shared."
+        ],
+        "b_issues": [
+          "The new `case` is appended after `subscription_canceled` rather than placed in lifecycle order (cosmetic only).",
+          "The report does not mention that `plan_changed` still applies while paused."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production code in A and B is essentially the same: same event type, same reducer guards, same audit format and same notification, all matching the spec. B's tests isolate each spec rule in its own case, and its repeated-pause test uses a different resumeOn, so it checks more directly that the original resume date is kept. B's report also flags that plan_changed still applies while paused, an open spec question A does not raise.",
+        "a_issues": [
+          "The already-paused test reuses the same resumeOn, so it relies only on object identity to show the original date is kept.",
+          "The report does not mention that plan changes still apply while paused."
+        ],
+        "b_issues": [
+          "The subscription tests repeat the pause event literal several times instead of sharing a fixture.",
+          "The resumeOn field was placed between failedAttempts and startedAt in the interface, which is minor reordering noise."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

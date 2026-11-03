@@ -1,0 +1,87 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c574043ff7e8c196",
+    "sickn33": "b4660056b4ce7556"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.0,
+    "design": 1.0,
+    "readability": 0.25,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs fix the root cause the same way: they rename the CRM `customer_id` to `customerId` at load time, which leaves the data files and the CSV format untouched. A also switches the export lookup to the existing `requireCustomer`, so a truly unknown customer now gives the `UnknownReferenceError` and exit 1 the README requires instead of a raw TypeError. That is a small, convention-aligned hardening at the exact crash site, and A tests it. B names this gap honestly in its report but leaves it unfixed, and B's second test filters CRM records by country `NL`, so it misses the Swedish CRM customer.",
+        "a_issues": [
+          "The unknown-customer test checks `error.name` rather than `instanceof UnknownReferenceError`.",
+          "The sources test reads the real `data/` directory instead of a fixture, so changes to the data files can break it.",
+          "The `requireCustomer` change goes slightly beyond the narrow crash fix, though it follows the README conventions."
+        ],
+        "b_issues": [
+          "`export.js` still crashes with a raw TypeError for genuinely unknown customers, against the README convention; this is acknowledged but not fixed.",
+          "The second test selects CRM records by `country === \"NL\"`, which skips C-2202 (SE), so the check is incomplete and brittle.",
+          "The tests read the real `data/` directory instead of a fixture."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both fix the root cause the same way: they rename the CRM `customer_id` to `customerId` at load time and leave the data files and CSV format untouched. B also routes the export lookup through the existing `requireCustomer`. That is a one-line change, and it makes a truly missing customer fail with the `UnknownReferenceError` and exit 1 that the README requires, instead of a raw TypeError. B tests that path, and its sources test checks the full normalized record. A spotted the same gap but left it open, and its second test's NL-country filter is an odd, indirect check.",
+        "a_issues": [
+          "Leaves `customers.get(...).name` in export.js, so a genuinely unknown customer still crashes with a TypeError and breaks the README's error convention (A acknowledges this in its report).",
+          "Second test selects CRM records by `country === \"NL\"`, which is indirect and misses the SE CRM customer.",
+          "No test of the export path itself."
+        ],
+        "b_issues": [
+          "Small step past the literal fix by changing export.js to use `requireCustomer`, though it reuses existing code and matches the documented convention.",
+          "Inline destructuring map in `loadCustomerRecords` is a little less readable than A's named helper, and the comment line is long.",
+          "Report mentions writing `/tmp/invoices.csv`, an unrequested side artifact, although it is outside the repo."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "B",
+          "readability": "A",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

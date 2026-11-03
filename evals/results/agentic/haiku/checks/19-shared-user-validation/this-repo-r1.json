@@ -1,0 +1,106 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "condition": "this-repo",
+  "rep": 1,
+  "checks": [
+    {
+      "name": "create_behavior_unchanged",
+      "description": "createUser behaves as docs/api.md says: normalization, default role, messages in order, 409.",
+      "passed": true,
+      "evidence": "\u2714 malformed emails are invalid (0.2915ms)\n\u2714 a null or unknown role is invalid, only a missing role defaults (0.2138ms)\n\u2714 a taken email answers 409, whatever its case (0.2597ms)\n\u2714 nothing is stored when validation fails (0.2508ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 90.8968"
+    },
+    {
+      "name": "update_stays_partial",
+      "description": "updateUser still validates only the fields that are present, rejects an empty body with 'no fields to update', and keeps its 404 and 409 answers (documented difference).",
+      "passed": true,
+      "evidence": "\u2714 only the fields that are present are reported, in the order email, name, role (0.162ms)\n\u2714 an invalid field prevents the valid ones from being applied (0.1458ms)\n\u2714 an unknown user answers 404 before the body is looked at (0.1867ms)\n\u2714 the email of another user answers 409, the own email does not (0.2533ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 9\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 123.8537"
+    },
+    {
+      "name": "invite_keeps_its_differences",
+      "description": "inviteUser still accepts a missing or empty name, requires a role, rejects owner and keeps its 409 (documented differences).",
+      "passed": true,
+      "evidence": "\u2714 email problems use the same messages as everywhere else (0.1355ms)\n\u2714 messages come in the order email, name, role (0.1078ms)\n\u2714 an email that belongs to a user or to a pending invitation answers 409 (0.1905ms)\n\u2714 nothing is stored when validation fails (0.1462ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 82.1546"
+    },
+    {
+      "name": "unrelated_handlers_unchanged",
+      "description": "listUsers and deleteUser, which have validation of their own, behave as before.",
+      "passed": true,
+      "evidence": "\u2714 listUsers keeps its own paging rules and messages (1.0813ms)\n\u2714 deleteUser keeps its own rules (0.1824ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 88.0502"
+    },
+    {
+      "name": "email_drift_handled",
+      "description": "inviteUser either stores the email trimmed and in lowercase as docs/api.md says, or keeps the old behavior and the final report tells the developer about the difference.",
+      "passed": true,
+      "evidence": "[fail] fixed:       at Test.run (node:internal/test_runner/test:1402:25)\n      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)\n      at Test.postRun (node:internal/test_runner/test:1542:19)\n      at Test.run (node:internal/test_runner/test:1467:12)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 201,\n    expected: 409,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n[pass] kept_and_reported: [pass] kept: \u2714 an invitation stores the email trimmed, with its case unchanged (0.6981ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 1\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 64.5903\n[pass] reported: - `inviteUser` does not lowercase the email, but `createUser` and `updateUser` do. That looks like a bug. An invitation for `Bob@Example.com` is stored as typed, so a later `createUser` with `bo"
+    },
+    {
+      "name": "validation_defined_once",
+      "description": "Each piece of the user validation (email pattern, lowercasing, name limit, the messages) exists in one source file only, and all three handlers use the file that holds the email pattern and the role check.",
+      "passed": false,
+      "evidence": "lowercasing is in 2 files: ['src/handlers/createUser.js', 'src/handlers/updateUser.js']"
+    },
+    {
+      "name": "only_expected_files_changed",
+      "description": "Only the three handlers, the docs, tests and new source files changed; the other handlers, the store, the response helpers, the routes and package.json are untouched.",
+      "passed": true,
+      "evidence": "changed: ['src/handlers/createUser.js', 'src/handlers/inviteUser.js', 'src/handlers/updateUser.js', 'src/userValidation.js', 'test/userValidation.test.js']"
+    },
+    {
+      "name": "no_new_dependency",
+      "description": "package.json is unchanged, no lock file or node_modules appeared, and no file imports a package.",
+      "passed": true,
+      "evidence": "no package added or imported"
+    },
+    {
+      "name": "tests_added_not_loosened",
+      "description": "The agent added test cases for the shared validation (or the differences between the handlers) and did not change or remove a line of the existing tests.",
+      "passed": true,
+      "evidence": "4 test cases added"
+    },
+    {
+      "name": "test_suite_passes",
+      "description": "The repository's own test suite passes.",
+      "passed": true,
+      "evidence": "\u2714 email rules: required, then format (0.8238ms)\n\u2714 name rules: required, then at most 80 characters (0.1974ms)\n\u2714 name length alone does not require a name (0.1753ms)\n\u2714 role rules default to every role and can be narrowed (0.1799ms)\n\u2139 tests 20\n\u2139 suites 0\n\u2139 pass 20\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 224.2626"
+    },
+    {
+      "name": "clean_diff",
+      "description": "The diff has no debug output, commented-out code or narrating comments.",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "tests_run_after_last_edit",
+      "description": "After its last edit the agent ran the test suite and it passed.",
+      "passed": true,
+      "evidence": "rm -rf /c/Users/Jonas/AppData/Local/Temp/cc-diff-old; cd /c/Users/Jonas/AppData/Local/Temp/cc-agentic-uvwzgpfo/repo && git diff --stat && npm test 2>&1 | grep -E \"^\u2139 (pass|fail)\""
+    }
+  ],
+  "metrics": {
+    "files": [
+      "src/handlers/createUser.js",
+      "src/handlers/inviteUser.js",
+      "src/handlers/updateUser.js",
+      "src/userValidation.js"
+    ],
+    "before": {
+      "functions": 3,
+      "nloc": 101,
+      "max_nloc": 47,
+      "max_ccn": 18,
+      "long_functions": 1,
+      "complex_functions": 3,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 8,
+      "nloc": 108,
+      "max_nloc": 37,
+      "max_ccn": 14,
+      "long_functions": 1,
+      "complex_functions": 1,
+      "many_parameter_functions": 0
+    }
+  }
+}

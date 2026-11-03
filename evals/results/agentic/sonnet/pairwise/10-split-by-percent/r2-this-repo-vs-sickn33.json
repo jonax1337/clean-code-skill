@@ -1,0 +1,87 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "64a50938bd669fab",
+    "sickn33": "6c2fc9242ac23a98"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes are nearly identical: a mutually exclusive argparse group, a NAME=PCT parser, and `split_by_percent` that reuses `allocate` and a shared duplicate-name helper. A rejects zero percentages, says so in its report and invites the developer to change that. B silently accepts `alice=0`, and its negative-percentage check can't be reached because the parser already rejects '-'. A's tests are also a little more pointed: they check the exact error messages, the zero case and the tie-break when cents don't divide evenly.",
+        "a_issues": [
+          "The `capsys` fixture argument in `test_with_and_percent_cannot_be_combined` is unused.",
+          "No CLI test with neither `--with` nor `--percent` given, though the report claims it is a usage error."
+        ],
+        "b_issues": [
+          "Accepts a 0% share without comment, recording a person who shares the expense but owes nothing.",
+          "The `weight < 0` check in `split_by_percent` is dead code on the CLI path, because `parse_percent_option` already rejects negative values.",
+          "The test of malformed `--percent` values does not check the error message, and there is no test for zero percent.",
+          "No CLI test with neither `--with` nor `--percent` given."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct core change: a mutually exclusive `--with`/`--percent` group, parsing of NAME=PCT values, a check that the percentages total 100, and reuse of `allocate` and the shared duplicate check. B also rejects 0% shares, states that decision in its report and asks whether to keep it, and its tests check the actual error messages and a one-cent rounding case. A's code is a little tidier, but it silently accepts 0% and has a negative-percentage check that can never trigger.",
+        "a_issues": [
+          "Silently accepts a 0% share, which records a person in the split who owes nothing, and the report does not mention this choice.",
+          "The `weight < 0` check in `split_by_percent` cannot trigger from the CLI, because `parse_percent_option` already rejects '-'.",
+          "The tests for malformed input only check the exception type, not the error message, and the cent-preservation test only checks the sum."
+        ],
+        "b_issues": [
+          "`parse_percent` calls `number.strip()` twice and passes the unstripped string to `int`; this works but is untidy.",
+          "`test_with_and_percent_cannot_be_combined` requests a `capsys` fixture it never uses.",
+          "The `FULL_PERCENT` constant adds a little indirection for the literal 100."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

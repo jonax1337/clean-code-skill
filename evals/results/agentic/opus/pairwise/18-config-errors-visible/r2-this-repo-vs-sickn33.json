@@ -1,0 +1,87 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "f32dced5091400d2",
+    "sickn33": "243dc7f91f7676a3"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 0.25,
+    "report": 1.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the loader strict in nearly the same way: they collect every problem, reject unknown keys, reject bad values and missing files, and make Main exit without a stack trace. B's tests are tighter: they assert exactly one problem per bad input and check that the API token is never echoed. B also exits with EX_CONFIG (78), which lets a supervisor tell a bad config from a crash. B's report misstates the old behaviour in two places, while A's report is accurate, which keeps the margin slight.",
+        "a_issues": [
+          "Tests only check that the message contains a substring. They would not catch a bad value producing extra or duplicate problems.",
+          "No test checks that the API token stays out of error messages, although the report makes that claim.",
+          "upstream() records a problem for a non-http scheme but still returns the URI. This is harmless because load throws, but it is inconsistent."
+        ],
+        "b_issues": [
+          "The report wrongly says a missing upstream.url used to crash with a NullPointerException. The original code caught the exception and returned null.",
+          "The report wrongly says a missing file used to start the relay on defaults. It actually failed with 'api.token is required'.",
+          "For an unreadable file, Main prints the absolute path in its header and again in the exception message, so the path appears twice.",
+          "The problem list carried on ConfigException is extra API used mainly by tests."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes do essentially the same thing: strict validation that collects every problem, rejects unknown keys and unreadable files, keeps defaults only for absent keys, and makes Main print the problems and exit non-zero. The code is close to equal; A's structured problem list, EX_CONFIG exit code and token-leak test are small plusses. A's report misstates the old behavior, though: a missing file did not start on defaults (the api.token check threw), and a missing upstream.url did not crash with an NPE (it became null). B's report describes the old and new behavior accurately, which tips the decision.",
+        "a_issues": [
+          "Report wrongly says a missing config file used to start the relay on defaults; the original code threw 'api.token is required'.",
+          "Report wrongly says a missing upstream.url crashed with a bare NullPointerException; the NPE was caught and the URL silently became null."
+        ],
+        "b_issues": [
+          "upstream() records a problem for a non-http URI but still returns it, and intValue returns below-minimum values; harmless because load throws, but slightly confusing.",
+          "No test checks that the api.token value is never echoed in error messages, although the report claims this.",
+          "Exit status 2 is a generic usage code; the configuration-specific EX_CONFIG (78) would be more informative to supervisors."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

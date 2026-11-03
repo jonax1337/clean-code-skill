@@ -1,0 +1,87 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "1f7aaf289e8655b6",
+    "this-repo": "518db6b08da57722"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both reviews find the same four blocking defects: SQL injection, swallowed audit errors, audit rows for ids that did not change, and the floor-division page count. Both reproduce them credibly. B's line references are more accurate: A cites api.py:55-57 for bulk_deactivate, which is actually 60-62, and its users.py ranges are off by one. B also catches the default-25 change to list_users, which A misses, and gives the correct reason the case-insensitivity test is weak (the term matches the email); A's reasoning there is confused.",
+        "a_issues": [
+          "Wrong line reference: bulk_deactivate is cited at api.py:55-57 but sits at 60-62 after the patch.",
+          "Off-by-one line references in users.py: deactivate_user is cited at 46-51 (actually 47-52) and the audit loop at 61-62.",
+          "Misses the behavior change: list_users now returns only 25 users by default, contradicting the README's \"all users\".",
+          "The test_search case-insensitivity nit is wrongly reasoned: \"ann\" vs \"Ann\" is a case difference; the real problem is that the term also matches the email."
+        ],
+        "b_issues": [
+          "Off-by-one line reference: the UPDATE and loop are cited at users.py:62-64, actually 61-63.",
+          "Longer review that spends some space on low-value nits, such as renaming res and the TODO comment."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews correctly block the PR on the same four core defects, and both say they reproduced them: SQL injection, swallowed audit errors, audit rows for ids that were never deactivated, and floor-division `pages`. A also flags that `list_users` silently changes from returning all users to returning 25, breaking existing callers and the README contract. A's test nit is also more accurate: \"ann\" also matches the email, so the test proves nothing about case-insensitive name matching. B adds a valid compliance point that single-user deactivation is still not audited, but its test nit is muddled and it misses the breaking behavior change.",
+        "a_issues": [
+          "Misses that single-user `deactivate_user` still writes no audit entry despite the 'every deactivation' requirement",
+          "Line range for the audit loop in users.py is off by one (62-64 vs 61-63)"
+        ],
+        "b_issues": [
+          "Does not call out that `list_users` now returns only 25 users by default, breaking existing callers and the README contract",
+          "Test nit on `test_search_matches_name_case_insensitively` is confused and misses that the term also matches the email",
+          "Several line references are off by one (e.g. users.py:46-51 for deactivate_user, 59-66 for the rollback block)",
+          "Suggests `max(1, ...)` for pages without discussing the empty-list case"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

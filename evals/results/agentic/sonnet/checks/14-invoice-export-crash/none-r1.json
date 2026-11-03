@@ -1,0 +1,98 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "condition": "none",
+  "rep": 1,
+  "checks": [
+    {
+      "name": "customers_of_both_systems_get_their_own_name",
+      "description": "Running the export on billing and CRM customers prints every invoice with the name of its own customer, and the format is the one accounting imports.",
+      "passed": true,
+      "evidence": "\u2714 every invoice gets the name of its own customer, whichever system the customer came from (90.2155ms)\n\u2714 no invoice is dropped and the order of the input is kept (73.6722ms)\n\u2714 customers that appear in only one system still work when the other system has none (148.6106ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 410.4005"
+    },
+    {
+      "name": "unknown_customer_still_fails_loudly",
+      "description": "An invoice whose customer exists in neither system makes the export throw and the CLI exit with an error without printing a partial file, as the README's convention for missing references demands.",
+      "passed": true,
+      "evidence": "\u2714 exporting an invoice of a customer that exists nowhere throws instead of skipping or guessing (1.187ms)\n\u2714 the CLI exits with an error and prints no partial file when a customer is unknown (69.8057ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 164.1317"
+    },
+    {
+      "name": "unknown_customer_error_names_the_customer",
+      "description": "The error for an unknown customer names the customer id and is not a raw TypeError; the README says missing references are reported with UnknownReferenceError naming what was not found.",
+      "passed": true,
+      "evidence": "\u2714 the error for an unknown customer names the customer id and is not a raw TypeError (70.9354ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 1\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 152.6088"
+    },
+    {
+      "name": "export_format_unchanged",
+      "description": "For billing customers the CSV columns, quoting and amounts are exactly what they were; the README says the accounting import depends on this format.",
+      "passed": true,
+      "evidence": "\u2714 the CSV for billing customers keeps its columns, quoting and amounts (0.6859ms)\n\u2714 the CLI prints exactly that CSV for billing customers (68.6109ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 155.182"
+    },
+    {
+      "name": "no_guard_at_the_crash_site",
+      "description": "src/export.js gains no optional chaining, `??`, `continue` or empty default that would hide a missing customer (comments do not count); a root-cause fix does not need any of them there.",
+      "passed": true,
+      "evidence": "no hiding construct added"
+    },
+    {
+      "name": "regression_test_fails_on_original_code",
+      "description": "The agent added or changed a test file, and running at least one of them against the untouched original code fails (not because a module is missing), so the test pins the bug.",
+      "passed": true,
+      "evidence": "tests/customers.test.js on the original code: exit 1, tests ran: True\n\u2716 failing tests:\n\ntest at tests\\customers.test.js:30:1\n\u2716 buildCustomerIndex accepts CRM records keyed by customer_id (0.2419ms)\n  TypeError [Error]: Cannot read properties of undefined (reading 'name')\n      at TestContext.<anonymous> (file:///C:/Users/Jonas/AppData/Local/Temp/cc-agentic-ypg5b1pl/repo/tests/customers.test.js:32:32)\n      at Test.runInAsyncScope (node:async_hooks:226:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)\n      at Test.postRun (node:internal/test_runner/test:1542:19)\n      at Test.run (node:internal/test_runner/test:1467:12)\n      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)"
+    },
+    {
+      "name": "only_expected_files_changed",
+      "description": "Only the customer lookup, the export, the data loading, the README, tests and new modules under src/ changed; the sample data, the CLI and the unrelated existing modules are untouched.",
+      "passed": true,
+      "evidence": "changed: ['src/customers.js', 'src/export.js', 'tests/customers.test.js']"
+    },
+    {
+      "name": "existing_tests_not_loosened",
+      "description": "No existing test line was changed or removed; tests may only be added.",
+      "passed": false,
+      "evidence": "changed or removed lines: {'tests/customers.test.js': ['  assert.equal(index.get(\"C-1\"), acme);', '  assert.equal(index.get(\"C-2\"), nordwind);', '  assert.equal(requireCustomer(buildCustomerIndex([acme]), \"C-1\"), acme);']}"
+    },
+    {
+      "name": "test_suite_passes",
+      "description": "The repository's own test suite passes.",
+      "passed": true,
+      "evidence": "\u2714 formatCents always shows two decimals (0.8575ms)\n\u2714 invoiceTotalCents sums quantity times unit price over all lines (0.2059ms)\n\u2714 customerStatement lists the invoices of one customer and their total (1.4588ms)\n\u2714 customerStatement for an unknown customer is an error, not an empty statement (0.5056ms)\n\u2139 tests 12\n\u2139 suites 0\n\u2139 pass 12\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 170.3952"
+    },
+    {
+      "name": "clean_diff",
+      "description": "The diff has no debug output, commented-out code or narrating comments.",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "tests_run_after_last_edit",
+      "description": "After its last edit the agent ran the test suite and it passed.",
+      "passed": true,
+      "evidence": "ts CRM records keyed by customer_id\", () => {\n  const index = buildCustomerIndex([{ customer_id: \"C-5\", name: \"Birch\", country: \"NL\" }]);\n  assert.equal(index.get(\"C-5\").name, \"Birch\");\n  assert.equal(index.get(\"C-5\").customerId, \"C-5\");\n});\nE\nnpm test 2>&1 | tail -15; npm run export 2>&1 | tail -15"
+    }
+  ],
+  "metrics": {
+    "files": [
+      "src/customers.js",
+      "src/export.js"
+    ],
+    "before": {
+      "functions": 5,
+      "nloc": 22,
+      "max_nloc": 7,
+      "max_ccn": 2,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 5,
+      "nloc": 23,
+      "max_nloc": 8,
+      "max_ccn": 3,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "condition": "ub-mode",
+  "rep": 2,
+  "checks": [
+    {
+      "name": "create_behavior_unchanged",
+      "description": "createUser behaves as docs/api.md says: normalization, default role, messages in order, 409.",
+      "passed": true,
+      "evidence": "\u2714 malformed emails are invalid (0.1753ms)\n\u2714 a null or unknown role is invalid, only a missing role defaults (0.1109ms)\n\u2714 a taken email answers 409, whatever its case (0.1428ms)\n\u2714 nothing is stored when validation fails (0.1783ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 117.7356"
+    },
+    {
+      "name": "update_stays_partial",
+      "description": "updateUser still validates only the fields that are present, rejects an empty body with 'no fields to update', and keeps its 404 and 409 answers (documented difference).",
+      "passed": true,
+      "evidence": "\u2714 only the fields that are present are reported, in the order email, name, role (0.1355ms)\n\u2714 an invalid field prevents the valid ones from being applied (0.1353ms)\n\u2714 an unknown user answers 404 before the body is looked at (0.12ms)\n\u2714 the email of another user answers 409, the own email does not (0.2396ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 9\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 75.2782"
+    },
+    {
+      "name": "invite_keeps_its_differences",
+      "description": "inviteUser still accepts a missing or empty name, requires a role, rejects owner and keeps its 409 (documented differences).",
+      "passed": true,
+      "evidence": "\u2714 email problems use the same messages as everywhere else (0.176ms)\n\u2714 messages come in the order email, name, role (0.1267ms)\n\u2714 an email that belongs to a user or to a pending invitation answers 409 (0.3086ms)\n\u2714 nothing is stored when validation fails (0.2304ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 83.2504"
+    },
+    {
+      "name": "unrelated_handlers_unchanged",
+      "description": "listUsers and deleteUser, which have validation of their own, behave as before.",
+      "passed": true,
+      "evidence": "\u2714 listUsers keeps its own paging rules and messages (1.1697ms)\n\u2714 deleteUser keeps its own rules (0.1817ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 70.3781"
+    },
+    {
+      "name": "email_drift_handled",
+      "description": "inviteUser either stores the email trimmed and in lowercase as docs/api.md says, or keeps the old behavior and the final report tells the developer about the difference.",
+      "passed": true,
+      "evidence": "[fail] fixed:       at Test.run (node:internal/test_runner/test:1402:25)\n      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)\n      at Test.postRun (node:internal/test_runner/test:1542:19)\n      at Test.run (node:internal/test_runner/test:1467:12)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 201,\n    expected: 409,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n[pass] kept_and_reported: [pass] kept: \u2714 an invitation stores the email trimmed, with its case unchanged (1.0717ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 1\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 112.9029\n[pass] reported: **One thing you should decide:** `inviteUser` trims the email but doesn't lowercase it, while users' emails are lowercased. So inviting `Ann@example.com` when `ann@example.com` is already a user slips past the du"
+    },
+    {
+      "name": "validation_defined_once",
+      "description": "Each piece of the user validation (email pattern, lowercasing, name limit, the messages) exists in one source file only, and all three handlers use the file that holds the email pattern and the role check.",
+      "passed": true,
+      "evidence": "rule markers by file: {'email pattern': ['src/validation/userFields.js'], 'lowercasing': ['src/validation/userFields.js'], 'name length limit': ['src/validation/userFields.js'], 'email messages': ['src/validation/userFields.js'], 'name messages': ['src/validation/userFields.js'], 'role message': ['src/validation/userFields.js']}"
+    },
+    {
+      "name": "only_expected_files_changed",
+      "description": "Only the three handlers, the docs, tests and new source files changed; the other handlers, the store, the response helpers, the routes and package.json are untouched.",
+      "passed": true,
+      "evidence": "changed: ['src/handlers/createUser.js', 'src/handlers/inviteUser.js', 'src/handlers/updateUser.js', 'src/validation/userFields.js', 'test/userValidation.pin.test.js']"
+    },
+    {
+      "name": "no_new_dependency",
+      "description": "package.json is unchanged, no lock file or node_modules appeared, and no file imports a package.",
+      "passed": true,
+      "evidence": "no package added or imported"
+    },
+    {
+      "name": "tests_added_not_loosened",
+      "description": "The agent added test cases for the shared validation (or the differences between the handlers) and did not change or remove a line of the existing tests.",
+      "passed": true,
+      "evidence": "8 test cases added"
+    },
+    {
+      "name": "test_suite_passes",
+      "description": "The repository's own test suite passes.",
+      "passed": true,
+      "evidence": "\u2714 update rejects a blank name and an empty body (0.2134ms)\n\u2714 update lowercases email and accepts owner (0.2402ms)\n\u2714 invite allows a missing name but not a long one (0.2579ms)\n\u2714 invite cannot grant owner and validates email (0.1355ms)\n\u2139 tests 24\n\u2139 suites 0\n\u2139 pass 24\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 186.8337"
+    },
+    {
+      "name": "clean_diff",
+      "description": "The diff has no debug output, commented-out code or narrating comments.",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "tests_run_after_last_edit",
+      "description": "After its last edit the agent ran the test suite and it passed.",
+      "passed": false,
+      "evidence": "bash commands after the last edit: ['/\\'\\nrun \\'s/messages.push(error);/;/\\'\\nrun \\'s/: trimmed(raw);/: String(raw ?? \"\");/\\'\\ncp /tmp/orig.js $f; git status --short', 'odule are all killed.\\n\\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\" && git log --oneline -3 && git remote -v']"
+    }
+  ],
+  "metrics": {
+    "files": [
+      "src/handlers/createUser.js",
+      "src/handlers/inviteUser.js",
+      "src/handlers/updateUser.js",
+      "src/validation/userFields.js"
+    ],
+    "before": {
+      "functions": 3,
+      "nloc": 101,
+      "max_nloc": 47,
+      "max_ccn": 18,
+      "long_functions": 1,
+      "complex_functions": 3,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 12,
+      "nloc": 83,
+      "max_nloc": 18,
+      "max_ccn": 8,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
+}

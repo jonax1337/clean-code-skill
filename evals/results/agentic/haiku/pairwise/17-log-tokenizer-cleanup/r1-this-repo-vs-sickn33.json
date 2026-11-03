@@ -1,0 +1,87 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c2d04bb7b3de8401",
+    "sickn33": "cc16b42c443112c9"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors look behavior-preserving. Each replaces the u8 state with an enum, routes every error to Done in one place, and splits the scanning into small helpers backed by a large differential check. A also adds seven regression tests to the repo that pin the edge cases (empty values, `a==b`, quote errors, nested brackets, separator errors, invalid escapes), so the next person editing the tokenizer is protected. B adds no tests. A's design of pure scan functions returning a Step keeps all state and position changes in next(), while B spreads state mutation across methods.",
+        "a_issues": [
+          "Report leans optimistic on speed (\"possibly a few percent faster\") from noisy benchmarks, though it does flag a 2\u20133% cross-crate gap and asks for a real-dump check.",
+          "The Step struct and the closure-based `find` helper add a little indirection compared with plain loops."
+        ],
+        "b_issues": [
+          "No tests added to the repo; the edge-case coverage lives only in an out-of-repo scratch harness.",
+          "State changes are scattered across methods (scan_key_or_word sets Value, scan_value resets to Start before scanning), which makes the control flow harder to follow than a single bookkeeping point.",
+          "Scatters #[inline] and #[inline(always)] hints as a performance workaround, with only noisy evidence that they help."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors appear to keep the original tokens, errors and positions, and both back that with large differential runs. B also adds seven regression tests that pin the edge-case errors and positions a future edit could break, and it passes on the original code. A adds no tests, so its equivalence check lives only in a scratch harness outside the repo. B's pure scanner functions that return a `Step` are a bit cleaner than A's mutating methods with a boolean flag argument, and B's benchmark makes a better case that it is not slower.",
+        "a_issues": [
+          "Adds no tests; the edge-case equivalence it checked lives only in an out-of-repo scratch harness",
+          "`scan_plain(bytes, start, stop_at_equals: bool)` uses a flag argument, which is less clear than passing the stop condition",
+          "State changes are split between the scan methods (`scan_value` resets the state before scanning) and `next()`, so the bookkeeping is not fully in one place",
+          "Uses `#[inline]`/`#[inline(always)]` hints chosen from noisy 1-3% measurements; benchmark is inconclusive by its own account",
+          "On error, `pos` is no longer moved to the end of the line, which also changes the derived `Debug` output (harmless, but the report does not mention it)"
+        ],
+        "b_issues": [
+          "The generic `find` helper with closures is a small extra layer of indirection",
+          "Has not been benchmarked on a real dump either, though it says so in the report"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

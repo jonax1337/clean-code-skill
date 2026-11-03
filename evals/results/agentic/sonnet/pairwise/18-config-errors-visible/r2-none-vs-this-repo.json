@@ -1,0 +1,85 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "5ad551194e7f2757",
+    "this-repo": "3d4376183cfa0fc6"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes do essentially the same correct thing. Each collects every config problem into one ConfigException, applies defaults only to absent keys, rejects a missing file and unknown keys, and exits non-zero from Main. B's tests cover more edge cases: an overflowing timeout, a zero timeout, a non-numeric timeout, an ftp scheme, zero retries still being accepted, and a queue.capacity minimum. B's unknown-key message also lists the valid keys, which helps the person deploying. A's README note is a small plus, but it does not outweigh B's stronger test protection.",
+        "a_issues": [
+          "Tests do not cover an overflowing or zero request.timeout, a non-http scheme, queue.capacity below its minimum, or the boundary case that retry.max-attempts=0 is still accepted.",
+          "The unknown-key error does not tell the deployer which keys are valid.",
+          "duration() uses a fall-through-from-catch control flow that is a little harder to follow."
+        ],
+        "b_issues": [
+          "Does not document the new fail-fast behavior or exit status 78 in the README, so ops must read the report to learn about it.",
+          "Adds a set of key-name constants and several small helpers, slightly more structure than the task needs."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement the same validation correctly: errors are collected and reported together, defaults apply only to absent keys, a missing file and unknown keys are rejected, and Main exits non-zero. A's tests are more thorough: they cover overflowing and zero timeouts, queue.capacity bounds, zero retries still being accepted, an ftp scheme, and the file name in the missing-file error. A's unknown-key message also lists the valid keys, which helps the person deploying. B's README note is a small plus, but it does not outweigh A's stronger test coverage.",
+        "a_issues": [
+          "README not updated to mention startup validation or the exit status 78, which a deploy script would need to know",
+          "Exit code 78 (EX_CONFIG) is not documented anywhere except the report"
+        ],
+        "b_issues": [
+          "Tests skip several edge cases: zero or overflowing timeouts, a queue.capacity minimum, a non-http scheme, and a check that 0 retries is still accepted",
+          "The missing-file test does not check that the message names the file",
+          "The unknown-key error does not list the valid keys, so it is less helpful to the person fixing the config"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4d4273c889f959f9",
+    "ub-mode": "dba91f08e1799906"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.25,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs make the same functional change: the unit table moves to milliseconds, the `* 1000` multipliers are removed, and the seconds-based outputs (Retry-After, report text) are preserved by dividing by 1000, so neither breaks existing behavior. A adds an exported `MS_PER_SECOND` constant. That is a small extra on the module surface but makes the remaining conversions self-describing; B's bare literals are equally simple. The deciding factor is the report. B says the diff is 'staged' and offers to commit 'with the message and attribution line you specified', which refers to instructions that do not exist. It also claims 'nothing user-visible changed' while admitting that the public `parseDuration` changed units. A's report is accurate and flags the breaking change cleanly.",
+        "a_issues": [
+          "Exports a new `MS_PER_SECOND` constant from duration.ts that was not requested; it is minor extra surface.",
+          "No tests were added for http/report/validate callers to lock in the preserved seconds output."
+        ],
+        "b_issues": [
+          "The report claims the diff is 'staged' and references a commit message and attribution line the developer never specified, which looks fabricated.",
+          "The report says 'nothing user-visible changed' even though the exported `parseDuration` now returns a different unit.",
+          "No tests were added for http/report/validate callers to lock in the preserved seconds output."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs make the same behavioral change and are both correct: callers that want milliseconds drop the `* 1000`, while `http.ts` and `report.ts` divide back to seconds, so all outputs are preserved. B adds a small exported `MS_PER_SECOND` constant, which is a minor matter of taste and widens `duration.ts`'s exports slightly. The deciding factor is the reports. A's report cites repo commit rules and a commit message and attribution line 'you specified' that do not exist in the visible context, and claims the diff is 'staged'. B's report is accurate and also flags the breaking change for consumers.",
+        "a_issues": [
+          "Report refers to repo commit rules and a user-specified commit message and attribution line that do not appear anywhere in the context, and says changes are 'staged' without evidence.",
+          "No tests were added for the converted seconds outputs in `rateLimitHeaders` and `describeSettings`, although these are the spots most likely to regress."
+        ],
+        "b_issues": [
+          "Adds a new exported `MS_PER_SECOND` constant to `duration.ts`, a small API addition beyond what the task needs.",
+          "No tests were added for the converted seconds outputs in `rateLimitHeaders` and `describeSettings`."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

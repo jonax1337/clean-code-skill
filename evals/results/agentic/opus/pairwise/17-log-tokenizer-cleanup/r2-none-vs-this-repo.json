@@ -1,0 +1,87 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "9b2de7c914e09f68",
+    "this-repo": "e76bf71abaad24da"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.25,
+    "design": 0.25,
+    "readability": 0.75,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors look behavior-preserving: I traced every error path, the empty-bare-value case and the end-of-stream handling in each, and they match the original. B also commits 18 regression tests that pin every error kind with its exact position, plus the edge cases (empty values, a trailing backslash, non-ASCII text, iteration after an error or end of line). That protection is lasting, which matters for a refactor whose main requirement is identical output. A's equivalence checking happened only in a scratch directory outside the repo, which it also left behind, so the repo gains no protection against future regressions.",
+        "a_issues": [
+          "No tests added to the repo: the old-vs-new comparison and the benchmark live in `..\\scratch\\` and will not guard future edits to the tokenizer.",
+          "Leaves scratch files on disk next to the repo for the developer to clean up.",
+          "Uses `#[inline]` on every helper without showing it is needed (minor)."
+        ],
+        "b_issues": [
+          "The `Scanned` struct adds a little indirection compared with mutating `self` directly (minor).",
+          "Several `scan_*` functions have no doc comments, unlike A's.",
+          "`pos` is no longer moved to the end of the line after an error; this is disclosed and not observable through the iterator."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors are behavior-preserving as far as I can trace: same error kinds and positions, empty bare values, and the stream stays finished after an error. A also adds 18 regression tests to the repo that pin every error variant with exact positions, plus edge cases like non-ASCII text and a trailing backslash. Those tests protect this refactor and the future format changes the developer is worried about. B's 20M-line differential check is strong, but it lives in an uncommitted scratch directory, so the repo gains no protection.",
+        "a_issues": [
+          "Introduces a `Scanned` struct and closure-taking helper, a bit more indirection than strictly needed",
+          "After an error `pos` is no longer moved to the end of the line (internal only, but disclosed)",
+          "Benchmark spread is wide (fastest 202\u2013243 ms old vs 220\u2013241 ms new), so 'no slowdown' rests on noisy numbers"
+        ],
+        "b_issues": [
+          "No tests added to the repo; the differential fuzz harness and benchmark live outside it in `..\\scratch\\` and are left behind",
+          "The key/word and bare-value scanning loops are near-duplicates instead of sharing a helper",
+          "Blanket `#[inline]` on every private method adds noise with no shown benefit"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

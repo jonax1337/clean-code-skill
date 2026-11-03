@@ -1,19 +1,16 @@
 ## Review
 
 **Bugs**
-
-1. **Off-by-one: the last data row is never imported.** `range(1, len(rows) - 1)` stops one row early. `rows[1:]` fixes this and also removes the `# skip header` comment.
-2. **`except Exception: pass` hides every failure.** A DB outage, a mailer error, a malformed row and a typo all vanish silently. Worse, if `mailer.send` fails after `db.save`, the user is saved but missing from `imported`, so the return value disagrees with the database.
+1. **Off-by-one:** `range(1, len(rows) - 1)` skips the header *and* the last data row. Every import silently drops one user.
+2. **`except Exception: pass`:** this hides real failures (DB down, mailer errors, short rows). It also leaves things inconsistent: if `mailer.send` fails after `db.save`, the user is persisted but missing from `imported`.
 
 **Clean-code issues**
+3. The email check duplicates `is_valid_email`. Use the existing helper.
+4. The commented-out "old version" is dead code. Git history already has it.
+5. `row[0]`, `row[1]`, `row[2]` are magic indexes, and `# skip header` is a comment that a better expression could replace.
+6. One function parses, validates, saves, and mails. Rejected rows vanish with no trace.
 
-3. **Duplicated validation.** `"@" not in email or len(email) > 254` re-implements `is_valid_email`, and more weakly (`"@"` alone passes). Use the existing helper.
-4. **Magic indices** (`row[0]`, `row[1]`, `row[2]`) hide what the columns mean.
-5. **Mixed levels of abstraction.** One function parses, validates, persists and mails.
-6. **Dead commented-out code** (`# old version: ...`) should be deleted. Git history keeps it.
-7. **No tests** are included. The off-by-one is exactly what a test would have caught.
-
-## Suggested refactor
+## Suggested change
 
 ```python
 import logging
@@ -22,57 +19,76 @@ from utils.validation import is_valid_email
 
 logger = logging.getLogger(__name__)
 
+FIRST_NAME_COLUMN, LAST_NAME_COLUMN, EMAIL_COLUMN = 0, 1, 2
+
+
+class InvalidRowError(ValueError):
+    pass
+
 
 def import_users(rows, send_welcome=False):
-    imported_users = []
-    for row in rows[1:]:
+    rows_without_header = rows[1:]
+    imported = []
+    for row_number, row in enumerate(rows_without_header, start=2):
         try:
             user = _parse_user(row)
-        except ValueError as error:
-            logger.warning("Skipping row %r: %s", row, error)
+        except InvalidRowError as error:
+            logger.warning("Skipping row %d: %s", row_number, error)
             continue
 
-        db.save(user)
+        if not _save_user(user):
+            continue
         if send_welcome:
             _send_welcome_email(user)
-        imported_users.append(user)
-    return imported_users
+        imported.append(user)
+    return imported
 
 
 def _parse_user(row):
     try:
-        first_name, last_name, raw_email, *_ = row
-    except ValueError:
-        raise ValueError("expected at least 3 columns")
+        first_name = row[FIRST_NAME_COLUMN]
+        last_name = row[LAST_NAME_COLUMN]
+        raw_email = row[EMAIL_COLUMN]
+    except IndexError:
+        raise InvalidRowError("expected at least 3 columns")
 
     email = raw_email.strip().lower()
     if not is_valid_email(email):
-        raise ValueError(f"invalid email {email!r}")
+        raise InvalidRowError(f"invalid email {email!r}")
     return User(name=f"{first_name} {last_name}", email=email)
+
+
+def _save_user(user):
+    try:
+        db.save(user)
+    except Exception:
+        logger.exception("Could not save user %s", user.email)
+        return False
+    return True
 
 
 def _send_welcome_email(user):
     try:
         mailer.send(user.email, "Welcome!", WELCOME_TEMPLATE)
     except Exception:
-        logger.exception("Welcome email failed for %s", user.email)
+        logger.exception("Could not send welcome email to %s", user.email)
 ```
 
 ## Behavior changes to confirm
 
-- **Last row is now imported** (the bug fix).
-- **DB errors now propagate** instead of being swallowed. If you'd rather keep going past a failed row, catch the specific DB exception in `import_users` and log it.
-- **Mail failures are logged, not hidden,** and the user still counts as imported because they were saved. Tell me if you want a different policy.
-- **Validation now follows `is_valid_email`.** Check that it also enforces the 254-character limit. If not, add it there rather than here.
+- **The last row is now imported.** This is the bug fix, but it's a visible change.
+- **Welcome-email failure** no longer drops the user from the result. They were already saved, so the result now matches the DB.
+- **Failures are logged** instead of swallowed. If you'd rather abort the batch on DB errors, remove the `try` in `_save_user`.
+- **`is_valid_email`:** I can't see its implementation. Confirm it covers the `"@" in email` and `len <= 254` checks. If it's stricter, some rows that used to import will now be rejected. If it doesn't enforce length, add that check to it rather than here.
 
-## Suggested tests
+## Tests to add (I haven't run anything)
 
-- Header only, or empty `rows`, returns `[]`.
-- The last row is imported.
-- A row with an invalid email is skipped.
-- A row with fewer than 3 columns is skipped.
-- Email is stripped and lowercased.
-- With `send_welcome=True`, the mailer is called once per imported user.
-- A mailer exception doesn't drop the user from the result.
+- The last data row is imported.
+- A header-only input returns `[]`.
+- A row with fewer than 3 columns is skipped and logged.
+- An invalid email is skipped.
+- `db.save` raising doesn't stop later rows.
+- `mailer.send` raising still returns the user.
+- `send_welcome=False` never calls the mailer.
 
-I haven't run any of this, so please run the tests against the real `User`, `db` and `mailer` before merging.
+Optional follow-up: the `send_welcome` boolean flag could become a separate step, where the caller mails the returned users. That would give the function one job, but it changes the API, so it may belong in another PR.

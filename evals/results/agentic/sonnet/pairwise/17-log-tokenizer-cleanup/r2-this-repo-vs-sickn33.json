@@ -1,0 +1,85 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "b96acc341f4b801c",
+    "sickn33": "4c631e049b77da79"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors look behavior-preserving on close reading: same tokens, same error variants and positions, same stop-after-error behavior, and both report comparable benchmark results with honest caveats. A first added 15 characterization tests covering every error kind, empty and escaped values, and multibyte positions. B leaves the refactored tokenizer with only the original thin tests. A's structure is also cleaner: pure scanner functions return results, and a single cold `fail` handles state, where B spreads `reject`/`advance` state mutation through many `&mut self` helpers.",
+        "a_issues": [
+          "`#[inline(always)]` on many helpers is a heavy hammer, though it is justified in a comment",
+          "On end-of-line, the Field state no longer updates `pos` (not observable through the public API)"
+        ],
+        "b_issues": [
+          "No tests added to protect the refactor; the 111M-string equivalence check was thrown away and no smaller version was kept",
+          "State mutation (`reject`/`advance`) is scattered across many `&mut self` helpers instead of being centralized, which makes the scanners harder to reason about in isolation",
+          "`#[inline(always)]` is on every method with no comment explaining why; `skip_blanks` is an associated function that takes no self, and the `bytes()`/`advance` wrappers add little"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors look behavior-preserving, and both replace the magic `st: u8` with a `State` enum and a short `next()` dispatcher. B's design is cleaner: the scanners are pure functions over bytes that return `Result`, and the failed-state transition happens in one `#[cold]` `fail` method. A instead mutates state through `reject` from inside every helper. B also adds 15 characterization tests that pin every error kind and position, and it explains its `#[inline(always)]` use in a comment. A adds no tests and puts unexplained `#[inline(always)]` on every helper.",
+        "a_issues": [
+          "No tests added; the line-by-line equivalence check was discarded, so nothing in the suite protects the refactor of a hot, untested tokenizer.",
+          "`#[inline(always)]` is on every helper, including `advance` and `bytes`, with no comment explaining why it is needed.",
+          "Error handling is spread across helpers that mutate state through `reject`, so the failure transition is still scattered rather than handled in one place."
+        ],
+        "b_issues": [
+          "`read_field` no longer stores the skipped-separator position before returning `None`. This is unobservable because `pos` is private, but it is a small divergence from the old code.",
+          "The `Failed` state is set through a separate `impl Tokens<'_>` block placed after the `Iterator` impl, which is a slightly odd place to put it."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

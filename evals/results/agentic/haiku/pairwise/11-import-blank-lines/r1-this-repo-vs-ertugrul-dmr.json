@@ -1,0 +1,88 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c0a6be3a392b3869",
+    "ertugrul-dmr": "acf21bf0785da028"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct one-line fix: blank and whitespace-only lines are skipped, and the line numbers keep counting the file's real lines. B's unit test covers more edge cases than A's: blank lines in the middle and at the end, whitespace-only lines and CRLF blank lines. A's CLI test only uses plain empty lines. A's report is somewhat stronger, since it flags the 'skip anywhere' choice and says the new test fails with the fix reverted, but it does not outweigh B's broader coverage.",
+        "a_issues": [
+          "The test only uses plain empty lines, so whitespace-only and CRLF blank lines go untested.",
+          "No test checks that error line numbers stay correct after blank lines are skipped, although the report highlights this.",
+          "The README's CSV section is not updated to say blank lines are ignored."
+        ],
+        "b_issues": [
+          "No test checks that error line numbers stay correct after blank lines are skipped.",
+          "There is no end-to-end CLI test of the reported scenario.",
+          "The README's CSV section is not updated to say blank lines are ignored.",
+          "The report does not flag that blank lines are now skipped anywhere in the file, not only at the end."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both make the same correct one-line fix: skip empty or whitespace-only lines while keeping the original line numbers for errors. A's unit test covers more edge cases (whitespace-only lines, CRLF). B's CLI test runs the real file-import path that failed for the user and was confirmed to fail without the fix. B's report states that line numbers still count skipped lines and asks the developer to confirm that blank lines are skipped anywhere in the file, which tips it slightly ahead.",
+        "a_issues": [
+          "No test that an error after a skipped blank line still names the right file line",
+          "README CSV section not updated to say blank lines are ignored",
+          "Report does not mention that line numbering is preserved or that the fix was checked against the unfixed code"
+        ],
+        "b_issues": [
+          "New test does not cover whitespace-only or CRLF blank lines",
+          "No test that an error after a skipped blank line still names the right file line",
+          "README CSV section not updated to say blank lines are ignored"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

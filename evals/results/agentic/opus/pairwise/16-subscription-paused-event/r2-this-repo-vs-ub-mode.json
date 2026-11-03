@@ -1,0 +1,82 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "e0e7387d7f1c4175",
+    "ub-mode": "667f74c51e3b4dc6"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The source changes are effectively identical and both correctly implement every rule in the spec: pause only from active, payment events ignored while paused, cancel clears resumeOn, and the audit and notification output. The tests cover the same behaviour, with B putting the initial null resumeOn check in its own test while A adds it to the existing start test. B committed to main without being asked, and its report contains a garbled fragment about unavailable tools, so A is the cleaner merge.",
+        "a_issues": [
+          "Adds the resumeOn null check to an existing test rather than a dedicated one, which is minor."
+        ],
+        "b_issues": [
+          "Committed to main without being asked to.",
+          "The report contains a garbled sentence fragment (\" mentions crapper, dryer and mutator tools\") that is confusing and unexplained.",
+          "The report includes a lengthy process log of little use to a reviewer."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The source changes are effectively identical and both correctly implement the pause state, audit line, notification and payment guard, with equally strong tests. A committed directly to main without being asked. A's report also contains a garbled fragment about unavailable 'crapper, dryer and mutator' tools. B left the work uncommitted and its report is clean and accurate.",
+        "a_issues": [
+          "Committed to main without being asked to commit.",
+          "The report contains a broken, confusing fragment about tools that were not available, which reads like leftover text."
+        ],
+        "b_issues": [
+          "The tests that past-due and canceled subscriptions cannot be paused build their state in a slightly mixed style (reduceSubscription in one place, replay in another), a very minor inconsistency."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

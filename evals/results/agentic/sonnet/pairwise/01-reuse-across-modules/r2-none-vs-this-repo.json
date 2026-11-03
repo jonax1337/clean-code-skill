@@ -1,0 +1,79 @@
+{
+  "case": "01-reuse-across-modules",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "e413ac860bd5be17",
+    "this-repo": "9e7aec9c21e1cef5"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both PRs make the same production change: they reuse `gross_total` and `format_eur` and add the `Gesamtbetrag` line right after the item list. B also adds a test that pins the exact line position and German formatting through a shipping-inclusive amount. That amount checks out: 30.00 net + 2.10 reduced VAT + 1202.40 shipping = 1.234,50 EUR. B's report says it ran the tests (9 passed, consistent with 8 existing + 1 new) and mentions that shipping is included without its own line. A ships the change with no tests and says it is unverified.",
+        "a_issues": [
+          "No test added for the new Gesamtbetrag line, so its position and formatting are unprotected",
+          "Change was not run or verified (honestly reported)"
+        ],
+        "b_issues": [
+          "Test covers only one order shape (one item plus shipping); there is no case without shipping or with multiple VAT classes"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes make the same production edit: one line that reuses `gross_total` and `format_eur`, placed right after the item list. A also adds a correct test. It covers the placement, the German formatting with a thousands separator, and shipping being included (30.00 + 2.10 + 1202.40 = 1234.50). A's report accurately says the tests were run (9 passed). B honestly says it is untested but adds no tests, so the new line has no protection against regressions.",
+        "a_issues": [],
+        "b_issues": [
+          "No test added for the new Gesamtbetrag line, its placement, or its formatting",
+          "Tests were not run, so the change is unverified"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

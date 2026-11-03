@@ -1,0 +1,89 @@
+{
+  "case": "07-tests-for-rates",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "3b47000cb4f07a7d",
+    "ub-mode": "1879c5894c088ce3"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs add only `test/rates.test.ts`, leave the source untouched, and every expected value I checked by hand matches the current code. A's suite is somewhat stronger. It tests the largest safe integer through a real rate (EUR\u2192USD) rather than only the identity conversion, checks USD half-up ties in `convert`, has more `feeFor` tie cases and min/max boundaries for JPY, and checks every currency in `minorUnitsOf`. B adds useful quote min/max cases and checks the `currency` field on errors, but its max-safe-integer test is close to trivial.",
+        "a_issues": [
+          "The report says min/max fees are tested 'in each currency at their exact boundaries', but CHF's minimum and USD's maximum are not tested at their boundaries.",
+          "No `quote` test where the min or max fee applies to the converted amount.",
+          "The comment labels such as `// convert` are slightly redundant given the test names."
+        ],
+        "b_issues": [
+          "The `MAX_SAFE_INTEGER` exactness test only covers EUR\u2192EUR, where no division actually happens, so it does not protect the BigInt path with a real rate.",
+          "`minorUnitsOf` skips USD and CHF.",
+          "Fewer `feeFor` tie cases: only 1300 is checked, and there is no half-even round-to-odd-neighbor fee case.",
+          "No min/max boundary tests for non-EUR currencies at the crossover point."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both add only test/rates.test.ts, and every expected value I checked by hand matches the code in both suites, so both are mergeable. B's suite protects a little more of the logic that is about to change. It converts between two non-euro currencies (USD\u2192CHF) through the euro path, and it checks MAX_SAFE_INTEGER on a real rate conversion, which exercises the BigInt path. It also covers all five currencies and adds more percentage-tie cases. A's report is slightly sharper and more accurate, but B's broader coverage matters more for a pre-change safety net.",
+        "a_issues": [
+          "No conversion between two non-euro currencies, so the via-euro path for cross pairs is untested.",
+          "The MAX_SAFE_INTEGER test only uses EUR\u2192EUR, which is a trivial identity and does not show that the BigInt arithmetic stays exact on a real rate.",
+          "minorUnitsOf skips USD and CHF."
+        ],
+        "b_issues": [
+          "The report says min and max fees are tested 'in each currency, at their exact boundaries', but exact boundaries are only tested for EUR and JPY.",
+          "No quote test where the maximum fee applies to the converted amount.",
+          "The MAX_SAFE_INTEGER EUR\u2192USD test pins a result above Number.MAX_SAFE_INTEGER without saying that it does.",
+          "The report's note that rounding is set per target currency reads more like a description of the code than a real concern."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

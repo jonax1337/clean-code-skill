@@ -1,0 +1,89 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "3fc8c7b1e9052bd9",
+    "ertugrul-dmr": "fec3787e7edc548b"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes use the same structure: a required mutually exclusive group, `split_by_percent` built on `allocate`, and a shared duplicate check. B parses percentages more strictly, accepting ASCII digits only. A relies on `int()`, which accepts `+50`, `5_0` and padded whitespace. B's tests also exercise real leftover-cent rounding at both levels and cover a range of malformed `NAME=PCT` inputs. A's rejection of 0% is defensible, but B accepts 0% as a deliberate choice and says so in its report.",
+        "a_issues": [
+          "`_parse_percent` uses `int()`, so inputs such as `+50`, `5_0` and ` 50` are accepted as whole-number percentages.",
+          "Names in `NAME=PCT` are not trimmed, so `alice =50` creates a separate person named 'alice '.",
+          "The CLI test `test_percent_split_keeps_every_cent` (34/33/33 of 10.00) divides evenly, so it never exercises leftover-cent rounding despite its name.",
+          "Malformed input is tested only for a missing '=' and a decimal value; an empty name, an empty value and non-numeric text are not covered."
+        ],
+        "b_issues": [
+          "A 0% entry is accepted and produces a 0.00 line in balances for a person who owes nothing; this is disclosed in the report but arguably a mistake to allow.",
+          "`split_by_percent` relies on `allocate` to reject negative weights rather than validating them itself (the CLI parser blocks them anyway).",
+          "`FULL_PERCENT` is a small extra constant of marginal value."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes have nearly the same structure: a required mutually exclusive group, a shared `_reject_duplicates` helper, and reuse of `allocate`. A parses percentages more strictly, using `isascii` plus `isdigit` and stripping names. B relies on `int()`, which accepts forms like `+50`, ` 50` and `5_0`. A's CLI tests are also stronger: a parametrized set of malformed inputs, a real leftover-cent rounding case through the CLI, and a check of exit code and message for the `--with`/`--percent` conflict. B's choice to reject 0% is defensible, but the task does not ask for it.",
+        "a_issues": [
+          "Accepts a 0% share, which the task neither asks for nor rules out; this is disclosed in the report.",
+          "The `FULL_PERCENT` constant is a small extra abstraction for a fixed value."
+        ],
+        "b_issues": [
+          "`int(value)` accepts surprising inputs such as `5_0`, `+50` and whitespace-padded numbers.",
+          "Names in NAME=PCT are not stripped, so `alice =50` produces a name with a trailing space.",
+          "The CLI test `test_percent_split_keeps_every_cent` uses 34/33/33 on 10.00, which divides exactly, so no rounding is exercised at the CLI level.",
+          "The test for combining `--with` and `--percent` does not check the exit code or the error message.",
+          "Rejecting 0% adds a rule the task did not request, though the report discloses it."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

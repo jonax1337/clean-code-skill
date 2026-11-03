@@ -1,0 +1,85 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "96a0292c5f2267e2",
+    "ub-mode": "f6dd12dfe3dc4f76"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The production code in both changes is effectively the same and correct: the handler follows the existing pattern, checks SHIPPED/DELIVERED status, caps the running total of refunds at amountPaid, and keeps the order's status. B's tests are somewhat more thorough. However, B committed to main without being asked, and its report has a garbled passage about tools that are not part of this repository. A stayed within the task and reported accurately, so I would merge A, though only slightly ahead.",
+        "a_issues": [
+          "Tests do not cover a cancelled order, a zero, null or over-precise amount, or a full refund of a delivered order",
+          "The README table cell '(no move) refunds `SHIPPED` or `DELIVERED`' is slightly awkward"
+        ],
+        "b_issues": [
+          "Committed to main without being asked",
+          "The report contains a garbled 'Not done' item about 'crapper, dryer and mutator tools' that does not apply to this repo",
+          "The README table cell is long and breaks the column alignment"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The production code is essentially the same in both: same validation, same status check, the cap is `amountPaid` minus `amountRefunded`, and the same error codes, so correctness ties. A's tests cover more: a cancelled order, a full refund of a delivered order, and zero, too-precise and null amounts. A also says it checked the tests by trying deliberate bugs by hand. A's drawbacks are a commit to `main` that nobody asked for and a garbled line in its report about missing tools, which costs it on scope and report but is not enough to outweigh the stronger tests.",
+        "a_issues": [
+          "Committed to main without being asked.",
+          "The report has a garbled 'Not done' line about 'crapper, dryer and mutator tools' that refers to tools not in this repo.",
+          "The README table row is much wider than the others and breaks the column alignment."
+        ],
+        "b_issues": [
+          "Tests skip the cancelled-order case, zero, too-precise and null amounts, and do not check `amountRefunded` after the delivered-order refund.",
+          "Only one invalid amount (negative) is tested."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

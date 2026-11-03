@@ -1,0 +1,71 @@
+diff --git a/src/export.js b/src/export.js
+index 2ad1481..bddb66c 100644
+--- a/src/export.js
++++ b/src/export.js
+@@ -1,15 +1,16 @@
+ import { toCsv } from "./csv.js";
++import { requireCustomer } from "./customers.js";
+ import { invoiceTotalCents } from "./invoices.js";
+ import { formatCents } from "./money.js";
+ 
+ const HEADER = ["invoice_id", "customer", "issued_on", "total"];
+ 
+ function invoiceRow(invoice, customers) {
+-  const customer = customers.get(invoice.customerId);
++  const customer = requireCustomer(customers, invoice.customerId, `invoice ${invoice.id}`);
+   return [invoice.id, customer.name, invoice.issuedOn, formatCents(invoiceTotalCents(invoice))];
+ }
+ 
+ /** One CSV row per invoice, in the order given, for the accounting import. */
+ export function exportInvoices(invoices, customers) {
+   return toCsv([HEADER, ...invoices.map((invoice) => invoiceRow(invoice, customers))]);
+ }
+diff --git a/src/sources.js b/src/sources.js
+index 637fd82..3c4a93f 100644
+--- a/src/sources.js
++++ b/src/sources.js
+@@ -4,15 +4,21 @@ import { join } from "node:path";
+ function readJson(directory, file) {
+   return JSON.parse(readFileSync(join(directory, file), "utf8"));
+ }
+ 
+ export function loadInvoices(directory) {
+   return readJson(directory, "invoices.json");
+ }
+ 
++/** The CRM names its id field `customer_id`; everything else in the export uses `customerId`. */
++function fromCrm(record) {
++  const { customer_id: customerId, ...rest } = record;
++  return { customerId, ...rest };
++}
++
+ /** The customers of both systems in one list: billing first, then the CRM. */
+ export function loadCustomerRecords(directory) {
+   return [
+     ...readJson(directory, "billing-customers.json"),
+-    ...readJson(directory, "crm-customers.json"),
++    ...readJson(directory, "crm-customers.json").map(fromCrm),
+   ];
+ }
+diff --git a/tests/sources.test.js b/tests/sources.test.js
+new file mode 100644
+index 0000000..9aef08f
+--- /dev/null
++++ b/tests/sources.test.js
+@@ -0,0 +1,16 @@
++import assert from "node:assert/strict";
++import { test } from "node:test";
++import { fileURLToPath } from "node:url";
++import { buildCustomerIndex } from "../src/customers.js";
++import { loadCustomerRecords } from "../src/sources.js";
++
++const dataDir = fileURLToPath(new URL("../data", import.meta.url));
++
++test("loadCustomerRecords gives CRM customers the customerId field", () => {
++  const index = buildCustomerIndex(loadCustomerRecords(dataDir));
++  assert.equal(index.get("C-2201").name, "Birch & Co");
++  assert.equal(index.get("C-2202").name, "Lindqvist AB");
++  assert.equal(index.get("C-2203").name, "Tulpen BV");
++  assert.equal(index.get("C-1001").name, "Acme GmbH");
++  assert.equal(index.has(undefined), false);
++});

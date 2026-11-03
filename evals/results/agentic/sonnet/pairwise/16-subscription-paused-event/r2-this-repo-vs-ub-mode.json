@@ -1,0 +1,81 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4185f882b618ce6a",
+    "ub-mode": "2d43a9601193ff4c"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes have essentially identical logic and tests: the same reducer cases, the same audit and notifier branches, and equivalent tests covering the pause edge cases. B also adds a `SubscriptionPaused` export to `src/index.ts`, which was not requested and departs from the existing practice of not exporting individual event types. B's report ends with a garbled fragment about 'crapper, dryer and mutator tools', while A's report is clean and accurate.",
+        "a_issues": [
+          "The report does not mention that cancelling is the only way out of `paused` until resuming is built, which is a minor omission."
+        ],
+        "b_issues": [
+          "Exports `SubscriptionPaused` from `index.ts`, which was not requested and is inconsistent with the other event types, none of which are exported.",
+          "The report contains a stray, garbled fragment about unavailable 'crapper, dryer and mutator' tools that is confusing to the reader."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs are functionally identical: same event type, reducer logic, audit format, notifier case and nearly identical tests. A also exports `SubscriptionPaused` from `src/index.ts`, which the task did not ask for. A's report ends with a stray, confusing paragraph about unavailable 'crapper, dryer and mutator' tools. B's report is accurate, well structured and notes that `payment_recovered` already ignored paused subscriptions.",
+        "a_issues": [
+          "Exports `SubscriptionPaused` from `src/index.ts` without being asked; none of the other event subtypes are exported.",
+          "The report has a garbled trailing paragraph about tools (crapper/dryer/mutator) that have nothing to do with this repo."
+        ],
+        "b_issues": [
+          "Does not validate the `resumeOn` format, though it says so and gives a reason consistent with the rest of the code."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ac4665a864cd35ca",
+    "ertugrul-dmr": "d508e93fef826afe"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both PRs make the same core change: a Map from normalized email to the first index, with appended contacts registered in it. Both preserve findIndex's first-match semantics and the merging of duplicates within an upload. A also adds a regression test that pins down first-entry-wins when the stored book already has duplicate emails. A's report gives a measured before/after benchmark on the original code. B ships no test protecting the behavior that is easiest to get wrong.",
+        "a_issues": [
+          "The benchmark compared only output counts, not field-by-field results (A discloses this).",
+          "The new test also passes against the old code, so it guards future regressions rather than demonstrating the change."
+        ],
+        "b_issues": [
+          "No test covers the duplicate-in-existing-book edge case the Map logic has to preserve.",
+          "No before/after benchmark; the speedup claim relies on the user's 'minutes' figure (B discloses this)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes make the same fix: a Map from normalized email to index, keeping the first index for duplicates and registering appended contacts, so the code is equivalent and behavior is preserved. B also adds a regression test for the first-entry-wins behavior when the stored book already has duplicate emails, which is the subtle part of the rewrite. A adds no test for it. B's report gives concrete verification: tests, typecheck and a before/after benchmark on the same input, and it is honest that outputs were not compared field by field.",
+        "a_issues": [
+          "No test protects the first-index-wins behavior that the Map rewrite must preserve for duplicate emails already in the stored book.",
+          "The report gives a 33 ms figure but no before/after comparison and does not describe the benchmark setup."
+        ],
+        "b_issues": [
+          "The benchmark checked only that both versions produced the same contact count, not the same output field by field (the report says so)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

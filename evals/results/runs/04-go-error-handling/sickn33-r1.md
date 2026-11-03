@@ -19,7 +19,11 @@ func (s *Server) handleGetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func parseUserID(r *http.Request) (int, error) {
-	return strconv.Atoi(r.URL.Query().Get("id"))
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		return 0, fmt.Errorf("parse user id: %w", err)
+	}
+	return id, nil
 }
 
 func writeFindUserError(w http.ResponseWriter, id int, err error) {
@@ -32,18 +36,19 @@ func writeFindUserError(w http.ResponseWriter, id int, err error) {
 }
 ```
 
-Imports needed: `encoding/json`, `errors`, `log`, `net/http`, `strconv`, and your `store` package.
+Imports needed: `errors`, `fmt`, `encoding/json`, `log`, `net/http`, `strconv`, and your `store` package.
 
-**What changed and why**
+**What changed**
 
-- **Ignored `Atoi` error:** a missing or malformed `id` silently became `0` and hit the database. It now returns `400`.
-- **Logged but not handled `FindUser` error:** the old code logged the error and then encoded a zero-value `user` as a `200`. Now the handler returns early.
-- **`store.ErrNotFound`:** checked with `errors.Is` (so it still matches if wrapped) and mapped to `404`.
-- **Other errors:** logged with context (operation and id) on the server, and the client gets a generic `500` so internals don't leak.
-- **Encode error:** no longer dropped. Since headers are already sent by then, the only sensible action is to log it.
-- **Structure:** the handler reads as a top-down narrative (parse, fetch, respond). Parsing and error-to-status mapping live in small single-purpose helpers.
-- **Content-Type:** I set `application/json` on the success path, which the original omitted.
+- **The ignored `Atoi` error is handled.** A missing or malformed `id` used to silently become `0` and hit the database. It now returns `400`.
+- **`FindUser` failures stop the handler.** Before, the error was logged and the handler carried on, encoding a zero-value `user` with a `200`. Now it returns early.
+- **Errors map to statuses.** `store.ErrNotFound` (matched with `errors.Is`, so it also works if wrapped) becomes `404`. Anything else becomes `500`.
+- **Internal details stay out of the response.** The real error is logged with context (`find user 42: ...`), and the client only sees a generic message.
+- **The encode error is no longer dropped.** It's logged, not turned into a second `http.Error`, because the status and part of the body may already be written by then.
+- **The handler reads top-down.** Parsing and error-to-status mapping live in small helpers, so each function does one thing.
 
-**Behavior changes to be aware of:** invalid ids, not-found, and DB failures used to return `200` with a JSON body (`null` or an empty user). They now return `400`, `404`, and `500`. If any clients depended on the old behavior, check them. Also, `id=0` is still accepted as a valid parse; add a range check in `parseUserID` if ids must be positive.
+**Behavior changes to be aware of**
 
-I haven't run this. I'd add table-driven `httptest` cases for a bad id, `ErrNotFound`, a generic DB error, and success.
+Clients that relied on getting `200` with an empty or zero user for bad or unknown IDs will now get `400` or `404`. I also added the `Content-Type: application/json` header. If you have existing callers or tests, check them.
+
+**Suggested tests** (table-driven with `httptest`): a missing id, a non-numeric id, `ErrNotFound`, a generic DB error, and the success case. Each should assert the status code.

@@ -1,0 +1,85 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "4f7e022c8cbe15ed",
+    "this-repo": "d6a1786d0165b104"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.25,
+    "report": 0.5
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews catch the blocking issues: the SQL injection, the swallowed audit errors, the client-supplied actor, the floored page count and the unvalidated paging input. B also finds that the existing single `deactivate_user` path never writes to the audit log, which directly breaks the PR's compliance claim. B's report is also more careful about which findings were probed and which were reasoned from the code. A has its own real catch, that `list_users` now silently truncates to 25 users for existing callers, but B's audit-coverage gap goes to the core purpose of the PR.",
+        "a_issues": [
+          "Misses that the single `deactivate_user` path is not audited at all, though the PR claims every deactivation is audited",
+          "Raises a speculative SQLite parameter-limit concern (999 applies only to older builds) that adds little"
+        ],
+        "b_issues": [
+          "Treats the `list_users` default changing from all users to 25 per page only as a README gap, not as a breaking change for existing callers",
+          "Wrong line number for the unused `import os` (`search.py:4`; it is line 3)"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews catch the blocking issues: SQL injection, swallowed audit errors, actor taken from the request, floored page count, unvalidated paging, and audit rows for IDs that did not change. B adds correct, higher-impact findings A misses: `list_users` now returns only 25 users by default (a silent regression the existing 5-user test cannot catch), `per_page=-1` bypasses the limit via `LIMIT -1`, and a missing actor raises `KeyError`. B's line numbers are also more accurate. A has one valuable finding B lacks: the single `deactivate_user` path writes no audit row despite the 'every deactivation' requirement. That keeps the margin slight.",
+        "a_issues": [
+          "Misses that `list_users` with no params now silently truncates to 25 users, a behavior regression; it only notes the README table is stale.",
+          "Misses `per_page=-1` producing `LIMIT -1` (no limit) and the `KeyError` on a missing actor.",
+          "Wrong line for unused `import os` (search.py:4; it is line 3).",
+          "Says the working tree was not changed, although REVIEW.md was added."
+        ],
+        "b_issues": [
+          "Misses that single-user `deactivate_user` writes no audit entry, although compliance requires every deactivation to be audited.",
+          "The SQLite bound-parameter limit point is minor and speculative compared with the more central issues."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "2a29f0f0d9192b06",
+    "ertugrul-dmr": "778e433fd0d488bb"
+  },
+  "score": 0.75,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.0,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct conversion. They drop `* 1000` in cache, retry and scheduler, convert back to seconds in http and report, and recompute the validate limits in milliseconds; both add the same kinds of tests. B also builds the validate error messages from the limit strings, which ties messages to limits but is a small extra edit. A keeps the edit minimal and puts the new tests in one file per module, which is slightly cleaner than B's combined `report_http.test.ts`. Neither difference is big enough to prefer one PR.",
+        "a_issues": [
+          "The `5s`/`1d` text in the validate error messages is still hardcoded separately from `MIN_TTL_MS`/`MAX_TTL_MS`, so the two can drift apart.",
+          "The below-minimum test only matches `/below the minimum/`, not the actual limit value."
+        ],
+        "b_issues": [
+          "Moving the validate error messages to template strings is a small refactor beyond what the task needs.",
+          "Putting the http and report tests in one file, `test/report_http.test.ts`, is less tidy than one test file per module."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "B",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes convert `parseDuration` to milliseconds the same way and correctly adapt every caller: they drop `* 1000` where milliseconds were wanted and divide by `MS_PER_SECOND` in http and report. B keeps validate.ts to the edit the task needs and puts its new tests in conventional per-module files. B's report also says the new tests passed against the original code before the change, which shows they guard existing behavior. A ties the validate error messages to its limit constants, a small extra refactor, and combines unrelated tests into an oddly named `report_http.test.ts`.",
+        "a_issues": [
+          "Combines http and report tests into one unconventionally named file, `test/report_http.test.ts`.",
+          "Reworks the validate.ts error messages to use new string constants, which goes slightly beyond the unit change."
+        ],
+        "b_issues": [
+          "validate.ts still hardcodes \"5s\"/\"1d\" in both the limit constants and the error messages, a minor duplication."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "A",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

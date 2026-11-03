@@ -1,45 +1,68 @@
-Here's the handler with the error paths handled explicitly. I haven't compiled or run it.
+Here is the refactored handler:
 
 ```go
 func (s *Server) handleGetUser(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	id, err := parseUserID(r)
 	if err != nil {
 		http.Error(w, "invalid user id", http.StatusBadRequest)
 		return
 	}
 
 	user, err := s.db.FindUser(r.Context(), id)
-	switch {
-	case errors.Is(err, store.ErrNotFound):
-		http.Error(w, "user not found", http.StatusNotFound)
-		return
-	case err != nil:
-		log.Printf("find user %d: %v", id, err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+	if err != nil {
+		respondWithFindUserError(w, err)
 		return
 	}
 
-	writeJSON(w, user)
+	writeJSON(w, http.StatusOK, user)
 }
 
-func writeJSON(w http.ResponseWriter, value any) {
+func parseUserID(r *http.Request) (int, error) {
+	id, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		return 0, fmt.Errorf("parse user id: %w", err)
+	}
+	return id, nil
+}
+
+func respondWithFindUserError(w http.ResponseWriter, err error) {
+	if errors.Is(err, store.ErrNotFound) {
+		http.Error(w, "user not found", http.StatusNotFound)
+		return
+	}
+	log.Printf("find user: %v", err)
+	http.Error(w, "internal server error", http.StatusInternalServerError)
+}
+
+func writeJSON(w http.ResponseWriter, status int, body any) {
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(value); err != nil {
-		log.Printf("encode response: %v", err)
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(body); err != nil {
+		log.Printf("write response: %v", err)
 	}
 }
 ```
 
-You'll need to import `errors`.
+**What was wrong and what changed**
 
-**What changed**
+- **Ignored `Atoi` error:** a missing or malformed `id` silently became `0` and was looked up as a real user. It now returns `400`.
+- **Logged but continued:** after a `FindUser` failure the old code still encoded the (zero) `user` and replied `200`. Now each failure path returns immediately.
+- **`ErrNotFound` handled explicitly:** it's matched with `errors.Is` (so wrapped errors work) and mapped to `404`. Any other error is logged and returned as a generic `500`, so internal details don't leak to the client.
+- **Encode error no longer dropped:** it is logged. The status is already sent by then, so logging is all that can be done.
+- **Small, single-level functions:** the handler reads as a top-down narrative (parse, find, respond), with the details pushed into helpers.
 
-- **Ignored `Atoi` error:** a missing or malformed `id` used to become `0` and query the wrong user. It now returns `400`.
-- **Logged but not handled:** after a `FindUser` failure the old code still encoded the (nil or zero) user and returned `200`. Each failure now returns early.
-- **`store.ErrNotFound`:** checked with `errors.Is`, so it still matches if the store wraps it, and maps to `404`.
-- **Other errors:** logged with context (the user id) and returned as a generic `500`, so internal details don't leak to the client.
-- **Encode error:** no longer dropped. It can only be logged, since headers are already sent by then. I moved it into `writeJSON`, which also sets `Content-Type`, so the handler stays at one level of abstraction.
+**Behavior changes to be aware of**
 
-**Behavior changes to be aware of:** clients that previously got `200` with an empty or `null` body for a missing user will now get `404`. Bad ids now get `400`. If you have callers or tests relying on the old behavior, they'll need updating. Also, if `id=0` is a legitimate value in your system, this still accepts it. If not, add a check for `id <= 0`.
+Clients that previously got `200` with a zero-value body on bad input or missing users will now get `400`/`404`/`500`. That's the point of the change, but check for any callers relying on the old behavior. If your repo already has a JSON error format or a shared response helper, swap `http.Error` and `writeJSON` for it to match conventions.
 
-I'd add table-driven tests with `httptest` covering bad id, `ErrNotFound`, a generic error, and success, using a fake `db`.
+**Suggested tests**
+
+I haven't run anything here, but a table-driven `httptest` test would cover these cases with a fake `db`:
+
+| Case | Expected status |
+|---|---|
+| `id=abc` or missing | 400 |
+| `FindUser` returns `store.ErrNotFound` | 404 |
+| `FindUser` returns a wrapped `ErrNotFound` | 404 |
+| `FindUser` returns another error | 500 |
+| User found | 200 with JSON body |

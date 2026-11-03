@@ -1,0 +1,69 @@
+diff --git a/REVIEW.md b/REVIEW.md
+new file mode 100644
+index 0000000..0814854
+--- /dev/null
++++ b/REVIEW.md
+@@ -0,0 +1,63 @@
++# Review of PR 482 (user search, paged list, bulk deactivation with audit log)
++
++Line numbers refer to the files after the patch is applied. I applied the patch to a clean copy of `main` and ran it. The 28 tests pass, as the description says. The bugs below
++are not covered by those tests. I reproduced the ones marked "verified".
++
++## Blocking
++
++1. **SQL injection in search** (`adminhub/search.py:13`, reached from `adminhub/api.py:42-47`).
++   `term` is put into the SQL with an f-string, and `q` comes straight from the request. The query is on the `users`
++   table, which an attacker can read in full with a `UNION`. Verified: `q="' OR '1'='1"` returns all 5 users.
++   Bind it as a parameter (`LIKE ?` with `f"%{term}%"`). Also escape `%` and `_` in the term, or searching for them
++   matches everything. Add a test with a quote in `q`.
++
++2. **Audit failures are swallowed** (`adminhub/audit.py:15-16`).
++   `except sqlite3.Error: pass` means a failed audit insert is ignored. `deactivate_users` then commits the
++   deactivations with no audit entry, which defeats the compliance requirement. The rollback in `users.py:65-66`
++   can never fire for audit errors. Remove the `try/except` so the error reaches the caller and the transaction rolls
++   back. Add a test that a failing audit insert leaves the users active.
++
++3. **`pages` is wrong** (`adminhub/api.py:37`).
++   `count // per_page` rounds down. Verified: 5 users with `per_page=3` gives `pages=1` (should be 2), and with
++   the default page size of 25 it gives `pages=0` (should be 1). The pager would hide data. Use ceiling division
++   (`-(-count // per_page)`). No test checks `pages`, so add one, including an exact multiple and an empty table.
++
++4. **Paging parameters are not validated** (`adminhub/api.py:35-36`, `46`; `users.py:37`; `search.py:16`).
++   - `per_page` is capped at 100 but has no lower bound. Verified: `per_page=0` raises `ZeroDivisionError` (a 500).
++     Verified: `per_page=-1` returns every user, because SQLite treats a negative `LIMIT` as no limit, which bypasses
++     the cap.
++   - `page=0` or negative gives a negative offset. The README says pages start at 1.
++   - `int()` on bad input raises `ValueError` in `list_users`, `search` and `bulk_deactivate`. The existing handlers
++     turn this into a 400 via `BadRequest`.
++   Validate once in a shared helper (like `_user_id`) and return 400. Use the same helper for `search`, which
++   currently ignores `per_page` entirely and does not return `page` or `pages`, unlike `list_users`.
++
++## Should fix
++
++5. **Audit entries for users that were not changed** (`adminhub/users.py:62-63`).
++   An audit row is written for every id in the request, including ids that do not exist or are already inactive.
++   Verified: `ids=[1, 999]` returns `deactivated: 1` but logs an entry for 999. The audit trail then records actions
++   that did not happen. Select the ids that are active first, update those, and audit only them. Also de-duplicate
++   `ids`.
++
++6. **The actor comes from the request** (`adminhub/api.py:62`).
++   `params["actor"]` is whatever the client sends, so the audit log can name anyone. If the request has an
++   authenticated identity, use that. A missing `actor` raises `KeyError` (a 500) instead of a 400.
++
++7. **No limit on `ids`** (`adminhub/users.py:59-61`). One `IN (...)` with a placeholder per id fails once it passes
++   SQLite's variable limit (999 on older builds). Cap the request size or chunk it inside the same transaction.
++
++## Minor
++
++8. `adminhub/search.py:3` imports `os` and never uses it.
++9. `adminhub/search.py:10` has a TODO comment. Move it to an issue or drop it.
++10. `adminhub/search.py:9` and `adminhub/users.py:11` both default the page size to 25. `search_users` should use
++    `users.DEFAULT_PAGE_SIZE`.
++11. `bulk_deactivate` and `search` have no test for bad input, and nothing tests the `pages` and `page` response
++    fields, which is why items 3 and 4 passed.
++
++## Verdict
++
++**I would not merge it as it is.** Items 1 to 4 are blocking. The injection is a security hole, the audit log can
++silently lose entries, and the pager's page count is wrong for every case. Item 5 should also be fixed before the
++audit log is relied on for compliance. The fixes are small, so this can still go in today.

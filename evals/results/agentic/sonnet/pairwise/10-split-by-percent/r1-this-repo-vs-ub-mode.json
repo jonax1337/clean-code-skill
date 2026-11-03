@@ -1,0 +1,93 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "f6b9c9c33acd563d",
+    "ub-mode": "43e8feae3036f058"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.75,
+    "scope": 1.0,
+    "design": 1.0,
+    "readability": 0.75,
+    "tests": 0.75,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement `--percent` correctly, reuse `allocate`, factor out the duplicate check and reject malformed input with exit code 2. A uses argparse's mutually exclusive group, which is idiomatic and shows the either/or rule in the usage text. A also keeps `parse_percent` testable in `splitting.py`, strips whitespace around names, and gives a more useful total-mismatch message. B hand-rolls the exclusivity check, keeps unstripped names, and committed to `main` without being asked.",
+        "a_issues": [
+          "Rejects 0% entries, which is a debatable restriction the task did not ask for (though the report discloses it).",
+          "No test for omitting both `--with` and `--percent`.",
+          "The test for combining both options relies on catching `SystemExit` rather than checking the `main` return code."
+        ],
+        "b_issues": [
+          "Reimplements mutual exclusivity by hand instead of using argparse's mutually exclusive group, so the usage/help text does not show that one of the two is required.",
+          "Names are not stripped, so `' alice=50'` records a person named `' alice'`.",
+          "Committed to `main` without being asked.",
+          "The total-mismatch error does not say what the percentages actually add up to.",
+          "CLI tests leave unused `err` variables, and the malformed-input tests never check the error message.",
+          "The report's reason for avoiding argparse exclusivity is weak, since argparse also exits with code 2; it also mentions irrelevant 'crapper, dryer or mutator' tools."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes add `--percent` correctly, reuse `allocate` and share the duplicate-name check. B uses argparse's mutually exclusive group, so the option relationship appears in the help text, and its error message names the actual total. B also unit-tests the parser across many malformed inputs, and its report flags the 0% judgement call. A works too, but it re-implements the either/or check by hand, keeps unstripped names, and committed to main without being asked.",
+        "a_issues": [
+          "Committed directly to `main` without being asked.",
+          "The report mentions unrelated tools (crapper, dryer, mutator).",
+          "Re-implements the --with/--percent exclusivity by hand instead of using argparse's mutually exclusive group, so `--help` no longer shows that one of the two is required.",
+          "`_parse_percent` checks `name.strip()` but returns the unstripped name.",
+          "The malformed-percent CLI test captures `err` but never asserts on the message.",
+          "Allows 0% shares without mentioning that choice."
+        ],
+        "b_issues": [
+          "No test covers giving neither `--with` nor `--percent`.",
+          "Malformed percent input is tested only at unit level, not through the CLI.",
+          "Rejecting 0% is a debatable product decision, though it is disclosed in the report."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

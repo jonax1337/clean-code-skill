@@ -1,0 +1,84 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "52ff5f9d521c5bb5",
+    "this-repo": "6001a5bd84f2b997"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.25,
+    "scope": 1.0,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep getPrice's behavior for every caller in the repo, and both name the magic numbers and flatten the nesting. B also replaces `any` with a narrow `Priced` type that all four callers fit, including the ad-hoc objects in cart.ts and checkout.ts and the uncategorized feed rows. B added focused tests and ran them against the original code, and it reports a passing typecheck and test run. A changed shared pricing code without adding tests or running anything, and says so plainly.",
+        "a_issues": [
+          "No tests were added for a function used throughout the codebase, so nothing protects the refactor.",
+          "Neither the tests nor the typecheck were run; the change was checked only by reading.",
+          "Keeps `p: any` and the loose `==` comparisons, which leaves much of the readability and type-safety problem in place."
+        ],
+        "b_issues": [
+          "The one-line `memberRate` and `roundToCents` helpers add some indirection that this small function doesn't strictly need.",
+          "The switch from `==` to `===` is a small semantic change, although the report discloses it and the new types rule out the affected inputs."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors keep the existing behavior. A replaces `any` with a narrow `Priced` type that every caller satisfies, splits out small named helpers, and adds characterization tests that were run against the original code. B is a reasonable, minimal tidy-up, but it keeps `p: any`, adds no tests for a widely used function, and says it ran neither tests nor typecheck. That makes A far safer to merge for a task that says \"don't break anything.\"",
+        "a_issues": [
+          "Switching `==` to `===` and narrowing the parameter type goes slightly beyond pure readability. It is harmless given the callers' types."
+        ],
+        "b_issues": [
+          "No tests added for a function used across the codebase, and no tests or typecheck were run.",
+          "Leaves `p: any` and loose `==` in place, so the function stays untyped.",
+          "No return type annotation."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

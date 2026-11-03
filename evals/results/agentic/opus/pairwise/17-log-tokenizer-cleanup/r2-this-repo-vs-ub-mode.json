@@ -1,0 +1,89 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "e76bf71abaad24da",
+    "ub-mode": "fafa07c371d36dd0"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.25,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors split the tokenizer into small scanners, and on close reading both keep the original tokens, errors and positions. B's free functions, which work out the next state from the token kind, are a little simpler. However, B committed twice to `main` without being asked, and its report contains garbled text ('Tools  expects: crapper, dryer and mutator') and a speed figure whose direction is unclear. A leaves the work uncommitted, adds a slightly broader set of tests that pin the old behaviour, and its report is clear and accurate.",
+        "a_issues": [
+          "Tying `Scanned` to `next_state` is a little heavier than needed.",
+          "Renaming the private field `src` to `line` is churn the task did not need.",
+          "`State` derives `PartialEq`/`Eq`, which nothing uses."
+        ],
+        "b_issues": [
+          "Committed the tests and the refactor to `main` without being asked.",
+          "The report contains garbled text about tools ('crapper, dryer and mutator') that were never part of the task.",
+          "The report's tokenizer-only speed claim ('20% faster (\u2248629 vs \u2248505 MiB/s)') is ambiguous about which number belongs to which version.",
+          "Slightly fewer edge-case tests: no `EmptyKey` at the start of a line, and no check that iteration stops after an error inside a value."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors produce the same small-function structure, replace the u8 state with an enum, and appear to preserve every token, error and error position, including UTF-8 handling and the stop-after-error behavior. B's explicit `Scanned { next_state }` makes state transitions visible at each scanner, and its tests are somewhat broader (non-ASCII invalid escape, error inside a value, `=` at line start). A did stronger end-to-end verification, but its report has a garbled section and it committed to main without being asked.",
+        "a_issues": [
+          "Committed two commits to main without being asked",
+          "Report contains a garbled, confusing section ('Tools  expects: crapper, dryer and mutator')",
+          "The next state comes from `matches!(token, Token::Key(_))` in `next()`, which hides the transition rule from the lexers",
+          "No test for `=` at the start of a line or for an error inside a value stopping iteration"
+        ],
+        "b_issues": [
+          "Added tests use rustfmt-style multi-line formatting and a stray trailing comma, inconsistent with the existing wide-line style",
+          "Benchmark covered only the tokenizer, not the real binary on a large dump (the report acknowledges this)",
+          "The new `Scanned` struct adds a little ceremony compared with a tuple"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

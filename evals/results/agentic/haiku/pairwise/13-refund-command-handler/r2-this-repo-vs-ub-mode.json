@@ -1,0 +1,85 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "5c76308f613c0404",
+    "ub-mode": "df19181515f75577"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.25
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two handlers are functionally the same: validation, status check, cap at amountPaid minus amountRefunded, and recording the refund without touching the status. A's tests cover more edge cases: cancelled orders, an exact-amount refund, an explicit voucher case where the refund is below the total but above the amount paid, and over-precise amounts. B's small refundableAmount() helper is slightly cleaner. B's report also mentions unrelated tooling (crapper/dryer/mutator), while A's report gets the order of its checks wrong.",
+        "a_issues": [
+          "Report says the order is checked for existence and status before the amount is validated; the code validates the amount first.",
+          "The refundable-amount calculation sits inline in the handler rather than on Order (minor)."
+        ],
+        "b_issues": [
+          "No tests for cancelled orders, amounts with more than two decimals, or a direct voucher case where the refund is above amountPaid but below the total.",
+          "Report mentions 'ub-mode' quality tools (crapper, dryer, mutator) that have nothing to do with this repository, and asks about pushing to main, which is noise.",
+          "Every test uses one partially paid setup, so a fully paid order is never exercised."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement the same correct handler logic: validate the input, check the order exists, require SHIPPED or DELIVERED, cap the refund at amountPaid minus amountRefunded, and add it to amountRefunded without touching the status. A places the refundable-amount calculation on Order as `refundableAmount()`, which is a small step toward keeping the rule in one place. B's tests cover a few more edges (cancelled orders, too many decimal places, an explicit voucher case), and B's report raises useful points about idempotency. However, B's report misstates the order in which the handler checks things: it says existence and status come before amount validation, but the code validates the amount first. That inaccuracy tips the choice to A.",
+        "a_issues": [
+          "No test for a cancelled order or an amount with more than two decimal places.",
+          "Report mentions 'ub-mode steps for crapper, dryer and mutator', which have nothing to do with this repository or task."
+        ],
+        "b_issues": [
+          "Report lists the rule order as existence, then status, then amount validation, but the code runs the Validator before looking up the order.",
+          "The refundable amount is computed inline in the handler instead of living on Order.",
+          "The new README table row is wider than the other rows and breaks the column alignment."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

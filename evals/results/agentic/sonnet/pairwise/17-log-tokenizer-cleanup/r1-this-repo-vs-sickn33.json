@@ -1,0 +1,87 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "8a93070a66755558",
+    "sickn33": "6947a3dbe99cb211"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.75,
+    "readability": 1.0,
+    "tests": 0.25,
+    "report": 0.25
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors look behavior-preserving on inspection, and both give a named state enum, one function per token kind, and a single place that handles errors. B fits the user's two hard constraints better. Its permanent exhaustive equivalence test against a frozen copy of the old tokenizer covers a multi-byte character, and its benchmark (min over 100 interleaved rounds) found that inlining mattered, which it documents. A's structure is somewhat cleaner and its seven targeted tests are good. However, A dropped its equivalence harness and has no guard against a slowdown from inlining in the method-split design.",
+        "a_issues": [
+          "Deleted the old-vs-new equivalence harness after using it. Only seven example tests are left to guard a refactor whose main requirement is identical output.",
+          "The speed check is weak: 5 rounds where the noise is larger than any difference. Nothing ensures the split helpers get inlined on the hot path.",
+          "The comparison alphabet had no multi-byte character, so the UTF-8 slicing boundaries were not exercised."
+        ],
+        "b_issues": [
+          "Adds a 159-line frozen copy of the old tokenizer under tests/. It must be edited by hand every time the format changes on purpose, which is the scenario the user is preparing for.",
+          "The exhaustive test covers about 11 million strings. The report gives 1.5 s in release, but plain `cargo test` runs in debug and will likely be much slower.",
+          "`#[inline(always)]` on every helper adds noise. The second `impl Tokens` block is placed after the Iterator impl, which makes the file layout a bit scattered."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors preserve the original tokens, errors and positions, and both reports describe exhaustive old-versus-new comparisons and release-build benchmarks. B is cleaner: it applies the stop-after-error rule once in `next()`, and its scanners carry no `#[inline(always)]` boilerplate. It also adds focused, readable regression tests for the edge cases the existing tests missed. A's equivalence harness gives strong refactor protection, but it commits a 159-line frozen copy of the old tokenizer that must be updated whenever the format changes. That reintroduces the maintenance burden the user wanted to get rid of.",
+        "a_issues": [
+          "Commits a full frozen copy of the old monolithic tokenizer (`tests/support/reference.rs`) as a permanent second implementation that must be updated whenever the format changes.",
+          "Every helper is marked `#[inline(always)]`, and the report says removing these makes it 30% slower. This adds noise and a fragile performance dependency.",
+          "Adds no targeted regression tests that document individual edge cases; it relies on the brute-force comparison alone."
+        ],
+        "b_issues": [
+          "The exhaustive old-versus-new comparison was deleted after use, so the equivalence claim cannot be re-checked from the PR.",
+          "No inlining hints; the speed relies on the compiler's default inlining. B's benchmark shows parity, but this is less guarded than A's explicit hints.",
+          "The `Nothing` state is also documented as 'line exhausted', but `next()` does not set it when the line ends (only on error). This is a minor doc inaccuracy."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "B",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

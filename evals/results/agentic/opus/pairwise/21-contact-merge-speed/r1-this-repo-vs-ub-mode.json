@@ -1,0 +1,83 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "70920b8ef3a9c02c",
+    "ub-mode": "423c84aea0957409"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs do the same thing: a Map from normalized email to its first index, kept up to date as new contacts are appended. Both keep the old first-match behavior and add the same regression test for duplicate stored emails. The code differs only in a local closure (A) versus a module-level helper (B), which are equally readable. A wins narrowly on its report, which is clean and accurate; B's report includes process-log noise and an unexplained, oddly formatted mention of 'crapper, dryer or mutator tools'.",
+        "a_issues": [
+          "Benchmark used generated data and was deleted, so the result cannot be reproduced (this is disclosed in the report)."
+        ],
+        "b_issues": [
+          "Report has a malformed heading ('** analysis tools') and refers to unexplained tools ('crapper, dryer, mutator') that were never part of the task.",
+          "Report pads with a step-by-step log and commit/push details that add little for the reviewer."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes swap the quadratic findIndex scan for the same Map of first positions. Both keep the first-entry merge semantics, add the same characterization test and leave the rest untouched, so the code is effectively equivalent. B's report is cleaner and more useful: it checked that the old and new versions return the same output, says the benchmark was synthetic and was removed, and points to the next thing to profile. A's report has a malformed bullet and mentions unexplained tools ('crapper, dryer, mutator'), and it leaves a benchmark script lying around outside the repo.",
+        "a_issues": [
+          "Report has a formatting glitch ('** analysis tools') and refers to unexplained tools that mean nothing to the developer.",
+          "Report does not say it checked that the old and new outputs are equal on the benchmark data.",
+          "Benchmark script was left in /tmp/bench rather than cleaned up or committed."
+        ],
+        "b_issues": [
+          "The remember closure is recreated on every call; this is minor and has no practical cost.",
+          "No timing or regression test protects the performance improvement itself (the report gives a reasonable explanation for this)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

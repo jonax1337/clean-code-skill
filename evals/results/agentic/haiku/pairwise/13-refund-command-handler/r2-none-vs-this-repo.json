@@ -1,0 +1,83 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "40297c08586ac3a8",
+    "this-repo": "5c76308f613c0404"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production code in both changes is essentially the same: the same handler structure, Validator reuse, cap on amountPaid minus amountRefunded, status check and registration, so correctness and design are equal. B's tests cover more edge cases: placed and cancelled orders, a single refund of exactly the amount paid, zero amounts and over-precise amounts. A's tests cover the core rules adequately but less thoroughly. B's report misstates the order of checks (it says existence and status come before amount validation, but the code validates input first), which slightly undercuts the extra notes it adds on idempotency.",
+        "a_issues": [
+          "Tests only check a PAID order for the status rule, not PLACED or CANCELLED",
+          "No test for a zero or over-precise refund amount"
+        ],
+        "b_issues": [
+          "Report says the handler checks existence and status before validating the amount, but the code validates input first",
+          "README table row is wider than the column and breaks the table's alignment"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two handlers are essentially identical and both correct: they reuse Validator, check SHIPPED/DELIVERED, cap cumulative refunds at amountPaid minus amountRefunded, and leave the status unchanged. A's tests cover more edge cases: placed and cancelled orders, a refund of exactly the amount paid, zero amounts, and amounts with too many decimal places. A's report also raises the useful point that refunds are not idempotent. However, A's report lists the rules in the wrong order (it says input is validated after the existence and status checks, but the code validates first), so B's report is the more accurate one.",
+        "a_issues": [
+          "Report says the existence and status checks run before amount validation, but the handler validates the input first.",
+          "The README table row is wider than the column, which breaks the table's alignment."
+        ],
+        "b_issues": [
+          "Fewer edge-case tests: no zero-amount, too-precise-amount, cancelled-order or placed-only-versus-paid distinctions (only a PAID order is tested for the status rejection).",
+          "The report does not flag that refunds are not idempotent, so a retry would refund twice."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

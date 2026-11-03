@@ -1,0 +1,85 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "611ede3f288bf857",
+    "sickn33": "e6b00540d9eef5a8"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes implement the same correct handler: status gating on SHIPPED/DELIVERED, a cumulative cap against amountPaid rather than total, validation reused from the existing Validator, and registration in OrderServices. B's tests are a bit more thorough: they check null, zero and too-precise amounts, a full refund on a delivered order, and that a rejected over-limit refund records nothing. B's small refundableAmount() helper on Order is also a clean encapsulation. A's report adds a useful caveat about concurrent refunds, but that issue is shared by all existing handlers and does not offset B's stronger tests.",
+        "a_issues": [
+          "Invalid-amount coverage only tests zero; null and too many decimal places are not tested for refunds",
+          "The refundable amount is computed inline in the handler rather than as a small domain helper (minor)"
+        ],
+        "b_issues": [
+          "The new README table row is wider than the column, which breaks the table alignment",
+          "The error message calls refundableAmount() twice (trivial)",
+          "The report does not mention the load-then-save race on concurrent refunds"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement the same correct logic: they validate input, reject unless the order is SHIPPED or DELIVERED, cap cumulative refunds at amountPaid minus amountRefunded, record the refund and leave the status unchanged. A puts the refundable-amount rule on Order as a named method. Its tests also cover null and over-precise amounts and check that a rejected over-limit refund leaves amountRefunded unchanged. B's report adds a useful, accurate note about concurrent refunds and the running-total model, but B's tests are a little thinner, so A wins slightly.",
+        "a_issues": [
+          "The new README table row is wider than the column, which breaks the table's visual alignment in source.",
+          "Unlike B, the report does not mention that concurrent refunds could together exceed the amount paid with a real store."
+        ],
+        "b_issues": [
+          "Invalid-amount tests only cover zero, not null or more than two decimal places.",
+          "The single 80.01 over-limit test does not check that amountRefunded stays at zero after the rejection.",
+          "The refundable amount is computed inline in the handler instead of as a named rule on Order (minor)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

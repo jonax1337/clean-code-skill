@@ -1,0 +1,89 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "f32dced5091400d2",
+    "ub-mode": "bbee6053dd7140da"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes make the loader collect every bad value and unknown key, then refuse to start with a clear stderr message, so the core fix is essentially equivalent. B goes beyond the task in two ways: it adds an unrequested zero-timeout rule and it committed to main without being asked. B's report also contains inaccurate or garbled claims, such as all 11 new tests failing on the old code when some plainly would pass, and references to missing \"crapper, dryer and mutator\" steps. A stays within scope, leaves the zero-timeout question to the developer, and reports accurately.",
+        "a_issues": [
+          "Exit code 2 is less conventional than EX_CONFIG (78)",
+          "Joins problems with \"\\n\" rather than the platform line separator (cosmetic)"
+        ],
+        "b_issues": [
+          "Committed to main (ce8d7e0) without being asked",
+          "Adds an unrequested rule rejecting a zero timeout, which the README does not forbid",
+          "Report claims all 11 new tests failed against the old code, but acceptsTheMinimumValues, acceptsBooleansInAnyCase and apiTokenIsRequired would pass on the old loader",
+          "Report mentions skipping nonexistent \"crapper, dryer and mutator\" steps and has a garbled sentence, which adds noise and erodes trust"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes fix the problem the same way: they collect every problem, reject malformed values, unknown keys and a missing file, and make Main exit non-zero with a clear message. B stays closer to the task: it leaves the existing timeout test and the write helper alone and adds no extra validation rule such as rejecting a zero timeout. Its tests are slightly broader (blank token, empty optional value, http/https scheme), and it leaves the commit to the developer. A committed directly to main without being asked, and its report contains confusing references to unrelated tools (crapper, dryer, mutator) with a garbled sentence.",
+        "a_issues": [
+          "Committed to main on its own (ce8d7e0) without being asked.",
+          "Report mentions skipped 'crapper, dryer and mutator steps' and contains a garbled sentence ('aren't in  folder'); this is noise unrelated to the task.",
+          "Adds an unrequested rule rejecting request.timeout=0s; the README does not forbid zero (flagged in the report, but still scope creep).",
+          "Unnecessary churn in existing tests: rewrote parsesAllTimeoutUnits and changed the write helper to append a line separator.",
+          "upstream.url accepts any absolute URL with a host, including non-HTTP schemes such as ftp."
+        ],
+        "b_issues": [
+          "Mixes hard-coded \"\\n\" in the error message with the platform line separator; minor.",
+          "intValue returns the out-of-range value instead of the default after recording the problem; harmless because loading throws, but inconsistent with the other parsers.",
+          "Adds a cause constructor to ConfigException; small, but reasonable."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

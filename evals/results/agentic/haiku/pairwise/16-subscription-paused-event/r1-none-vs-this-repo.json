@@ -1,0 +1,83 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "fbf2d69b9a2d7d65",
+    "this-repo": "d2464bb22d7a58fc"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes implement the same correct behavior in all four source files: the paused status, the active-only rule, payments ignored while paused, cancel clearing resumeOn, the audit format and the customer-only email. Their tests cover essentially the same cases. A also commits an unrelated 408-line package-lock.json that the task did not ask for, and its report never mentions it. That leaves B as the cleaner, accurately reported PR.",
+        "a_issues": [
+          "Adds an unrelated 408-line package-lock.json that the task did not need.",
+          "The report claims to list what changed but leaves out the new lockfile."
+        ],
+        "b_issues": [
+          "State tests repeat the same pause event literal several times instead of sharing one fixture, which makes them a bit verbose."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "The source changes in A and B are essentially identical and both correctly implement pause state, the audit line and the notification. B also commits a new 408-line package-lock.json, which the task did not ask for and its report never mentions. A keeps the diff to what the task needs, and its report also notes the repeated-pause decision.",
+        "a_issues": [
+          "Pause tests rebuild the same event literal several times instead of sharing one fixture, which makes them a bit verbose."
+        ],
+        "b_issues": [
+          "Adds an unrequested package-lock.json (408 lines) to the change.",
+          "Report does not mention the added lockfile.",
+          "Report does not mention that a repeated pause keeps the original resume date, although a test covers it.",
+          "New tests are placed after the existing 'history is rejected' test rather than grouped with the related state tests."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "734f546c14580c7f",
+    "ertugrul-dmr": "e2520453854a991a"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors are almost the same and keep the original behavior, including the order of side effects (coupon checked before stock is reserved, stock released on a declined payment, coupon redeemed only after commit). B's tests are a bit more thorough (a true 4999-cent boundary, the release log on a declined payment), but some of them read the private `CouponBook._remaining`. B's report is also garbled, with empty rule labels like \"**:**\" and an unexplained \"P2\". A's helper parameter order is more consistent and its report is clean and accurate, including a useful note on invalid-coupon status.",
+        "a_issues": [
+          "The 'just below threshold' shipping test only covers 4500 after a coupon, not a true boundary value like 4999.",
+          "`BrokenNotifier` is defined at the bottom of the test module, after the test that uses it."
+        ],
+        "b_issues": [
+          "Tests read the private `CouponBook._remaining` attribute directly.",
+          "The report's Clean Code section has missing rule numbers ('**:**') and an unexplained 'P2', which makes it hard to follow.",
+          "Helper argument order is inconsistent: `_send_receipt(notifier, customer, order, ...)` and `_charge(order, customer, gateway, inventory, ...)` don't match the order used by the other helpers."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors split `process_order` into nearly the same helpers and keep behavior intact, including call order and releasing `order.items` on a declined payment. B's tests check through public APIs and cover half-up rounding and VIP floor rounding. A's tests read the private `CouponBook._remaining`. A's report also has garbled 'Clean Code rule number' labels (empty '**:**' headers, a stray 'P2'), while B's report is clean and accurate and flags a behavior quirk instead of changing it.",
+        "a_issues": [
+          "Report has broken placeholder labels ('**:**', 'P2') where rule numbers were meant to go, which makes it confusing.",
+          "Tests reach into the private `CouponBook._remaining` attribute.",
+          "`_charge` takes 5 parameters, mostly to pass state through (acknowledged in the report)."
+        ],
+        "b_issues": [
+          "Test name `test_shipping_is_charged_just_below_5000_cents_after_discount` uses 4500, which is not 'just below' the threshold, so 4999 is untested.",
+          "`BrokenNotifier` is defined after the test that uses it, which is slightly awkward.",
+          "`_charge` takes 5 parameters, mostly to pass state through."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

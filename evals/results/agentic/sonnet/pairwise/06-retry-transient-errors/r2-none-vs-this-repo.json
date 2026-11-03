@@ -1,0 +1,87 @@
+{
+  "case": "06-retry-transient-errors",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "81c945f66e53a897",
+    "this-repo": "5b98b53c2fdf97f5"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "The task says the carrier answers 502/503 'for a minute'. A's backoff (1+2+4 s, about 7 s in total) would still kill the job in that case, while B's 5/10/20/40 s schedule (about 75 s) is sized for that outage and has a test proving it. B also decides retry safety from the request itself (GET, or an Idempotency-Key header), so a future non-idempotent POST cannot be retried by accident. A's opt-out flag defaults to retrying everything. B's tests are also stronger: they check that 500 is not retried, that the same key is resent on retry, and that the wait covers about a minute.",
+        "a_issues": [
+          "Total backoff of about 7 s will not survive the 'carrier 502/503 for a minute' case the task describes",
+          "Retrying is the default for every request: any new POST added later without retry=False would be retried and could create duplicates",
+          "No test checks that 500 is not retried or that the idempotency key is unchanged across retries",
+          "Unrelated change to the test ADDRESS postal code (\"N1 9GU\" -> \" 9GU\")"
+        ],
+        "b_issues": [
+          "The report calls a re-run after a pickup failure 'safe', but the shipments already created are skipped on re-run, so they never get a pickup booked",
+          "Unreachable AssertionError at the end of the retry loop is a little awkward",
+          "Unrelated change to the test ADDRESS postal code (\"N1 9GU\" -> \" 9GU\")"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "The task says the carrier returns 502/503 'for a minute'. A's 5/10/20/40 s backoff (about 75 s) outlasts that, and a test pins it. B's 1/2/4 s backoff gives up after about 7 s, so the nightly job would still die in the reported scenario. Both correctly refuse to retry the non-idempotent pickup POST and retry keyed shipment creation. A's tests are also more thorough (504, 500 not retried, same key resent), but its report wrongly claims re-runs are safe after a pickup failure.",
+        "a_issues": [
+          "`raise AssertionError('unreachable...')` after the loop is slightly awkward.",
+          "The report's claim that a re-run is safe is wrong when the pickup call fails. The shipments already exist, so a re-run skips them as already shipped and never books a pickup for them."
+        ],
+        "b_issues": [
+          "Total backoff of about 7 s will not survive the roughly one-minute 502/503 outages described in the task, so the job still fails in the reported scenario.",
+          "Tests don't cover 504, 500 not being retried, ConnectionFailed on pickup, or that retries resend the same Idempotency-Key.",
+          "Neither the report nor the tests acknowledge that the backoff window is far shorter than the outage the task describes."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

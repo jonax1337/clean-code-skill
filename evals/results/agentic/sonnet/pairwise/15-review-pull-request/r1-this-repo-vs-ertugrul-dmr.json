@@ -1,0 +1,89 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "8d1934add5a82d08",
+    "ertugrul-dmr": "565c51bad9ae6485"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find the same main blockers: SQL injection in search, swallowed audit errors, the floor-divided `pages` value, unvalidated paging input, and gaps in bulk-deactivation auditing. Both reach the correct do-not-merge verdict. B's file:line references match the patched files, while A cites `users.py:160-167` in a file of about 68 lines and has several off-by-one `api.py` references. The task explicitly asked for file and line, so B's accuracy decides it. A partly makes up for this by flagging the silent breaking change to `list_users` (the README says it returns all users, but it now returns 25 by default), which B misses, and by grounding claims in probes.",
+        "a_issues": [
+          "Line reference `adminhub/users.py:160-167` points past the end of the patched file (the code is at roughly lines 59-68).",
+          "Several `api.py` references are off by one: pages is at :37 not :36, the paging params are at :35-36 not :34-35, and the search page parsing is at :46 not :43.",
+          "Does not mention that already-inactive ids are also audited as 'deactivate'."
+        ],
+        "b_issues": [
+          "Misses that `list_users` now silently caps results at 25 by default, which breaks the README contract ('200 with all users'), and that the README was not updated.",
+          "Formatting leftovers: '(`adminhub/search.py:12-13`, )' and a stray '(/C-rules)'.",
+          "Says search's `per_page` is uncapped, but the handler never passes `per_page` at all; the real issue is that it is ignored.",
+          "The `search.py:15` reference for unvalidated page points at a closing parenthesis."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find the same three blockers: the SQL injection in search, the swallowed audit errors and the rounded-down `pages` value. Both also cover validation and the bulk deactivation problems, and both reach the right verdict. B also finds that `list_users` now silently returns at most 25 users, which contradicts the README's \"200 with all users\" and breaks existing callers. B also correctly notes that `search` ignores `per_page`, and it backs its findings with concrete probes. B's main flaw is wrong line numbers: `users.py:160-167` for a roughly 68-line file, and `api.py` lines off by one. A's line numbers are accurate but its text contains leftover artifacts.",
+        "a_issues": [
+          "Misses that `list_users` now returns at most 25 users by default, which silently breaks callers and contradicts the README.",
+          "Says search's `per_page` is not capped, but the handler never passes `per_page`, so it is fixed at 25.",
+          "Contains stray artifacts: \"(`adminhub/search.py:12-13`, )\" and \"(/C-rules)\".",
+          "Does not mention that the README table was not updated for the new handlers."
+        ],
+        "b_issues": [
+          "Cites `adminhub/users.py:160-167` for `deactivate_users`, but the function is at roughly lines 55-68.",
+          "`api.py` line numbers are off by one (36 instead of 37, 34-35 instead of 35-36).",
+          "The probe results it reports cannot be verified from the diff alone."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

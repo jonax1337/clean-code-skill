@@ -1,0 +1,87 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "0df0052455628721",
+    "this-repo": "92a9cfbdbe604af4"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.25,
+    "scope": 1.0,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep the pricing behavior intact for every caller. B goes further: it replaces `p: any` with a small `Priced` type that all four call sites satisfy, adds a return type, and first pins the existing behavior with characterization tests covering member rates, the SAVE10 floor, unknown and empty coupons, discount order and rounding. A's change is fine but has no tests and was not type-checked or run. Its report also contains a self-contradictory note about the NaN edge case.",
+        "a_issues": [
+          "No tests were added for a function the task says is used all over the codebase, so nothing protects the refactor.",
+          "Neither the tests nor the type checker were run; the change is unverified, though the report says so honestly.",
+          "Keeps `p: any` and loose `==` comparisons, so readability and type safety improve less than they could.",
+          "The report's NaN note says one edge case 'differs slightly' and then says the result is the same, which is confusing."
+        ],
+        "b_issues": [
+          "Narrowing the parameter type from `any` to `Priced` is a small step beyond pure readability cleanup, though it was checked against all four callers.",
+          "The two helpers (`memberFactor`, `roundToCents`) are arguably more structure than a function this small needs."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve getPrice's behavior for every caller. A goes further: it replaces `p: any` with a minimal `Priced` interface that fits all four call sites, splits out small named helpers, and adds characterization tests that it ran against the original code first. Its report also says typecheck and tests were run. B is a safe, minimal cleanup, but it keeps `any` and loose `==`, adds no tests, and was not verified at all, which is weak for a function the task says is used all over the codebase.",
+        "a_issues": [
+          "Tightening `any` to `Priced` goes slightly beyond pure readability cleanup, though the report says it typechecks against all callers.",
+          "The rounding test with `10.005` depends on floating-point representation and could be brittle."
+        ],
+        "b_issues": [
+          "No tests were added or run for a widely used function, despite the warning not to break anything.",
+          "Keeps `p: any` and loose `==` comparisons, so the cleanup is only partial.",
+          "The report's NaN 'edge case differs slightly' note is confusing, since it then says the result is the same.",
+          "The change is unverified: no typecheck or test run."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

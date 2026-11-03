@@ -1,0 +1,89 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "dbe7c7e5c73291ff",
+    "ub-mode": "cb78b0e4133556b2"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.0,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes move the checks into one shared module and keep the message wording and order. A also applies the documented rule that invitation emails are stored lowercase: it derives the invitable roles from the shared role list, says plainly that this is a behavior change, and adds a test for it. B keeps the duplicate-invitation bug and builds it into the shared validator as a `lowercase` option that defaults to off, which goes against the docs. B also leaves a second copy of INVITABLE_ROLES in inviteUser, and its report has noise about a local commit and tools it could not find.",
+        "a_issues": [
+          "Changes inviteUser behavior (email lowercasing) inside a refactoring task, though it matches docs/api.md and the report flags it",
+          "collectMessages plus the `{ value }` / `{ message }` result shape adds a little extra indirection in updateUser"
+        ],
+        "b_issues": [
+          "Builds the invitation-email lowercase bug into the shared validator: the `lowercase` option defaults to false, against the documented rule that all stored emails are lowercase",
+          "INVITABLE_ROLES is still defined separately in inviteUser, so it can drift from ROLES",
+          "The single validation module still lets each caller pick different email rules, which partly defeats 'fix once'",
+          "No handler-level tests, e.g. that an invitation with the owner role is rejected",
+          "Report includes irrelevant remarks (an unpushed commit hash, skipped 'crapper, dryer and mutator tools')"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs move the email, name and role rules into one module and keep the message wording and order. B's validator always lowercases email. That removes the case inconsistency the task is about and brings inviteUser in line with docs/api.md, which says invitation emails are stored lowercase. B states this behavior change openly and tests it. A keeps behavior exactly and asks first, but its opt-in `lowercase` flag leaves the same trap the task wants removed, and its tests are thinner.",
+        "a_issues": [
+          "The `lowercase` option on validateEmail lets callers skip the documented rule that emails are stored lowercase. This keeps the per-handler divergence the task set out to remove.",
+          "inviteUser still stores mixed-case emails, which contradicts docs/api.md. The report flags this but leaves it unfixed.",
+          "INVITABLE_ROLES is still defined separately in inviteUser instead of being derived from the shared ROLES.",
+          "Tests are minimal: no check of the 80-character name boundary, and nothing confirms inviteUser still rejects `owner`.",
+          "The report has an irrelevant line about skipping the 'crapper, dryer and mutator tools'."
+        ],
+        "b_issues": [
+          "Changes inviteUser behavior (it now lowercases emails) inside a refactoring task. The change is disclosed and matches the docs, but it is beyond a pure extraction.",
+          "Adds `collectMessages` and `validateOptionalName` as extra exports. A slightly larger surface, though reasonable."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

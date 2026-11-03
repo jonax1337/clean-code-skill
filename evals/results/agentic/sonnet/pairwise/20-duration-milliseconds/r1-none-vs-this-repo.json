@@ -1,0 +1,87 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "34c7afcc2465701d",
+    "this-repo": "4448c99b2e985cff"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.5,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two diffs are functionally identical. Both switch `parseDuration` to milliseconds, drop `* 1000` where callers wanted milliseconds, and add `/ 1000` where callers wanted seconds (`http.ts`, `report.ts`). Behavior is preserved everywhere. B edges ahead on small readability points: the clearer `ttlMs` name, and numeric separators in the tests that match the style of the new unit table. B's report also says plainly that the `/ 1000` conversions in `http.ts` and `report.ts` are not covered by any test.",
+        "a_issues": [
+          "Local variable named `ms` in `validateTtl` is less descriptive than it could be.",
+          "Test literals like `7200000` lack separators, unlike the `MS_PER_UNIT` table, so they are harder to read.",
+          "No tests added for `rateLimitHeaders` or `describeSettings`, the two places where new `/ 1000` conversions were introduced."
+        ],
+        "b_issues": [
+          "No tests added for `rateLimitHeaders` or `describeSettings`, even though the report notes that gap.",
+          "Typecheck verification is only partial by B's own account (saw only the tail of the output)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two diffs are functionally identical: both switch the unit table to milliseconds, drop `* 1000` in the cache, retry and scheduler, add `/ 1000` for `Retry-After` and the report text, and rescale the validate limits. A reads slightly better: the local is named `ttlMs` and the test values use underscore separators (`7_200_000`). A's report is also a bit more useful, because it says plainly that the new `/ 1000` paths in http.ts and report.ts have no tests and qualifies its typecheck claim.",
+        "a_issues": [
+          "Adds no tests for `rateLimitHeaders` or `describeSettings`, even though both gained a new `/ 1000` conversion.",
+          "Says `tsc --noEmit` printed no errors, but it only saw the tail of the output, so the typecheck is only partly confirmed."
+        ],
+        "b_issues": [
+          "Adds no tests for `rateLimitHeaders` or `describeSettings`, even though both gained a new `/ 1000` conversion.",
+          "Did not run the typecheck.",
+          "Names the local `ms`, which is less descriptive than `ttlMs`.",
+          "Writes test values like `7200000` without separators, which are harder to read.",
+          "The report does not point out that the new seconds conversions are untested."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

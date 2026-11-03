@@ -1,0 +1,86 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "1546743d37631f05",
+    "this-repo": "734f546c14580c7f"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors break process_order into the same six steps and preserve behavior, including releasing order.items on a declined payment, which matches what the old code released. A's characterization tests pin behavior more tightly: exact log messages and their order, the release sequence on a decline, negative quantities, status staying \"new\" on an invalid quantity, and total_cents untouched on a decline. B's report is a bit more informative, notably flagging that an invalid coupon leaves the status at \"new\", but that does not outweigh A's stronger protection for a production refactor.",
+        "a_issues": [
+          "New tests live in a separate characterization file rather than next to the existing checkout tests.",
+          "The helpers take whole order and customer objects where narrower parameters would do."
+        ],
+        "b_issues": [
+          "The \"just below 5000\" shipping test uses a 4500 discounted subtotal, so it does not probe the boundary closely.",
+          "The failed-receipt test only checks that the warning text appears, not the exact log output or order.",
+          "The zero-quantity test does not cover negative quantities and does not assert the order status stays unchanged.",
+          "The report's mention of converting line endings is noise unrelated to the change."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors split `process_order` into the same six steps with the same helpers. Both preserve every check, calculation, side effect and its order, including releasing `order.items` on a declined payment, which is equivalent because every item has been reserved by then. The difference is the characterization tests: B also covers negative quantities, used-up coupons and the default tax rate. B also pins the exact log messages and their levels, the exact reserve and release sequence on a decline, and that `total_cents` stays unset after a decline. A's report adds a useful note on the invalid-coupon status, which does not outweigh B's stronger protection.",
+        "a_issues": [
+          "The receipt-failure test only checks that the warning text appears; it does not pin the info log line or the log levels.",
+          "No test for negative quantities, an unknown-country default tax rate, or a used-up coupon (only an unknown coupon code is tested).",
+          "`BrokenNotifier` is defined after the test that uses it, which is slightly awkward to read."
+        ],
+        "b_issues": [
+          "The tests go in a separate characterization file rather than next to the existing checkout tests, which splits coverage of one function across two files.",
+          "The report does not mention the inconsistency that an invalid coupon leaves the order status at `new`, which A pointed out."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

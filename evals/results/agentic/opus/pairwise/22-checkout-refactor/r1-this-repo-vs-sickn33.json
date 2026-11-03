@@ -1,0 +1,86 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "7b5cfa904064fe15",
+    "sickn33": "7c38330e2c4ca477"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors have nearly the same structure and both preserve behavior, including the safe swap to `order.items` in the declined-payment path. B's characterization tests are stronger. They cover the free-shipping threshold measured after a coupon, a country-specific tax rate, VIP without a coupon, a used-up coupon, and the exact log records with level and exc_info. A's test named \"free from 5000 cents after discounts\" never applies a discount. B also adds short docstrings that explain the less obvious rules.",
+        "a_issues": [
+          "`test_shipping_is_free_from_5000_cents_after_discounts` uses no discount, so it never checks that the threshold uses the discounted subtotal.",
+          "No test covers country-specific tax rates or a used-up coupon.",
+          "The receipt-failure test only checks for a substring in the log, not the warning level or that exc_info is attached."
+        ],
+        "b_issues": [
+          "The extra `_coupon_discount_cents` split is a little more granular than needed.",
+          "The new test file duplicates `CUSTOMER` and the `make_order` helper from `test_checkout.py`.",
+          "The report does not mention the existing test that calls `redeem` itself and so does not prove checkout redeems the coupon (A flags this)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors split the function in almost the same way and keep behavior intact, including the same harmless switch to releasing `order.items` on a declined payment. A's characterization tests go further: they cover country tax rates, a VIP discount without a coupon, negative quantities, a used-up coupon, single redemption per order, and the exact log records. A also adds short docstrings that explain the non-obvious rules. B's work is solid and its report is candid, but its test coverage is a bit thinner.",
+        "a_issues": [
+          "Splits out `_coupon_discount_cents`, a small extra layer that adds little over B's single `_discount`.",
+          "Puts the characterization tests in a new file instead of next to the existing checkout tests, though that is a reasonable choice."
+        ],
+        "b_issues": [
+          "Tests miss country-specific tax rates, a VIP discount without a coupon, negative quantities, and the coupon being used up across repeated orders.",
+          "The failed-receipt test only checks that the warning text appears in `caplog`, not the log level, the attached exception info, or the 'paid' log line.",
+          "The coupon assertions call `redeem()` by hand, which makes them harder to read."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

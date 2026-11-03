@@ -1,0 +1,88 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "6cb47dcc60bb5f2f",
+    "this-repo": "8a93070a66755558"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors appear to preserve the original tokens, errors and error positions. B handles the 'nothing after an error' rule in one place in `next()` without needing `#[inline(always)]`/`#[cold]` annotations, and its benchmark showed parity. It also adds seven regression tests that pin down previously untested error variants and positions. A's refactor is sound, but it marks every helper `#[inline(always)]` and spreads state transitions across helpers. It adds no tests, and its own report admits its timings were noisy and its first version was slower.",
+        "a_issues": [
+          "Every helper is marked `#[inline(always)]` (plus `#[cold]` on fail). This adds noise and is backed only by noisy measurements, within about 5%.",
+          "State transitions (`State::Item`) are set separately in `quoted`, `bare` and `value`, rather than in one place.",
+          "No tests were added, even though it calls the existing tests thin and leaves the old-vs-new comparison out.",
+          "`check_separator` plus `if let Err(e) = ... { return self.fail(e) }` is slightly clunky next to plain `?`."
+        ],
+        "b_issues": [
+          "The temporary differential comparison against the old tokenizer was deleted rather than kept as a regression test.",
+          "Inlining across the hot path is left to the compiler, with no annotations. Its parity claim rests on synthetic lines only.",
+          "`value()` sets `expect = Field` before parsing and relies on `next()` to override it on error. This is correct, but the ordering is slightly subtle."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors split the monolithic `next()` into per-token methods with a named state enum, and both look behavior-preserving on close reading, including error positions, empty bare values and stopping after an error. A handles the stop-after-error rule in one place in `next()`, which is simpler than B's `fail()` helper threaded through every method. A also adds seven regression tests for previously untested error paths and edge cases. B adds no tests despite noting the existing ones are thin, and it sprinkles `#[inline(always)]`/`#[cold]` on every helper.",
+        "a_issues": [
+          "Report states flatly that the change isn't slower, based only on a synthetic benchmark (though it does suggest timing on a real dump).",
+          "Helpers are not inline-annotated; this relies on LLVM inlining private single-call methods, which is likely fine but was not shown on real data."
+        ],
+        "b_issues": [
+          "No tests added, although the report itself says the existing tests are thin and the old-vs-new comparison was deleted.",
+          "Blanket `#[inline(always)]` on every helper, plus `#[cold]`, is noisy and somewhat speculative tuning given the report says the timings were within noise.",
+          "A first version was 10\u201335% slower; the final performance claim rests on noisy measurements.",
+          "Extra indirection (the `Lexed` alias, `bytes()` wrapper, `fail()` called from many sites) makes it slightly heavier than necessary."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

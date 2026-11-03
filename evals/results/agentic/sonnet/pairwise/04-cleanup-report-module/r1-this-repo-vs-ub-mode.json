@@ -1,0 +1,89 @@
+{
+  "case": "04-cleanup-report-module",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "23cf05cab567af14",
+    "ub-mode": "85821680fbdad95f"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.75,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 0.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors produce the same output as before for realistic inputs. Both collapse the three copy-pasted region blocks into one table-driven loop, and both deliberately keep and document the negative-amount grouping quirk. A is the easier result to read and maintain: one `groupThousands` helper, small named functions, and explicit inline tests for France, the UK, month filtering, error paths and negatives. B uses per-region lambdas, keeps a regex and a hand loop for grouping side by side, and relies on an opaque golden JSON blob. B's report is more honest about the Infinity edge case, which A also changes without mentioning it, but B committed unasked and left a line-ending warning behind.",
+        "a_issues": [
+          "Rewrote `formatMoney` as well, a wider and riskier change than needed. It is equivalent, but there was no need to touch it.",
+          "Infinite unit prices now render differently from the original: French rows show grouped 'In fin ity' instead of 'NaN'. The report claims all output is identical and does not mention this, so the random comparison missed it.",
+          "`formatRowAmount` duplicates the region switch that `formatMoney` already has (documented, but still two places to update for a new region)."
+        ],
+        "b_issues": [
+          "Committed locally without being asked, and reports that git will switch `report.js` from CRLF to LF line endings.",
+          "The `REGIONS` entries carry `group`/`money` lambdas. Grouping uses a regex for FR and a hand loop for DE/UK, so there are still two grouping implementations and neither is shared with `formatMoney`.",
+          "The golden test is one opaque JSON fixture with two snapshot strings. It is hard to read, and a failure gives little hint of which case broke. It has no direct tests for format or month validation errors.",
+          "Infinite prices in French rows now print 'Infinity' instead of 'NaN' (disclosed in the report)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors collapse the three region blocks into a REGIONS loop and keep the odd negative-amount row formatting. Neither changes realistic output. A is more conservative: it leaves the shared `formatMoney` untouched, captures a golden fixture before editing, and reports its one known divergence (infinite prices print `Infinity` instead of `NaN`). B also rewrites `formatMoney` without need, though its rewrite matches the original. B has the same infinite-price divergence (plus a different FR rendering of it) but claims the output is identical in every case. B has somewhat more readable helpers and more explicit tests, but A's conservatism and accurate report tip it.",
+        "a_issues": [
+          "Golden expectations are opaque JSON strings rather than readable expected lines, and the fixture file lacks a trailing newline",
+          "Committed locally without being asked and left a CRLF-to-LF line-ending change in report.js",
+          "Format logic is spread across lambdas inside the REGIONS table, a little indirect for readers"
+        ],
+        "b_issues": [
+          "Rewrote the exported `formatMoney`, which `digest.js` also uses; equivalent, but unnecessary churn and risk",
+          "Report says the output is unchanged on every input, yet infinite unit prices in FR now render differently (the same divergence A disclosed), so 'identical' is overstated",
+          "Money formatting is now duplicated across two switch statements (`formatMoney` and `formatRowAmount`)",
+          "`options || {}` is evaluated twice in `buildReport`"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

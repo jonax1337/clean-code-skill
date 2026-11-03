@@ -1,0 +1,85 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "751f6b2e4f9cbc9b",
+    "sickn33": "f46c8508f6172ef3"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors look behavior-preserving: the scanners, error positions and stop-after-error handling all match the original. Both swap the u8 state for a named enum and centralize failure handling in the same way. A also adds 19 tests, run against the original before refactoring, that pin every error variant, its exact position and the tricky edge cases. That directly protects the user's requirement of identical tokens and errors. B adds no tests; its only equivalence check is a fuzz harness left outside the repo.",
+        "a_issues": [
+          "Report says the repeated failure lines occurred 10 times; the original has 11.",
+          "token.rs grew in line count, though nesting is much shallower."
+        ],
+        "b_issues": [
+          "No tests added; the old-vs-new comparison harness lives outside the repo, so nothing guards future edits to the line format.",
+          "finish_token_at both validates and advances pos, which mixes checking with mutation.",
+          "Report says the stop-after-error code was copied to 13 return points; the original has 11 such sites."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors are behaviorally equivalent to the original. Each has a State enum, a single place that stops the stream after an error, and shared scanners for unquoted runs, closing brackets and closing quotes. I traced the error positions, the empty-value case, a backslash at the end of a line, and polling after the end of the stream, and both match the original. B wins clearly because it adds 19 regression tests and ran them against the old code before refactoring. They pin every error variant with its exact position and the questionable edge cases, so the refactor and future format changes are protected. A's random comparison against the old version lives only in a scratch directory outside the repo, so it protects nothing going forward.",
+        "a_issues": [
+          "No tests added; the equivalence check exists only in an out-of-repo scratch harness, so nothing protects the refactor or future edits.",
+          "Leaves a scratch directory (`..\\scratch`) outside the repo for the developer to clean up.",
+          "The report's count of '13 different return points' is inflated; the original has 11 error exits."
+        ],
+        "b_issues": [
+          "The report says the reset lines were repeated 10 times; there are actually 11.",
+          "token.rs grew slightly (174 to about 190 lines), though with less nesting."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

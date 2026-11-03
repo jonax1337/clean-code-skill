@@ -1,0 +1,86 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "399da28584b277f5",
+    "sickn33": "80533beef1f8c6c9"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors move the email, name and role checks into one shared module and keep current behavior, including the invite email that is not lowercased. Both flag that quirk for the developer instead of silently changing it. A adds focused tests for the shared validators, including the 80-character limit on an optional name that nothing covered before; B adds no tests for the new module. A's `errorsOf` helper also removes the repeated message-collecting loops that B keeps in each handler.",
+        "a_issues": [
+          "The required-role check in inviteUser builds an ad hoc `{ error }` object inline, so that rule sits outside the shared module.",
+          "Its updateUser rewrite builds `changes` in a second pass over `checks`, which moves further from the original structure than it needs to."
+        ],
+        "b_issues": [
+          "No tests for the new shared validation module, so the rules that are now centralized have no direct protection.",
+          "Each handler still repeats the `if (x.message) messages.push(...)` collection logic.",
+          "Its inviteUser seeds `role` with a placeholder `{ value: body.role }` before validating, which is slightly awkward."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors move the email, name and role rules into one module. Both preserve the existing behavior, including invitations not lowercasing emails, and both flag that inconsistency. B also adds unit tests for the shared rules, covering the 80-character limit on optional names, which no test covered before. B's `errorsOf` helper also keeps the handlers tidier. A adds no tests, so the new shared module and its options are unprotected.",
+        "a_issues": [
+          "Adds no tests for the new shared validation module or its `lowercase`/`required` options.",
+          "inviteUser mixes direct `messages.push('role is required')` with result objects, which is slightly uneven.",
+          "Report treats invitation email casing as an open question, although docs/api.md already says invitation emails are stored lowercase."
+        ],
+        "b_issues": [
+          "INVITABLE_ROLES stays in inviteUser.js instead of the shared module, so not every role rule is centralized.",
+          "Report treats invitation email casing as an open question, although docs/api.md already says invitation emails are stored lowercase.",
+          "checkRole has no default role list, so callers must pass ROLES explicitly (minor)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

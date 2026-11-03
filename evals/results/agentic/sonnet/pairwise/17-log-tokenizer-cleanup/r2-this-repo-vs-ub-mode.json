@@ -1,0 +1,88 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "b96acc341f4b801c",
+    "ub-mode": "7f313c59735b249a"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors look behavior-preserving. Reading the diffs, every error kind, error position, empty-bare case and post-error stop matches the original in each version. A also adds 15 characterization tests covering every error variant, empty values, escape-at-end and multibyte offsets, so the next change to the line format is protected. B adds no tests and leaves the equivalence check only in its report. B also committed locally without being asked, and its scanners still repeat the original index-loop style; A's small scanner helpers and its comment explaining `#[inline(always)]` are easier to maintain.",
+        "a_issues": [
+          "`read_field` no longer updates `pos` when only separators remain. This is harmless but a small internal difference from the original.",
+          "Performance relies on `#[inline(always)]`, and the report admits word-only lines were sometimes 3\u20135% slower. Real dumps were not benchmarked."
+        ],
+        "b_issues": [
+          "No tests were added. The exhaustive comparison was thrown away, so nothing in the repo protects the refactor or future format changes.",
+          "Committed locally (`16673c7`) without being asked.",
+          "Scanners keep the original manual `i < n` / `b[i]` loop shapes, and `quoted` and `timestamp` both repeat the separator-after check instead of sharing a helper.",
+          "Benchmark covered only one synthetic line shape."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep the tokens, errors and end-of-stream behaviour the same. B's pure scanner functions returning Result, plus a single `#[cold]` fail point, read more cleanly than A's stateful helpers. B also adds 15 characterization tests that pin every error kind and position, which protects this and future format changes. A leaves no lasting tests and made an unrequested local commit.",
+        "a_issues": [
+          "No tests added; the old-vs-new comparison was discarded, so nothing guards future format changes.",
+          "Committed locally without being asked.",
+          "The helpers mix scanning with state mutation (`fail`/`emit` inside each scanner), so the scanning logic is less self-contained.",
+          "Performance was checked on a single synthetic line shape only."
+        ],
+        "b_issues": [
+          "`read_field` no longer updates `pos` when only separators remain. This is harmless, but it differs slightly from the original internally.",
+          "Five functions need `#[inline(always)]` to stay as fast as before, which is a fragile dependency (it is documented, though).",
+          "Some line shapes ran about 3\u20135% slower, reported as within noise."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

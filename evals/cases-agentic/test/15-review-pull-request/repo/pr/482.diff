@@ -1,0 +1,286 @@
+diff --git a/adminhub/api.py b/adminhub/api.py
+index fa5a669..705f0a1 100644
+--- a/adminhub/api.py
++++ b/adminhub/api.py
+@@ -4,6 +4,7 @@ import sqlite3
+ 
+ from . import reports, users
+ from .errors import BadRequest, NotFound
++from .search import search_users
+ 
+ 
+ def ok(body: dict) -> dict:
+@@ -31,7 +32,19 @@ def get_user(conn: sqlite3.Connection, params: dict) -> dict:
+ 
+ 
+ def list_users(conn: sqlite3.Connection, params: dict) -> dict:
+-    return ok({"users": [user.to_dict() for user in users.list_users(conn)]})
++    page = int(params.get("page", 1))
++    per_page = min(int(params.get("per_page", users.DEFAULT_PAGE_SIZE)), 100)
++    total_pages = users.count_users(conn) // per_page
++    page_of_users = users.list_users(conn, page, per_page)
++    return ok({"users": [user.to_dict() for user in page_of_users], "page": page, "pages": total_pages})
++
++
++def search(conn: sqlite3.Connection, params: dict) -> dict:
++    term = params.get("q", "").strip()
++    if not term:
++        return error(400, "q is required")
++    found = search_users(conn, term, int(params.get("page", 1)))
++    return ok({"users": [user.to_dict() for user in found]})
+ 
+ 
+ def deactivate_user(conn: sqlite3.Connection, params: dict) -> dict:
+@@ -44,6 +57,11 @@ def deactivate_user(conn: sqlite3.Connection, params: dict) -> dict:
+     return ok({"deactivated": 1})
+ 
+ 
++def bulk_deactivate(conn: sqlite3.Connection, params: dict) -> dict:
++    ids = [int(user_id) for user_id in params.get("ids", [])]
++    return ok({"deactivated": users.deactivate_users(conn, ids, actor=params["actor"])})
++
++
+ def signups(conn: sqlite3.Connection, params: dict) -> dict:
+     if "start" not in params or "end" not in params:
+         return error(400, "start and end are required")
+diff --git a/adminhub/audit.py b/adminhub/audit.py
+new file mode 100644
+index 0000000..ab0cac7
+--- /dev/null
++++ b/adminhub/audit.py
+@@ -0,0 +1,16 @@
++"""Audit trail for changes made through the admin console."""
++
++import sqlite3
++from datetime import datetime, timezone
++
++
++def record(conn: sqlite3.Connection, actor: str, action: str, target_id: int) -> None:
++    """Append one entry to the audit log. The caller commits."""
++    at = datetime.now(timezone.utc).isoformat(timespec="seconds")
++    try:
++        conn.execute(
++            "INSERT INTO audit_log (actor, action, target_id, at) VALUES (?, ?, ?, ?)",
++            (actor, action, target_id, at),
++        )
++    except sqlite3.Error:
++        pass
+diff --git a/adminhub/db.py b/adminhub/db.py
+index f58871e..01a5269 100644
+--- a/adminhub/db.py
++++ b/adminhub/db.py
+@@ -11,6 +11,14 @@ CREATE TABLE IF NOT EXISTS users (
+     active INTEGER NOT NULL DEFAULT 1,
+     created_at TEXT NOT NULL
+ );
++
++CREATE TABLE IF NOT EXISTS audit_log (
++    id INTEGER PRIMARY KEY,
++    actor TEXT NOT NULL,
++    action TEXT NOT NULL,
++    target_id INTEGER NOT NULL,
++    at TEXT NOT NULL
++);
+ """
+ 
+ 
+diff --git a/adminhub/search.py b/adminhub/search.py
+new file mode 100644
+index 0000000..d136705
+--- /dev/null
++++ b/adminhub/search.py
+@@ -0,0 +1,17 @@
++"""User search for the admin console."""
++
++import os
++import sqlite3
++
++from .models import User
++
++
++def search_users(conn: sqlite3.Connection, term: str, page: int = 1, per_page: int = 25) -> list[User]:
++    # TODO: rank exact matches first
++    query = (
++        "SELECT id, email, name, role, active, created_at FROM users "
++        f"WHERE name LIKE '%{term}%' OR email LIKE '%{term}%' "
++        "ORDER BY name LIMIT ? OFFSET ?"
++    )
++    res = conn.execute(query, (per_page, (page - 1) * per_page)).fetchall()
++    return [User.from_row(row) for row in res]
+diff --git a/adminhub/users.py b/adminhub/users.py
+index c5595b2..e7930d9 100644
+--- a/adminhub/users.py
++++ b/adminhub/users.py
+@@ -3,10 +3,12 @@
+ import sqlite3
+ from datetime import datetime, timezone
+ 
++from . import audit
+ from .errors import NotFound
+ from .models import User
+ 
+ SELECT_USER = "SELECT id, email, name, role, active, created_at FROM users"
++DEFAULT_PAGE_SIZE = 25
+ 
+ 
+ def create_user(
+@@ -30,15 +32,37 @@ def get_user(conn: sqlite3.Connection, user_id: int) -> User:
+     return User.from_row(row)
+ 
+ 
+-def list_users(conn: sqlite3.Connection) -> list[User]:
+-    """All users, ordered by id."""
+-    rows = conn.execute(SELECT_USER + " ORDER BY id").fetchall()
++def list_users(conn: sqlite3.Connection, page: int = 1, per_page: int = DEFAULT_PAGE_SIZE) -> list[User]:
++    """One page of users, ordered by id."""
++    offset = (page - 1) * per_page
++    rows = conn.execute(SELECT_USER + " ORDER BY id LIMIT ? OFFSET ?", (per_page, offset)).fetchall()
+     return [User.from_row(row) for row in rows]
+ 
+ 
++def count_users(conn: sqlite3.Connection) -> int:
++    """Number of users, active or not."""
++    return conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
++
++
+ def deactivate_user(conn: sqlite3.Connection, user_id: int) -> None:
+     """Mark a user inactive or raise NotFound."""
+     cursor = conn.execute("UPDATE users SET active = 0 WHERE id = ?", (user_id,))
+     if cursor.rowcount == 0:
+         raise NotFound(f"user {user_id} not found")
+     conn.commit()
++
++
++def deactivate_users(conn: sqlite3.Connection, user_ids: list[int], actor: str) -> int:
++    """Deactivate all given users in one transaction and audit each one; returns how many changed."""
++    if not user_ids:
++        return 0
++    placeholders = ", ".join("?" for _ in user_ids)
++    try:
++        cursor = conn.execute(f"UPDATE users SET active = 0 WHERE id IN ({placeholders})", user_ids)
++        for user_id in user_ids:
++            audit.record(conn, actor, "deactivate", user_id)
++        conn.commit()
++    except Exception:
++        conn.rollback()
++        raise
++    return cursor.rowcount
+diff --git a/tests/test_api.py b/tests/test_api.py
+index dd59d29..ca0567e 100644
+--- a/tests/test_api.py
++++ b/tests/test_api.py
+@@ -22,5 +22,27 @@ def test_list_users_returns_everyone(conn):
+     assert [user["id"] for user in response["body"]["users"]] == [1, 2, 3, 4, 5]
+ 
+ 
++def test_list_users_honours_per_page(conn):
++    response = api.list_users(conn, {"page": "1", "per_page": "3"})
++
++    assert len(response["body"]["users"]) == 3
++
++
++def test_search_finds_users_by_name_or_email(conn):
++    response = api.search(conn, {"q": "stone"})
++
++    assert [user["email"] for user in response["body"]["users"]] == ["bob@example.com"]
++
++
++def test_search_requires_a_term(conn):
++    assert api.search(conn, {"q": "  "})["status"] == 400
++
++
+ def test_deactivate_user(conn):
+     assert api.deactivate_user(conn, {"id": "2"}) == {"status": 200, "body": {"deactivated": 1}}
++
++
++def test_bulk_deactivate(conn):
++    response = api.bulk_deactivate(conn, {"ids": ["2", "3"], "actor": "root"})
++
++    assert response == {"status": 200, "body": {"deactivated": 2}}
+diff --git a/tests/test_audit.py b/tests/test_audit.py
+new file mode 100644
+index 0000000..9163cd5
+--- /dev/null
++++ b/tests/test_audit.py
+@@ -0,0 +1,15 @@
++from adminhub import audit, users
++
++
++def test_record_appends_an_entry(conn):
++    audit.record(conn, "root", "deactivate", 3)
++
++    row = conn.execute("SELECT actor, action, target_id FROM audit_log").fetchone()
++    assert tuple(row) == ("root", "deactivate", 3)
++
++
++def test_bulk_deactivation_is_audited_per_user(conn):
++    users.deactivate_users(conn, [1, 2], actor="root")
++
++    rows = conn.execute("SELECT target_id FROM audit_log ORDER BY target_id").fetchall()
++    assert [row["target_id"] for row in rows] == [1, 2]
+diff --git a/tests/test_search.py b/tests/test_search.py
+new file mode 100644
+index 0000000..aaea7b1
+--- /dev/null
++++ b/tests/test_search.py
+@@ -0,0 +1,23 @@
++from adminhub.search import search_users
++
++
++def test_search_matches_name_case_insensitively(conn):
++    assert [user.name for user in search_users(conn, "ann")] == ["Ann Lee"]
++
++
++def test_search_matches_email(conn):
++    assert [user.id for user in search_users(conn, "dee@")] == [4]
++
++
++def test_search_orders_by_name(conn):
++    assert [user.name for user in search_users(conn, "example")] == [
++        "Ann Lee",
++        "Bob Stone",
++        "Cy Marsh",
++        "Dee Ortiz",
++        "Eve Hall",
++    ]
++
++
++def test_search_pages_start_at_one(conn):
++    assert [user.name for user in search_users(conn, "example", page=2, per_page=3)] == ["Dee Ortiz", "Eve Hall"]
+diff --git a/tests/test_users.py b/tests/test_users.py
+index 9ac64d7..fdfcebc 100644
+--- a/tests/test_users.py
++++ b/tests/test_users.py
+@@ -19,6 +19,18 @@ def test_list_users_is_ordered_by_id(conn):
+     assert [user.id for user in users.list_users(conn)] == [1, 2, 3, 4, 5]
+ 
+ 
++def test_list_users_respects_the_page_size(conn):
++    assert len(users.list_users(conn, page=1, per_page=2)) == 2
++
++
++def test_list_users_beyond_the_last_page_is_empty(conn):
++    assert users.list_users(conn, page=99, per_page=2) == []
++
++
++def test_count_users_counts_everyone(conn):
++    assert users.count_users(conn) == 5
++
++
+ def test_deactivate_user_marks_the_user_inactive(conn):
+     users.deactivate_user(conn, 3)
+ 
+@@ -28,3 +40,13 @@ def test_deactivate_user_marks_the_user_inactive(conn):
+ def test_deactivate_user_raises_for_unknown_id(conn):
+     with pytest.raises(NotFound):
+         users.deactivate_user(conn, 99)
++
++
++def test_deactivate_users_deactivates_every_given_user(conn):
++    assert users.deactivate_users(conn, [1, 4], actor="root") == 2
++
++    assert [users.get_user(conn, user_id).active for user_id in (1, 2, 4)] == [False, True, False]
++
++
++def test_deactivate_users_without_ids_changes_nothing(conn):
++    assert users.deactivate_users(conn, [], actor="root") == 0

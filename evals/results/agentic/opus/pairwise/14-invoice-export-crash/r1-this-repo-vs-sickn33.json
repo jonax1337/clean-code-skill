@@ -1,0 +1,84 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "8074c3e7445d4b1e",
+    "sickn33": "d20e57bfdca7c3bd"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix: they rename the CRM `customer_id` to `customerId` at load time and switch the export to the existing `requireCustomer`, which matches the README's data-error convention. A keeps the CRM mapper private and its temp-directory test cleans up after itself. B exports `fromCrmRecord` only so it can be tested, never removes its temp directory, and puts its new import out of the existing alphabetical order. Both reports are accurate, and A also says the new tests failed before the fix.",
+        "a_issues": [
+          "The comment on `fromCrmRecord` is slightly wordier than needed (minor)"
+        ],
+        "b_issues": [
+          "Exports `fromCrmRecord` only so it can be tested, which widens the module's API",
+          "The `loadCustomerRecords` test creates a temp directory and never removes it",
+          "The new `requireCustomer` import breaks the alphabetical import order of the file",
+          "The direct `fromCrmRecord` unit test is mostly redundant with the `loadCustomerRecords` test"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix: they rename the CRM `customer_id` to `customerId` at load time and route the lookup through the existing `requireCustomer`, which follows the README's data-error convention. B keeps the CRM mapping helper private, removes its temporary test directory afterwards, and keeps the imports in alphabetical order. A exports `fromCrmRecord` only so it can be tested and leaves temp directories behind. The differences are small and mostly about tidiness.",
+        "a_issues": [
+          "Exports `fromCrmRecord` from sources.js only so a test can call it, which widens the module's public surface without need.",
+          "The sources test creates a temp directory with mkdtempSync and never removes it.",
+          "The new import is placed out of alphabetical order (customers.js before csv.js)."
+        ],
+        "b_issues": [
+          "The `withDataDirectory` helper in the test is a little more setup than a single test needs, though it is reasonable."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

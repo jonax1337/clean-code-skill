@@ -1,0 +1,62 @@
+diff --git a/REVIEW.md b/REVIEW.md
+new file mode 100644
+index 0000000..77935c6
+--- /dev/null
++++ b/REVIEW.md
+@@ -0,0 +1,56 @@
++# Review: PR 482 (user search, paged user list, bulk deactivation with audit log)
++
++Method: applied `pr/482.diff` to a scratch copy of the repo (not the working tree), ran `python -m pytest -q` (28 passed, matching the PR description), and ran targeted probes against the patched code. Line numbers refer to the patched files.
++
++## Findings, most important first
++
++### 1. SQL injection in `search` (blocker)
++- `adminhub/search.py:13`: `term` is interpolated into the SQL with an f-string: `f"WHERE name LIKE '%{term}%' OR email LIKE '%{term}%' "`. The `?` placeholders are only used for `LIMIT`/`OFFSET`.
++- The `q` parameter comes straight from the request (`adminhub/api.py:43`, `search`), so any console or HTTP caller can inject SQL.
++- Probe: `api.search(conn, {"q": "%' OR '1'='1' OR '"})` returns all 5 of 5 users, bypassing the match. A payload containing `--` comments out the `LIMIT ? OFFSET ?` clause and makes the call fail with a binding error, which confirms the query is being altered.
++- This contradicts the README rule that "All queries go through `sqlite3` with `?` placeholders" (`README.md`, last section).
++- Fix: bind the term, e.g. `WHERE name LIKE ? OR email LIKE ?` with `(f"%{term}%", f"%{term}%", per_page, offset)`. Escape `%` and `_` in the term too (`LIKE ... ESCAPE '\'`), or document that they act as wildcards. Add a test with a quote and a `--` in `q`.
++
++### 2. Audit failures are swallowed, so deactivations can happen without an audit record (high)
++- `adminhub/audit.py:15-16`: `except sqlite3.Error: pass`. If the insert fails, the caller never learns about it, the `rollback()` in `users.py:65-66` never runs, and the UPDATE is committed with no audit row.
++- The PR's stated purpose is that "every deactivation" is in the audit trail for compliance. Swallowing the error breaks that guarantee.
++- Fix: remove the `try/except` in `audit.record`. Let the error propagate so the transaction rolls back.
++
++### 3. Audit rows are written for IDs that do not change anything (medium)
++- `adminhub/users.py:61-63`: the UPDATE and the audit loop both use the full `user_ids` list, not the IDs that actually changed.
++- Probe: `deactivate_users(conn, [99], actor="root")` returns 0 but writes an audit row for user 99, which does not exist.
++- Probe: deactivating an already-inactive user (id 2) again returns `1` and writes another audit row. The count comes from `rowcount`, which counts matched rows, not changed rows, so the "how many changed" docstring is wrong.
++- Fix: select the IDs that exist and are active first, audit only those, and return the count of rows actually changed.
++
++### 4. `actor` is client-supplied (medium, depends on the web layer)
++- `adminhub/api.py:62`: `actor=params["actor"]` is read from request parameters. Nothing in this code authenticates it, so the audit trail records whatever name the caller sends.
++- A `KeyError('actor')` also escapes as an unhandled exception when the parameter is missing (probe confirmed). `deactivate_user` returns error responses for bad input; this handler does not.
++- Fix: take the actor from the authenticated session in the web layer, not from the parameters, and return 400 when it is missing.
++
++### 5. Page count is wrong (medium)
++- `adminhub/api.py:37`: `total_pages = users.count_users(conn) // per_page` is floor division, not ceiling.
++- Probe: with 5 users and `per_page=2` the handler reports `pages: 2`, but there are 3 pages. With `per_page=25` it reports `pages: 0` for a non-empty table. The console pager will be off by one and will show no pages for small tables.
++- Fix: `math.ceil(total / per_page)` or `(total + per_page - 1) // per_page`. Add a test that checks `pages`, which none of the new tests do.
++
++### 6. Unvalidated numeric input causes crashes (medium)
++- `adminhub/api.py:36`: `per_page=0` raises `ZeroDivisionError` (probe confirmed). `api.py:35` and `api.py:46`: `page=0` or negative pages give negative offsets, and `page=0` on search silently returns page 1 results. A non-numeric `page` raises an unhandled `ValueError`.
++- `min(..., 100)` caps only the upper bound. There is no lower bound.
++- Fix: validate `page >= 1` and `1 <= per_page <= 100`, and return 400 on failure. Use the same helper for `list_users` and `search`.
++
++### 7. Search `page` / `pages` inconsistency and missing paging on search (low)
++- `adminhub/api.py:46-47`: `search` ignores `per_page` and returns no `page` or `pages`, unlike `list_users`. The console cannot render a pager for search results, although the PR description implies search is "paged the same way."
++
++### 8. Smaller items (low)
++- `adminhub/search.py:3`: `import os` is unused.
++- `adminhub/search.py:10`: `# TODO: rank exact matches first` is undocumented work in a merge candidate. Either track it in an issue or remove it.
++- `adminhub/api.py:61`: `ids` is not checked for being a list (a string would be iterated character by character), and there is no cap on the number of IDs. Very large lists can hit SQLite's bound-variable limit on older builds.
++- `README.md:11`: the handler table still says `list_users` takes no parameters and does not mention `search` or `bulk_deactivate`.
++- The tests do not cover SQL metacharacters in `q`, `pages` values, invalid `page`/`per_page`, audit rollback on failure, or audit rows for unknown IDs.
++
++## Would I merge it as it is?
++
++**No.** Finding 1 is a SQL injection reachable from a request parameter, and it violates the project's own stated rule for queries. Findings 2 and 3 undermine the compliance guarantee the PR exists to provide. Finding 5 makes the pager wrong. Findings 4 and 6 are crashes or spoofable audit fields.
++
++Minimum changes before merge: fix the query in `search.py` with bound parameters and add a test for it; remove the silent `except` in `audit.py`; fix the page count; validate `page` and `per_page`. Findings 3 and 4 should be addressed too, since they affect the audit trail the PR is meant to produce. The rest can be follow-ups.
++
++The 28 passing tests are not evidence the code is safe to ship: none of them exercise the injection, the page count, or the audit failure paths.

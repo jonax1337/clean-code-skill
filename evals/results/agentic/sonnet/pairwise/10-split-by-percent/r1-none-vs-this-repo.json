@@ -1,0 +1,91 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "6ebffa2962215a2f",
+    "this-repo": "f6b9c9c33acd563d"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.25,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes split correctly through the existing `allocate`, and both reject bad totals and duplicate names. B is the stronger change. It makes `--with` and `--percent` exclusive with argparse's own mutually-exclusive group, and it moves the duplicate-name check into a shared helper. A instead adds a new `UsageError` class with a hand-written check and copies the duplicate logic. B also has much better test coverage, including unit tests for `parse_percent` and `split_by_percent`.",
+        "a_issues": [
+          "Copies the duplicate-name check from `split_equally` into `split_by_percent` instead of sharing it.",
+          "Adds a new `UsageError` class and a manual both-or-neither check, when an argparse mutually exclusive group would do the job.",
+          "Silently accepts 0% entries without saying so in the report.",
+          "No unit tests for `parse_percent` or `split_by_percent`, and no test for giving neither `--with` nor `--percent`.",
+          "Rewrites the existing README row instead of adding a new one, which makes the equal-split usage harder to read.",
+          "The report opens with irrelevant chatter (\"The README row came out right...\")."
+        ],
+        "b_issues": [
+          "Rejecting 0% is a judgement call the task did not ask for, though the report discloses it.",
+          "The mixing error comes from argparse (raises `SystemExit`) instead of the app's own `error:` path, so its message format differs from other errors.",
+          "No test for giving neither option."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes add a working `--percent` option that reuses `allocate` and rejects totals other than 100, malformed values and duplicate names. A moves the duplicate-name check into a shared helper, lets argparse enforce `--with` versus `--percent` through a mutually exclusive group, and adds focused unit tests for `parse_percent` and `split_by_percent`. B copies the duplicate check into a second function, adds a new `UsageError` class to hand-check mutual exclusion, and tests only through the CLI. Both reports are accurate, but A's code is simpler and its tests are more thorough.",
+        "a_issues": [
+          "The `percent <= 0` check partly cannot be reached from the CLI, because `parse_percent` already rejects negative numbers; only the zero case matters there.",
+          "Rejecting a 0% entry is a judgement call the task did not ask for, though the report discloses it.",
+          "The mutual-exclusion test only checks for `SystemExit` and does not check that nothing was saved."
+        ],
+        "b_issues": [
+          "The duplicate-name check is copied verbatim from `split_equally` into `split_by_percent` instead of being shared.",
+          "It adds a new `UsageError` class and a manual `bool(...) == bool(...)` check where argparse's mutually exclusive group would do the job.",
+          "It adds no unit tests for `parse_percent` or `split_by_percent`; malformed inputs such as `5.5`, `-5`, `=50` and a missing `=` are not tested.",
+          "The report opens with process narration (\"The README row came out right, so I'm wrapping up\")."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

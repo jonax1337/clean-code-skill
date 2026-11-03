@@ -1,0 +1,80 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ea21bf4559dbff79",
+    "ub-mode": "c2bc444d586aa650"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs make the same correct production change: they remove the help line, the option field, the parser arm, the renderer branch and its helpers, and update the README and CHANGELOG. The only code difference is the tests. A deletes every compact test, while B replaces them with a regression test asserting that both `--compact` and `-c` now return `UnknownOption`. That test protects the actual behavior change the task introduces.",
+        "a_issues": [
+          "Deletes all compact tests without adding one that checks `-c`/`--compact` are now rejected. The removal is verified only by a manual run described in the report."
+        ],
+        "b_issues": [
+          "No notable issues. The changelog wording is slightly redundant (\"deprecated since 0.8.0, has been removed\" under a Removed heading), which is cosmetic."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs make the same source, README, help-text and CHANGELOG changes and remove all compact code cleanly. The only real difference is in the tests. A replaces the compact tests with a regression test asserting that `--compact` and `-c` now return `UnknownOption`, which protects the change itself. B only deletes tests, so nothing in the suite checks the removal; B checked it by hand instead.",
+        "a_issues": [
+          "None significant; adding `removed_compact_flag_is_rejected` partly duplicates the generic unknown-option test, though it documents the intentional removal."
+        ],
+        "b_issues": [
+          "No test asserts that `-c`/`--compact` are now rejected, so the removal is checked only by a manual run.",
+          "The CHANGELOG entry mentions only `-c` failing, not `--compact`."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

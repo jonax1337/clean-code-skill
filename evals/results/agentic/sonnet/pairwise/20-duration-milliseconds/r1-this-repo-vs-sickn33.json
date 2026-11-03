@@ -1,0 +1,83 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4448c99b2e985cff",
+    "sickn33": "7d639a9de2833bd5"
+  },
+  "score": 0.75,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "The two diffs are functionally identical. Both switch the unit table to milliseconds, drop `* 1000` in cache, retry and scheduler, add `/ 1000` in http and report (exact, since the smallest unit is whole seconds), and rescale the validate limits and the duration tests. They differ only in naming (`MS_PER_UNIT`/`ttlMs` vs `MILLISECONDS_PER_UNIT`/`milliseconds`). Both reports are honest about what was verified: A ran tsc and saw only partial output, B didn't run the typecheck. Neither is meaningfully better to merge.",
+        "a_issues": [
+          "No tests added for the new `/ 1000` conversions in `rateLimitHeaders` and `describeSettings`.",
+          "Typecheck only partially observed."
+        ],
+        "b_issues": [
+          "No tests added for the new `/ 1000` conversions in `rateLimitHeaders` and `describeSettings`.",
+          "Typecheck not run."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two code changes are functionally identical. Both drop `* 1000` in cache, retry and scheduler, add `/ 1000` in http and report, and rescale the validate limits. The only code differences are local names, and both sets are clear. B's report is a little stronger: it ran the typecheck and was candid that it saw only partial output. It also explains why the `/ 1000` results stay whole seconds, which the integer-only regex guarantees.",
+        "a_issues": [
+          "No tests added for the new `/ 1000` conversions in `rateLimitHeaders` or `describeSettings`, the conversion most likely to regress.",
+          "Typecheck was not run."
+        ],
+        "b_issues": [
+          "No tests added for the new `/ 1000` conversions in `rateLimitHeaders` or `describeSettings`.",
+          "Typecheck verification was partial: only the tail of the output was seen."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

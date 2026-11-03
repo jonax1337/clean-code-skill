@@ -1,8 +1,8 @@
 ```kotlin
-class UserService(private val repo: UserRepository) {
+class UserService(private val repository: UserRepository) {
 
     fun displayName(id: Long): String? =
-        repo.findById(id)?.displayName()
+        repository.findById(id)?.displayName()
 
     private fun User.displayName(): String =
         nickname.takeUnless { it.isNullOrBlank() } ?: fullName()
@@ -13,17 +13,15 @@ class UserService(private val repo: UserRepository) {
 
 **What changed and why**
 
-- **Null handling:** The guard clause `if (user == null) return null` becomes a safe call (`?.`). The "missing user" case is now handled by the language instead of a manual check.
-- **Nickname check:** `nickname != null && nickname.isNotBlank()` becomes `isNullOrBlank()`. This also avoids relying on a smart cast, which fails if `nickname` is a `var` or comes from another module.
-- **One level of abstraction:** `displayName(id)` now only says "find the user and ask for their display name". The rule for choosing between nickname and full name lives in a private `User.displayName()` extension, and the name concatenation lives in `fullName()`.
-- **String building:** `firstName + " " + lastName` becomes a string template.
-- **Behavior preserved:** I kept the nullable return type. It is the existing contract, and switching to an exception or a result type would change what callers see. The nickname is still returned untrimmed, as before.
+- **Removed the null-guard boilerplate.** `if (user == null) return null` becomes `?.`, so the public method reads as one step: find the user, get their display name.
+- **One level of abstraction per function.** `displayName(id)` handles lookup, `User.displayName()` holds the nickname-or-full-name rule, and `fullName()` handles string formatting.
+- **Intention-revealing names.** `repo` became `repository`, and the "nickname if present, otherwise full name" rule is now a named concept.
+- **Dropped the `// returns User?` comment.** The type already says it.
+- **Replaced `+` concatenation with a string template.**
+- **Simplified the nickname check.** `takeUnless { it.isNullOrBlank() }` replaces the manual null-and-blank test.
 
-If you can edit `User`, these two extensions would fit better as member functions there. The `User` class wasn't shown, so I kept them private to this service.
+**Behavior is preserved.** The method still returns `null` for an unknown id, returns the nickname untrimmed when it isn't blank, and otherwise returns `"first last"`. I kept the `String?` return type because callers may depend on it. Switching to an exception or a result type would change the contract, so that would need to be a separate, deliberate decision.
 
-I haven't run anything. Before merging, I'd cover four cases with tests:
+**Design option:** if you own `User`, `displayName()` and `fullName()` fit better as members of `User`. Then `UserService` only does the lookup, and the naming rule sits next to its data.
 
-- unknown id returns `null`
-- a nickname is returned when present
-- a `null` or blank nickname falls back to the full name
-- the full name is formatted as `"First Last"`
+I haven't run anything. Before merging, I'd add focused tests for four cases: unknown id, non-blank nickname, null nickname, and blank nickname (e.g. `"  "`).

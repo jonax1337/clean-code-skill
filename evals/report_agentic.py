@@ -21,19 +21,24 @@ from statistics import mean
 
 from agentic import AGENTIC_RESULTS_DIR, SPLITS, coder_models, load_agentic_cases, results_dir
 from charts import ASSETS_DIR, chart_frame, short_label
-from harness import ALL_CONDITIONS, write_text_atomic
+from harness import ALL_CONDITIONS, CONDITIONS, NO_SKILL, THIS_REPO, write_text_atomic
 
 LABELS = {condition.name: condition.label for condition in ALL_CONDITIONS}
 ORDER = [condition.name for condition in ALL_CONDITIONS]
-REFERENCES = ["baseline", "v2"]  # conditions every other condition is compared against
+REFERENCES = [NO_SKILL, THIS_REPO]  # conditions every other condition is compared against
+OPPONENTS = [condition.name for condition in CONDITIONS if condition.name != THIS_REPO]
 WINNER_SCORE = {"A": 1.0, "tie": 0.5, "B": 0.0}
 RESAMPLES = 10_000
 
-RELEASED, PREVIOUS = "v3a", "v2"  # the version released as the current skill, and the release before it
+# Runs where the skill is installed as a project skill instead of appended, by results folder.
+TRIGGER_MODES = {
+    "installed": "Installed, nothing mentions it (the agent decides whether to load the skill)",
+    "instructed": "Installed, with the CLAUDE.md line that asks the agent to load it",
+}
 CHECKS_CHART_MODEL = "sonnet"
-CHECKS_CHART_CONDITIONS = ["baseline", "sickn33", PREVIOUS, RELEASED]
+CHECKS_CHART_CONDITIONS = [condition.name for condition in CONDITIONS]
 SPLIT_PANELS = {
-    "dev": ("Dev tasks", "used while writing v3"),
+    "dev": ("Dev tasks", "used while developing the skill"),
     "test": ("Held-out tasks", "written without the skill"),
 }
 MODEL_ID = re.compile(r"claude-([a-z]+)-(\d+)-(\d+)")
@@ -64,6 +69,11 @@ def main() -> None:
             summary[model][split] = stats
             lines += _split_markdown(split, stats)
         lines += _checks_markdown(grades, cases)
+        for kind, title in TRIGGER_MODES.items():
+            stats = _installed_stats(model, kind)
+            if stats:
+                summary[model][kind] = stats
+                lines += _installed_markdown(title, stats)
         rationales += _rationales_markdown(model, comparisons)
     if not summary:
         raise SystemExit("No graded runs found. Run evals/grade_agentic.py first.")
@@ -109,6 +119,7 @@ def _condition_stats(model: str, name: str, grades: list[dict], shares: dict[str
         "turns": mean(meta["num_turns"] for meta in metas),
         "duration_s": mean(meta["duration_ms"] for meta in metas) / 1000,
         "runs_reading_skill_files": sum(bool(meta["skill_files_read"]) for meta in metas),
+        "metrics": _metrics_stats(own),
         "deltas": {},
     }
     for reference in REFERENCES:
@@ -118,6 +129,26 @@ def _condition_stats(model: str, name: str, grades: list[dict], shares: dict[str
                 "ci": bootstrap_ci(shares[name], minus=shares[reference]),
             }
     return stats
+
+
+def _metrics_stats(grades: list[dict]) -> dict:
+    """Function metrics of the changed source files, averaged over runs; positive deltas mean the run added some."""
+    measured = [grade["metrics"] for grade in grades if grade.get("metrics", {}).get("files")]
+    if not measured:
+        return {}
+
+    def added(key: str) -> list[int]:
+        return [metrics["after"][key] - metrics["before"][key] for metrics in measured]
+
+    return {
+        "runs": len(measured),
+        "long_functions_added": mean(added("long_functions")),
+        "complex_functions_added": mean(added("complex_functions")),
+        "runs_adding_long_function": mean(delta > 0 for delta in added("long_functions")),
+        "runs_adding_complex_function": mean(delta > 0 for delta in added("complex_functions")),
+        "max_nloc_after": mean(metrics["after"]["max_nloc"] for metrics in measured),
+        "max_ccn_after": mean(metrics["after"]["max_ccn"] for metrics in measured),
+    }
 
 
 def _meta(model: str, grade: dict) -> dict:
@@ -145,8 +176,18 @@ def _pairwise_stats(comparisons: list[dict]) -> dict:
             "ties": sum(score == 0.5 for score in flat),
             "second_wins": sum(score < 0.5 for score in flat),
             "contradictory": mean(_is_contradictory(item) for item in items),
+            "dimension_scores": _dimension_means(items),
         }
     return stats
+
+
+def _dimension_means(comparisons: list[dict]) -> dict[str, float]:
+    """Per clean-code aspect the judge rated, the first condition's case-weighted score."""
+    by_dimension: dict[str, ByCase] = defaultdict(lambda: defaultdict(list))
+    for comparison in comparisons:
+        for name, score in comparison.get("dimension_scores", {}).items():
+            by_dimension[name][comparison["case"]].append(score)
+    return {name: _case_mean(scores) for name, scores in by_dimension.items()}
 
 
 def _is_contradictory(comparison: dict) -> bool:
@@ -190,29 +231,66 @@ def _split_markdown(split: str, stats: dict) -> list[str]:
         "",
         f"### {split} cases ({stats['cases']})",
         "",
-        "| Condition | Runs | Checks passed | Δ vs no skill | Δ vs v2 | Runs passing every check | Avg. cost | Avg. turns |",
-        "|---|---|---|---|---|---|---|---|",
+        "| Condition | Runs | Checks passed | "
+        + " | ".join(f"Δ vs {LABELS[reference]}" for reference in REFERENCES)
+        + " | Runs passing every check | Avg. cost | Avg. turns |",
+        "|---|---|---|" + "---|" * len(REFERENCES) + "---|---|---|",
     ]
     for name, s in stats["conditions"].items():
         low, high = s["checks_passed_ci"]
-        deltas = [_delta_cell(s["deltas"].get(reference)) for reference in REFERENCES]
+        deltas = " | ".join(_delta_cell(s["deltas"].get(reference)) for reference in REFERENCES)
         lines.append(
-            f"| {LABELS[name]} | {s['runs']} | {s['checks_passed']:.0%} [{low:.0%}–{high:.0%}] | {deltas[0]} | "
-            f"{deltas[1]} | {s['runs_all_passed']}/{s['runs']} | ${s['cost_usd']:.3f} | {s['turns']:.1f} |"
+            f"| {LABELS[name]} | {s['runs']} | {s['checks_passed']:.0%} [{low:.0%}–{high:.0%}] | {deltas} | "
+            f"{s['runs_all_passed']}/{s['runs']} | ${s['cost_usd']:.3f} | {s['turns']:.1f} |"
         )
+    lines += _metrics_markdown(stats["conditions"])
     if stats["pairwise"]:
-        lines += [
-            "",
-            "| Blind comparison | Units | Score of first [CI] | First / tie / second | Contradictory |",
-            "|---|---|---|---|---|",
-        ]
-        for p in stats["pairwise"].values():
-            low, high = p["first_score_ci"]
-            lines.append(
-                f"| {LABELS[p['first']]} vs {LABELS[p['second']]} | {p['units']} | {p['first_score']:.2f} "
-                f"[{low:.2f}–{high:.2f}] | {p['first_wins']} / {p['ties']} / {p['second_wins']} | "
-                f"{p['contradictory']:.0%} |"
-            )
+        lines += _pairwise_markdown(stats["pairwise"])
+    return lines
+
+
+def _metrics_markdown(conditions: dict) -> list[str]:
+    rows = [(name, s["metrics"]) for name, s in conditions.items() if s.get("metrics")]
+    if not rows:
+        return []
+    lines = [
+        "",
+        "Function metrics of the changed source files (lizard; long: more than 30 lines, complex: cyclomatic",
+        "complexity above 10). Lower is better; reported, not graded.",
+        "",
+        (
+            "| Condition | Runs | Runs adding a long function | Runs adding a complex function "
+            "| Longest function after (lines) | Highest complexity after |"
+        ),
+        "|---|---|---|---|---|---|",
+    ]
+    for name, m in rows:
+        lines.append(
+            f"| {LABELS[name]} | {m['runs']} | {m['runs_adding_long_function']:.0%} | "
+            f"{m['runs_adding_complex_function']:.0%} | {m['max_nloc_after']:.1f} | {m['max_ccn_after']:.1f} |"
+        )
+    return lines
+
+
+def _pairwise_markdown(pairwise: dict) -> list[str]:
+    dimensions = sorted({name for p in pairwise.values() for name in p["dimension_scores"]})
+    lines = [
+        "",
+        "| Blind comparison | Units | Score of first [CI] | First / tie / second | Contradictory | "
+        + " | ".join(dimensions)
+        + " |",
+        "|---|---|---|---|---|" + "---|" * len(dimensions),
+    ]
+    for p in pairwise.values():
+        low, high = p["first_score_ci"]
+        aspects = " | ".join(
+            f"{p['dimension_scores'][d]:.2f}" if d in p["dimension_scores"] else "–" for d in dimensions
+        )
+        lines.append(
+            f"| {LABELS[p['first']]} vs {LABELS[p['second']]} | {p['units']} | {p['first_score']:.2f} "
+            f"[{low:.2f}–{high:.2f}] | {p['first_wins']} / {p['ties']} / {p['second_wins']} | "
+            f"{p['contradictory']:.0%} | {aspects} |"
+        )
     return lines
 
 
@@ -247,6 +325,42 @@ def _checks_markdown(grades: list[dict], cases: dict) -> list[str]:
     return lines
 
 
+def _installed_stats(model: str, kind: str) -> dict:
+    """Runs with the skill installed instead of appended: how often the agent loaded it, and the checks it passed."""
+    grades = {(g["case"], g["condition"], g["rep"]): g for g in _load(results_dir(model, f"{kind}-checks"))}
+    runs: dict[str, list[tuple[dict, dict | None]]] = defaultdict(list)
+    for meta_file in sorted(results_dir(model, kind).glob("*/*/meta.json")):
+        condition, rep = meta_file.parent.name.rsplit("-r", 1)
+        meta = json.loads(meta_file.read_text(encoding="utf-8"))
+        runs[condition].append((meta, grades.get((meta_file.parent.parent.name, condition, int(rep)))))
+    stats = {}
+    for name in (name for name in ORDER if name in runs):
+        shares: ByCase = defaultdict(list)
+        for _, grade in runs[name]:
+            if grade:
+                shares[grade["case"]].append(mean(check["passed"] for check in grade["checks"]))
+        stats[name] = {
+            "runs": len(runs[name]),
+            "skill_loaded": mean(bool(meta.get("skill_loaded")) for meta, _ in runs[name]),
+            "checks_passed": _case_mean(shares) if shares else None,
+        }
+    return stats
+
+
+def _installed_markdown(title: str, installed: dict) -> list[str]:
+    lines = [
+        "",
+        f"#### {title}",
+        "",
+        "| Condition | Runs | Runs that loaded the skill | Checks passed |",
+        "|---|---|---|---|",
+    ]
+    for name, s in installed.items():
+        checks = f"{s['checks_passed']:.0%}" if s["checks_passed"] is not None else "–"
+        lines.append(f"| {LABELS[name]} | {s['runs']} | {s['skill_loaded']:.0%} | {checks} |")
+    return lines
+
+
 def _rationales_markdown(model: str, comparisons: list[dict]) -> list[str]:
     lines = [f"## Coder: {model}", ""]
     for comparison in comparisons:
@@ -275,13 +389,14 @@ def _write_charts(summary: dict) -> None:
 
 @dataclass(frozen=True)
 class Preference:
-    """How the blind judge decided between the released skill and the release before it, for one coder model."""
+    """How the blind judge decided between this repo's skill and one alternative, for one coder model."""
 
     model: str
+    opponent: str
     wins: int
     ties: int
     losses: int
-    score: float  # share of comparisons won by the released skill, a tie counting half
+    score: float  # share of verdicts won by this repo's skill, a tie counting half
     ci: tuple[float, float]
 
     @property
@@ -293,21 +408,29 @@ def _preferences(summary: dict, split: str) -> list[Preference]:
     rows = []
     for model, splits in summary.items():
         pairwise = splits.get(split, {}).get("pairwise", {})
-        pair = pairwise.get(f"{PREVIOUS} vs {RELEASED}") or pairwise.get(f"{RELEASED} vs {PREVIOUS}")
-        if pair:
-            rows.append(_released_side(model, pair))
-    return sorted(rows, key=lambda row: row.score, reverse=True)
+        for opponent in OPPONENTS:
+            pair = pairwise.get(f"{opponent} vs {THIS_REPO}") or pairwise.get(f"{THIS_REPO} vs {opponent}")
+            if pair:
+                rows.append(_this_repo_side(model, opponent, pair))
+    return rows
 
 
-def _released_side(model: str, pair: dict) -> Preference:
-    """The pair's result seen from the released skill, whichever side of the pair it is stored on."""
+def _this_repo_side(model: str, opponent: str, pair: dict) -> Preference:
+    """The pair's result seen from this repo's skill, whichever side of the pair it is stored on."""
     low, high = pair["first_score_ci"]
-    if pair["first"] == RELEASED:
+    if pair["first"] == THIS_REPO:
         return Preference(
-            model, pair["first_wins"], pair["ties"], pair["second_wins"], pair["first_score"], (low, high)
+            model,
+            opponent,
+            pair["first_wins"],
+            pair["ties"],
+            pair["second_wins"],
+            pair["first_score"],
+            (low, high),
         )
     return Preference(
         model,
+        opponent,
         pair["second_wins"],
         pair["ties"],
         pair["first_wins"],
@@ -317,43 +440,53 @@ def _released_side(model: str, pair: dict) -> Preference:
 
 
 def _preference_chart(preferences: list[Preference], case_count: int) -> str:
-    released, previous = short_label(LABELS[RELEASED]), short_label(LABELS[PREVIOUS])
+    this_repo = short_label(LABELS[THIS_REPO])
     parts_of_bar = [
-        (f"{released} preferred", "accent"),
+        (f"{this_repo} preferred", "accent"),
         ("tie", "bar"),
-        (f"{previous} preferred", "bar-strong"),
+        ("alternative preferred", "bar-strong"),
     ]
-    width, bar_x, bar_width, bar_height, row_pitch, top = 760, 176, 330, 28, 56, 100
+    width, bar_x, bar_width, bar_height, row_pitch, group_pitch, top = 760, 196, 310, 24, 38, 30, 100
     value_x = bar_x + bar_width + 28
-    height = top + len(preferences) * row_pitch + 24
-    comparisons = preferences[0].comparisons
+    models = list(dict.fromkeys(row.model for row in preferences))
+    height = top + len(preferences) * row_pitch + len(models) * group_pitch + 24
     parts = chart_frame(
         width,
         height,
-        title=f"Blind judge preference for {released} over {previous} on held-out tasks, per coding agent",
-        heading=f"Held-out tasks: {released} against {previous}, judged blind",
-        subheading=(
-            f"{comparisons} comparisons per coding agent: {case_count} unseen tasks × "
-            f"{comparisons // case_count} runs, each pair judged in both orders"
-        ),
+        title=f"Blind judge preference for {this_repo} over each alternative on held-out tasks, per coding agent",
+        heading=f"Held-out tasks: {this_repo} against each alternative, judged blind",
+        subheading=f"{case_count} unseen tasks, every pair of runs judged in both orders",
     )
-    parts += _legend(bar_x, 80, parts_of_bar)
-    parts.append(_text(value_x, 80, f"Preference for {released}", "ink2", 12))
-    for index, row in enumerate(preferences):
-        y = top + index * row_pitch
-        model_name = _model_name(row.model)
-        counts = [row.wins, row.ties, row.losses]
-        segments = [(name, count, fill) for (name, fill), count in zip(parts_of_bar, counts)]
-        low, high = row.ci
-        interval = f"95% CI {low * 100:.0f}–{high:.0%}" + (" · includes 50%" if low <= 0.5 <= high else "")
-        parts += [
-            _text(24, y + bar_height / 2 + 5, model_name, "ink", 13, weight="600"),
-            *_segmented_bar(bar_x, y, bar_width, bar_height, segments, model_name),
-            _text(value_x, y + 13, f"{row.score:.0%}", "ink", 16, weight="600"),
-            _text(value_x, y + 28, interval, "muted", 11),
-        ]
+    parts += _legend(24, 80, parts_of_bar)
+    parts.append(_text(value_x, 80, f"Preference for {this_repo}", "ink2", 12))
+    y = top
+    for model in models:
+        model_name = _model_name(model)
+        parts.append(_text(24, y + 16, model_name, "ink", 13, weight="600"))
+        y += group_pitch
+        rows = [row for row in preferences if row.model == model]
+        most_comparisons = max(row.comparisons for row in rows)
+        for row in rows:
+            opponent = short_label(LABELS[row.opponent])
+            # A skill that exists only for some languages runs on fewer tasks; say so next to its name.
+            tasks = round(case_count * row.comparisons / most_comparisons)
+            if tasks < case_count:
+                opponent += f" ({tasks} tasks)"
+            counts = [row.wins, row.ties, row.losses]
+            segments = [(name, count, fill) for (name, fill), count in zip(parts_of_bar, counts)]
+            low, high = row.ci
+            interval = f"95% CI {low * 100:.0f}–{high:.0%}" + (
+                " · includes 50%" if low <= 0.5 <= high else ""
+            )
+            parts += [
+                _text(36, y + bar_height / 2 + 4, f"vs {opponent}", "ink2", 12),
+                *_segmented_bar(bar_x, y, bar_width, bar_height, segments, f"{model_name} vs {opponent}"),
+                _text(value_x, y + 11, f"{row.score:.0%}", "ink", 14, weight="600"),
+                _text(value_x + 44, y + 11, interval, "muted", 11),
+            ]
+            y += row_pitch
     footer = (
-        f"Preference: share of all verdicts, both orders, that went to {released}, a tie counting half. "
+        f"Preference: share of all verdicts, both orders, that went to {this_repo}, a tie counting half. "
         "Interval: bootstrap over the runs of each task."
     )
     parts += [_text(24, height - 16, footer, "muted", 11), "</svg>"]
@@ -402,15 +535,13 @@ def _checks_chart(model: str, splits: dict) -> str:
     width, gap, top, row_pitch = 760, 24, 84, 32
     panel_width = (width - 48 - gap * (len(panels) - 1)) / len(panels)
     height = top + 36 + len(CHECKS_CHART_CONDITIONS) * row_pitch + 28
-    first = splits[panels[0]]
-    runs_per_case = next(iter(first["conditions"].values()))["runs"] // first["cases"]
     parts = chart_frame(
         width,
         height,
         title="Share of deterministic checks passed per skill condition, "
         + " and ".join(SPLIT_PANELS[split][0].lower() for split in panels),
         heading="Deterministic checks passed",
-        subheading=f"{_model_name(model)} as the coding agent, {runs_per_case} runs per task and condition",
+        subheading=f"{_model_name(model)} as the coding agent",
     )
     for index, split in enumerate(panels):
         parts += _checks_panel(24 + index * (panel_width + gap), top, panel_width, split, splits[split])
@@ -419,14 +550,15 @@ def _checks_chart(model: str, splits: dict) -> str:
 
 
 def _checks_panel(x: float, top: float, width: float, split: str, stats: dict) -> list[str]:
-    label_width, value_room, bar_height, row_pitch = 72, 44, 20, 32
+    label_width, value_room, bar_height, row_pitch = 116, 44, 20, 32
     bar_x, bar_max = x + label_width, width - label_width - value_room
     rows_top = top + 36
     rows_bottom = rows_top + len(CHECKS_CHART_CONDITIONS) * row_pitch - (row_pitch - bar_height)
     title, caption = SPLIT_PANELS[split]
+    runs_per_case = stats["conditions"][THIS_REPO]["runs"] // stats["cases"]
     elements = [
         _text(x, top, f"{title} ({stats['cases']})", "ink", 13, weight="600"),
-        _text(x, top + 16, caption, "muted", 11),
+        _text(x, top + 16, f"{caption}, {runs_per_case} runs per task", "muted", 11),
     ]
     for tick in (0, 0.5, 1):
         tick_x = bar_x + tick * bar_max
@@ -439,7 +571,7 @@ def _checks_panel(x: float, top: float, width: float, split: str, stats: dict) -
         ]
     for row, name in enumerate(CHECKS_CHART_CONDITIONS):
         y = rows_top + row * row_pitch
-        label, weight = short_label(LABELS[name]), "600" if name == RELEASED else None
+        label, weight = short_label(LABELS[name]), "600" if name == THIS_REPO else None
         elements.append(
             _text(bar_x - 10, y + bar_height / 2 + 4, label, "ink", 12, weight=weight, anchor="end")
         )
@@ -451,7 +583,7 @@ def _checks_panel(x: float, top: float, width: float, split: str, stats: dict) -
         bar_width = max(value * bar_max, 4)
         elements += [
             f"<g><title>{escape(label)}, {escape(title.lower())}: {value:.0%} of checks passed</title>",
-            f'<path class="{"accent" if name == RELEASED else "bar"}" d="{_bar_path(bar_x, y, bar_width, bar_height)}"/>',
+            f'<path class="{"accent" if name == THIS_REPO else "bar"}" d="{_bar_path(bar_x, y, bar_width, bar_height)}"/>',
             "</g>",
             _text(bar_x + bar_width + 6, y + bar_height / 2 + 4, f"{value:.0%}", "ink", 12, weight=weight),
         ]

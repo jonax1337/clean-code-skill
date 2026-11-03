@@ -1,0 +1,82 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "5d58fea319db1eb1",
+    "ub-mode": "0eee023295a5493d"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 0.25,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production fixes are functionally identical: both skip whitespace-only lines inside the enumerate loop, so reported line numbers still match the file, and both add essentially the same two tests. B also ran `python -m hourlog import` end to end on a CSV ending in a blank line, which is closer to the reported failure. A has a helpful inline comment and a test whose trailing \"\\n\" more faithfully mirrors the real file, but the extra verification tips it toward B.",
+        "a_issues": [
+          "Did not exercise the CLI end to end on a file ending in a blank line; verification is limited to unit tests."
+        ],
+        "b_issues": [
+          "The trailing \"\" element in the blank-line test is not something file iteration would yield; the realistic case is a trailing \"\\n\", which is only covered mid-list.",
+          "No comment explaining why blank lines are skipped."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make the same one-line code fix: blank lines are skipped while line numbering from enumerate is kept, so the change is correct and matches the task. Both add near-identical tests for skipped blank lines and preserved line numbers. A edges ahead because its report includes an end-to-end CLI check on a CSV ending in a blank line. B's first test name claims blank lines are 'still counted', which that test does not check; B does add a helpful inline comment.",
+        "a_issues": [
+          "The test input includes an empty string \"\", which iterating over a file never yields; it is harmless but not representative.",
+          "The report claims a CLI run that the diff cannot confirm."
+        ],
+        "b_issues": [
+          "The name test_blank_lines_are_skipped_but_still_counted overstates the test: it never checks line counting (the second test does).",
+          "The report has no end-to-end check through the CLI, though it is open about not testing the accountant's actual file."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

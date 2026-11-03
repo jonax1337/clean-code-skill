@@ -1,32 +1,32 @@
 ```kotlin
-class UserService(private val repo: UserRepository) {
+class UserService(private val userRepository: UserRepository) {
 
     fun displayName(id: Long): String? =
-        repo.findById(id)?.displayName()
+        userRepository.findById(id)?.displayName()
 
     private fun User.displayName(): String =
-        nickname?.takeIf { it.isNotBlank() } ?: fullName()
+        nickname.takeUnless { it.isNullOrBlank() } ?: fullName()
 
-    private fun User.fullName(): String =
-        "$firstName $lastName"
+    private fun User.fullName(): String = "$firstName $lastName"
 }
 ```
 
 **What changed**
 
-- **Removed the early-return null check.** `?.` expresses "no user means no name" in one line, so the public method reads as a single step.
-- **Extracted `User.displayName()`.** The nickname-or-full-name rule now has a name, so it is no longer mixed in with the repository lookup. The lookup and the naming rule are now at separate levels of abstraction.
-- **Replaced the null-and-blank check with `takeIf` and `?:`.** The `nickname != null && nickname.isNotBlank()` condition becomes "use the nickname if it's not blank, otherwise the full name".
-- **Added `fullName()` and a string template.** This replaces the `+` concatenation, and the name documents what the expression is.
+- **Null handling:** The early `if (user == null) return null` is now a safe call (`?.`), so the lookup and the "not found" case read as one step.
+- **Nickname check:** `nickname != null && nickname.isNotBlank()` became `isNullOrBlank()`, which says the same thing in one call. Using `takeUnless` with `?:` makes the rule read as "nickname, unless blank, otherwise full name".
+- **Abstraction levels:** `displayName(id)` only does lookup and delegation. The naming rule lives in `User.displayName()`, and string assembly lives in `fullName()`.
+- **Names:** `repo` became `userRepository`, so the name no longer relies on a abbreviation.
+- **String building:** `firstName + " " + lastName` became a string template.
 
-**Behavior preserved**
+**Behavior is preserved**
 
-- A missing user still returns `null`.
-- A non-blank nickname is returned untrimmed, exactly as before.
-- Otherwise the result is `"$firstName $lastName"`.
+- An unknown id still returns `null`.
+- A non-blank nickname is returned as-is, untrimmed.
+- Otherwise the result is `"first last"`.
 
-**Notes**
+**Things to consider**
 
-- The skill advises against returning null, but I kept `String?` because changing it would alter the public contract and every caller. If your codebase prefers it, you could throw a `UserNotFoundException` or return a result type instead. That should be a separate, deliberate change.
-- If `User` is your own domain class, `displayName()` and `fullName()` might fit better there as members. That would remove the extension functions from the service and let other code reuse the rule.
-- I couldn't run anything here. Tests worth having: unknown id returns `null`, a nickname is returned, a null nickname falls back to the full name, and a blank nickname (`"  "`) falls back to the full name.
+- Returning `String?` forces every caller to handle null. If "user not found" is truly exceptional in your codebase, a thrown `UserNotFoundException` would be cleaner. I left it alone because that changes the public contract, so it's a decision for you and your callers.
+- If `displayName()` is useful elsewhere, it could move onto `User` itself, which would make `UserService` a thin lookup wrapper.
+- I haven't run anything. Three small tests would pin the behavior down: unknown id, blank or null nickname, and a valid nickname.

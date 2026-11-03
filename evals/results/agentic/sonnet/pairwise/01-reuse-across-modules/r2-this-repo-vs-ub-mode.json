@@ -1,0 +1,79 @@
+{
+  "case": "01-reuse-across-modules",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "9e7aec9c21e1cef5",
+    "ub-mode": "6a1d362a2c984e36"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes to shop/emails.py are identical and correct: they reuse gross_total and format_eur and put the line directly after the items. A's test is slightly stronger: its amounts produce exactly the task's example 1.234,50 EUR, and it also checks the blank line that follows. A's report is concise and accurate, and it flags that shipping is included without a separate line. B's report adds noise, such as unexplained 'crapper, dryer or mutator tools' and a step-by-step log.",
+        "a_issues": [],
+        "b_issues": [
+          "Test does not assert the blank line after the Gesamtbetrag line, so it guards the layout less tightly.",
+          "Report mentions unexplained tools (crapper, dryer, mutator) and includes a process log that adds noise without helping the reviewer."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production code in both changes is identical and correct: it reuses `gross_total` and `format_eur` and adds one line right after the item list. B's test is slightly stronger because it also asserts the existing blank line still follows the total and it reproduces the task's example amount. B's report is cleaner and points out that the total includes shipping although no separate shipping line is shown. A's report contains irrelevant tool mentions (crapper, dryer, mutator) and log noise.",
+        "a_issues": [
+          "Report refers to unexplained tools ('crapper, dryer or mutator') that do not apply to this repository.",
+          "The test does not check that the blank line after the total is preserved."
+        ],
+        "b_issues": [
+          "The new test is inserted between existing tests rather than appended; this is cosmetic only."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

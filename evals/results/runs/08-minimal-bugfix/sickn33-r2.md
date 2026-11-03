@@ -1,9 +1,4 @@
-Customers with no orders produce an empty `amounts` array, and two calculations break on it:
-
-- `average([])` computes `0 / 0`, which is `NaN`, so `toFixed(2)` gives `"NaN"`.
-- `Math.max()` with no arguments returns `-Infinity`.
-
-The fix is to handle the no-orders case explicitly in `summarize`.
+The bug comes from two calls on an empty array. `average([])` computes `0 / 0`, which is `NaN`, and `Math.max()` with no arguments returns `-Infinity`. I fixed it in `summarize` and left `average` alone, since it's exported and other callers may depend on its current behavior.
 
 ```js
 // stats.js
@@ -25,30 +20,31 @@ function summarize(orders) {
 }
 
 function emptySummary() {
-  return { count: 0, avg: '0.00', max: 0 };
+  return { count: 0, avg: "0.00", max: 0 };
 }
 
 module.exports = { average, summarize };
 ```
 
-Add these tests to `stats.test.js` (merge the import with your existing one if you already have it):
+Add these tests to `stats.test.js` (I couldn't see the file, so I'm assuming it already imports from `./stats`):
 
 ```js
-const { summarize } = require('./stats');
+const { summarize } = require("./stats");
 
-describe('summarize', () => {
-  it('returns zeroed values for a customer with no orders', () => {
-    expect(summarize([])).toEqual({ count: 0, avg: '0.00', max: 0 });
+describe("summarize", () => {
+  test("returns zeroed summary for a customer with no orders", () => {
+    expect(summarize([])).toEqual({ count: 0, avg: "0.00", max: 0 });
   });
 
-  it('summarizes existing orders as before', () => {
-    const orders = [{ amount: 10 }, { amount: 20 }, { amount: 5 }];
-    expect(summarize(orders)).toEqual({ count: 3, avg: '11.67', max: 20 });
+  test("summarizes existing orders", () => {
+    const orders = [{ amount: 10 }, { amount: 20 }, { amount: 40 }];
+    expect(summarize(orders)).toEqual({ count: 3, avg: "23.33", max: 40 });
   });
 });
 ```
 
 I haven't run these, so please run `npx jest stats.test.js` to confirm.
 
-- **Placeholder values:** I used `0` and `'0.00'` as the empty-state values, since the dashboard's intended display wasn't specified. If you'd rather show "—" or "N/A", return `null` for `avg` and `max` instead and have the UI render the placeholder. Only `emptySummary` and the first test would change.
-- **`average` unchanged:** I left `average` alone because it's exported and other callers may rely on its current behavior. It still returns `NaN` for an empty array, so any other caller passing an empty list would need the same guard.
+- **Empty-state values are my choice.** I used `"0.00"` and `0` so the dashboard keeps rendering numbers. If you'd rather show a placeholder like "—", return `avg: null, max: null` from `emptySummary()` instead. The UI would then need to handle `null`.
+- **Guard clause:** the early return keeps the main path unchanged, and `emptySummary()` gives the empty case a name.
+- **Possible follow-up:** `Math.max(...amounts)` can throw a `RangeError` for very large order lists (roughly 100k+ items). It's unrelated to this bug, so I left it.

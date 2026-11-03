@@ -1,0 +1,88 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "28a4cc6d1dc7bef0",
+    "sickn33": "514123dc141abae0"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 1.0,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors keep the same tokens, error variants and error positions. B also deletes the public `Tokens::new` constructor, which breaks the crate's public API. B's report then says nothing in the public API changed, which is false. A keeps the API, shares one `scan_unquoted` helper between keys/words and bare values, and stays faithful to the original. A's report is thin, though: it relies on an earlier report the developer can't see.",
+        "a_issues": [
+          "The report says almost nothing about what changed. It points to a previous report and a killed background command that the developer can't see.",
+          "The ~20% speedup claim comes with no description of the benchmark or corpus.",
+          "No unit tests were added for error paths the suite doesn't cover (NestedBracket, InvalidEscape, ExpectedSeparator, UnexpectedQuote)."
+        ],
+        "b_issues": [
+          "Removes the public `Tokens::new` constructor, a breaking change to the crate's public API that the task did not ask for.",
+          "The report wrongly says nothing in the public API changed.",
+          "`key_or_word` and `bare` duplicate the same quote-checking scan loop instead of sharing a helper.",
+          "No unit tests were added for the error paths the suite doesn't cover, even though the report itself suggests adding them."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors split the tokenizer into small helpers with a State enum and appear to keep the same token, error and position behavior. Change A deletes the public `Tokens::new` constructor, which callers can reach through the re-exported `Tokens` type, so it breaks the public API. A's report then wrongly says the public API is unchanged. Change B keeps the API intact and its helpers stay equivalent to the original, so it is the safer merge, even though its report is thin and reads like a follow-up message.",
+        "a_issues": [
+          "Removes the public `Tokens::new` constructor, breaking the public API of the re-exported `Tokens` type in an internal refactor.",
+          "The report says nothing in the public API changed, which is false given that `Tokens::new` was removed.",
+          "No unit tests were added for the uncovered error variants, even though the report itself recommends them."
+        ],
+        "b_issues": [
+          "The report is a context-less follow-up: it mentions a killed background command and refers to a 'last report' without listing what changed or how it was verified.",
+          "Claims the code is about 20% faster than HEAD with no corpus or method given, which is hard to trust for a refactor meant to keep speed.",
+          "No unit tests were added for the uncovered error variants (NestedBracket, InvalidEscape, ExpectedSeparator, UnexpectedQuote)."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

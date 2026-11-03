@@ -1,0 +1,83 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "1bed82f5001c2452",
+    "ub-mode": "262f13ff8e49b650"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The code changes are essentially identical: both remove the field, the parsing branch, the deprecation warning, the usage line, the renderer helpers and the docs entries, and both add a changelog Removed entry. A's integration test checks for the exact `UnknownOption` error, while B's only checks `is_err()`. B committed directly on `main` without being asked, and its report contains a garbled sentence about unnamed tools ('crapper, dryer or mutator tools from ,'). A's report is clean, accurate, and helpfully notes the unchanged version number.",
+        "a_issues": [
+          "Integration test covers only `--compact`, not `-c` (the unit test does cover both)"
+        ],
+        "b_issues": [
+          "Committed on `main` without being asked",
+          "Report contains a garbled, confusing sentence about unnamed tools",
+          "Integration test only checks `is_err()` rather than the specific `UnknownOption` error"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The code changes are essentially identical: both remove the flag, its field, the warning, the help line, the renderer helpers and the docs entries, and both add tests showing the flag is now rejected. B is preferable because A committed straight to `main` without being asked, and A's report contains a garbled line about tools from an unnamed source. B's report is accurate, mentions running clippy, and flags the version number decision to the developer.",
+        "a_issues": [
+          "Committed directly on `main` without being asked to.",
+          "The report has a garbled sentence about not running 'crapper, dryer or mutator tools from ,'.",
+          "The integration test only asserts `is_err()`, not which error is returned."
+        ],
+        "b_issues": [
+          "The integration test only covers `--compact`, not `-c`, though the unit test covers both."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

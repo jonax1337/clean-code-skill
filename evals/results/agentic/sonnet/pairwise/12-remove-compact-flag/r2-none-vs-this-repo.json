@@ -1,0 +1,79 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "ee051a818773050c",
+    "this-repo": "594b79b61bfc8b48"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes remove `--compact` the same way: the flag, the field, the render path, the help text, the README row and a CHANGELOG entry. B also replaces the deleted compact tests with unit and integration tests that check `-c`/`--compact` now fail with `UnknownOption`. That locks in the behavior change the task introduces. A only deletes tests, which leaves the removal unprotected, and it leaves a stray blank line before the closing brace of the render test module.",
+        "a_issues": [
+          "Adds no test that `-c`/`--compact` are now rejected, so nothing would catch the flag being quietly re-added.",
+          "Leaves a stray blank line at the end of the `render.rs` test module, which rustfmt would flag."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes remove the flag cleanly in the same way across code, help, README and CHANGELOG, and both reports give accurate test counts. A also adds unit and integration tests that check `-c` and `--compact` now fail with an unknown-option error, so the removal is protected against coming back. B only deletes tests and leaves a stray blank line before the closing brace of the render test module.",
+        "a_issues": [
+          "Minor: the rejection is checked in both the unit and integration tests, which is slightly redundant."
+        ],
+        "b_issues": [
+          "No test checks that `-c`/`--compact` are now rejected.",
+          "Leaves a stray blank line before the closing brace of the render.rs test module."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ffffe84b2e6a3f25",
+    "sickn33": "59590c90c4d27b06"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make the same one-line fix in `parse_entries`: skip lines that are empty or only whitespace, which keeps line numbering correct. The difference is the tests. A adds a unit test for skipped blank lines (including a bare `\\r\\n`) and a test that line numbers in errors still count the skipped lines. B adds one CLI-level test and claims line numbers are preserved, but no test checks that. A's report also says the fix was not tried on the real CSV, which is a useful honesty point.",
+        "a_issues": [
+          "No end-to-end CLI test using a file with a trailing blank line, though the unit tests cover the behavior"
+        ],
+        "b_issues": [
+          "The claim that error line numbers still count blank lines has no test",
+          "The CLI test checks the import count but not the stored totals"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same one-line fix in parse_entries: blank and whitespace-only lines are skipped and line numbering is kept. B's tests sit at the unit level, next to the existing importer tests, and also check that line numbers still count skipped blank lines. A states that behavior in its report but never tests it. B's report also says plainly that the fix was not tried on the real CSV.",
+        "a_issues": [
+          "No test checks that error line numbers still count skipped blank lines, although the report claims this behavior.",
+          "The new CLI test checks only the import count. It does not check that the stored entries or the report output are correct."
+        ],
+        "b_issues": [
+          "No end-to-end CLI test for a file with a trailing blank line, though the unit tests cover the parser behavior well."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

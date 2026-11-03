@@ -1,0 +1,85 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "8f14e62b8b31b236",
+    "this-repo": "ef055682729a8867"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two diffs are functionally identical and correct: callers that multiplied by 1000 now don't, and `http.ts` and `report.ts` divide by 1000 to keep their seconds output. B's unit table, renamed to `MS_PER_UNIT`, says the unit in one place instead of keeping `SECONDS_PER_UNIT` plus a trailing `* 1000`. B's report is also more careful: it says it did not capture the typecheck exit code and that `report.ts`, `http.ts` and the cache and scheduler math were checked by reading the code, not by tests. A's validate constants (`5 * 1000`, `24 * 60 * 60 * 1000`) are a bit more self-explanatory than B's literals, which keeps readability even.",
+        "a_issues": [
+          "No tests added for `report.ts` or `rateLimitHeaders`, whose behavior must stay in seconds after the unit change.",
+          "The report says `tsc --noEmit` runs with no errors without saying how that was checked, and it does not mention which paths are untested.",
+          "Keeps `SECONDS_PER_UNIT` with a trailing `* 1000`, which is slightly less direct than a milliseconds table."
+        ],
+        "b_issues": [
+          "No tests added for `report.ts` or `rateLimitHeaders`, whose behavior must stay in seconds.",
+          "The validate constants are bare literals (`86_400_000`), which are less self-documenting than `24 * 60 * 60 * 1000`."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs are functionally identical and correct: every caller is adapted, and `Retry-After` and the `describeSettings` text keep their seconds-based output. The code differs only cosmetically. A uses a millisecond table and literal constants; B multiplies the existing seconds table by 1000 and uses self-describing constant expressions. Neither adds tests for the `report.ts`, `http.ts` or `validate.ts` minimum paths. A's report is slightly more candid about what was and wasn't verified, which tips it.",
+        "a_issues": [
+          "No new tests for the `rateLimitHeaders` or `describeSettings` seconds conversion, or for the `validateTtl` minimum bound.",
+          "Constants like `86_400_000` are less self-documenting than `24 * 60 * 60 * 1000`."
+        ],
+        "b_issues": [
+          "No new tests for the `rateLimitHeaders` or `describeSettings` seconds conversion, or for the `validateTtl` minimum bound.",
+          "Report does not mention that the `report.ts` and `http.ts` changes are untested.",
+          "Keeps a `SECONDS_PER_UNIT` table and multiplies it by 1000 inside a function that now returns milliseconds, which adds a small mental step."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

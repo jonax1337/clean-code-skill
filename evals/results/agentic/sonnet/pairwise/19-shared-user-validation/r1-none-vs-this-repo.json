@@ -1,0 +1,87 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "b0caa35c046c7662",
+    "this-repo": "424a85167c257204"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.75,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors preserve the documented behavior, keep message order and wording, and make the same justified fix of lowercasing invitation emails. B adds a regression test for that behavior change and reports its coverage gaps candidly. A changes the same behavior with no test covering it. A centralizes slightly more of the role rules, but that does not outweigh the unprotected behavior change.",
+        "a_issues": [
+          "Changes inviteUser email normalization and duplicate detection without any test covering it",
+          "validateRole's missing-role path silently falls through to 'role is invalid' when neither defaultRole nor required is set, which is subtle to read",
+          "Report calls helpers.js-inclusive count '16 existing tests', which is slightly imprecise"
+        ],
+        "b_issues": [
+          "The 'role is required' message and the member default stay inline in the handlers instead of in validation.js, so not every rule lives in one place",
+          "Adds a separate collect() helper and a validateOptionalName/validateName split; acceptable but a bit more surface than needed",
+          "No direct boundary tests for validation.js (acknowledged in report)"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors are correct. Both keep the message strings and their email, name, role order, and both deliberately bring inviteUser's email lowercasing in line with docs/api.md. A adds a regression test for that behavior change and is open about which edge cases are still untested. B changes the same behavior with no test protecting it. On design the two are close: A's `collect` helper and B's option-driven validators are both reasonable, and B's update loop reads slightly more plainly.",
+        "a_issues": [
+          "The 'role is required' check is written inline in inviteUser rather than in validation.js, so one rule still lives outside the shared module.",
+          "The updateUser `Object.fromEntries(presentFields.map(...))` expression is dense to read.",
+          "There are no direct tests for validation.js, such as the 80-character name boundary or a blank name in an update (the report acknowledges this)."
+        ],
+        "b_issues": [
+          "The inviteUser email lowercasing changes behavior, and no test covers it.",
+          "validateRole's mix of `defaultRole`, `required` and `allowed` options makes its control flow harder to follow; a missing role with no options falls through to 'role is invalid'.",
+          "No tests were added for the new validation module."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

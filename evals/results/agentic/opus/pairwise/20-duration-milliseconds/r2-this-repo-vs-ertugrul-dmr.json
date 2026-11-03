@@ -1,0 +1,85 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "f8621663ced04e09",
+    "ertugrul-dmr": "fc3fdffc6f52e968"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.25,
+    "readability": 0.25,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes convert parseDuration to milliseconds correctly and fix the same callers, including the seconds-based ones in http.ts, report.ts and validate.ts. A also adds tests for the two places that convert back to seconds and for the TTL minimum and boundaries, and it confirmed those tests passed before the change. That gives real protection against a unit mix-up. B leaves exactly those risky conversions untested; it says so honestly, but the change is weaker protected as a result.",
+        "a_issues": [
+          "describeSettings repeats the `/ MS_PER_SECOND` division inline, which makes a long template line.",
+          "The validate.ts error messages still hardcode \"5s\" and \"1d\" separately from the limit constants."
+        ],
+        "b_issues": [
+          "The http.ts Retry-After conversion and the report.ts seconds output have no tests, so the passing suite does not cover the riskiest part of the change.",
+          "There is no test for the TTL minimum or the boundaries after the limits were rewritten.",
+          "Rewriting the validate.ts error messages to interpolate constants goes slightly beyond what the task needed."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "B",
+          "readability": "B",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both diffs make the same correct conversion: they drop `* 1000` from the cache, retry and scheduler code and divide by `MS_PER_SECOND` in http and report. B also adds tests for the places that convert back to seconds (`rateLimitHeaders`, `describeSettings`) and for the TTL minimum and boundaries, and its report says these tests were run against the old code first. A leaves exactly the riskiest conversions untested; its report says so honestly, but the gap remains. A's extra refactors (a `durationInSeconds` helper, and limits computed by `parseDuration` at module load) are reasonable but go a little beyond what was asked.",
+        "a_issues": [
+          "No tests added for http.ts or report.ts, the two callers that must convert back to seconds, nor for the TTL minimum.",
+          "validate.ts is restructured more than needed: the limits are now string constants parsed at module load and interpolated into the messages.",
+          "Adds a small `durationInSeconds` helper in report.ts that is used in only one function."
+        ],
+        "b_issues": [
+          "report.ts repeats `/ MS_PER_SECOND` inline on one long line, which is slightly less tidy.",
+          "validate.ts still hardcodes \"5s\" and \"1d\" in the error messages separately from the numeric limits."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

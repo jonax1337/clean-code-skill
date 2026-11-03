@@ -1,0 +1,86 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c574043ff7e8c196",
+    "ub-mode": "02d27043cc931502"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes fix the root cause the same way. Each maps the CRM `customer_id` to `customerId` at load time and switches the export to `requireCustomer`, so behavior is effectively identical. B is slightly better in three ways. It extracts a small named `fromCrm` helper and keeps the original list structure. Its sources test builds an isolated temp fixture and checks the merged order, instead of depending on the live `data/` files. Its export test uses `instanceof UnknownReferenceError`, as the existing tests do. Both reports are accurate, and B adds hand-checked totals.",
+        "a_issues": [
+          "tests/sources.test.js reads the real `data/` directory, which couples the test to production data files and the working directory.",
+          "The unknown-customer test checks `error.name` as a string rather than `instanceof UnknownReferenceError`, which differs from the existing test style.",
+          "The inlined destructuring map makes `loadCustomerRecords` a bit denser and reorders the file reads (CRM before billing) for no reason."
+        ],
+        "b_issues": [
+          "The report has a typo ('accaccounting').",
+          "The import order in tests/export.test.js puts errors.js before customers.js, a trivial inconsistency."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same fix: they map the CRM `customer_id` to `customerId` at load time and switch the export to `requireCustomer`, so behavior is effectively identical. A puts the mapping in a small named `fromCrm` helper and tests `loadCustomerRecords` against its own temporary fixture files. B's sources test reads the real `data/` directory relative to the working directory, which ties the test to production data that changes monthly. A's report has a typo but is otherwise accurate; B's report explains the CLI exit behavior well but mentions an extra `/tmp` write.",
+        "a_issues": [
+          "Report contains a typo (\"accaccounting\").",
+          "In tests/export.test.js the errors.js import is placed before customers.js, breaking the alphabetical import order the file otherwise follows."
+        ],
+        "b_issues": [
+          "tests/sources.test.js reads the real `data/` directory relative to the working directory, so it breaks if the monthly data changes or the tests run from another directory.",
+          "The CRM mapping is an inline lambda in the loader, which reads less clearly than a named helper; the CRM file is now read before the billing file, a small needless reorder.",
+          "The unknown-customer test checks `error.name` instead of `instanceof UnknownReferenceError`, which is weaker than the existing tests in the repo.",
+          "Wrote an extra output file to /tmp/invoices.csv, which nobody asked for."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

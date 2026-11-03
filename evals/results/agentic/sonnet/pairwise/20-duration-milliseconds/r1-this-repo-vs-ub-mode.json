@@ -1,0 +1,87 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4448c99b2e985cff",
+    "ub-mode": "feebcf92f8e43431"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs make the same behavioral change. They convert the unit table, remove `* 1000` where callers wanted milliseconds, divide by 1000 in `http.ts` and `report.ts`, keep `validate.ts` limits equivalent, and update the duration tests. A reads slightly better, with underscore-separated literals and the clearer `ttlMs` name. A's report is also cleaner and openly hedges on the tsc output. B's report contains a garbled sentence about unnamed tools and extra process noise.",
+        "a_issues": [
+          "Report admits tsc output was only partially seen, so the type check is not fully confirmed",
+          "No tests added for rateLimitHeaders/describeSettings conversions"
+        ],
+        "b_issues": [
+          "Report contains a garbled, meaningless line about 'crapper, dryer or mutator tools from .'",
+          "Test literals like 86400000 lack separators, which makes them harder to read",
+          "Local variable named just `ms` is less descriptive",
+          "No tests added for rateLimitHeaders/describeSettings conversions"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The source changes are functionally identical: both convert the unit table to milliseconds, remove `* 1000` where callers wanted milliseconds, divide by 1000 in `http.ts` and `report.ts`, and rescale the TTL limits in `validate.ts`. B is a little more readable, with `ttlMs` instead of `ms` and digit separators used throughout the test expectations. B's report also explains why `/ 1000` still yields whole seconds. A's report contains a garbled sentence about tools and says A committed directly to local `main`, which was not asked for.",
+        "a_issues": [
+          "Report contains a broken sentence: \"I didn't run the crapper, dryer or mutator tools from .\"",
+          "Committed directly to local `main` without being asked.",
+          "Local variable named `ms` is less descriptive than `ttlMs`; test literals like `86400000` lack digit separators, unlike the source.",
+          "No tests added for `rateLimitHeaders`, `describeSettings` or the minimum-TTL check, despite acknowledging they are untested."
+        ],
+        "b_issues": [
+          "No tests added for `rateLimitHeaders`, `describeSettings` or the minimum-TTL check, which are the call sites where the conversion direction flipped.",
+          "Only saw the tail of the `tsc` output, so the clean type check is not fully verified (disclosed honestly)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

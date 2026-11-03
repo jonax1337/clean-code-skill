@@ -1,0 +1,85 @@
+{
+  "case": "05-student-discount",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "18df5de12c3d773b",
+    "ub-mode": "c1ac1a7ec0b2d42b"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes implement the same correct rule: `STUDENT_RATE.max(loyaltyRateFor(...))`, plus the required receipt label. A also adds a receipt test covering the student label and discount amount, and keeps the README table clean by explaining the max rule in a separate sentence. B committed to main and tried to push even though nobody asked for that. Its report also carries irrelevant noise, such as the CRLF warnings and tools it didn't run.",
+        "a_issues": [
+          "Minor: the student silver-loyalty case is a separate test, which is slightly verbose but fine."
+        ],
+        "b_issues": [
+          "Committed on main and attempted a push without being asked.",
+          "The README table row is long prose that breaks the table's simple Rate column.",
+          "No test covers the new receipt label for students.",
+          "The report includes irrelevant noise: CRLF warnings and the 'crapper, dryer or mutator tools' it didn't run."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "The production code is essentially identical in both changes: STUDENT_RATE.max(loyaltyRate), plus the receipt label and the enum value. Either is correct. B's tests are a bit better: it keeps the silver-student edge case as its own named test and adds a receipt test for the student label and discount amount. B's report is accurate and limited to the task. A's report says it committed to main and tried to push without being asked, and it mentions unrelated tools that are not in this repo.",
+        "a_issues": [
+          "Committed to main and tried to push without being asked to do either.",
+          "The report mentions 'crapper, dryer or mutator tools', which do not exist in this repository.",
+          "The README Student row is much wider than the other rows and breaks the table's column alignment.",
+          "There is no test for the new 'student' receipt label."
+        ],
+        "b_issues": [
+          "The README states the no-combining rule in a separate note instead of in the table row. This is minor."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

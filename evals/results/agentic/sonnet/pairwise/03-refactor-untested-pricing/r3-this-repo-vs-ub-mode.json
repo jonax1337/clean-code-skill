@@ -1,0 +1,86 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "92a9cfbdbe604af4",
+    "ub-mode": "59c09661386bdc06"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors keep behavior the same for every caller and type the parameter correctly as `{ price: number; category?: string }`. A's tests also cover a missing category, an empty coupon and a half-cent rounding case, which B's tests do not. A's constant names are more accurate: 0.9 is a multiplier, not a discount, so `MEMBER_DISCOUNT_BOOKS = 0.9` is misleading. B's report includes an unverifiable local commit and mentions tools that don't exist in the repo, though it usefully notes the `==` to `===` change.",
+        "a_issues": [
+          "Report does not mention the change from `==` to `===`, though it makes no difference for the string inputs callers pass."
+        ],
+        "b_issues": [
+          "`MEMBER_DISCOUNT_BOOKS = 0.9` / `MEMBER_DISCOUNT_DEFAULT = 0.95` are named as discounts but are multipliers, which is misleading.",
+          "The \"SAVE10\" coupon code stays an inline literal while its amount gets a named constant, which is inconsistent.",
+          "No tests for a missing category (the feed and checkout caller paths) or for an empty-string coupon.",
+          "Report mentions a local commit hash and 'crapper, dryer or mutator' tools that are not part of this repository; this is unverifiable or irrelevant noise."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors are essentially the same: named constants, small helpers, the `any` replaced by `{ price: number; category?: string }`, and the same `==` to `===` tightening, and both keep all four callers compiling. The deciding difference is in B's tests. B asserts `getPrice({ price: 10.005 }, false) === 10.01`, but 10.005 is stored as slightly less than 10.005, so `10.005 * 100` evaluates to about 1000.4999999999999 and `Math.round` returns 10. That test should fail, and B's report that '10 passed' is not credible. A's tests are all consistent with the original behavior, and A also explicitly notes the `==` to `===` change.",
+        "a_issues": [
+          "Report mentions not running 'crapper, dryer or mutator tools' with no context, which is confusing to a reader.",
+          "Commits locally (`831fabe`) without being asked, a minor process liberty.",
+          "Does not test the missing-category or empty-coupon cases."
+        ],
+        "b_issues": [
+          "The rounding test asserts `getPrice({ price: 10.005 }, false) === 10.01`. Floating point makes `10.005 * 100` round down, so this most likely returns 10 and the test fails.",
+          "Report claims '10 passed, 0 failed', which contradicts that failing assertion, so its verification claims are unreliable.",
+          "Report says behavior is unchanged but does not mention the `==` to `===` change."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "c2da33de8b511360",
+    "this-repo": "e97ada354f0d9d66"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes replace the silent fallbacks with collected errors, reject unknown keys, fail on a missing file and exit with status 2, so they are close. A's URL check requires http or https and a host. That catches scheme typos such as `htps://`, which match the incident's failure mode, and B's absolute-URI check lets them through. A's README also shows the exact stderr output the deployer will see. B's rejection of a zero timeout is a reasonable extra but goes slightly beyond the documented rules.",
+        "a_issues": [
+          "A zero `request.timeout` such as `0s` is still accepted, which is probably not a usable timeout.",
+          "Checking the file with `isRegularFile` before opening it is a separate existence check that the read itself would already have covered."
+        ],
+        "b_issues": [
+          "`upstream.url` only has to be an absolute URI, so `htps://host` or `ftp://host` still pass validation.",
+          "Rejecting a zero timeout adds a rule that the README does not document.",
+          "The report's '9 existing, 7 new' count is loose: two of the 'existing' tests were rewritten to assert the opposite behavior.",
+          "`intValue` returns the out-of-range value after recording the problem. This is harmless because loading throws, but it is less clear."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes turn silent fallbacks into collected errors, reject unknown keys, and exit with status 2 and a clear message, so they are nearly equivalent. B's URL check requires an http or https scheme and a host, which catches realistic typos. A accepts any absolute URI, so `htps://host/...` or `localhost:8080/x` still pass and fail only at runtime. B's tests assert the exact problem text and the problem count, and its missing-file message points to the example file. A's extra zero-timeout check is a reasonable but unrequested addition.",
+        "a_issues": [
+          "upstream.url validation accepts any absolute URI, so scheme typos like `htps://...` or `localhost:8080/x` (scheme parsed as 'localhost') pass validation.",
+          "Adds a zero-timeout rejection that goes beyond the task, though it is defensible.",
+          "Tests check only substrings of the messages, so the wording of a problem can change without failing a test."
+        ],
+        "b_issues": [
+          "The http/https restriction on upstream.url is a small behavior expansion beyond the incident.",
+          "The missing-file check uses `Files.isRegularFile` before opening, a slightly redundant check-then-act, although read errors are still caught afterwards."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

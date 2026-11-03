@@ -1,0 +1,98 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "condition": "none",
+  "rep": 2,
+  "checks": [
+    {
+      "name": "shares_add_up",
+      "description": "A percentage split gives every person a whole number of cents next to their exact share, and the shares add up to the amount, even when the percentages do not divide it evenly.",
+      "passed": true,
+      "evidence": ".........                                                                [100%]\n9 passed, 8 deselected in 0.10s"
+    },
+    {
+      "name": "invalid_input_rejected",
+      "description": "Percentages that do not add up to 100, are not whole numbers, are negative, lack `=` or repeat a person are reported as an error with exit code 2 and nothing is saved.",
+      "passed": true,
+      "evidence": "......                                                                   [100%]\n6 passed, 11 deselected in 0.04s"
+    },
+    {
+      "name": "equal_split_unchanged",
+      "description": "Equal splits with `--with` still work exactly as before and can be mixed with percentage splits.",
+      "passed": true,
+      "evidence": "..                                                                       [100%]\n2 passed, 15 deselected in 0.04s"
+    },
+    {
+      "name": "no_float_money",
+      "description": "No amount or percentage goes through `float()` or `round()`, which lose cents.",
+      "passed": true,
+      "evidence": "no matching added lines"
+    },
+    {
+      "name": "only_expected_files",
+      "description": "Only the package, the tests and the README changed.",
+      "passed": true,
+      "evidence": "changed: ['README.md', 'tabtally/cli.py', 'tabtally/splitting.py', 'tests/test_splitting.py']"
+    },
+    {
+      "name": "existing_tests_untouched",
+      "description": "No existing test was changed or removed; the only existing lines that may change are imports.",
+      "passed": true,
+      "evidence": "no existing test line altered"
+    },
+    {
+      "name": "tests_added",
+      "description": "The agent added tests that exercise the percentage split.",
+      "passed": true,
+      "evidence": "\n  tests/test_splitting.py: def test_split_by_percent_adds_up():\n  tests/test_splitting.py: from tabtally.splitting import split_by_percent\n  tests/test_splitting.py: shares = split_by_percent(1001, [(\"alice\", 50), (\"bob\", 30), (\"carol\", 20)])"
+    },
+    {
+      "name": "readme_updated",
+      "description": "The README documents the new `--percent` option.",
+      "passed": true,
+      "evidence": "README mentions --percent"
+    },
+    {
+      "name": "suite_passes",
+      "description": "The project's own test suite passes.",
+      "passed": true,
+      "evidence": "....................................                                     [100%]\n36 passed in 0.12s"
+    },
+    {
+      "name": "clean_diff",
+      "description": "The diff has no debug output, commented-out code or narrating comments.",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "tests_run_after_edit",
+      "description": "The agent ran the tests successfully after its last edit.",
+      "passed": true,
+      "evidence": "lice\", 50), (\"bob\", 30)])\n    with pytest.raises(MoneyError):\n        split_by_percent(1000, [(\"alice\", 50), (\"alice\", 50)])\n    for bad in (\"alice\", \"alice=\", \"=50\", \"alice=5.5\", \"alice=-5\"):\n        with pytest.raises(MoneyError):\n            parse_percent(bad)\nE\npython -m pytest -q 2>&1 | tail -3"
+    }
+  ],
+  "metrics": {
+    "files": [
+      "tabtally/cli.py",
+      "tabtally/splitting.py"
+    ],
+    "before": {
+      "functions": 6,
+      "nloc": 48,
+      "max_nloc": 20,
+      "max_ccn": 4,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 8,
+      "nloc": 74,
+      "max_nloc": 25,
+      "max_ccn": 8,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
+}

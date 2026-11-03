@@ -1,0 +1,89 @@
+{
+  "case": "06-retry-transient-errors",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "5b98b53c2fdf97f5",
+    "ub-mode": "b9c3ec287910552a"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.75,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes retry only requests that are safe to repeat, leave the non-idempotent pickup POST unretried, and outlast a one-minute outage. A puts the retry loop in its own helper with a docstring explaining the safety rule, documents the policy in the README, and tests more cases: 500 and other statuses not retried, pickup not retried for every failure type, total backoff of at least 60 s. B inlines the loop into `_request` and has thinner tests. B also committed the work without being asked.",
+        "a_issues": [
+          "Adds 504 to the retryable statuses beyond the 502/503 mentioned in the task (reasonable, but an extension)",
+          "The pickup step can still kill the job; this is acknowledged in the report"
+        ],
+        "b_issues": [
+          "Committed the change (a0c26a1) without being asked",
+          "Retry loop is inlined into `_request`, mixing retry control flow with error raising and making the method harder to read",
+          "No test that 500 is not retried, and the pickup no-retry test covers only 503, not timeout or connection failure",
+          "Backoff test only checks that waits increase, not the actual schedule or total wait"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes retry the same safe set of requests: GETs and POST /shipments with an Idempotency-Key, and both leave pickups unretried. B adds 504, leaves more backoff margin for a one-minute outage (75 s vs 62 s), and its tests pin exact backoff delays, total wait, non-retry of 500, and non-retry of pickups for every failure kind. A's report says it hasn't checked whether /pickups supports idempotency keys, even though the README says the carrier ignores them there. A's backoff test also only checks that the delays grow.",
+        "a_issues": [
+          "Report says it is unknown whether /pickups supports an Idempotency-Key, but the README states the carrier ignores it there.",
+          "The backoff test only asserts sleeps[0] < sleeps[1] and does not check the actual delays or that the total covers a one-minute outage.",
+          "The label-polling retry test does not check request count or sleeps.",
+          "504 gateway timeout is not retried; it is an equally transient gateway error.",
+          "The 62 s total wait only just covers a one-minute outage."
+        ],
+        "b_issues": [
+          "The README section is a small addition beyond the code change, though relevant.",
+          "The report calls a re-run 'safe' without noting that shipments created before a failed pickup will not get a pickup on re-run, because they are skipped.",
+          "There is no test that label polling survives a transient failure."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

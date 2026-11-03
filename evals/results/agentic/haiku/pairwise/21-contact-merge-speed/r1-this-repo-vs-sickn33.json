@@ -1,0 +1,80 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "3c6d7f4b2238cd5d",
+    "sickn33": "bd77e775ec8ced10"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs make the same correct change to `src/import.ts`: a Map from normalized email to its first index, with appended rows added to the map. This turns the O(n\u00b7m) scan into O(n+m) and keeps first-entry-wins and in-upload merging. A also adds a regression test for first-entry-wins, the behavior the index could most easily break, plus a short comment explaining why. B relies only on a throwaway equivalence script that is not committed and so leaves the subtle behavior unguarded.",
+        "a_issues": [
+          "The benchmark is not committed (acceptable, but there is no performance guard)."
+        ],
+        "b_issues": [
+          "No test added to pin the first-occurrence-wins rule for duplicate existing emails; the randomized equivalence check was not kept in the repo.",
+          "No comment explaining why only the first occurrence is recorded in the map."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same Map-based fix in `src/import.ts`, and both keep the old behavior: the first existing entry wins, and new rows are registered in the map so duplicates within the upload still merge. B also adds a test that pins the first-entry-wins rule, which an index-based rewrite could easily break. B adds a short comment explaining why only the first occurrence is recorded. Both reports are accurate.",
+        "a_issues": [
+          "No test added for the first-existing-entry-wins behavior the index must preserve; that check relied on a throwaway script."
+        ],
+        "b_issues": [
+          "The single-line `if` body in the forEach differs slightly from the file's braced style."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

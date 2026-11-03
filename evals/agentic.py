@@ -33,7 +33,9 @@ from harness import (
     RESULTS_DIR,
     SKILL_PREAMBLE,
     Condition,
+    Skill,
     claude_executable,
+    language_of,
     markdown_section,
 )
 
@@ -43,18 +45,33 @@ SPLITS = ("dev", "test")
 HIDDEN_TESTS_DIR = ".hidden"
 
 AGENT_TOOLS = ["Read", "Grep", "Glob", "Edit", "Write", "Bash"]
+GIT_IDENTITY = {"user.name": "eval", "user.email": "eval@example.invalid", "commit.gpgsign": "false"}
 FILE_EDIT_TOOLS = {"Edit", "Write", "MultiEdit", "NotebookEdit"}
 # Bash commands that write project files: sed -i, tee, a redirect into a file, Python writing a file, applying a
 # patch. Scratch files under /tmp and writes to /dev do not change the project.
 BASH_FILE_WRITE = re.compile(
-    r"\bsed\s+(-\w*\s+)*-i|\btee\s+(-a\s+)?(?!/tmp/|/dev/)|(?<![\d&>=-])>{1,2}\s*(?!&|/dev/|/tmp/)[\w./\\~\"'-]|"
+    # A redirect's target is on the same line, so `<noreply@example.com>` ending a heredoc line is not one.
+    r"\bsed\s+(-\w*\s+)*-i|\btee\s+(-a\s+)?(?!/tmp/|/dev/)|(?<![\d&>=-])>{1,2}[ \t]*(?!&|/dev/|/tmp/)[\w./\\~\"'-]|"
     r"\.write(_text|_bytes)?\(|open\([^)]*['\"][wa]b?['\"]|\bgit\s+apply\b|\bpatch\s+-p"
+)
+# A commit message is text, not shell: `reason="<quoted>"` or `> vs >=` in it is no redirect. Messages come as a
+# heredoc fed to `git commit` (also inside `-m "$(cat <<'EOF' ...)"`) or as quoted `-m`/`-qm` arguments.
+GIT_COMMIT = re.compile(r"\bgit\b[^\n]*\bcommit\b")
+COMMIT_MESSAGES = (
+    re.compile(
+        r"\bgit\b[^\n]*\bcommit\b[^\n]*<<-?[ \t]*(['\"]?)(\w+)\1[^\n]*\n(?P<message>.*?)^[ \t]*\2[ \t]*$",
+        re.DOTALL | re.MULTILINE,
+    ),
+    re.compile(r"(?<=\s)-[a-zA-Z]*m\s*(?P<message>\"(?:[^\"\\]|\\.)*\"|'[^']*')"),
 )
 SECRET_VARIABLE = re.compile(
     r"(^|_)(TOKEN|SECRET|PASSWORD|PASSWD|CREDENTIALS?|API_?KEY|ACCESS_KEY|PRIVATE_KEY)$", re.IGNORECASE
 )
 AGENT_TIMEOUT_S = 1800
 BASE_TAG = "eval-base"
+# Where Claude Code discovers a project's skills. An installed skill lives here and stays out of the diff.
+PROJECT_SKILLS_DIR = ".claude/skills"
+SKILL_TOOL = "Skill"
 
 
 def results_dir(model: str, kind: str) -> Path:
@@ -72,6 +89,7 @@ class AgenticCase:
     case_id: str
     split: str
     title: str
+    language: str
     prompt: str
     directory: Path
 
@@ -111,7 +129,12 @@ def _parse_case(directory: Path) -> AgenticCase:
     text = (directory / "case.md").read_text(encoding="utf-8")
     title = text.splitlines()[0].removeprefix("# ").strip()
     return AgenticCase(
-        directory.name, directory.parent.name, title, markdown_section(text, "Prompt"), directory
+        directory.name,
+        directory.parent.name,
+        title,
+        language_of(title),
+        markdown_section(text, "Prompt"),
+        directory,
     )
 
 
@@ -228,12 +251,12 @@ def workspace_for(case: AgenticCase) -> Generator[Workspace, None, None]:
             setup(root)
         workspace = Workspace(root, case)
         workspace.git("init", "-q")
+        # A repository-local identity, so an agent that commits or runs `git config` never sees the user's own.
+        for key, value in GIT_IDENTITY.items():
+            workspace.git("config", key, value)
         (root / ".git" / "info" / "exclude").write_text(f"{HIDDEN_TESTS_DIR}/\n", encoding="utf-8")
         workspace.git("add", "-A")
-        workspace.git(
-            *("-c", "user.name=eval", "-c", "user.email=eval@example.invalid", "-c", "commit.gpgsign=false"),
-            *("commit", "-qm", "fixture"),
-        )
+        workspace.git("commit", "-qm", "fixture")
         workspace.git("tag", BASE_TAG)
         yield workspace
 
@@ -250,7 +273,19 @@ class ToolCall:
 
     @property
     def edits_files(self) -> bool:
-        return self.name in FILE_EDIT_TOOLS or BASH_FILE_WRITE.search(self.command) is not None
+        return self.name in FILE_EDIT_TOOLS or BASH_FILE_WRITE.search(self.shell_code) is not None
+
+    @property
+    def shell_code(self) -> str:
+        """The Bash command with commit messages blanked out; offsets stay the same as in `command`."""
+        code = self.command
+        if GIT_COMMIT.search(code) is None:
+            return code
+        for pattern in COMMIT_MESSAGES:
+            for match in pattern.finditer(code):
+                start, end = match.span("message")
+                code = code[:start] + re.sub(r"[^\n]", " ", code[start:end]) + code[end:]
+        return code
 
 
 class Transcript:
@@ -303,12 +338,16 @@ class Transcript:
         commands = [(call.command, call.failed) for call in calls[last_edit + 1 :] if call.name == "Bash"]
         if last_edit >= 0 and calls[last_edit].name == "Bash":
             edit = calls[last_edit]
-            *_, last_write = BASH_FILE_WRITE.finditer(edit.command)
+            *_, last_write = BASH_FILE_WRITE.finditer(edit.shell_code)
             commands.insert(0, (edit.command[last_write.end() :], edit.failed))
         return commands
 
     def files_read(self) -> list[str]:
         return [call.input.get("file_path", "") for call in self.tool_calls if call.name == "Read"]
+
+    def skills_invoked(self) -> list[str]:
+        """Names of the skills the agent loaded with the Skill tool, in order."""
+        return [str(call.input.get("skill", "")) for call in self.tool_calls if call.name == SKILL_TOOL]
 
 
 def _content_blocks(event: dict) -> list[dict]:
@@ -323,19 +362,38 @@ class AgentRun:
     review_diff: str
     returncode: int
     stderr: str
+    skill_fingerprint: str | None
 
 
-def run_agent(case: AgenticCase, condition: Condition, model: str, budget_usd: float) -> AgentRun:
-    """Let the agent work on a fresh copy of the case repo and capture its transcript and diff."""
+def run_agent(
+    case: AgenticCase,
+    condition: Condition,
+    model: str,
+    budget_usd: float,
+    installed: bool = False,
+    instruction: str | None = None,
+) -> AgentRun:
+    """Let the agent work on a fresh copy of the case repo and capture its transcript and diff.
+
+    By default the skill is appended to the system prompt, so it is active in every run. With `installed` it is
+    put where Claude Code discovers project skills instead, and the agent decides itself whether to load it; an
+    `instruction` (the line a project would put into CLAUDE.md) is then appended to the system prompt.
+    """
+    skill = condition.skill(case.language)
     with (
         workspace_for(case) as workspace,
         tempfile.TemporaryDirectory(prefix="cc-skill-", ignore_cleanup_errors=True) as skill_temp,
     ):
-        command = _agent_command(model, budget_usd)
-        if condition.skill_source is not None:
-            skill_dir = _install_skill(condition, Path(skill_temp) / "skill")
+        command = _agent_command(model, budget_usd, installed)
+        if skill is not None and installed:
+            _install_into_project(skill, workspace)
+            if instruction:
+                command += ["--append-system-prompt", instruction]
+        elif skill is not None:
+            skill_dir = Path(skill_temp) / "skill"
+            shutil.copytree(skill.directory, skill_dir)
             prompt_file = Path(skill_temp) / "skill-prompt.txt"
-            prompt_file.write_text(_skill_prompt(condition, skill_dir), encoding="utf-8")
+            prompt_file.write_text(_skill_prompt(skill, skill_dir), encoding="utf-8")
             command += ["--append-system-prompt-file", str(prompt_file), "--add-dir", str(skill_dir)]
         completed = subprocess.run(
             command,
@@ -355,6 +413,7 @@ def run_agent(case: AgenticCase, condition: Condition, model: str, budget_usd: f
             review_diff=workspace.diff(ignore_cr_at_eol=True),
             returncode=completed.returncode,
             stderr=completed.stderr,
+            skill_fingerprint=skill.fingerprint() if skill else None,
         )
 
 
@@ -364,19 +423,30 @@ def _agent_environment() -> dict[str, str]:
     return {**kept, "CLAUDE_CODE_DISABLE_CLAUDE_MDS": "1"}
 
 
-def _agent_command(model: str, budget_usd: float) -> list[str]:
+def _install_into_project(skill: Skill, workspace: Workspace) -> None:
+    for name, folder in skill.installed_folders().items():
+        shutil.copytree(folder, workspace.root / PROJECT_SKILLS_DIR / name)
+    exclude = workspace.root / ".git" / "info" / "exclude"
+    exclude.write_text(exclude.read_text(encoding="utf-8") + f"{PROJECT_SKILLS_DIR}/\n", encoding="utf-8")
+
+
+def _agent_command(model: str, budget_usd: float, installed: bool) -> list[str]:
+    # An installed skill needs the Skill tool and skill discovery; `--setting-sources project` still keeps the
+    # user's own skills out, so only Claude Code's built-in skills compete with it.
+    tools = [*AGENT_TOOLS, SKILL_TOOL] if installed else AGENT_TOOLS
+    isolation = [flag for flag in ISOLATION_FLAGS if not (installed and flag == "--disable-slash-commands")]
     return [
         claude_executable(),
         "-p",
         "--model",
         model,
         "--tools",
-        ",".join(AGENT_TOOLS),
+        ",".join(tools),
         "--allowedTools",
-        *AGENT_TOOLS,
+        *tools,
         "--permission-mode",
         "dontAsk",
-        *ISOLATION_FLAGS,
+        *isolation,
         "--max-budget-usd",
         f"{budget_usd:.2f}",
         "--output-format",
@@ -385,19 +455,10 @@ def _agent_command(model: str, budget_usd: float) -> list[str]:
     ]
 
 
-def _install_skill(condition: Condition, target: Path) -> Path:
-    """Lay the skill out the way an installed skill looks: SKILL.md plus its reference files."""
-    target.mkdir(parents=True)
-    (target / "SKILL.md").write_text(condition.skill_text() or "", encoding="utf-8")
-    references = condition.references_dir()
-    if references is not None:
-        shutil.copytree(references, target / "references")
-    return target
-
-
-def _skill_prompt(condition: Condition, skill_dir: Path) -> str:
+def _skill_prompt(skill: Skill, skill_dir: Path) -> str:
+    entry_dir = (skill_dir / skill.entry).parent
     return (
-        f"{SKILL_PREAMBLE} Its files are in {skill_dir.as_posix()}; "
+        f"{SKILL_PREAMBLE} Its files are in {entry_dir.as_posix()}; "
         "read the files it links to from there when you need them.\n\n"
-        f"<skill>\n{condition.skill_text()}\n</skill>"
+        f"<skill>\n{skill.text()}\n</skill>"
     )

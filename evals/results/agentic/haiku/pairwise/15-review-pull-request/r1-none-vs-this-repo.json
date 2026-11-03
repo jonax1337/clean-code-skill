@@ -1,0 +1,90 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "3ba3d2168e1e95ff",
+    "this-repo": "d2035e3c299b17d4"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both reviews find the same two blockers: the SQL injection in search and the swallowed audit errors. B is more accurate and better grounded. It checks the README, which documents both the `?`-placeholder rule and page numbering from 1, and it reports running the tests and reproducing each issue. A says it did not verify the README claim even though the README is in the repo, and one of its line references is wrong. B also catches the unused import and the now-stale README handler table, and it gives a practical path to merge.",
+        "a_issues": [
+          "Cites `adminhub/api.py:26-29` for the search handler. In the patched file `search` is at about lines 42-48, so the reference is wrong.",
+          "Says it did not verify the 'pages start at 1' claim against the README, although the README is in the repo and confirms it.",
+          "Does not mention that the change breaks the README's stated rule that all queries use `?` placeholders.",
+          "Misses the unused `import os` in `search.py`.",
+          "Misses that the README handler table is now out of date.",
+          "Does not run or verify the tests, so its findings are inferred rather than demonstrated."
+        ],
+        "b_issues": [
+          "Its claims of applying the patch and reproducing each issue in a scratch copy cannot be checked from the diff alone.",
+          "Wrapping the injection fix and the wildcard-escaping fix into one suggested change makes the remediation a bit more involved."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "A applied the patch and ran the tests, which confirmed the 28 passing tests. It then reproduced each major finding: the injection returning all rows, the swallowed audit error, audit rows for an unknown id, the wrong page count, and the crashes on bad input. Its line references are accurate, and it checked the README, noting that the handler table is now outdated. B covers similar ground and adds a good point about the client-supplied actor, but it gives wrong line numbers for the search handler (api.py:26-29 and api.py:29 instead of about 42-48), runs nothing, and leaves the README's page-numbering claim unverified even though the README is in the repo.",
+        "a_issues": [
+          "Does not flag that `actor` comes from the client and can be spoofed in the audit log",
+          "Line ranges are slightly loose in places (e.g. audit.py:14-16)"
+        ],
+        "b_issues": [
+          "Wrong line references for the search handler (api.py:26-29, api.py:29); it is at about api.py:42-48 after the patch",
+          "Did not run the tests or reproduce any finding, so every claim is unverified",
+          "Did not check the README's page-numbering claim even though the README is available in the repo",
+          "Misses that the README handler table is now wrong",
+          "Calls the TODO 'unfinished feature work', which is a weak finding"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

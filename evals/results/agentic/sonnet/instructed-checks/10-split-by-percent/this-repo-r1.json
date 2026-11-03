@@ -1,0 +1,98 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "condition": "this-repo",
+  "rep": 1,
+  "checks": [
+    {
+      "name": "shares_add_up",
+      "description": "A percentage split gives every person a whole number of cents next to their exact share, and the shares add up to the amount, even when the percentages do not divide it evenly.",
+      "passed": true,
+      "evidence": ".........                                                                [100%]\n9 passed, 8 deselected in 0.10s"
+    },
+    {
+      "name": "invalid_input_rejected",
+      "description": "Percentages that do not add up to 100, are not whole numbers, are negative, lack `=` or repeat a person are reported as an error with exit code 2 and nothing is saved.",
+      "passed": true,
+      "evidence": "......                                                                   [100%]\n6 passed, 11 deselected in 0.05s"
+    },
+    {
+      "name": "equal_split_unchanged",
+      "description": "Equal splits with `--with` still work exactly as before and can be mixed with percentage splits.",
+      "passed": true,
+      "evidence": "..                                                                       [100%]\n2 passed, 15 deselected in 0.04s"
+    },
+    {
+      "name": "no_float_money",
+      "description": "No amount or percentage goes through `float()` or `round()`, which lose cents.",
+      "passed": true,
+      "evidence": "no matching added lines"
+    },
+    {
+      "name": "only_expected_files",
+      "description": "Only the package, the tests and the README changed.",
+      "passed": true,
+      "evidence": "changed: ['README.md', 'tabtally/cli.py', 'tabtally/splitting.py', 'tests/test_cli.py', 'tests/test_splitting.py']"
+    },
+    {
+      "name": "existing_tests_untouched",
+      "description": "No existing test was changed or removed; the only existing lines that may change are imports.",
+      "passed": true,
+      "evidence": "no existing test line altered"
+    },
+    {
+      "name": "tests_added",
+      "description": "The agent added tests that exercise the percentage split.",
+      "passed": true,
+      "evidence": "\n  tests/test_cli.py: def test_percent_split_is_used_for_balances(run):\n  tests/test_cli.py: \"--percent\", \"alice=50\", \"--percent\", \"bob=30\", \"--percent\", \"carol=20\",\n  tests/test_cli.py: def test_percent_not_adding_up_is_rejected_and_nothing_is_saved(run):"
+    },
+    {
+      "name": "readme_updated",
+      "description": "The README documents the new `--percent` option.",
+      "passed": true,
+      "evidence": "README mentions --percent"
+    },
+    {
+      "name": "suite_passes",
+      "description": "The project's own test suite passes.",
+      "passed": true,
+      "evidence": "...............................................                          [100%]\n47 passed in 0.13s"
+    },
+    {
+      "name": "clean_diff",
+      "description": "The diff has no debug output, commented-out code or narrating comments.",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "tests_run_after_edit",
+      "description": "The agent ran the tests successfully after its last edit.",
+      "passed": true,
+      "evidence": "    with pytest.raises(SystemExit) as exit_info:\n        run(\"add\", \"--paid-by\", \"alice\", \"--amount\", \"10\", \"--description\", \"x\", \"--with\", \"bob\", \"--percent\", \"bob=100\")\n    assert exit_info.value.code == 2\nEOF\npython -m pytest -q 2>&1 | tail -15; (ruff check . && ruff format --check .) 2>&1 | tail"
+    }
+  ],
+  "metrics": {
+    "files": [
+      "tabtally/cli.py",
+      "tabtally/splitting.py"
+    ],
+    "before": {
+      "functions": 6,
+      "nloc": 48,
+      "max_nloc": 20,
+      "max_ccn": 4,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 9,
+      "nloc": 73,
+      "max_nloc": 27,
+      "max_ccn": 5,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4d0c9a3aaa91c4b8",
+    "sickn33": "84928fe5c15b4be1"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make the same correct fix: a map from normalized email to first index, built once and updated on append, which keeps findIndex's first-match semantics and still merges duplicates within the upload. A adds a regression test pinning first-match behavior when the stored list repeats an email, which is the key edge case of this rewrite. It also adds a 30k-into-50k scale test whose expected count of 55,000 is correct. B adds no tests, so the preserved semantics are unprotected, which makes A the better merge despite its wall-clock assertion.",
+        "a_issues": [
+          "The performance test asserts a wall-clock limit (<1000ms), which can be flaky on slow or loaded CI. The report acknowledges this risk."
+        ],
+        "b_issues": [
+          "No new tests, so first-match behavior for duplicate stored emails and the speedup itself are not protected against regression.",
+          "The helper `indexFirstOccurrences` is a small extraction used only once, a minor bit of extra indirection."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes replace the quadratic findIndex scan with the same map from normalized email to index. Both keep first-occurrence matching, merging of duplicates within the upload, and append order, so the core fix is equivalent. B also adds a regression test for the subtle first-entry-wins behavior when the stored book repeats an email, and a test at the reported scale. The scale test uses a wall-clock threshold, which is a mild flakiness risk, but B states that risk openly. A ships the same optimization with no new tests to protect it.",
+        "a_issues": [
+          "Adds no tests for the new behavior, including the first-occurrence edge case that the map building must preserve."
+        ],
+        "b_issues": [
+          "The performance test asserts a wall-clock limit of 1000ms, which could be flaky on slow CI machines.",
+          "The report's closing suggestion about pipeline.ts parsing is speculative and was not investigated."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

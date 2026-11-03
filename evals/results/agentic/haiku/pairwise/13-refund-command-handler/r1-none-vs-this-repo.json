@@ -1,0 +1,85 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "460b5e2fb8edca1b",
+    "this-repo": "d0771495562166b5"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two handlers are functionally identical. Both validate input, check existence and status, cap refunds at amountPaid minus amountRefunded, record the refund and leave the status unchanged. B's tests cover more: cancelled orders, a non-positive amount, an exact full refund, and an error-code assertion on the paid-versus-total case. A's report misstates the order of checks, saying input validation happens after the existence and status checks when the code validates first. B's report matches its code.",
+        "a_issues": [
+          "Report lists the rule order as existence, then status, then input validation, but the handler validates input first.",
+          "Tests do not cover cancelled orders or non-positive and invalid amounts.",
+          "usesTheAmountPaidNotTheOrderTotal does not assert the error code."
+        ],
+        "b_issues": [
+          "The new README row is wider than the column and breaks the table's visual alignment (it still renders correctly).",
+          "The helper `placeAndPartlyPay` also ships the order, which its name does not say."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both handlers are functionally identical: the same validation, the status check, the cap of amountPaid minus amountRefunded, and the same error codes. So the decision rests on tests and the report. A's tests also cover cancelled orders, a non-positive amount and refunding exactly what was paid, which B leaves untested. B's report describes the checks in the wrong order (existence and status before input validation), while the code validates input first, though B usefully mentions the lack of atomicity.",
+        "a_issues": [
+          "The new README row is wider than the table columns, so the alignment is uneven.",
+          "The report does not mention the race between the check and the save that a database-backed repository would have."
+        ],
+        "b_issues": [
+          "The report gets the order of checks wrong: it says existence and status are checked before input validation, but the code validates input first.",
+          "There are fewer tests: none for cancelled orders, non-positive or invalid amounts, or a single refund of the full paid amount on a shipped order.",
+          "The usesTheAmountPaidNotTheOrderTotal test does not assert the error code."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

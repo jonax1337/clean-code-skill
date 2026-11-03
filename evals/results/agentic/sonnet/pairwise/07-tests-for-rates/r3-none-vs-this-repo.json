@@ -1,0 +1,85 @@
+{
+  "case": "07-tests-for-rates",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "e72c013e76d81097",
+    "this-repo": "dffde66a5d970f18"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.25,
+    "report": 1.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both suites are correct; every expected value I checked by hand matches the code, and both leave src/rates.ts untouched. They cover nearly the same ground, with tie cases that tell half-up from half-even, fee boundaries, error paths and quote coverage. A's report is accurate (35 new + 10 existing = 45). B's report gives the wrong breakdown: it claims 31 new + 8 existing, when it actually has 29 new + 10 existing. That tips it slightly toward A, although B follows the repo's flat `test()` style more closely.",
+        "a_issues": [
+          "Uses `describe` grouping, while the existing test files use flat `test()` calls",
+          "The 'net plus fee always equals converted' test is close to a tautology given how quote computes net",
+          "Report says expected values were taken from the code's current behavior rather than derived independently"
+        ],
+        "b_issues": [
+          "Report misstates the test counts: 29 new tests plus 10 existing, not 31 plus 8 (the total of 39 is right)",
+          "Checks minorUnitsOf for only three of the five currencies"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "I checked every expected value in both suites against the rate table and `divideRounded`, and all of them are correct. Both suites are thorough characterization tests and leave `src/rates.ts` untouched. A is slightly sharper. It picks tie cases where half-up and half-even give different results for the same currency pair (15 EUR cents to USD gives 17, where half-even would give 16). It also probes just below the minimum-fee boundary (1199 EUR, fee 29.975) and keeps the repo's flat `test()` style. B's report says its expected values were taken from the code's current behavior, which is weaker as an independent safety net, though it also says the tie cases were hand-computed.",
+        "a_issues": [
+          "Report says 31 new tests plus 8 existing. The diff has 29 new tests and the repo has 10 existing ones; the total of 39 is still right."
+        ],
+        "b_issues": [
+          "Report says expected values were taken from the code's current behavior, which conflicts with its claim that the tie cases were hand-computed.",
+          "The `net + fee === converted` loop is close to tautological, since `quote` computes `net` as `converted - fee`.",
+          "Uses `describe` blocks, while the existing test files use flat `test()` calls.",
+          "A comment in the JPY case reads \"16.25 * 10 = 1625\", which is muddled arithmetic even though the assertion is correct."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

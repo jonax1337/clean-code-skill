@@ -1,0 +1,77 @@
+{
+  "case": "01-reuse-across-modules",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "c6efa48cebc85338",
+    "this-repo": "337e51ad687b0300"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both PRs make the identical change to shop/emails.py: they reuse gross_total and format_eur and place the line correctly after the item list. B also adds two tests that pin the exact position and the amount including shipping and reduced VAT (37,00 EUR), and that check the thousands separator (1.190,00 EUR). Both expected values check out against the code. B's report states it ran the suite, and 10 passed matches the repository's test count; A ran nothing and added no tests.",
+        "a_issues": [
+          "No tests were added for the new Gesamtbetrag line, its position, or its formatting.",
+          "The change was not verified: the tests were not run and no sample email was rendered."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both PRs make the same production change: `gross_total` formatted with the existing `format_eur`, placed right after the item list, with the layout otherwise unchanged. A also adds two tests that pin down the exact line position and the German thousands separator, and both expected values check out (30.00 net + 2.10 VAT + 4.90 shipping = 37,00 EUR; 1000.00 + 190.00 VAT = 1.190,00 EUR). B ships with no tests and says it did not run anything, which is honest, but the new behavior is left unprotected.",
+        "a_issues": [],
+        "b_issues": [
+          "No tests cover the new Gesamtbetrag line or its position and formatting",
+          "Did not run the existing test suite"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

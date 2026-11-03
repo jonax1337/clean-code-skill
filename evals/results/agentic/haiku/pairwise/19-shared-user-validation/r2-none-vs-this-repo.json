@@ -1,0 +1,88 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "1e67872990bce291",
+    "this-repo": "399da28584b277f5"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.0,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors centralize the rules and keep the messages and their order intact. docs/api.md says invitation emails are stored trimmed and lowercase, so the old non-lowercasing in inviteUser was a contract bug. A fixes it, flags it and adds a regression test. B keeps the bug and builds a `lowercase: false` option into the shared validator just to keep it. B has stronger unit tests for the helpers, but it adds an option whose only use is to keep behavior the documentation rules out.",
+        "a_issues": [
+          "Changes invite email behavior within a refactor task; it is flagged, but the report does not point to docs/api.md, which justifies the fix.",
+          "No direct unit tests for the new validation module, so the optional 80-character name limit stays untested.",
+          "Splitting normalize and check makes callers pair them correctly; updateUser repeats the same normalize/check/push pattern three times."
+        ],
+        "b_issues": [
+          "Keeps invitation emails case-sensitive, which contradicts the documented contract that invitation emails are stored lowercase, so duplicate detection by case can still be bypassed.",
+          "Adds a `lowercase` option to the shared checkEmail whose only purpose is to keep that deviation.",
+          "inviteUser builds the 'role is required' result inline, so part of the role rule still lives outside the shared module.",
+          "The report presents the case mismatch as an open question without checking the docs, which already settle it."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "docs/api.md says invitation emails are stored trimmed and in lowercase, so the old inviteUser behavior was a bug against the documented contract. B fixes that bug in the shared module, discloses the change in its report and adds a regression test for it. A keeps the bug, adds a `lowercase: false` option to the shared checkEmail just to support it, and treats the question as undecided instead of checking the docs. Apart from this, both refactors centralize the rules cleanly and keep the message order and the per-handler differences.",
+        "a_issues": [
+          "Keeps the case-sensitive invite email, which contradicts docs/api.md, and adds a `lowercase: false` option to the shared validator just to support that inconsistency.",
+          "Builds the 'role is required' rule inline in inviteUser instead of putting it in the shared module, so part of the role validation still lives in a handler.",
+          "The report treats the invite email case as an open question, although the documented contract already answers it."
+        ],
+        "b_issues": [
+          "Changes invite behavior (email lowercasing) during a refactor, though the change matches the documented contract and the report discloses it.",
+          "Adds only one test and no direct unit tests for the shared validation module, for example the 80-character limit on an optional name.",
+          "updateUser still repeats the push-error-or-apply-change pattern three times."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

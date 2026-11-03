@@ -1,0 +1,86 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "8447ae12995bf908",
+    "this-repo": "62b5fd2906c15d51"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes fix the bug the same way: they map the CRM `customer_id` to `customerId` at load time and route the lookup through `requireCustomer`, so the code behaves the same. B is ahead on tests. Its sources test uses isolated fixtures and checks the full output with deepEqual, and it adds a regression test for the `UnknownReferenceError` path. A leaves the new `requireCustomer` behavior in export untested and ties its test to the live data files. B's report is also more concrete about verification, including the INV-1041 row and the total it checked, and it says plainly what it did not verify.",
+        "a_issues": [
+          "No test covers the new requireCustomer behavior in exportInvoices (an unknown customer now raises UnknownReferenceError instead of a TypeError).",
+          "tests/sources.test.js reads the real data/ directory, so the test breaks whenever the monthly data changes.",
+          "The report says the export was verified but gives no concrete output to back that up."
+        ],
+        "b_issues": [
+          "tests/sources.test.js creates temp directories with mkdtempSync and never removes them.",
+          "The new import is placed before the csv import, which breaks the alphabetical import order used in the rest of the file.",
+          "The unknown-customer test identifies the error by `error.name` instead of `instanceof UnknownReferenceError`, unlike the existing tests."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix: they map the CRM `customer_id` to `customerId` at load time and route the export lookup through `requireCustomer`, which follows the README convention. A's tests protect more of the change. A's sources test uses a temp directory, so it does not depend on the monthly data files. A also adds an export test for the new UnknownReferenceError path, which B leaves untested. B's sources test reads the real `data/` directory and asserts on specific customer names, so it will break as that data changes.",
+        "a_issues": [
+          "Import order in export.js puts customers.js before csv.js, a trivial inconsistency.",
+          "The export test checks `error.name` instead of `instanceof UnknownReferenceError`, a slightly weaker assertion."
+        ],
+        "b_issues": [
+          "The sources test depends on the real `data/` files, which change monthly, so it is fragile.",
+          "No test covers the new `requireCustomer` path in exportInvoices for an unknown customer.",
+          "The report does not show concrete export output for INV-1041, only a claim that the file is complete."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

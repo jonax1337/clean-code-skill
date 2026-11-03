@@ -1,0 +1,79 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "43a215169909fd76",
+    "this-repo": "5ac61e79cdf790c6"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.75,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both diffs remove the flag, the warning, the `compact` field, the render path, its helpers, the help line and the README row in the same way, and both add a changelog entry and a rejection test. A keeps an extra parser-level unit test and says in the changelog that the flag now gives an unknown-option error. B writes its integration test as a compact loop and its report flags that the version bump is still undecided. Both reports give test counts that match the diffs, and I would be equally happy to merge either.",
+        "a_issues": [
+          "The rejection is asserted twice, once in a unit test and once in an integration test, which is slightly redundant.",
+          "The integration test repeats the same assertion for each flag instead of looping over them."
+        ],
+        "b_issues": [
+          "The changelog entry does not say that the flags now produce an unknown-option error.",
+          "The report claims clippy and fmt results that cannot be checked from the diff."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both diffs make the same removal of `--compact`/`-c` across the CLI, Options, render path, help text, README and CHANGELOG, and both add a test that the flag is now an unknown-option error. B also adds a unit-level test that repeats what the integration test checks. A writes its integration test as one loop and reports clippy/fmt checks. B's changelog entry states that the flag is now an error, which is a small help to users. Both reports give correct test counts, and I would merge either equally happily.",
+        "a_issues": [],
+        "b_issues": [
+          "The rejection check is duplicated in a unit test and an integration test, which adds little protection."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

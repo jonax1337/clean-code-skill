@@ -1,0 +1,83 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "dde994ff23d4766c",
+    "ub-mode": "c57a69802228b2ae"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The source and test changes are essentially identical and both look correct: pausing only from active, payment events ignored while paused, cancel clears resumeOn, and the audit line and email match the spec. A also commits an unrequested 408-line package-lock.json, an unrelated artifact that would land in the repo. B's report has odd noise (references to uninstalled 'crapper/dryer/mutator' tools and an offer to push to main), but that doesn't affect what gets merged.",
+        "a_issues": [
+          "Adds an unrequested package-lock.json (408 lines) to the change, outside the task's scope"
+        ],
+        "b_issues": [
+          "Report mentions irrelevant tools (crapper, dryer, mutator) not part of this repo",
+          "Report offers to push to main, which is unnecessary and slightly concerning",
+          "Report doesn't flag that plan_changed still applies to a paused subscription"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The source changes are essentially identical and both correctly implement the pause state, audit line and notification as specified, with equivalent tests. B also commits a 408-line package-lock.json that the task did not ask for, and its report never mentions it, which is both a scope problem and an accuracy gap. A's report has some irrelevant noise (tools that aren't installed, an offer to push to main), but it does not misstate what changed. B's note about plan_changed on paused subscriptions is a useful flag, though not enough to outweigh the unexplained lockfile.",
+        "a_issues": [
+          "Report mentions unrelated tooling (crapper, dryer, mutator) that has nothing to do with this repo.",
+          "Report offers to push directly to main, which was not requested."
+        ],
+        "b_issues": [
+          "Adds an unrequested 408-line package-lock.json to the change.",
+          "Report does not mention the added package-lock.json, so it misstates what changed."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

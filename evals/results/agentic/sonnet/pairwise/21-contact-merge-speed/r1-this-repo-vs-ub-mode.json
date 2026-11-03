@@ -1,0 +1,85 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "6055b6aaeb3cc9a8",
+    "ub-mode": "f2c8d2acf6f34f62"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make the same correct fix: a Map from normalized email to first index, which preserves first-match semantics and still merges duplicates within the upload. B adds a useful scale regression test, but it relies on a wall-clock assertion that could be flaky on slow CI. B's report also includes irrelevant remarks about skipped 'crapper, dryer and mutator' tools, and says B committed and tried to push, which nobody asked for. A's report is precise, honestly says how the timing was measured, and stays within the task.",
+        "a_issues": [
+          "No committed regression test guards against the quadratic slowdown returning; the timing came from a throwaway script."
+        ],
+        "b_issues": [
+          "The performance test asserts on wall-clock time (under 2s), which can be flaky on slow or loaded CI machines.",
+          "The report includes irrelevant text about skipping 'crapper, dryer and mutator' tools.",
+          "B committed and tried to push without being asked, and leaves the developer to check the git state."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two `src/import.ts` changes are functionally identical: both build a Map from normalized email to first index, register appended contacts, and keep first-entry-wins for duplicates already in the book. The deciding differences are in tests and reports. A adds a wall-clock performance test that does guard against regression, but timing assertions can be flaky on slow CI machines and add runtime to every test run. A's report also includes unexplained noise about \"crapper, dryer and mutator tools\" and an unrequested push, while B's report is clean, accurate and says what was not profiled.",
+        "a_issues": [
+          "The scale test asserts wall-clock time under 2s with a 5s timeout. It can be flaky on loaded CI machines and adds a 50k/30k workload to every test run.",
+          "The report mentions skipping \"crapper, dryer and mutator tools\", which is confusing and irrelevant to the task.",
+          "The report talks about committing and pushing, which nobody asked for, and leaves the developer to check whether the push happened.",
+          "The duplicate-entry test only checks phone values, not which entry IDs or names were kept."
+        ],
+        "b_issues": [
+          "The performance claim (79 ms) comes from a throwaway script, so no committed test guards against the quadratic behavior returning.",
+          "The test count in the report (9) is consistent with the diff, but the measurement cannot be reproduced from the repo."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

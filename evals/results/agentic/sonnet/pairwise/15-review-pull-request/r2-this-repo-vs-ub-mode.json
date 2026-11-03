@@ -1,0 +1,87 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ba64f2dd10ba7272",
+    "ub-mode": "e2785a551e645867"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both reviews find the SQL injection, the swallowed audit errors, the round-down page count, the missing paging validation and the forgeable actor. A also catches two real problems B misses. The first is that `list_users` now silently caps results at 25 even though the README documents it as returning all users. The second is that the existing single-user `deactivate_user` path writes no audit row, so \"every deactivation is audited\" is false. B also contains an arithmetic error: it claims 5 users at 3 per page gives `pages: 2`, when `5 // 3` is 1.",
+        "a_issues": [
+          "The injection example `x' OR '1'='1` does not actually return every user with this query shape, because it becomes `'1'='1%'`.",
+          "Somewhat long, and the paging-duplication point overlaps with item 6."
+        ],
+        "b_issues": [
+          "States that `5 // 3` gives 2 (\"happens to be right\"), which is wrong; it gives 1.",
+          "Misses the breaking change: `list_users` now returns 25 by default instead of all users as the README documents.",
+          "Misses that single-user `deactivate_user` writes no audit entry, so the compliance claim is unmet.",
+          "The injection example `' OR 1=1 --` would also comment out the LIMIT/OFFSET placeholders and cause a binding error."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both reviews catch the SQL injection, the swallowed audit errors, the forgeable actor and the unvalidated paging input. A gets its own page-count example wrong: it says 5 users at 3 per page gives `pages: 2`, but `5 // 3` is 1. B gets this right. B also finds two real issues A misses: the single-user `deactivate_user` path writes no audit entry, and `list_users` now returns only 25 users by default, which silently breaks the README contract of returning all users.",
+        "a_issues": [
+          "Wrong arithmetic in the `pages` finding: it says 5 users at 3 per page gives 2 ('happens to be right'), but `5 // 3 == 1`.",
+          "Misses that the single-user `deactivate_user` path writes no audit entry, so 'every deactivation is audited' is not met.",
+          "Misses that `list_users` now defaults to 25 users, which breaks the documented contract of returning all users.",
+          "Does not cover bulk `ids` input that is not a list or has non-numeric entries."
+        ],
+        "b_issues": [
+          "Somewhat longer, with a 'Good' section that adds little to the review.",
+          "The closing remark that merging this week is still realistic is speculative."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

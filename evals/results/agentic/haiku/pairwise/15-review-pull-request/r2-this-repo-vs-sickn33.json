@@ -1,0 +1,85 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d6a1786d0165b104",
+    "sickn33": "afc6cd3393192761"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews correctly block the merge on the SQL injection and the swallowed audit errors, and both back their findings with probes. A also catches that the existing single `deactivate_user` path never writes to the audit log, which defeats the PR's stated compliance goal of auditing every deactivation; B misses this. B goes deeper on bulk edge cases (duplicate ids, already-inactive users, an empty table) and notes what it could not verify, but missing the unaudited path is the more important gap.",
+        "a_issues": [
+          "Does not mention duplicate ids or already-inactive users being counted and audited in bulk deactivation.",
+          "Line number for the unused `import os` is off by one (it is line 3, not line 4).",
+          "Does not note that `search` returns no `page`/`pages` fields for a pager."
+        ],
+        "b_issues": [
+          "Misses that single-user `deactivate_user` is never audited, which leaves the compliance requirement unmet.",
+          "The audit.py line range is slightly inconsistent between the review (14-16) and the report (15-16)."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews confirm the same main blockers with probes: SQL injection in search, audit failures being swallowed, the actor taken from request params, wrong page count and unvalidated paging, and both reach the right verdict. B also finds that the existing single `deactivate_user` path never writes to `audit_log`, which matters because compliance wants every deactivation audited. A misses that gap. A does catch duplicate-id audit rows and already-inactive users being counted, which B misses, and B has one wrong line number. B's report is also clear about which findings it probed and which it only reasoned out.",
+        "a_issues": [
+          "Misses that the single-user `deactivate_user` path writes no audit entry, so the compliance requirement for every deactivation is not met",
+          "Does not point out that a plain-string `ids` value is iterated character by character"
+        ],
+        "b_issues": [
+          "Gives the unused `import os` as `search.py:4`; it is on line 3",
+          "Misses duplicate ids producing duplicate audit rows, and already-inactive users being counted by `rowcount`",
+          "Does not mention the possible SQLite variable limit for large `ids` lists"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

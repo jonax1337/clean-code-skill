@@ -1,0 +1,82 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "9b789fe84c7eb119",
+    "this-repo": "2a29f0f0d9192b06"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes convert parseDuration to milliseconds correctly and adapt every caller in the same way, including the three that still need seconds (http, report, validate). B also adds tests for the Retry-After header, the report text and the TTL minimum and boundaries. Those are exactly the spots where a missed conversion would otherwise slip through, and B checked that the new tests pass on the original code. A only points out that these spots are untested. B's new exported MS_PER_SECOND constant and its inSeconds helper are small extras, not real problems.",
+        "a_issues": [
+          "No tests cover the http.ts and report.ts conversions or the TTL minimum, so a wrong divisor there would not be caught. The report admits this but leaves it unfixed."
+        ],
+        "b_issues": [
+          "Exports a new MS_PER_SECOND constant from duration.ts, which slightly widens the module's surface beyond what the task needs.",
+          "The private inSeconds helper in report.ts is a minor abstraction for just two uses."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes convert parseDuration correctly. Both remove the redundant `* 1000` and convert back to seconds in http.ts, report.ts and validate.ts, so behavior is preserved in each. A also adds tests for exactly the callers where a missed conversion would go unnoticed (Retry-After, the report text, and the TTL min/max boundaries). B leaves those paths untested, though its report says so honestly. A's extra exported constant and helper are small and readable, so A's better test protection decides it.",
+        "a_issues": [
+          "Exports a new `MS_PER_SECOND` constant from duration.ts, which is slight extra surface area beyond the task.",
+          "Adds a private `inSeconds` helper in report.ts; harmless but a small extra abstraction."
+        ],
+        "b_issues": [
+          "No tests for the changed http.ts and report.ts conversions or the TTL minimum boundary, so a regression there would go unnoticed (the report acknowledges this).",
+          "Magic `1000` divisors repeated across files instead of a shared constant."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "e97ada354f0d9d66",
+    "ub-mode": "5a970d00381e398e"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes remove the silent fallbacks, reject unknown keys and exit with status 2 and a readable message. A collects every problem and reports them together, which better serves 'tell whoever is deploying it what is wrong'. A also rejects relative upstream URLs and zero timeouts. B has stronger tests: a real-JVM MainTest covers the exit code and stderr. However, B's report contains a garbled 'Not done' item about CRAP, dryer and mutator reports that nobody asked for, and B stops at the first error.",
+        "a_issues": [
+          "No test exercises Main's exit-code and stderr path; the report says this was checked manually.",
+          "The report's test breakdown ('9 existing, 7 new') is wrong: 7 existing tests were kept and 9 were added, though the total of 16 is right.",
+          "intValue returns the out-of-range value after recording the problem. This is harmless because load then throws, but it is slightly odd."
+        ],
+        "b_issues": [
+          "Fails fast on the first error, so a file with several mistakes needs several deploy attempts to fix.",
+          "Accepts a relative upstream.url such as /just/a/path and a zero request.timeout.",
+          "Only the first unknown key is reported.",
+          "The report's 'Not done' section refers to CRAP, dryer and mutator reports and commit-splitting instructions that were never part of the task. This is confusing and inaccurate.",
+          "MainTest spawns child JVMs and depends on the code-source location, which makes it heavier and potentially fragile in some runners."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes remove the silent fallbacks, reject unknown keys, and exit with status 2 and a clear message. B collects every problem and reports them together, which helps whoever is deploying fix the file in one pass, and it also rejects relative upstream URLs. A has stronger tests, including an end-to-end subprocess check of the exit code. However, A's report contains a garbled line about CRAP, dryer and mutator reports and ordered commits that the task never asked for, which makes the report less trustworthy.",
+        "a_issues": [
+          "Stops at the first problem, so an operator with several mistakes has to fix and restart repeatedly",
+          "Accepts a relative `upstream.url` such as `/path`",
+          "The report's 'Not done' section refers to instructions (CRAP, dryer and mutator reports, small ordered commits) that the task never gave, a garbled or hallucinated line",
+          "A `request.timeout` of zero is still accepted"
+        ],
+        "b_issues": [
+          "No automated test of `Main`'s exit code or stderr output; it relies on a manual run described in the report",
+          "Rejecting a zero timeout goes slightly beyond what was asked",
+          "Threading a `problems` list through every helper adds parameters and makes the helpers somewhat noisier"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

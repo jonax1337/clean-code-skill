@@ -1,0 +1,88 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "75acf66871ab0044",
+    "ub-mode": "08041f32d3e745b6"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.25,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes move the email, name and role rules into one module, and both keep the messages and their order. A also fixes a bug: invitation emails were not lowercased, although docs/api.md requires it, so the duplicate check missed emails that differ only in case. A covers this with tests and reports it clearly. B keeps that bug on purpose through a `lowercase: false` option that exists only for this case, commits straight to main without being asked, and its report contains a garbled sentence about 'crapper, dryer and mutator tools'.",
+        "a_issues": [
+          "Changes invitation behavior (now lowercases the email) during a refactor; justified by the doc and reported, but still a behavior change.",
+          "The reported test count (29) appears to be off by one from the diff (15 existing + 13 added = 28).",
+          "Small README edit beyond the core task."
+        ],
+        "b_issues": [
+          "Keeps the documented-against lowercasing bug in inviteUser behind a special-purpose `lowercase: false` option, so the single home still carries the inconsistency.",
+          "Committed the work to main without being asked.",
+          "Report contains a garbled, nonsensical line ('crapper, dryer and mutator tools'), and its test count (24) looks off by one from the diff (15 + 8 = 23).",
+          "No test pins the invite case-sensitivity behavior that the report calls out."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes centralize the email, name and role rules and keep the messages and their order intact. B's shared `normalizeEmail` also makes invitation emails lowercase. `docs/api.md` requires this, and it closes a real duplicate-invite hole; B tests it and states the behavior change clearly. A keeps the bug and builds a `lowercase: false` option into the shared module just to preserve it, though it does flag the issue honestly. B also follows the repo's one-test-file-per-handler convention, and A's report contains a garbled sentence.",
+        "a_issues": [
+          "Keeps invitation emails un-lowercased, against the documented contract. It adds a `lowercase: false` option to the shared module that exists only to preserve that bug.",
+          "The new `test/userValidation.pin.test.js` breaks the one-test-file-per-handler convention described in the README.",
+          "The report has a garbled line (\"crapper, dryer and mutator tools\") and an unverifiable claim about mutation testing. The stated test count (24) does not match the files (23)."
+        ],
+        "b_issues": [
+          "Changes behavior (invitation email lowercasing) during a refactor task, although it is documented and tested.",
+          "Validation wiring is inconsistent: `updateUser` uses a `FIELD_RULES` loop while `createUser` and `inviteUser` call the checks directly. `inviteRoleError` stays as a local helper.",
+          "Makes a small README edit outside the core task. The stated test count (29) is off by one from the files (28)."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

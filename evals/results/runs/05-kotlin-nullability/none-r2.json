@@ -1,0 +1,10 @@
+{
+  "model": "sonnet",
+  "model_ids": [
+    "claude-sonnet-5-5"
+  ],
+  "duration_ms": 6532,
+  "cost_usd": 0.007612,
+  "output_tokens": 436,
+  "skill_fingerprint": null
+}

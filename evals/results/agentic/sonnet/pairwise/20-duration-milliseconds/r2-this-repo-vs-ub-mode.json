@@ -1,0 +1,84 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4b3d1f2201ff8f5a",
+    "ub-mode": "3512ef34c3e2a4d5"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs convert parseDuration to milliseconds and adapt every caller the same way, so behavior is equivalent. Both drop the `* 1000` where milliseconds were wanted and divide by 1000 where seconds are still needed (Retry-After and the settings text). A uses a named MS_PER_SECOND constant, which reads slightly better, and its report honestly says http.ts and report.ts have no test coverage. B's report mentions running or skipping unexplained 'crapper, dryer or mutator tools from ,' with a missing path, which is confusing and not grounded in the repo.",
+        "a_issues": [
+          "Exports a new MS_PER_SECOND constant from duration.ts, which slightly widens the module surface.",
+          "No tests added for the seconds conversion in http.ts and report.ts (acknowledged in the report)."
+        ],
+        "b_issues": [
+          "Report refers to nonexistent 'crapper, dryer or mutator tools from ,', with a missing location, which is confusing and inaccurate.",
+          "No tests added for the seconds conversion in http.ts and report.ts, and the report does not point out the gap.",
+          "Uses magic 1000 literals in several places instead of a named constant."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs make the same correct conversion: callers drop `* 1000`, `http.ts` and `report.ts` divide back to seconds, and the validate bounds move to milliseconds, so behavior is preserved in both. B's report is more accurate and states plainly that the seconds conversions in `http.ts` and `report.ts` have no test coverage. A's report contains a garbled reference to 'crapper, dryer or mutator tools from ,' which refers to nothing in this repository. B's new exported `MS_PER_SECOND` constant is a small extra surface, but it reads clearly and does not obscure anything.",
+        "a_issues": [
+          "Report mentions nonexistent 'crapper, dryer or mutator tools from ,' (garbled, inaccurate content)",
+          "No tests added for the new /1000 conversions in http.ts and report.ts, and the report does not flag this gap"
+        ],
+        "b_issues": [
+          "Adds an exported MS_PER_SECOND constant to the module's API, which the task did not require",
+          "No tests added for http.ts or report.ts conversions (acknowledged in report)"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

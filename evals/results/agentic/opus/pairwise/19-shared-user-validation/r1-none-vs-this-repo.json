@@ -1,0 +1,85 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "8082c8fd9fd51607",
+    "this-repo": "601d3e468a9a5f24"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors keep every documented message and the email/name/role order. Both fix the invitation email not being lowercased, and I found no regressions in either. B's per-field checks are simpler to follow than A's options object with an array of closures. B also adds more handler-level tests, which lock in the contract before the refactor: pending-invitation 409, the 80/81-character boundary, a null role, no fields to update, and present fields held to the create rules. A's tests mostly exercise the new helper directly.",
+        "a_issues": [
+          "`validateUser` mixes `partial`, `nameOptional`, `defaultRole` and `roles` options, and the closures-in-array loop is harder to follow than plain per-field checks.",
+          "Handler-level coverage is thinner: no tests for a pending-invitation 409, the name-length limit or 'no fields to update' through the handlers, or `updateUser` with several invalid fields.",
+          "The report says there were 16 existing tests and 24 in total; the repository has 15 existing tests, and with 8 new ones that makes 23."
+        ],
+        "b_issues": [
+          "The partial-update logic (`checkPresentFields`) stays in `updateUser` rather than the shared module, so each handler still assembles its own validation flow.",
+          "The report's total of 27 tests doesn't match 15 existing plus 11 new, which is 26."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes centralize the email, name and role rules correctly, keep the message wording and order, and fix the same invitation lowercasing bug. A uses small composable per-field checks and leaves each handler's own policy visible in the handler. B packs that policy into an options object (partial, nameOptional, defaultRole, roles) whose flags interact in subtle ways. A also adds characterization tests at the handler level, written before the refactor, covering updateUser and createUser edge cases that B leaves untested.",
+        "a_issues": [
+          "Handlers still assemble results by hand (`email.value`, `name.value`), which is slightly more boilerplate.",
+          "No direct unit tests of the new validation module; it is covered only through the handlers."
+        ],
+        "b_issues": [
+          "The `validateUser` options form a small flag-driven configuration API. Some interactions are implicit, for example `defaultRole` is ignored in partial mode, which adds indirection.",
+          "No new tests for updateUser or createUser, such as `no fields to update`, mixed failures on PATCH, or the 80/81 boundary through create.",
+          "It adds a new `src/validation/` directory that doesn't match the layout described in the README (minor)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

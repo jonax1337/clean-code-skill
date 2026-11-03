@@ -1,0 +1,90 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "b97cba07653d8e51",
+    "sickn33": "82a583ed0588a056"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.25,
+    "scope": 0.75,
+    "design": 1.0,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve observable behavior. Change A's reordering of tax and coupon lookup is safe because `tax_rate` never raises, and its release of `order.items` on a declined payment matches the original `reserved` list at that point. A also adds characterization tests, which it ran against the unchanged code, covering the pricing, rollback and receipt paths the original suite missed. That is what makes a no-behavior-change refactor of production code safe to merge. B adds no tests, exposes all its helpers as public module functions, and its report contains inaccurate claims.",
+        "a_issues": [
+          "Pricing now computes the discount, including the coupon validation, before tax. This is harmless only because `tax_rate` cannot raise, and the report does not note the reordering.",
+          "`_charge` releases `order.items` instead of the list of actually reserved items. This is equivalent today but couples correctness to the earlier step having reserved everything.",
+          "The tax loop now runs separately from the subtotal sum, so line totals are computed twice."
+        ],
+        "b_issues": [
+          "No new tests, even though the existing 9 tests leave the VIP discount, shipping threshold, rounding, coupon errors and partial rollback unprotected.",
+          "Helpers are public names without a leading underscore (`validate_order`, `compute_discount`, etc.), which needlessly widens the module's API.",
+          "The report wrongly claims an unknown country 'fails' before an invalid coupon; `tax_rate` falls back to a default and never raises.",
+          "The report suggests `list[OrderItem] if you have that model`, but `shop.models.Item` exists; the type hints are a loose `list`.",
+          "`charge_customer` takes six parameters, including the threaded-through `reserved` list."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep production behavior. A is the more literal move of the existing code. B first added 18 characterization tests and ran them against the unchanged code. Those tests pin down the pricing, rounding, threshold and rollback behavior that the original 9 tests left unprotected, which is what a no-behavior-change refactor of live checkout code needs. B's small reorderings (tax_rate called after the coupon check, releasing order.items instead of the reserved list) are not observable with valid inputs, though A preserves the original order more strictly.",
+        "a_issues": [
+          "Adds no tests, so the refactor of pricing and rollback paths is checked only by the 9 existing tests, which miss VIP discount, the shipping threshold, per-line rounding, partial rollback and receipt failure.",
+          "The helpers are public, module-level names, which grows the module's API surface without need.",
+          "`charge_customer` takes a loosely typed `reserved: list` parameter only so it can release stock.",
+          "The report suggests tightening the type to `list[OrderItem]`, but the repository's model is `Item`, so the advice is inaccurate."
+        ],
+        "b_issues": [
+          "`_price_order` now calls `_tax_cents` (and so `tax_rate`) after the coupon check, which subtly reorders evaluation compared with the original (not observable with valid string country codes).",
+          "`_charge` releases `order.items` instead of the list of reserved items. That is equivalent only because reservation fully succeeded, so it is an implicit coupling.",
+          "Did not run a type checker or linter (stated in the report)."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

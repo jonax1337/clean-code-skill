@@ -1,0 +1,88 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "30873e6d8ba78935",
+    "this-repo": "75acf66871ab0044"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs move the email, name and role rules into one module, keep the contract messages and their order, and fix the same invitation lowercase bug. B's tests are better: it pinned the existing behavior in the per-handler test files before refactoring, covering the 80/81 name boundary, message order, non-string input, owner invites, empty invite names and an empty update body. B's helpers (normalize plus an error check) are also a bit simpler than A's tuple-based `collect`. A mixes validator unit tests and inviteUser tests in a new file, which breaks the one-test-file-per-handler layout.",
+        "a_issues": [
+          "The `collect([field, result])` tuple format and the inline `{ message: 'role is required' }` object are a slightly awkward abstraction.",
+          "The new test file mixes validator unit tests with inviteUser handler tests, against the repo's one-file-per-handler convention.",
+          "There are no regression tests through createUser or updateUser for things like message order, the update 'no fields' case or non-string names.",
+          "The report miscounts the tests: the repo has 15 existing tests, not 16."
+        ],
+        "b_issues": [
+          "`inviteRoleError` and `INVITABLE_ROLES` live in the handler rather than the shared module. This is a minor placement choice.",
+          "The reported test total (29) appears to be off by one: 15 existing plus 13 added is 28."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs move the email, name and role rules into one module, keep the messages and their order, and fix the same inviteUser bug where emails were not lowercased. A's 13 new tests sit in the per-handler test files and pin the existing behavior first: the 80/81 name boundary, non-string input, message order, a body with no fields, owner on invites, and the case-insensitive pending-invitation conflict. B adds 5 tests, mostly unit tests of the validators in a new file, and adds nothing for updateUser. B's validator-with-options design is slightly tidier, but A's stronger regression tests tip the balance.",
+        "a_issues": [
+          "Splits each rule into several small exported helpers (normalize*, *Error, nameLengthError, errorMessages), which is a bit more surface area than needed.",
+          "The reported test counts look off by one: the diff shows 15 existing plus 13 new tests, which is 28, not 29."
+        ],
+        "b_issues": [
+          "No new tests cover updateUser, the handler whose partial-update path was restructured the most.",
+          "The new tests go in test/userValidation.test.js, which departs from the README's one-test-file-per-handler layout.",
+          "The report says 16 existing tests, but the repository has 15, so the totals are off by one.",
+          "The report says the old code 'created a second invitation' for an address that already belonged to a user. It actually created an invitation for an existing user's address, so this wording is slightly inaccurate.",
+          "The 'role is required' check is built inline as an ad-hoc object in the handler, which makes it a bit uneven next to the shared validators."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

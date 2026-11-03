@@ -1,0 +1,85 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d2464bb22d7a58fc",
+    "ub-mode": "743350321df092ec"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The production code in both changes is essentially the same and correct: a new paused status, active-only pausing, failed payments ignored while paused, cancelling clears resumeOn, and the audit line and email match the spec. The difference is in the reports and tests. B's report refers to tools (`crapper`, `dryer`, `mutator`), a 'ub-mode', and commit-and-push instructions that exist neither in the task nor in the repo, and it has blank or garbled references, so it would confuse a developer. A's tests are also slightly more thorough, for example checking canceledAt when a paused subscription is cancelled.",
+        "a_issues": [
+          "Test fixtures for the pause event are repeated inline instead of shared like B's `pause` constant",
+          "SubscriptionPaused is placed after SubscriptionCanceled, which is a minor ordering inconsistency"
+        ],
+        "b_issues": [
+          "Report refers to nonexistent tools, a 'ub-mode', and commit/push instructions that are not part of the task, with garbled blank references",
+          "The cancel-while-paused test does not check canceledAt",
+          "The repeated-pause case is folded into the 'only active' test instead of being named separately"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production code in both changes is effectively identical and correct: the paused status, active-only pausing, ignoring payments while paused, clearing resumeOn on cancel, the audit line format and the customer-only email. B's tests are a little more thorough: repeated pause gets its own test and cancel-while-paused also checks canceledAt. B's report is clean and accurate. A's report includes confusing references to tools ('crapper', 'dryer', 'mutator', 'ub-mode') and commit/push instructions that are not part of this task, with garbled sentence fragments.",
+        "a_issues": [
+          "Report refers to tools and commit/push instructions that are not part of this task, with broken sentence fragments, which is confusing for the developer.",
+          "Report says 6 new tests but then that 'all seven failed', a minor inconsistency.",
+          "Cancel-while-paused test does not check that canceledAt is still recorded."
+        ],
+        "b_issues": [
+          "SubscriptionPaused is appended at the end of the union rather than in lifecycle order (minor).",
+          "State tests repeat the inline pause event several times instead of sharing a fixture."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "752f7e87ea90ac4d",
+    "this-repo": "28a4cc6d1dc7bef0"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors split the monolithic `next` into per-token methods with a `State` enum, and as far as I can trace they preserve every token, error position and post-error behavior. A also adds tests that pin down error positions, empty values and `=` inside bare values, which the old suite did not cover. A's report is a self-contained account of the differential check and a carefully hedged benchmark. B adds no tests, scatters `#[inline]` everywhere with an unsupported \"keep them\" comment, and its report talks about a killed background command and a prior report while claiming an unexplained 20% speedup.",
+        "a_issues": [
+          "Debug output of `Tokens` changes; acknowledged in the report",
+          "Finishing at end of line now also moves `pos`/`state`, which is only observable through Debug/Clone"
+        ],
+        "b_issues": [
+          "No tests added to protect the refactor's error positions or edge cases",
+          "`#[inline]` on every helper plus a \"Keep them\" comment, with no evidence they matter",
+          "Report is mostly about an unrelated killed background command and refers to a previous report the developer cannot see",
+          "Claims a ~20% speedup and a differential check without describing either",
+          "No module-level overview of the line format and state machine"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors split the tokenizer into a State enum plus per-token methods, and both appear to keep every token, error and error position the same as HEAD. B also adds tests that pin down error positions, empty values and `=` inside bare values, which protects the refactor. B's report clearly states what was verified and admits the benchmark is noisy. A adds no tests, scatters `#[inline]` hints behind an unsupported \"keep them\" comment, and its report is mostly about an unrelated background process plus a hard-to-believe 20% speedup claim.",
+        "a_issues": [
+          "No tests added to lock down the exact error positions and empty-value behavior the task says must be preserved.",
+          "`#[inline]` on every private helper, with a comment insisting they keep the hot path cheap, but no evidence is given. Inlining within one crate is mostly the compiler's call anyway.",
+          "The report talks mostly about a killed background Python process from earlier context and barely describes the change. Its claim of a ~20% speedup is unsupported and unlikely for a pure restructuring."
+        ],
+        "b_issues": [
+          "`scan_key_or_word` and `scan_bare` repeat nearly the same scan-until-blank loop with a quote check. A shared helper, as in A's `scan_unquoted`, would remove the duplication.",
+          "The module doc partly repeats the README's line-format description."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

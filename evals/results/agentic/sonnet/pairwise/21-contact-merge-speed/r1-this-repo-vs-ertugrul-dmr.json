@@ -1,0 +1,84 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "6055b6aaeb3cc9a8",
+    "ertugrul-dmr": "d37c2df3a0b066ea"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes use the same Map-based fix and behave identically, including first-occurrence wins and merging duplicates within the upload. A adds a test that pins the first-duplicate-wins behavior, and it ran the tests, the typecheck and a timing check. B ran nothing and added no tests. B's helper is harmless but extra, and its report justifies it by citing an unnamed 'rule'.",
+        "a_issues": [
+          "The performance measurement came from a throwaway script and was not committed as a benchmark."
+        ],
+        "b_issues": [
+          "No tests were run or added, so the change is unverified.",
+          "It adds an `indexFirstOccurrences` helper that is not needed for a small inline loop.",
+          "The report cites an unnamed 'rule' as the reason for the helper."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both diffs make the same correct fix: a Map from normalized email to the first index, with appended contacts registered as they arrive. Order, first-duplicate-wins and merging of duplicates within the upload are all preserved. B adds a test that pins the first-duplicate behavior the rewrite depends on, and it reports a measured speedup plus passing tests and typecheck. A ran nothing, added no tests, and its report includes a garbled justification for its helper.",
+        "a_issues": [
+          "No test added for the duplicate-in-existing behavior the Map rewrite must preserve",
+          "Did not run tests or typecheck",
+          "Did not measure the performance improvement",
+          "Report contains a garbled sentence ('follows  rule that...') justifying the helper"
+        ],
+        "b_issues": [
+          "Benchmark was a throwaway script, not committed (disclosed in the report)"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

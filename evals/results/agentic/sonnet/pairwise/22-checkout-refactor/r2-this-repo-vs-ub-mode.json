@@ -1,0 +1,86 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "b97cba07653d8e51",
+    "ub-mode": "374b85ef62f3b088"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 0.25,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors split process_order into equivalent steps and keep the order of side effects, error messages and statuses, so neither changes behavior. A's characterization tests are much stronger: they pin the exact order of inventory calls, that a declined payment leaves the coupon unredeemed, a used-up coupon, the shipping threshold at 5000 and 4999, tax per country, and that nothing is touched on validation failure. B's tests cover fewer branches and leave the rollback and commit sequences mostly unchecked. B also made local commits nobody asked for, and its report contains a garbled note about missing tools.",
+        "a_issues": [
+          "`_price_order` loops over the items twice, once for the subtotal and once in `_tax_cents`, where the original used a single loop (harmless).",
+          "Adds 18 tests in one change, which makes the diff larger."
+        ],
+        "b_issues": [
+          "Fewer characterization tests: the order of inventory calls, coupon non-redemption on a declined payment, tax per country, and the exact edges of the shipping threshold are not pinned.",
+          "Created two local git commits without being asked.",
+          "The report mentions 'crapper, dryer or mutator tools from .', a confusing leftover that refers to nothing in the repo.",
+          "Moved process_order to the bottom of the file, which makes the diff noisier."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors split `process_order` into nearly identical helper steps and keep the order of side effects, error messages and statuses. B's characterization tests are much stronger: they pin the exact inventory call order, the coupon staying unredeemed on a declined payment, the free-shipping boundary at 4999/5000, the discounted-subtotal threshold, and tax per country. B's report is also accurate and flags the non-atomicity risk without acting on it. A's structure is slightly tidier because it computes each line once for both subtotal and tax, but its report cites nonexistent tooling.",
+        "a_issues": [
+          "Report mentions 'crapper, dryer or mutator tools from .', which are unrelated tools with a blank path that the task never mentioned.",
+          "Characterization tests are thinner: no inventory-log ordering, no check that a declined payment leaves the coupon unredeemed, no 4999/5000 shipping boundary, no check that shipping uses the discounted subtotal, and no per-country tax.",
+          "The invalid-coupon test does not assert that stock was left untouched."
+        ],
+        "b_issues": [
+          "`_tax_cents` recomputes `unit_price_cents * quantity` separately from the subtotal sum, a small duplication compared with the original single loop.",
+          "The shipping calculation stays inline in `_price_order` while the other pricing parts are extracted, which is slightly inconsistent."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

@@ -1,40 +1,47 @@
-Here is the cleaned-up version. It is the same algorithm: one `buf.get()` per byte, no allocation, and the same inlined constants and bit operations.
-
 ```java
 private static final int PAYLOAD_MASK = 0x7F;
-private static final int CONTINUATION_FLAG = 0x80;
+private static final int CONTINUATION_BIT = 0x80;
 private static final int PAYLOAD_BITS_PER_BYTE = 7;
-private static final int VARINT_BIT_LIMIT = 32;
+private static final int MAX_VARINT_BITS = 32;
 
 public static int readVarInt(ByteBuffer buf) {
     int value = 0;
-    for (int shift = 0; shift < VARINT_BIT_LIMIT; shift += PAYLOAD_BITS_PER_BYTE) {
-        byte current = buf.get();
-        value |= (current & PAYLOAD_MASK) << shift;
-        if (isLastByte(current)) {
-            return value;
+    int shift = 0;
+    byte current;
+    do {
+        if (shift >= MAX_VARINT_BITS) {
+            throw new RuntimeException("VarInt too big");
         }
-    }
-    throw new RuntimeException("VarInt too big");
+        current = buf.get();
+        value |= (current & PAYLOAD_MASK) << shift;
+        shift += PAYLOAD_BITS_PER_BYTE;
+    } while (hasContinuationBit(current));
+    return value;
 }
 
-private static boolean isLastByte(byte b) {
-    return (b & CONTINUATION_FLAG) == 0;
+private static boolean hasContinuationBit(byte b) {
+    return (b & CONTINUATION_BIT) != 0;
 }
 ```
 
 **What changed**
-- **Names:** `pos` is really a bit shift, so it is now `shift`. The magic numbers `0x7F`, `0x80`, `7` and `32` are named constants.
-- **Control flow:** `while (true)` with `break` and a mid-loop check became a bounded `for` loop that returns as soon as it sees the last byte. The limit is now visible in the loop header instead of in a check inside the body.
-- **Abstraction level:** `isLastByte` replaces the raw bit test, so the loop reads as "read byte, accumulate, stop on the last byte".
-- **Scope:** `b` is declared inside the loop, next to where it is used.
+- **Names:** `pos` is now `shift`, since it's a bit shift and not a buffer position. `b` is now `current`. The magic numbers `0x7F`, `0x80`, `7` and `32` are named constants.
+- **Loop:** `while (true)` with a `break` is now a `do/while` whose condition says what it means: keep reading while the continuation bit is set. `hasContinuationBit` names the bit test.
+- **Overflow guard:** the check moved to the top of the loop, so the happy path reads straight through.
 
 **Behavior is preserved**
-- The shifts are 0, 7, 14, 21 and 28, so at most 5 bytes are read. If the 5th byte still has the continuation bit set, it throws, as before.
-- Bits shifted past bit 31 on the 5th byte are silently dropped, as before.
-- The exception type and message are unchanged. If your callers don't depend on the exact type, you could switch to a more specific `RuntimeException` subclass, but I left it alone to keep this a pure refactor.
+- The result is the same for every input.
+- It still throws `RuntimeException("VarInt too big")` when a fifth byte still has its continuation bit set.
+- It consumes exactly 5 bytes before throwing, as the original did, because the guard fires before a sixth `get()`.
+- I kept `RuntimeException` so existing `catch` blocks keep working. A dedicated subclass (e.g. `VarIntTooBigException extends RuntimeException`) would be a cheap, compatible improvement if you want it.
 
 **Performance**
-- The constants are `static final` primitives, so javac inlines them. `isLastByte` is tiny and static, so HotSpot will inline it.
-- I couldn't run a profiler or benchmark here. Before merging, I'd run a quick JMH comparison of old versus new, and add a few tests for the 1-byte, 5-byte and 6-byte (too big) cases.
-- If the 12% is still a concern, the next step is likely at the call site rather than in this method, for example reading from the backing array directly or batching reads. That would be a separate change.
+- The constants are `static final` primitives, so `javac` inlines them as literals.
+- `hasContinuationBit` is a tiny static method that the JIT will inline, and the loop does the same work per byte as before (one `get()`, one mask, one shift, one test).
+- I can't run a benchmark here, so I haven't measured it. Please confirm with a JMH run or your profiler before merging.
+- If 12 % is still too high, the usual next step is to avoid per-field calls. For example, add a fast path for single-byte values, or read from a backing `byte[]` with an index instead of `ByteBuffer.get()`. I haven't added either, since both are unmeasured changes.
+
+**Tests:** I'd cover these cases:
+- 0, 1, 127, 128, 255, 25565, `Integer.MAX_VALUE`, and -1 (the 5-byte encoding).
+- A 5-byte input whose last byte has the continuation bit set, which must throw.
+- A truncated buffer, which still throws `BufferUnderflowException`.

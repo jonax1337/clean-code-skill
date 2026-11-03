@@ -1,0 +1,85 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4448c99b2e985cff",
+    "ertugrul-dmr": "a42cca5b48930413"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 1.0,
+    "readability": 0.25,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes are functionally equivalent and correct. Every `* 1000` is removed, and the seconds-facing callers (`Retry-After` and `describeSettings`) divide by 1000 so their output is unchanged. A does this with the minimum edit. B adds and exports a `MILLISECONDS_PER_SECOND` constant and threads it through four files, which widens the module surface for little gain. Neither adds tests for the two seconds-facing paths; both reports say so honestly.",
+        "a_issues": [
+          "No tests added for `rateLimitHeaders` or `describeSettings`, the two callers that now divide by 1000.",
+          "The report admits only the tail of the `tsc` output was seen, so the typecheck is not fully verified."
+        ],
+        "b_issues": [
+          "Exports a new `MILLISECONDS_PER_SECOND` constant from `duration.ts` and adds imports in three callers. This is a small, unrequested abstraction that widens the module's API.",
+          "No tests added for `rateLimitHeaders` or `describeSettings`.",
+          "The report does not mention running the typecheck."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes behave the same and are correct: the ms callers drop `* 1000`, the seconds callers (`Retry-After` and the report) divide by 1000, the validate limits are rescaled, and the duration tests are updated. A also adds a new exported `MILLISECONDS_PER_SECOND` constant to the duration module and threads it through four files. That widens the module's surface for little gain over a plain, well-understood 1000. B is the more minimal change and both reports are honest about untested paths, so B is slightly preferable.",
+        "a_issues": [
+          "Adds a new exported constant `MILLISECONDS_PER_SECOND` to `duration.ts`, which expands the module API beyond what the task needs.",
+          "Neither `rateLimitHeaders` nor `describeSettings` gets a test, although these are the two conversions that changed direction (the report acknowledges this)."
+        ],
+        "b_issues": [
+          "The `describeSettings` line becomes long with inline `/ 1000` conversions.",
+          "No tests are added for the new `/ 1000` conversions in `http.ts` and `report.ts` (the report acknowledges this).",
+          "The report notes that the `tsc` output was only partially seen."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "A",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

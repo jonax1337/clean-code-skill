@@ -1,0 +1,45 @@
+diff --git a/src/export.js b/src/export.js
+index 2ad1481..bddb66c 100644
+--- a/src/export.js
++++ b/src/export.js
+@@ -1,15 +1,16 @@
+ import { toCsv } from "./csv.js";
++import { requireCustomer } from "./customers.js";
+ import { invoiceTotalCents } from "./invoices.js";
+ import { formatCents } from "./money.js";
+ 
+ const HEADER = ["invoice_id", "customer", "issued_on", "total"];
+ 
+ function invoiceRow(invoice, customers) {
+-  const customer = customers.get(invoice.customerId);
++  const customer = requireCustomer(customers, invoice.customerId, `invoice ${invoice.id}`);
+   return [invoice.id, customer.name, invoice.issuedOn, formatCents(invoiceTotalCents(invoice))];
+ }
+ 
+ /** One CSV row per invoice, in the order given, for the accounting import. */
+ export function exportInvoices(invoices, customers) {
+   return toCsv([HEADER, ...invoices.map((invoice) => invoiceRow(invoice, customers))]);
+ }
+diff --git a/src/sources.js b/src/sources.js
+index 637fd82..38dda69 100644
+--- a/src/sources.js
++++ b/src/sources.js
+@@ -6,13 +6,14 @@ function readJson(directory, file) {
+ }
+ 
+ export function loadInvoices(directory) {
+   return readJson(directory, "invoices.json");
+ }
+ 
+ /** The customers of both systems in one list: billing first, then the CRM. */
+ export function loadCustomerRecords(directory) {
+-  return [
+-    ...readJson(directory, "billing-customers.json"),
+-    ...readJson(directory, "crm-customers.json"),
+-  ];
++  const crm = readJson(directory, "crm-customers.json").map(
++    // The CRM export spells the id `customer_id`.
++    ({ customer_id, ...rest }) => ({ ...rest, customerId: customer_id }),
++  );
++  return [...readJson(directory, "billing-customers.json"), ...crm];
+ }

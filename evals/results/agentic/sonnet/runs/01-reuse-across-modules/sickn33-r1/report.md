@@ -1,3 +1,3 @@
-The confirmation email now has a `Gesamtbetrag: …` line right after the item list. I haven't run the tests or sent a sample email.
+The confirmation email now has a `Gesamtbetrag: …` line directly after the item list, for example `Gesamtbetrag: 1.234,50 EUR`. I haven't run the tests or sent a test email.
 
-The amount comes from `gross_total(o)` in `shop/orders.py`. That figure is net plus per-line VAT plus shipping. It's formatted with `format_eur` from `shop/money.py`, the same helper that produces `1.234,50 EUR` elsewhere in the shop. The change is in `shop/emails.py`.
+The amount comes from the existing `gross_total(order)` in `shop/orders.py`. That is net plus per-line VAT plus shipping, so the customer sees what they actually pay. It is formatted with the shop's `format_eur` from `shop/money.py`, so it looks like money elsewhere in the shop. The change is in `shop/emails.py`.

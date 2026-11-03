@@ -1,0 +1,80 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4cfd805c30f8f30e",
+    "sickn33": "6e254c57b06cd97e"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs remove the same code, help text, docs and tests, and add a changelog entry, so they behave the same. B's replacement test checks that both `--compact` and `-c` are now rejected. A only checks the long form, which leaves the short alias unprotected. A's report is somewhat more useful because it flags the breaking change for scripts and says the version was not bumped. B also leaves a stray blank line before the closing brace in render.rs tests. Neither outweighs B's better test coverage.",
+        "a_issues": [
+          "The rejection test covers only `--compact`; a stray `-c` arm left in the parser would not be caught."
+        ],
+        "b_issues": [
+          "Leaves a stray blank line before the closing brace of the render.rs test module.",
+          "The report does not mention that the change breaks scripts passing `-c`, or that the version was not bumped."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes remove `--compact` the same way across the CLI, renderer, help text, README and CHANGELOG, and both test counts check out (13 unit, 12 integration). A's replacement test covers both `--compact` and `-c`. B's test covers only `--compact`, so the short flag's removal is unprotected. B's report is a little more useful because it flags the breaking change and the unchanged version, but A's better test outweighs that.",
+        "a_issues": [
+          "Leaves a stray blank line before the closing brace of the render.rs test module, which rustfmt would flag."
+        ],
+        "b_issues": [
+          "The rejection test checks only `--compact`, not the short `-c` flag."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

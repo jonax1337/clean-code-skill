@@ -1,0 +1,85 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "2a29f0f0d9192b06",
+    "sickn33": "3ce833f82ea969bb"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.25,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes convert parseDuration to milliseconds and correctly adapt all six callers, so behavior is preserved in each. A also adds tests for http.ts, report.ts and the TTL boundaries, the places where a missed conversion would otherwise go unnoticed. B leaves those callers untested, which it admits, and introduces sloppy formatting (`parseDuration(ttl)}`, `*2 **`). A derives its validate limits from parseDuration so they match the error-message wording, while B repeats the bare 1000 in several places.",
+        "a_issues": [
+          "Exports a new MS_PER_SECOND constant from duration.ts, a small addition to the module surface"
+        ],
+        "b_issues": [
+          "Formatting slop: missing space in `parseDuration(ttl)}` and odd spacing in `parseDuration(base) *2 ** attempt`",
+          "No tests added for http.ts and report.ts, the callers that convert back to seconds, even though the report notes they are uncovered",
+          "Repeats the bare 1000 constant in several files",
+          "Math.ceil in http.ts is unnecessary because durations are always whole seconds"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes convert parseDuration to milliseconds correctly and adapt the same six callers, including the seconds-based ones (http, report, validate). B also adds tests for the callers that would otherwise break silently: Retry-After, the describeSettings output, and the TTL min/max boundaries. A's report admits these paths are untested. A also leaves sloppy formatting (`parseDuration(ttl)}` and `*2 **`), while B's diff is clean.",
+        "a_issues": [
+          "Formatting glitches: missing space in `parseDuration(ttl)}` in cache.ts and `*2 ** attempt` in retry.ts",
+          "No tests added for http.ts, report.ts or the TTL minimum, even though the report acknowledges they are the risky paths",
+          "The MIN/MAX TTL limits repeat the conversion arithmetic instead of deriving it from parseDuration"
+        ],
+        "b_issues": [
+          "Adds a new exported constant MS_PER_SECOND from duration.ts, a small expansion of the module's surface",
+          "Computing MIN/MAX_TTL_MS with parseDuration at module load is slightly indirect, though it matches the error messages"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

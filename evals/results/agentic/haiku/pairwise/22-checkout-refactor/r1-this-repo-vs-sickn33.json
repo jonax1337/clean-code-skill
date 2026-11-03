@@ -1,0 +1,85 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "a07a5b15cc705cfe",
+    "sickn33": "04af008ca8074bd7"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.25,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior: A reorders only pure computations and releases `order.items`, which is equivalent because every item has been reserved by then. B mirrors the original more literally. A wins because it commits characterization tests, run against the original code first, for the branches the existing suite misses (VIP stacking, invalid coupon, zero quantity, free-shipping threshold, per-line tax rounding, partial reservation release, failing notifier, non-decline gateway error). B's 1,920-case comparison stays outside the repo, so nothing protects future edits.",
+        "a_issues": [
+          "Pins the non-PaymentDeclined gateway-error behavior (stock stays reserved, status stays 'new') in a test, which may cement a likely bug; it is clearly labeled as characterization, though.",
+          "Commit, redeem and status update remain inline in process_order, so the main function is slightly less uniform than B's."
+        ],
+        "b_issues": [
+          "Adds no tests; VIP, invalid coupon, invalid quantity and failing-notifier paths stay uncovered in the repo, and the differential check is not reproducible.",
+          "Some extra parameter threading (passing `reserved` and `inventory` into `_charge_reserved`) and a six-argument helper add mild complexity."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors preserve production behavior. B's moving tax_rate after the coupon check is harmless because it is a pure lookup, and releasing order.items on a decline is equivalent because every item was reserved by then. B also adds characterization tests, run against the original first, that cover VIP stacking, invalid coupons, zero quantities, per-line rounding, partial reservation release and a failing notifier. A's 1,920-case comparison was thrown away, so the repo is left without protection for exactly the branches the refactor touched. A's orchestrating function is somewhat cleaner, but the lasting tests matter more for a live checkout.",
+        "a_issues": [
+          "Adds no tests even though it notes that VIP, invalid coupons, invalid quantities and notifier failure are uncovered; its differential check lives outside the repo.",
+          "`_charge_reserved` takes six parameters, partly just to release stock and set status.",
+          "`_vip_discount` is a one-line helper that adds little."
+        ],
+        "b_issues": [
+          "Line cents are computed twice, once in `_total_cents` for the subtotal and again in `_tax_cents`, a small duplication the original did not have.",
+          "The commit/redeem/mark-paid block and the charge try/except stay inline in `process_order`, so the main function is less uniform than A's.",
+          "Releasing `order.items` instead of the reserved list on a decline relies on an implicit invariant, though the report discloses this."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

@@ -1,3 +1,0 @@
-I fixed the import so it skips blank lines, including whitespace-only ones. The trailing empty line in your accountant's CSV no longer raises an error. The change is in `parse_entries` in `hourlog/importer.py`. Line numbers in error messages still count the blank lines, so they match the file.
-
-The existing 18 tests pass. I didn't add a test for the blank-line case and didn't run the import on your accountant's file.

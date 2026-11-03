@@ -1,0 +1,61 @@
+diff --git a/src/import.ts b/src/import.ts
+index cf2fee5..ee032e4 100644
+--- a/src/import.ts
++++ b/src/import.ts
+@@ -3,18 +3,25 @@ import { normalizeEmail } from "./normalize.ts";
+ import type { Contact } from "./types.ts";
+ 
+ /**
+  * Adds the incoming contacts to the existing ones. A contact whose email is already present
+  * is merged into that entry; everything else is appended in the order it arrives.
+  */
+ export function mergeContacts(existing: Contact[], incoming: Contact[]): Contact[] {
+   const result = [...existing];
++  const indexByEmail = new Map<string, number>();
++  result.forEach((entry, index) => {
++    const key = normalizeEmail(entry.email);
++    if (!indexByEmail.has(key)) indexByEmail.set(key, index);
++  });
+   for (const contact of incoming) {
+-    const index = result.findIndex((entry) => normalizeEmail(entry.email) === normalizeEmail(contact.email));
+-    if (index === -1) {
++    const key = normalizeEmail(contact.email);
++    const index = indexByEmail.get(key);
++    if (index === undefined) {
++      indexByEmail.set(key, result.length);
+       result.push(contact);
+     } else {
+       result[index] = mergeContact(result[index], contact);
+     }
+   }
+   return result;
+ }
+diff --git a/test/import.test.ts b/test/import.test.ts
+index 0a44c37..69fb5a1 100644
+--- a/test/import.test.ts
++++ b/test/import.test.ts
+@@ -22,13 +22,24 @@ test("a contact with a known email is merged into the existing entry", () => {
+   assert.deepEqual(result[0].tags, ["vip", "beta"]);
+ });
+ 
+ test("emails are compared without case and surrounding whitespace", () => {
+   const result = mergeContacts([contact("1", "Ada@X.io")], [contact("2", " ada@x.IO ")]);
+   assert.equal(result.length, 1);
+ });
+ 
++test("importing 30k contacts into a book of 50k finishes quickly", () => {
++  const existing = Array.from({ length: 50_000 }, (_, i) => contact(`e${i}`, `user${i}@x.io`));
++  // 10k incoming emails match existing ones (merged); 20k are new (appended).
++  const incoming = Array.from({ length: 30_000 }, (_, i) => contact(`i${i}`, `USER${i + 40_000}@x.io`));
++  const started = performance.now();
++  const result = mergeContacts(existing, incoming);
++  const elapsed = performance.now() - started;
++  assert.equal(result.length, 70_000);
++  assert.ok(elapsed < 1000, `took ${elapsed.toFixed(0)} ms`);
++});
++
+ test("duplicates inside the incoming list are merged with each other", () => {
+   const result = mergeContacts([], [contact("1", "a@x.io", { phone: "111" }), contact("2", "a@x.io", { name: "" })]);
+   assert.equal(result.length, 1);
+   assert.equal(result[0].phone, "111");
+ });

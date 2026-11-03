@@ -1,0 +1,62 @@
+[
+  {
+    "name": "fee_cap_off_by_one",
+    "description": "The largest fee is one minor unit too high.",
+    "old": "Math.min(Math.max(percentage, rule.minFee), rule.maxFee)",
+    "new": "Math.min(Math.max(percentage, rule.minFee), rule.maxFee + 1)"
+  },
+  {
+    "name": "fee_just_below_minimum_not_raised",
+    "description": "A percentage fee exactly one unit below the minimum fee is not raised to the minimum.",
+    "old": "Math.max(percentage, rule.minFee)",
+    "new": "(percentage < rule.minFee - 1 ? rule.minFee : percentage)"
+  },
+  {
+    "name": "zero_amount_pays_minimum_fee",
+    "description": "A zero amount is charged the minimum fee instead of nothing.",
+    "old": "amountMinor === 0",
+    "new": "false"
+  },
+  {
+    "name": "euro_fee_rounds_half_up",
+    "description": "Euro fees settle ties half up instead of half to even.",
+    "old": "[\"EUR\", { minorUnits: 2, rounding: \"half-even\",",
+    "new": "[\"EUR\", { minorUnits: 2, rounding: \"half-up\","
+  },
+  {
+    "name": "negative_amounts_truncate",
+    "description": "Negative amounts are cut off instead of rounded to the nearest minor unit.",
+    "old": "const negative = numerator < 0n;",
+    "new": "const negative = false;"
+  },
+  {
+    "name": "yen_has_two_minor_units",
+    "description": "The yen is converted as if it had two decimal places.",
+    "old": "[\"JPY\", { minorUnits: 0,",
+    "new": "[\"JPY\", { minorUnits: 2,"
+  },
+  {
+    "name": "quote_fee_uses_source_currency",
+    "description": "A quote charges the fee under the rules of the source currency instead of the target currency.",
+    "old": "const fee = feeFor(converted, to);",
+    "new": "const fee = feeFor(converted, from);"
+  },
+  {
+    "name": "unknown_target_currency_accepted",
+    "description": "An unknown target currency silently falls back to the source currency instead of raising an error.",
+    "old": "const target = ruleFor(to);",
+    "new": "const target = RULES.get(to) ?? source;"
+  },
+  {
+    "name": "fee_larger_than_amount_accepted",
+    "description": "A quote no longer refuses an amount that does not cover its fee.",
+    "old": "if (fee > converted) {",
+    "new": "if (false) {"
+  },
+  {
+    "name": "conversion_ties_use_source_rounding",
+    "description": "A conversion settles ties by the rounding mode of the source currency instead of the target currency.",
+    "old": "return divideRounded(numerator, denominator, target.rounding);",
+    "new": "return divideRounded(numerator, denominator, source.rounding);"
+  }
+]

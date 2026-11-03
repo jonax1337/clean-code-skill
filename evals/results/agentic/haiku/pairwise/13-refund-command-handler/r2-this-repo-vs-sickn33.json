@@ -1,0 +1,82 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "5c76308f613c0404",
+    "sickn33": "b783e7b0df98a057"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.25,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two production changes are effectively identical and both correct: input validation, NOT_FOUND, a SHIPPED/DELIVERED check, a cap at amountPaid minus amountRefunded, and the status left unchanged. The difference is in the reports. A's report gives the wrong order of checks, saying input validation runs after the existence and status checks, while the code validates first. B's report matches the code. The tests are comparable: B explicitly checks that successful refunds accumulate and that the exact remaining amount is accepted, and A covers negative and over-precise amounts.",
+        "a_issues": [
+          "The report says the handler checks existence, then status, then amount validity, but the code validates input first, so the report misstates behavior.",
+          "There is no explicit test that two successful refunds add up; it is only implied by the cap test."
+        ],
+        "b_issues": [
+          "There are no tests for negative or over-precise refund amounts, though both are covered by the existing Validator."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two handlers are functionally identical: they validate input, check existence and status, cap refunds at amountPaid minus amountRefunded, and leave status untouched. A's tests hit sharper boundaries, such as 80.01 against a payment of 80.00, and explicitly check that successful refunds accumulate. B's report gets the order of checks wrong: it says validation runs after the existence and status checks, but the code validates first. B's report does add a useful note on idempotency, but the inaccuracy tips the choice to A.",
+        "a_issues": [
+          "No test for amounts with more than two decimal places or for negative refund amounts (covered indirectly by Validator tests)."
+        ],
+        "b_issues": [
+          "The report says the handler checks existence and status before validating input, but the code validates input first.",
+          "The voucher-cap test uses 90.00 instead of a tight boundary like 80.01, and does not assert that amountRefunded stayed unchanged.",
+          "No test that a successful second refund adds to the first; accumulation is only shown through the rejection case."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

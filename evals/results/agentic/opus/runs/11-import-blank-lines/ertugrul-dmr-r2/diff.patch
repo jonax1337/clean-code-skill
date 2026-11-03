@@ -1,0 +1,65 @@
+diff --git a/hourlog/importer.py b/hourlog/importer.py
+index f8fac60..a664165 100644
+--- a/hourlog/importer.py
++++ b/hourlog/importer.py
+@@ -8,18 +8,24 @@ from hourlog.entries import Entry
+ 
+ class ImportFormatError(ValueError):
+     """A line of the import file cannot be read; the message names the line."""
+ 
+ 
+ def parse_entries(lines: Iterable[str]) -> list[Entry]:
+     entries = []
+     for number, line in enumerate(lines, start=1):
++        if _is_blank(line):
++            continue
+         try:
+             entries.append(_parse_line(line))
+         except ValueError as error:
+             raise ImportFormatError(f"line {number}: {error}") from error
+     return entries
+ 
+ 
++def _is_blank(line: str) -> bool:
++    return not line.strip()
++
++
+ def _parse_line(line: str) -> Entry:
+     day, project, minutes = line.rstrip("\r\n").split(",")
+     return Entry(date.fromisoformat(day.strip()), project.strip(), int(minutes))
+diff --git a/tests/test_importer.py b/tests/test_importer.py
+index 99dcb15..53a1ed2 100644
+--- a/tests/test_importer.py
++++ b/tests/test_importer.py
+@@ -21,16 +21,31 @@ def test_accepts_windows_line_endings_and_spaces_around_fields():
+ def test_the_last_line_needs_no_newline():
+     assert parse_entries(["2025-03-03,Acme,90"]) == [Entry(date(2025, 3, 3), "Acme", 90)]
+ 
+ 
+ def test_no_lines_give_no_entries():
+     assert parse_entries([]) == []
+ 
+ 
++def test_trailing_blank_line_is_ignored():
++    assert parse_entries(["2025-03-03,Acme,90\n", "\n"]) == [Entry(date(2025, 3, 3), "Acme", 90)]
++
++
++def test_whitespace_only_lines_are_ignored():
++    assert parse_entries(["\r\n", "2025-03-03,Acme,90\n", "  \t\n"]) == [
++        Entry(date(2025, 3, 3), "Acme", 90)
++    ]
++
++
++def test_line_numbers_still_count_skipped_blank_lines():
++    with pytest.raises(ImportFormatError, match=r"line 3\b"):
++        parse_entries(["2025-03-03,Acme,90\n", "\n", "bad\n"])
++
++
+ def test_bad_date_names_the_line():
+     with pytest.raises(ImportFormatError, match=r"line 2\b"):
+         parse_entries(["2025-03-03,Acme,90\n", "03/04/2025,Acme,45\n"])
+ 
+ 
+ def test_bad_minutes_name_the_line():
+     with pytest.raises(ImportFormatError, match=r"line 1\b"):
+         parse_entries(["2025-03-03,Acme,lots\n"])

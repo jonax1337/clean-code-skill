@@ -1,0 +1,86 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "bc431de125c4cef4",
+    "sickn33": "e61d1077c7f64004"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs fix the problem the same way: errors are collected, unknown keys are rejected, an empty value is an error, and Main prints the problems and exits 78. A also rejects timeouts that overflow milliseconds. With B, a value like 9223372036854775807s loads fine and then crashes ConsoleUplink's toMillis at runtime. A's tests cover more boundaries and its report is accurate. A's one regression is that capitalised booleans such as TRUE are now rejected, while B keeps accepting them.",
+        "a_issues": [
+          "metrics.enabled is now case-sensitive, so a value like TRUE that used to work is now rejected, and the report does not call this out.",
+          "request.timeout=0s is still accepted (the report acknowledges this)."
+        ],
+        "b_issues": [
+          "A timeout that fits in a Duration but overflows toMillis (e.g. 9223372036854775807s) is accepted, then ConsoleUplink.send crashes with ArithmeticException.",
+          "The report wrongly says a missing upstream.url used to crash with a NullPointerException. The old uri() caught it and returned null.",
+          "Tests do not check that each number is accepted at its minimum, or that an over-int value is rejected. The missing-file test only checks a generic message."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes collect every problem, reject unknown keys, fail on a missing file and exit with status 78, so they are nearly equivalent. B also checks that the timeout fits in milliseconds. A accepts `request.timeout=9223372036854775807s`, which later throws an ArithmeticException in `ConsoleUplink.toMillis()`. B's tests also cover more boundaries: each number at its minimum, int overflow, non-http and malformed URLs, and a blank token. A keeps the old case-insensitive booleans, while B now rejects `TRUE` without saying so in its report.",
+        "a_issues": [
+          "A huge seconds timeout such as `9223372036854775807s` passes validation and then overflows `toMillis()` when the uplink uses it, a startup-time check that was missed.",
+          "The tests do not check that values at their minimum are accepted, and do not cover int overflow.",
+          "The `throw e` after `System.exit` is unreachable and only there to satisfy the compiler, which is slightly awkward."
+        ],
+        "b_issues": [
+          "`metrics.enabled` now accepts only lowercase `true`/`false`, so an existing `TRUE` or `True` that used to mean true will fail startup. The report does not mention this.",
+          "The heading of the problem list uses the path as given rather than the absolute path, which is inconsistent with the file-read errors.",
+          "The unknown-key message prints the whole known-key set for every unknown key, which is a little noisy."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "69ec8ee675ba45f1",
+    "ub-mode": "3e3d2e5ea4fe93e4"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes have the same handler, `Order.recordRefund`, wiring and record, and both have equally solid tests, so the code behaves the same. A's README edit fits the existing table and explains the refund cap in prose; B puts everything into one oversized table row. B also committed to main without being asked, and its report mentions tools that don't exist in this repo. A's report is cleaner and says it left the work uncommitted.",
+        "a_issues": [
+          "Test helper `refund(CommandBus bus, String)` is static and takes the bus as a parameter even though `bus` is a field, which is a little awkward.",
+          "No test for a null refund amount."
+        ],
+        "b_issues": [
+          "Committed to main without being asked.",
+          "README row is overloaded and breaks the table's column layout instead of explaining the cap in prose.",
+          "Report brings up unrelated 'crapper, dryer and mutator' tools and a CRLF warning, which is noise.",
+          "All tests share one fixture with 80.00 paid, so the full-payment path is never exercised for refunds."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both handlers are identical and correct: they allow only SHIPPED or DELIVERED orders, cap cumulative refunds at amountPaid, leave the status unchanged and reuse Validator. The difference is in the docs and the report. A puts a long refund description in the 'Moves the order from' column, which breaks that column's meaning; B adds a fitting row and a short prose note. A's report also brings up unrelated tools (crapper, dryer, mutator), a push attempt and a commit nobody asked for, while B's report is clean and accurate.",
+        "a_issues": [
+          "The README row puts rule text in a 'Moves the order from' column, making the table inconsistent and very wide",
+          "The report refers to tools and workflow steps (crapper, dryer, mutator, push) that have nothing to do with this repo or task",
+          "Committed to main without being asked",
+          "The bad-amount tests only check isOk() and do not assert the INVALID_INPUT code"
+        ],
+        "b_issues": [
+          "The test helper refund(bus, amount) takes bus as a parameter even though bus is already a field, which is a little awkward",
+          "No test for a null refund amount"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

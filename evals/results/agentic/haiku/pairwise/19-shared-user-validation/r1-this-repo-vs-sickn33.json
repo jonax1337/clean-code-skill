@@ -1,0 +1,88 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "2912a14c096dd3a7",
+    "sickn33": "202d45a73ea3efa0"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes move the email, name and role rules into one module and keep every message and its order unchanged. Both also preserve and flag the `inviteUser` lowercasing inconsistency, which contradicts docs/api.md. A adds focused unit tests for the shared rules, so the next validation fix has a direct safety net; B adds no tests. B's `normalizeEmail(..., { lowercase: false })` option builds the suspected bug into the shared API, while A leaves that difference at the call site.",
+        "a_issues": [
+          "Lowercasing still happens at the call sites (`trimmed(...).toLowerCase()`) in two handlers instead of in a shared normalizer, so that rule is not centralized.",
+          "The 'no fields to update' and 'role is required' messages stay inline in the handlers.",
+          "The report claims a 17,496-combination equivalence check whose script was deleted, so it cannot be verified.",
+          "One-line `if`/`else` without braces differs from the surrounding code style."
+        ],
+        "b_issues": [
+          "No tests were added for the new shared module; it relies only on the existing 16 handler tests.",
+          "The `lowercase: false` option on `normalizeEmail` exists only to preserve a likely bug, making it part of the shared API.",
+          "'role is required' is still pushed inline in `inviteUser`."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep every message, the message order and each handler's policy unchanged, and both flag that inviteUser does not lowercase emails without changing it. B adds unit tests for the shared rules, so a future fix made in the one shared place is protected, and its report describes concrete verification. A centralizes email normalization a bit more neatly but adds no tests and builds the likely bug into the shared API as a `lowercase: false` option.",
+        "a_issues": [
+          "Adds no tests for the new shared validation module, so the rules that now live in one place are only covered indirectly by the existing handler tests.",
+          "Turns the invite non-lowercasing, which docs/api.md says is wrong because invitation emails are stored lowercase, into an explicit `lowercase` option on the shared normalizer, which entrenches a likely bug.",
+          "The report does not cite docs/api.md, which settles that invitations should be lowercased."
+        ],
+        "b_issues": [
+          "`.toLowerCase()` is still repeated in createUser and updateUser instead of living in the shared module, so email normalization is not fully in one place.",
+          "The report claims a 17,496-case differential comparison using a script that was deleted, so the claim cannot be checked.",
+          "Does not cite docs/api.md, which confirms the invite lowercasing inconsistency is a bug."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

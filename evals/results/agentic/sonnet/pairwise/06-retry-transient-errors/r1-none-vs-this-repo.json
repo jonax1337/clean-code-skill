@@ -1,0 +1,86 @@
+{
+  "case": "06-retry-transient-errors",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "18521c8df60a2ba3",
+    "this-repo": "7932811275cb15c8"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.0,
+    "design": 0.25,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes retry only requests that are safe to repeat: GETs and POSTs that carry an Idempotency-Key, which leaves request_pickup unretried. Both also leave sync_shipments untouched. The task describes carrier 502/503 outages lasting about a minute. A's backoff gives up after about 30 seconds, so the job would still die in exactly that case, and A only mentions this in its report. B's capped backoff spans about 90 seconds, and B has a test that the total wait covers at least a minute.",
+        "a_issues": [
+          "Total retry window is about 30s (2+4+8+16), so the minute-long 502/503 outages the task describes are not covered; the report admits this instead of fixing it.",
+          "Adds 504 to the retryable set without being asked (small scope expansion, though reasonable).",
+          "No test checks that the backoff window matches the outage duration."
+        ],
+        "b_issues": [
+          "Report says '22 existing, 7 new test functions'. The repo had 15 tests, and the new functions expand to 14 cases; the total of 29 is right but the breakdown is wrong.",
+          "The trailing `raise AssertionError('unreachable')` and the separate helper are slightly more structure than needed."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes retry only requests that are safe to repeat (GETs and keyed POSTs), and the retry loops in both look correct. A's backoff waits about 90 s in total, which covers the roughly one-minute 502/503 outages the user described, and a test checks that span. B waits only about 30 s, so it would still fail on the outages the task names; its report admits this. B also adds 504, which was not asked for. A keeps the retry logic in a separate, well-named helper, and its tests cover more statuses that should not be retried.",
+        "a_issues": [
+          "No Retry-After handling or jitter (acknowledged in the report)",
+          "The unreachable AssertionError at the end of the loop is slightly awkward"
+        ],
+        "b_issues": [
+          "About 30 s of total backoff does not cover the minute-long 502/503 outages the task describes, so the nightly job can still die",
+          "Adds 504 to the retried statuses without being asked",
+          "Retry loop is inlined into _request instead of a separate helper, which makes _request longer",
+          "Only 404 is tested as non-retried; there is no test that backoff covers the outage length"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

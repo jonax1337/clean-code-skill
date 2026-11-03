@@ -14,9 +14,10 @@ from html import escape
 from statistics import mean
 
 from charts import ASSETS_DIR, chart_frame, short_label
-from harness import CONDITIONS, GRADES_DIR, RESULTS_DIR, RUNS_DIR, load_cases
+from harness import ALL_CONDITIONS, GRADES_DIR, RESULTS_DIR, RUNS_DIR, THIS_REPO, load_cases
 
-HIGHLIGHTED_CONDITION = "v2"
+HIGHLIGHTED_CONDITION = THIS_REPO
+NOT_RUN = "n/a"
 SEQUENTIAL_BLUE = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95"]
 
 
@@ -29,6 +30,13 @@ class ConditionStats:
     cost_usd: float
     per_case: dict[str, float]
     per_case_quality: dict[str, float]
+
+    @property
+    def chart_label(self) -> str:
+        """The label, marked when the condition ran only some of the tasks (a skill without that language)."""
+        total = len(load_cases())
+        count = len(self.per_case)
+        return self.label if count == total else f"{self.label} ({count} of {total} tasks)"
 
 
 def main() -> None:
@@ -46,14 +54,21 @@ def _collect_stats() -> list[ConditionStats]:
     grades = [json.loads(path.read_text(encoding="utf-8")) for path in GRADES_DIR.glob("*.json")]
     if not grades:
         raise SystemExit("No grades found. Run evals/judge.py first.")
-    return [_stats_for(condition.name, condition.label, grades) for condition in CONDITIONS]
+    graded = {name for grade in grades for name in grade["results"]}
+    return [
+        _stats_for(condition.name, condition.label, grades)
+        for condition in ALL_CONDITIONS
+        if condition.name in graded
+    ]
 
 
 def _stats_for(name: str, label: str, grades: list[dict]) -> ConditionStats:
     per_case_passes: dict[str, list[bool]] = {}
     per_case_qualities: dict[str, list[float]] = {}
     for grade in grades:
-        result = grade["results"][name]
+        result = grade["results"].get(name)
+        if result is None:
+            continue
         per_case_passes.setdefault(grade["case"], []).extend(a["passed"] for a in result["assertions"])
         per_case_qualities.setdefault(grade["case"], []).append(result["quality"])
     all_passes = [passed for passes in per_case_passes.values() for passed in passes]
@@ -80,15 +95,15 @@ def _write_summary(stats: list[ConditionStats]) -> None:
     header = (
         "| Condition | Assertions passed | Judge quality (1–10) | Avg. cost per task |\n|---|---|---|---|"
     )
-    rows = [f"| {s.label} | {s.pass_rate:.1%} | {s.quality:.1f} | ${s.cost_usd:.3f} |" for s in stats]
+    rows = [f"| {s.chart_label} | {s.pass_rate:.1%} | {s.quality:.1f} | ${s.cost_usd:.3f} |" for s in stats]
     case_header = "| Case | " + " | ".join(s.label for s in stats) + " |\n|---|" + "---|" * len(stats)
     case_rows = [
-        f"| {titles[case]} | " + " | ".join(f"{s.per_case[case]:.0%}" for s in stats) + " |"
-        for case in stats[0].per_case
+        f"| {titles[case]} | " + " | ".join(_cell(s.per_case, case, "{:.0%}") for s in stats) + " |"
+        for case in titles
     ]
     quality_rows = [
-        f"| {titles[case]} | " + " | ".join(f"{s.per_case_quality[case]:.1f}" for s in stats) + " |"
-        for case in stats[0].per_case
+        f"| {titles[case]} | " + " | ".join(_cell(s.per_case_quality, case, "{:.1f}") for s in stats) + " |"
+        for case in titles
     ]
     text = "\n".join(
         [
@@ -112,6 +127,10 @@ def _write_summary(stats: list[ConditionStats]) -> None:
         ]
     )
     (RESULTS_DIR / "summary.md").write_text(text, encoding="utf-8")
+
+
+def _cell(values: dict[str, float], case: str, number_format: str) -> str:
+    return number_format.format(values[case]) if case in values else NOT_RUN
 
 
 def _run_description() -> str:
@@ -142,7 +161,7 @@ QUALITY = BarMetric("Judge quality score (1–10)", lambda s: s.quality, 10, (0,
 
 
 def _bar_chart(stats: list[ConditionStats], metric: BarMetric) -> str:
-    width, label_width, bar_height, gap, top = 720, 190, 30, 14, 64
+    width, label_width, bar_height, gap, top = 720, 210, 30, 14, 64
     plot_width = width - label_width - 90
     height = top + len(stats) * (bar_height + gap) + 36
     parts = chart_frame(
@@ -171,7 +190,7 @@ def _bar_chart(stats: list[ConditionStats], metric: BarMetric) -> str:
         parts += [
             (
                 f'<text class="ink" x="{label_width - 12}" y="{y + bar_height / 2 + 4:.1f}" '
-                f'font-size="13" font-weight="{weight}" text-anchor="end">{escape(stat.label)}</text>'
+                f'font-size="13" font-weight="{weight}" text-anchor="end">{escape(short_label(stat.chart_label))}</text>'
             ),
             (
                 f'<rect class="{bar_class}" x="{label_width}" y="{y}" width="{bar_width:.1f}" '
@@ -189,7 +208,7 @@ def _bar_chart(stats: list[ConditionStats], metric: BarMetric) -> str:
 
 def _case_heatmap(stats: list[ConditionStats]) -> str:
     titles = {case.case_id: case.title for case in load_cases()}
-    case_ids = list(stats[0].per_case)
+    case_ids = list(titles)
     label_width, cell_width, cell_height, top = 330, 96, 34, 92
     width = label_width + cell_width * len(stats) + 24
     height = top + cell_height * len(case_ids) + 24
@@ -214,8 +233,14 @@ def _case_heatmap(stats: list[ConditionStats]) -> str:
             f"{escape(titles[case_id])}</text>"
         )
         for column, stat in enumerate(stats):
-            value = stat.per_case[case_id]
             x = label_width + column * cell_width
+            if case_id not in stat.per_case:
+                parts.append(
+                    f'<text class="muted" x="{x + cell_width / 2:.1f}" y="{y + cell_height / 2 + 4:.1f}" '
+                    f'font-size="12" text-anchor="middle">{NOT_RUN}</text>'
+                )
+                continue
+            value = stat.per_case[case_id]
             fill = SEQUENTIAL_BLUE[min(int(value * len(SEQUENTIAL_BLUE)), len(SEQUENTIAL_BLUE) - 1)]
             text_fill = "#ffffff" if value >= 4 / len(SEQUENTIAL_BLUE) else "#0b0b0b"
             parts += [

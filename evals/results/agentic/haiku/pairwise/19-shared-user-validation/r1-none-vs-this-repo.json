@@ -1,0 +1,90 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "35fceca3d181763e",
+    "this-repo": "2912a14c096dd3a7"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors keep behavior, message order and the invite-casing quirk intact, and both flag the casing quirk for the developer. A centralizes normalization (trim, lowercase, non-string handling) and the required/optional policy in validators that return `{ value, error }`, so more of each rule lives in one place. B leaves trimming, lowercasing and the invite 'role is required' check in the handlers, so a normalization fix would still touch several files. A's `lowercase: false` option turns a likely bug into a supported knob, but it is clearly documented.",
+        "a_issues": [
+          "`validateEmail`'s `lowercase: false` option makes the doc-violating invite casing a first-class configuration rather than an isolated quirk.",
+          "`validateRole` returning `valid(undefined)` when not required is an odd case that no handler uses.",
+          "The report's description of the duplicate-check risk is vague ('may not catch')."
+        ],
+        "b_issues": [
+          "Normalization (`trimmed(...).toLowerCase()`) is still repeated in `createUser` and `updateUser`, so the email normalization rule is not defined once.",
+          "The invite 'role is required' check stays inline in the handler instead of in the shared module.",
+          "The 17,496-combination differential check cannot be verified because the script was deleted.",
+          "The tests do not cover the `trimmed` helper or non-string input."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors keep current behavior: messages, their order, the defaults and the invite-specific policy are all unchanged, and both flag the invite email-casing bug instead of fixing it. B centralizes more of what has been drifting. Normalization (trim, lowercase, treating non-strings as empty) and the 'role is required' rule now live in the shared module, so a fix there reaches all three handlers. In A, each handler still assembles `trimmed(...).toLowerCase()` and handles the required-role case itself. B's tests also cover normalization and non-string input, while A's only cover the messages; this outweighs A's cleaner, narrower helpers and its differential check.",
+        "a_issues": [
+          "Email normalization (trim plus lowercase) stays duplicated in the handlers rather than in the shared module, which is the kind of drift the task is meant to stop.",
+          "The 'role is required' message stays inline in inviteUser instead of being shared.",
+          "The shared tests never exercise `trimmed` or non-string input.",
+          "The report's test counts are off: there were 15 existing tests, not 16. It also implies `ROLES` and the length constant are exported, but they are not."
+        ],
+        "b_issues": [
+          "`validateEmail`'s `lowercase: false` option turns what is probably a bug (docs/api.md says invitation emails are stored lowercase) into a supported part of the shared API.",
+          "Exports constants that nothing imports (`EMAIL_PATTERN`, `MAX_NAME_LENGTH`).",
+          "`validateRole`'s non-required undefined branch is never used by any caller.",
+          "The report's count of existing tests is off: there were 15, not 16."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

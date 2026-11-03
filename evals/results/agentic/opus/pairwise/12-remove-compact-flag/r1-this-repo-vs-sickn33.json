@@ -1,0 +1,81 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "aec379d7cd46bba6",
+    "sickn33": "ebb77432426f9f2e"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs remove `--compact` the same way: the match arm, warning, `Options` field, compact renderer, help line, README row, and a CHANGELOG entry. A's replacement integration test checks both `--compact` and `-c` through the public `run` API. A's report also points out the library-level break from removing a `pub` field, the more relevant caveat for library users. B is equally correct, but its integration test only checks `--compact`; it covers `-c` only at the unit level. B's report, while accurate, says nothing about the `Options` API break.",
+        "a_issues": [
+          "Removed the unit-level parse test entirely instead of turning it into a rejection test, so `-c` rejection is only checked at the integration level."
+        ],
+        "b_issues": [
+          "The integration test checks only `--compact` and not `-c` through `run`.",
+          "The report does not mention that removing the `pub compact` field on the public `Options` struct breaks library users at compile time."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The code changes are effectively identical: both remove the parse arm, the warning, the field, the help line, the render branch and its helpers, the README row, and add a CHANGELOG entry. The difference is the report. B's account of deleted tests (six) and test counts (13 unit + 12 integration) matches its diff exactly, and it flags that removing the public `compact` field breaks library users. A says it deleted five tests when it actually removed six, one of them rewritten into a new unit test.",
+        "a_issues": [
+          "Report says five tests were deleted, but `compact_flag_sets_compact` was also removed (rewritten as a new test), so the account of test changes is slightly off.",
+          "Integration test only checks `--compact`, not `-c`, though the unit test covers both."
+        ],
+        "b_issues": [
+          "Coverage of the rejection exists only at integration level; there is no unit test in cli.rs, which is minor."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

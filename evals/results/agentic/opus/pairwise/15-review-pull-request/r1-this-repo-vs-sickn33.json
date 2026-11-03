@@ -1,0 +1,85 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "77170ee207707cbd",
+    "sickn33": "72a3b12b34f030cb"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find the same main problems: the SQL injection in search, audit errors being swallowed so the rollback never runs, the floor-divided page count, and unvalidated input. Both give correct reproductions and fixes. B goes further on the audit trail: it notes that re-deactivating an already inactive user writes another audit row and returns a count of 1, which makes the docstring's \"how many changed\" wrong. It proposes a precise `AND active = 1 RETURNING id` fix. B's line references are also slightly more accurate, and it offers a practical way to split the PR given the deadline.",
+        "a_issues": [
+          "Misses that re-deactivating already inactive users is audited again and counted as changed, which contradicts the docstring",
+          "The users.py line reference (63-64) for the audit-per-requested-id issue is slightly off; the audit loop is at lines 62-63",
+          "Folds the actor-provenance question into a blocking finding instead of keeping it separate as a question"
+        ],
+        "b_issues": [
+          "The fix snippet for the injection is a partial fragment, less complete than A's",
+          "The index nit on audit_log.target_id is speculative and outside the PR's main concerns"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews find the same main blockers, give accurate line references, and reach the same well-reasoned verdict of not merging. A also catches a second audit-trail defect: re-deactivating an already-inactive user writes another audit row and is counted, because SQLite's rowcount counts matched rows. That makes the docstring wrong too, and A proposes a precise `AND active = 1 RETURNING id` fix. B adds useful touches (concrete edge-case test values, reuse of SELECT_USER, a MAX_PAGE_SIZE constant, a 'what's good' section) but misses that compliance-relevant issue.",
+        "a_issues": [
+          "Proposed tests are less concrete than B's; for example, no exact expected `pages` values at the edges.",
+          "Does not point out that search_users duplicates the column list instead of reusing users.SELECT_USER."
+        ],
+        "b_issues": [
+          "Misses that deactivating an already-inactive user writes a duplicate audit row and is counted as changed; the 'returns how many changed' docstring is wrong in that case.",
+          "The users.py line reference for the audit loop (63-64) is slightly imprecise: the commit is on 64, and the count is returned on 68.",
+          "Its suggested fix for unknown ids does not address the case where a user is already inactive."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

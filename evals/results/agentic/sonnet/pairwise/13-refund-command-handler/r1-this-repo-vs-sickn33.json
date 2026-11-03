@@ -1,0 +1,86 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "cfc5518d65186853",
+    "sickn33": "273c9b3e61739eab"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The production code is effectively identical in both changes. Each validates input, checks for SHIPPED or DELIVERED, caps the refund at amountPaid minus amountRefunded, accumulates the refund and keeps the status. A's tests protect more of the behavior: several refunds summing exactly to the amount paid, the boundary on an underpaid order in both directions, a cancelled order, and sub-cent and negative amounts. A's report miscounts its new tests (it says 8, there are 9), but that is minor next to its stronger test coverage.",
+        "a_issues": [
+          "Report says 8 new refund tests, but the test file contains 9 (the 29 total is right)."
+        ],
+        "b_issues": [
+          "No test for several refunds adding up exactly to the amount paid, so the accumulation boundary is unprotected.",
+          "No tests for a cancelled order or for a sub-cent or negative refund amount.",
+          "The underpaid-order test only checks the rejection, not that the full paid amount can still be refunded.",
+          "The new README table row is wider than the other rows."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production code is effectively identical in both changes: same handler, same validation, the cap is computed from amountPaid minus amountRefunded, and the status is unchanged. B's tests protect the change better. They cover several refunds adding up exactly to the amount paid, a cancelled order, a successful refund of the full underpaid amount, and negative and sub-cent amounts. B's report also says the test suite was actually run after the last edit and flags a policy point for Support.",
+        "a_issues": [
+          "Tests don't check that several refunds can add up to exactly the amount paid, or that a refund equal to the remaining amount succeeds.",
+          "No test for a cancelled order or for sub-cent and negative refund amounts.",
+          "Report claims 27 tests pass but doesn't say the suite was actually run.",
+          "README table row breaks the table's column alignment."
+        ],
+        "b_issues": [
+          "Report says 8 new tests, but the file contains 9; the 29 total is right.",
+          "Tests compare BigDecimal with assertEquals, which depends on scale; compareTo would be sturdier."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

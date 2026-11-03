@@ -1,0 +1,89 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c2d04bb7b3de8401",
+    "ub-mode": "33ee8f4c19617080"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.75,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 1.0,
+    "tests": 0.75,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors preserve the original tokens, errors and offsets, as far as I can tell from tracing every branch, and both split the big `next()` into small scanners driven by a `State` enum. A's `Step` struct names the next state explicitly at each scanner, and its report is clean and accurate. B works out the next state from the token kind, which is a little more implicit. It relies on four `#[inline(always)]` attributes, and its report contains garbled, irrelevant material (an 'ub-mode \u2026 push' remark and missing 'crapper/dryer/mutator' tools) that would confuse the developer.",
+        "a_issues": [
+          "The generic `find` helper with closures adds a layer of indirection; `scan_run` and `find_timestamp_end` need a second check of `bytes[i]` to tell which stop byte matched.",
+          "Says 'not slower' but leaves real-dump verification to the developer."
+        ],
+        "b_issues": [
+          "The report includes confusing, irrelevant text about an 'ub-mode' push and missing `cargo mutants`/`crap`/`dryer` tools, which have nothing to do with this task.",
+          "The next state is inferred from the token type (`Token::Key` \u2192 `Value`) in `next()` rather than decided where the token is scanned, which is less explicit when new token kinds are added.",
+          "On error, `pos` is no longer set to the line length as in the original (`Tokens` is `Debug`/`Clone`, so its internal state differs slightly).",
+          "Four `#[inline(always)]` attributes rest on a noisy synthetic benchmark; this adds maintenance burden for a gain that may not hold."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors split the monolithic next() into readable per-token scanners with a State enum, and both back the change with a differential check and benchmarks. B also keeps the original behavior of moving pos to the end of the line on error (visible through Debug); A drops that. B adds clearly named, rule-focused tests and checked that its differential harness can actually fail. A's report is muddied by garbled and irrelevant remarks ('ub-mode ends with a push', missing crapper/dryer/mutator tools), while B's report is clean and specific.",
+        "a_issues": [
+          "On error, pos is no longer set to src.len(), unlike the original; the difference is visible in the derived Debug output.",
+          "Next state is inferred from the token kind (Key -> Value), which couples the state machine to the token enum implicitly.",
+          "Four #[inline(always)] attributes add tuning noise; they are justified by measurement, but the fix is fragile.",
+          "Report includes confusing, irrelevant content about 'ub-mode' pushes and uninstalled crapper/dryer/mutator tools.",
+          "Edge-case tests are lumped into two broad tests, so a failure says less about which rule broke."
+        ],
+        "b_issues": [
+          "The Step struct repeats state: State::Start in most return sites, which is somewhat verbose.",
+          "It dismisses a 2-3% cross-crate benchmark gap as an artifact rather than investigating further, though the in-crate add_line path was measured.",
+          "No timing on a real dump; the report acknowledges this."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

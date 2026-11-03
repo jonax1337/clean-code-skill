@@ -1,0 +1,93 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4f3f6b65055eb365",
+    "sickn33": "d220e7b4c32a0bdd"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 0.25,
+    "report": 0.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors preserve production behavior and both added characterization tests before the change. A keeps the original structure more faithfully: rollback still releases the `reserved` list, and it adds no new type. B adds a `_Price` dataclass and quietly switches the decline rollback to release `order.items`, which is equivalent but a needless deviation. B's report is stronger because it flags the unreleased-stock bug on unexpected gateway errors, but its per-line tax test does not actually tell per-line from total rounding.",
+        "a_issues": [
+          "`test_vip_customer_gets_five_percent_off_after_coupon` never uses a coupon, so the name overstates what it checks.",
+          "`test_declined_payment_releases_stock_in_reverse_of_reserve` has a misleading name: with one item there is no ordering to check.",
+          "No test checks that the free-shipping threshold is applied after the discount.",
+          "The report does not mention that stock is never released when the gateway raises a non-`PaymentDeclined` error."
+        ],
+        "b_issues": [
+          "The `_Price` dataclass is an extra abstraction a straight refactor does not need.",
+          "`_charge_customer` releases `order.items` instead of the reserved list. This is equivalent today but a subtle deviation from the original.",
+          "`test_tax_is_rounded_per_line` uses 19% of 5 cents, which gives 2 cents of tax whether rounded per line or on the total, so it does not pin the rounding rule.",
+          "Tax is now computed after the coupon check and subtotal and tax loop over the items twice. There is no observable change, but the code is less faithful to the original.",
+          "`test_unexpected_gateway_error_propagates_without_release` pins a likely bug in a test, so fixing it later also means rewriting the test."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors preserve behavior and arrive at nearly the same six-step `process_order`. A leaves `refund_order` in place and its tests cover the coupon+VIP interaction and the free-shipping threshold after discount. A's report also accurately flags the unreleased-reservation bug on unexpected gateway errors. B moves `refund_order` for no reason, and some of its test names and report claims are misleading: the VIP 'after coupon' test uses no coupon, and the 'reverse of reserve' test has only one item. B does have the stronger per-line tax-rounding test and a slightly simpler design.",
+        "a_issues": [
+          "`_Price` dataclass is extra structure that exists only to compute a total.",
+          "`test_tax_is_rounded_per_line` does not tell per-line from total rounding: both give 2 cents at 19%.",
+          "`_charge_customer` releases `order.items` instead of the reserved list. This is equivalent only because reservation either fully succeeds or raises.",
+          "Pins buggy behavior (no release on an unexpected gateway error) as a test, which makes a later fix look like a regression."
+        ],
+        "b_issues": [
+          "Moves `refund_order` above the helpers, adding unrelated diff churn.",
+          "`test_vip_customer_gets_five_percent_off_after_coupon` uses no coupon, so the name and the report's claim are inaccurate.",
+          "`test_declined_payment_releases_stock_in_reverse_of_reserve` uses a single item, so it says nothing about order.",
+          "No test that the free-shipping threshold is applied after the discount.",
+          "Report does not mention that an unexpected gateway exception leaves stock reserved."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

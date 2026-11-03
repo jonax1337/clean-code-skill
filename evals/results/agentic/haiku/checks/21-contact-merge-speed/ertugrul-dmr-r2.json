@@ -1,0 +1,91 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "condition": "ertugrul-dmr",
+  "rep": 2,
+  "checks": [
+    {
+      "name": "same_result_as_before",
+      "description": "mergeContacts returns exactly what the old implementation returned on random inputs with many duplicates, on a book that already holds the same email twice, and when called repeatedly.",
+      "passed": true,
+      "evidence": "\u2714 gives the same result as the original merge on random inputs with many duplicates (9.9578ms)\n\u2714 when the existing book already holds the same email twice, the first entry receives the merge (0.1966ms)\n\u2714 does not remember anything between calls, even for the same array (0.1732ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 125.0857"
+    },
+    {
+      "name": "inputs_not_modified",
+      "description": "mergeContacts does not modify the arrays or contacts it receives and always returns a new array.",
+      "passed": true,
+      "evidence": "\u2714 neither the arrays nor the contacts that were passed in are modified (1.6157ms)\n\u2714 the result is always a new array, even when there is nothing to import (0.5175ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 118.2774"
+    },
+    {
+      "name": "work_grows_linearly",
+      "description": "Merging 3000 contacts reads each email only a handful of times instead of once per other contact.",
+      "passed": true,
+      "evidence": "\u2714 looks at each email a constant number of times, not once per other contact (8.8142ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 1\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 117.558"
+    },
+    {
+      "name": "only_expected_files_changed",
+      "description": "Only the merge code, the email normalizer and tests changed; no package or config files were touched.",
+      "passed": true,
+      "evidence": "changed: ['src/import.ts']"
+    },
+    {
+      "name": "existing_tests_not_loosened",
+      "description": "No existing test line was changed or removed; tests may only be added.",
+      "passed": true,
+      "evidence": "tests only added to"
+    },
+    {
+      "name": "test_suite_passes",
+      "description": "The repository's own test suite passes.",
+      "passed": true,
+      "evidence": "\u2714 the incoming fields win unless they are empty (1.329ms)\n\u2714 normalizeEmail trims and lower-cases (0.5615ms)\n\u2714 importCsv merges the upload into the stored book (1.1391ms)\n\u2714 summarize counts contacts, phones and tags (1.3494ms)\n\u2139 tests 8\n\u2139 suites 0\n\u2139 pass 8\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 201.9664"
+    },
+    {
+      "name": "typecheck_passes",
+      "description": "The TypeScript type check passes.",
+      "passed": true,
+      "evidence": ""
+    },
+    {
+      "name": "no_second_normalization",
+      "description": "The merge does not re-implement email normalization inline; it keeps using normalizeEmail.",
+      "passed": true,
+      "evidence": "no matching added lines"
+    },
+    {
+      "name": "clean_diff",
+      "description": "The diff has no debug output, commented-out code or narrating comments.",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "tests_run_after_last_edit",
+      "description": "After its last edit the agent ran the test suite and it passed.",
+      "passed": false,
+      "evidence": "bash commands after the last edit: ['import.ts\"#\\' bench.ts && node --experimental-strip-types bench.ts 2>&1 | grep -v -i warning | tail -3; rm -rf /tmp/bench']"
+    }
+  ],
+  "metrics": {
+    "files": [
+      "src/import.ts"
+    ],
+    "before": {
+      "functions": 2,
+      "nloc": 13,
+      "max_nloc": 12,
+      "max_ccn": 3,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 2,
+      "nloc": 20,
+      "max_nloc": 16,
+      "max_ccn": 3,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
+}

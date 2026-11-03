@@ -1,0 +1,84 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4cfd805c30f8f30e",
+    "ub-mode": "56a7bcd2d5e0bda7"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production diffs are identical: both cleanly remove the flag, field, render path, help text, README row and tests, and add a CHANGELOG entry. B's replacement test also asserts that the short `-c` form is rejected, which A leaves unprotected. B's report is less accurate: it cites a 14-test baseline, says it removed two integration tests when three were removed or replaced, and mentions unrelated checklist tools. A's report is precise, but the merged code with better test coverage favors B.",
+        "a_issues": [
+          "The new rejection test covers only `--compact`; the short `-c` form now hitting UnknownOption is untested."
+        ],
+        "b_issues": [
+          "The report says it removed two integration tests, but three compact tests were removed or replaced.",
+          "The report's baseline count of '14 tests passed' ignores the 16 unit tests.",
+          "The report mentions skipping 'Crapper, Dryer, and Mutator' ub-mode checklist steps, which have no basis in this repository and add confusion."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The production diffs are identical: both remove the flag, its field, the parse arm, the renderer path, the help line, the README row, and the now-dead helpers, and both add a changelog entry. A's replacement test checks that both `--compact` and `-c` are rejected; B checks only the long form, so a leftover `-c` alias would go unnoticed. B's report is a little more accurate, but that matters less than the test gap.",
+        "a_issues": [
+          "Report says two integration tests were removed; three were actually removed or replaced.",
+          "Report's baseline count of 14 tests leaves out the 16 unit tests.",
+          "Report refers to 'Crapper, Dryer, and Mutator' steps from a 'ub-mode checklist' that appear nowhere in the repo, which is confusing noise."
+        ],
+        "b_issues": [
+          "Rejection test covers only `--compact`, not the short `-c` form.",
+          "Report says grep finds no `compact` references except the new test, but the changelog still mentions it (the 0.8.0 entry and the new Removed entry)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

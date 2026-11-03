@@ -1,0 +1,50 @@
+diff --git a/src/sources.js b/src/sources.js
+index 637fd82..d9df9ff 100644
+--- a/src/sources.js
++++ b/src/sources.js
+@@ -4,15 +4,20 @@ import { join } from "node:path";
+ function readJson(directory, file) {
+   return JSON.parse(readFileSync(join(directory, file), "utf8"));
+ }
+ 
+ export function loadInvoices(directory) {
+   return readJson(directory, "invoices.json");
+ }
+ 
++/** The CRM spells its id `customer_id`; rename it to the `customerId` used everywhere else. */
++function normalizeCrmCustomer({ customer_id, ...rest }) {
++  return { customerId: customer_id, ...rest };
++}
++
+ /** The customers of both systems in one list: billing first, then the CRM. */
+ export function loadCustomerRecords(directory) {
+   return [
+     ...readJson(directory, "billing-customers.json"),
+-    ...readJson(directory, "crm-customers.json"),
++    ...readJson(directory, "crm-customers.json").map(normalizeCrmCustomer),
+   ];
+ }
+diff --git a/tests/sources.test.js b/tests/sources.test.js
+new file mode 100644
+index 0000000..98137ab
+--- /dev/null
++++ b/tests/sources.test.js
+@@ -0,0 +1,18 @@
++import assert from "node:assert/strict";
++import { test } from "node:test";
++import { buildCustomerIndex } from "../src/customers.js";
++import { loadCustomerRecords } from "../src/sources.js";
++
++test("CRM customers are indexed under customerId, so invoices of CRM customers resolve", () => {
++  const index = buildCustomerIndex(loadCustomerRecords("data"));
++  assert.equal(index.get("C-2201")?.name, "Birch & Co");
++  assert.equal(index.get("C-1001")?.name, "Acme GmbH");
++});
++
++test("CRM records are normalized to customerId without the original customer_id key", () => {
++  const crm = loadCustomerRecords("data").filter((record) => record.country === "NL");
++  for (const record of crm) {
++    assert.equal("customer_id" in record, false);
++    assert.match(record.customerId, /^C-22\d\d$/);
++  }
++});

@@ -1,0 +1,87 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "0516cebc7c8f94c7",
+    "this-repo": "bc431de125c4cef4"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the loader strict, collect every problem, reject unknown keys and exit with status 78 and a clean message, so they are close in substance. B keeps closer to the documented contract: it leaves `0s` accepted and says so openly instead of inventing a new rule. B's tests also cover boundaries, empty-but-present values and a blank token. A's report wrongly claims a missing `upstream.url` used to crash with a NullPointerException, when the old `catch (Exception e)` actually turned it into a null URI. A's one real edge is case-insensitive booleans, which keeps old values like `TRUE` working.",
+        "a_issues": [
+          "Rejects `request.timeout=0s`, a rule the README does not state and the task did not ask for.",
+          "Report claims a missing `upstream.url` used to throw a NullPointerException; the old code caught it and returned a null URI.",
+          "No tests that each number is accepted at its exact minimum, or that a key present with an empty value is rejected."
+        ],
+        "b_issues": [
+          "`metrics.enabled` now only accepts lowercase `true`/`false`, so a config that used `TRUE` (accepted by the old `Boolean.parseBoolean`) will now fail to start.",
+          "The URL scheme check is case-sensitive, so `HTTPS://...` is rejected.",
+          "Adds a `ConfigException(message, cause)` constructor, a small extra beyond what was needed."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the loader strict in nearly the same way: they collect all problems, reject unknown keys, exit with status 78 and print a clean message from Main. A stays closer to the documented contract and flags the zero-timeout question for the developer, where B adds an undocumented rule that rejects zero timeouts. A also tests each numeric minimum boundary. B's report wrongly says a missing upstream.url used to crash with a NullPointerException, but the old code caught that exception and returned null.",
+        "a_issues": [
+          "metrics.enabled now accepts only lowercase true/false, so an existing config using `True` or `TRUE` now fails to start, although Boolean.parseBoolean used to accept it.",
+          "The list of known keys is repeated in every unknown-key error line, which makes the message noisy when several keys are wrong."
+        ],
+        "b_issues": [
+          "Rejects `request.timeout=0s`, a rule the README does not state and that was not requested; the README table was not updated to say the timeout must be greater than zero.",
+          "The report wrongly says a missing upstream.url used to crash with a NullPointerException; the old uri() caught the exception and returned null.",
+          "Only the zero-retries boundary is tested; acceptance of worker.threads and queue.capacity at 1 is not.",
+          "No test covers a present-but-empty optional value or a blank api.token."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

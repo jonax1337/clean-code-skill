@@ -13,8 +13,9 @@ import random
 import string
 import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 
-from harness import CONDITIONS, GRADES_DIR, RUNS_DIR, Case, ask_claude, extract_json, load_cases
+from harness import ALL_CONDITIONS, GRADES_DIR, RUNS_DIR, Case, ask_claude, extract_json, load_cases
 
 JUDGE_SYSTEM_PROMPT = (
     "You are a strict senior code reviewer grading answers from coding assistants. You only output JSON."
@@ -24,7 +25,7 @@ JUDGE_SYSTEM_PROMPT = (
 def main() -> None:
     args = _parse_args()
     tasks = [(case, rep) for case in load_cases() for rep in _reps_with_all_replies(case)]
-    pending = [(case, rep) for case, rep in tasks if not _grade_path(case, rep).exists()]
+    pending = [(case, rep) for case, rep in tasks if not _is_current(case, rep)]
     print(f"{len(tasks)} judge calls, {len(pending)} still to do")
 
     with ThreadPoolExecutor(max_workers=args.jobs) as pool:
@@ -38,24 +39,48 @@ def main() -> None:
                 print(f"FAILED {case.case_id} r{rep}: {error}")
 
 
+def _conditions_for(case: Case) -> list[str]:
+    return [condition.name for condition in ALL_CONDITIONS if condition.applies_to(case.language)]
+
+
+def _reply_path(case: Case, condition: str, rep: int) -> Path:
+    return RUNS_DIR / case.case_id / f"{condition}-r{rep}.md"
+
+
 def _reps_with_all_replies(case: Case) -> list[int]:
     case_dir = RUNS_DIR / case.case_id
     reps = sorted({int(path.stem.rsplit("-r", 1)[1]) for path in case_dir.glob("*-r*.md")})
     return [
-        rep
-        for rep in reps
-        if all((case_dir / f"{condition.name}-r{rep}.md").exists() for condition in CONDITIONS)
+        rep for rep in reps if all(_reply_path(case, name, rep).exists() for name in _conditions_for(case))
     ]
 
 
-def _grade_path(case: Case, rep: int):
+def _grade_path(case: Case, rep: int) -> Path:
     return GRADES_DIR / f"{case.case_id}-r{rep}.json"
+
+
+def _replies_fingerprint(case: Case, rep: int) -> str:
+    """Hash of every reply the judge sees for this case and repetition."""
+    digest = hashlib.sha256()
+    for name in _conditions_for(case):
+        digest.update(name.encode())
+        digest.update(_reply_path(case, name, rep).read_bytes())
+    return digest.hexdigest()[:16]
+
+
+def _is_current(case: Case, rep: int) -> bool:
+    """A grade exists for exactly the replies stored now."""
+    path = _grade_path(case, rep)
+    if not path.exists():
+        return False
+    recorded = json.loads(path.read_text(encoding="utf-8")).get("replies_fingerprint")
+    return recorded == _replies_fingerprint(case, rep)
 
 
 def _grade(case: Case, rep: int, model: str) -> None:
     blind_map = _blind_map(case, rep)
     replies = {
-        letter: (RUNS_DIR / case.case_id / f"{condition}-r{rep}.md").read_text(encoding="utf-8")
+        letter: _reply_path(case, condition, rep).read_text(encoding="utf-8")
         for letter, condition in blind_map.items()
     }
     reply = ask_claude(_judge_prompt(case, replies), JUDGE_SYSTEM_PROMPT, model, effort="high")
@@ -67,6 +92,7 @@ def _grade(case: Case, rep: int, model: str) -> None:
         "rep": rep,
         "judge_model": model,
         "blind_map": blind_map,
+        "replies_fingerprint": _replies_fingerprint(case, rep),
         "results": results,
     }
     _grade_path(case, rep).write_text(json.dumps(grade, indent=2), encoding="utf-8")
@@ -75,7 +101,7 @@ def _grade(case: Case, rep: int, model: str) -> None:
 def _blind_map(case: Case, rep: int) -> dict[str, str]:
     """Deterministic shuffle per case and repetition, so reruns produce the same lettering."""
     seed = int(hashlib.sha256(f"{case.case_id}:{rep}".encode()).hexdigest(), 16)
-    names = [condition.name for condition in CONDITIONS]
+    names = _conditions_for(case)
     random.Random(seed).shuffle(names)
     return dict(zip(string.ascii_uppercase, names))
 

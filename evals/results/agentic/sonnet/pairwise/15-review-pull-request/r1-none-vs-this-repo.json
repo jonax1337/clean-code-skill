@@ -1,0 +1,86 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "c3e71b79395a283f",
+    "this-repo": "8d1934add5a82d08"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.25,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.5,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find the same core blockers: SQL injection in search, swallowed audit errors, the floor-division `pages` bug, unvalidated paging, audit rows written for unknown ids, a spoofable actor, and the undocumented change to `list_users`. B applied the patch, ran the suite and confirmed each finding with concrete probes, such as `ids=[1,1,999]` giving three audit rows and `q=%` matching everyone. Its line references also point at the patched files, which is what the requester will open. A is accurate and adds one extra catch, that single `deactivate_user` is never audited, but it gives diff line numbers and verified nothing at runtime.",
+        "a_issues": [
+          "Line numbers refer to `pr/482.diff` rather than to the source files, which is less useful to the developer fixing the code.",
+          "Did not run the tests or probe any of its claims, so every finding rests on reading alone (it says so honestly)."
+        ],
+        "b_issues": [
+          "Some `api.py` line references are off by one: the `pages` computation is at line 37, not 36.",
+          "Misses that the existing single `deactivate_user` path writes no audit entry, despite the compliance goal.",
+          "Puts the spoofable actor and the missing-`actor` `KeyError` inside item 5 rather than flagging them as a separate blocker."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews find the same core blockers: SQL injection in search, swallowed audit errors, the floor-division `pages` bug, missing paging validation and the problems with bulk-deactivation auditing. Both reach the correct do-not-merge verdict. A backs its findings with probes against the patched code (quote in `q`, `ids=[1,1,999]`, `per_page=10` giving 0 pages) and points to real file lines, so its claims are verified rather than inferred. B adds one useful point: the single `deactivate_user` path writes no audit entry. But B did not run anything and points at diff lines, which are harder to use.",
+        "a_issues": [
+          "`adminhub/users.py:160-167` is a diff line range, not a file line, which breaks its stated convention; the `api.py` line references are off by one.",
+          "Misses that the existing single `deactivate_user` path writes no audit entry, which matters for the compliance goal.",
+          "Ranks the spoofable `actor` as a sub-point rather than a blocker."
+        ],
+        "b_issues": [
+          "Did not apply the patch or run the tests or any probes, so the findings and the \"28 passed\" claim are unverified (stated honestly).",
+          "Line numbers point into `pr/482.diff` rather than the source files, which is less convenient for the author.",
+          "The claim that already-inactive users make the returned count disagree with the audit rows is doubtful: SQLite's rowcount counts matched rows."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

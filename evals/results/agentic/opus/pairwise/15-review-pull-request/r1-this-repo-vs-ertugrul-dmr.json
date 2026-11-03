@@ -1,0 +1,86 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "77170ee207707cbd",
+    "ertugrul-dmr": "24da39b3c08f7b21"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.25,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find the same core blockers with accurate reproductions: the SQL injection, the swallowed audit errors, the floor-division page count, missing input validation, audit rows for unknown ids, and the question of where `actor` comes from. B adds two real findings that bear on the PR's stated compliance goal: single-user `deactivate_user` still writes no audit entry, and duplicate ids are logged twice. B also lists the missing tests explicitly and gets every line number right, while A has one off-by-one. A's concrete escaping snippet is slightly more actionable, but B's broader and more precise coverage edges it ahead.",
+        "a_issues": [
+          "Line reference for the per-id audit loop is off by one (`users.py:63-64`; the loop is at 62-63 after the patch)",
+          "Misses that the existing single-user `deactivate_user` path still bypasses the audit trail, despite the 'every deactivation' requirement",
+          "Does not note that duplicate ids in a bulk request produce duplicate audit rows"
+        ],
+        "b_issues": [
+          "Small typo/formatting glitch ('( duplication)') in finding 8",
+          "Injection fix suggestion is less concrete than A's ready-made escaped-pattern snippet",
+          "Ranks the single-user audit gap as blocking, which goes slightly beyond what the PR itself changes"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews find the same core blockers with correct reproductions: the SQL injection, the swallowed audit errors, the floor-division page count, unvalidated paging input, and audit rows written for nonexistent ids. A also catches that single-user `deactivate_user` still writes no audit entry, which contradicts the 'every deactivation' compliance claim. It also notes that duplicate ids get logged twice, and its line references are accurate throughout. B gives a concrete escaped-LIKE fix and a useful 'what's good' section, but it misses the single-user audit gap and cites `users.py:63-64` for the audit loop, where the loop is actually at 62-63.",
+        "a_issues": [
+          "Minor typo/formatting glitch '( duplication)'",
+          "No concrete code for the LIKE-escaping fix, only a description"
+        ],
+        "b_issues": [
+          "Misses that single-user `deactivate_user` remains unaudited despite the 'every deactivation' requirement",
+          "Doesn't mention duplicate ids producing duplicate audit rows",
+          "Line reference `users.py:63-64` for the audit loop is off by one (loop is at 62-63)"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

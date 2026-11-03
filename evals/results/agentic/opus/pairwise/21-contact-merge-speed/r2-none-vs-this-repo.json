@@ -1,0 +1,81 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "911b2c723ca90a49",
+    "this-repo": "40fe011a4fc9cbf9"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes swap the quadratic findIndex scan for a Map from normalized email to the first index, and both keep the existing behavior: in-upload duplicates still merge, existing duplicates still merge into the first entry, and order is unchanged. B adds a regression test for the trickiest case, two existing entries sharing an email, and its report says it checked that test against the old code. A's version is slightly leaner: it normalizes each email once and needs no helper.",
+        "a_issues": [
+          "No test protects the subtle first-index behavior for existing duplicate emails that the change relies on."
+        ],
+        "b_issues": [
+          "The rememberFirstIndex helper normalizes the email again for newly appended contacts, after the loop has already normalized it for the lookup.",
+          "The small helper adds a little indirection for what is a two-line operation."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes swap the O(n\u00b7m) findIndex scan for a map from normalized email to its first index. Both keep the original semantics: first-match merging, merging of duplicates within the upload, and append order. A also adds a test pinning the first-match behavior for duplicate emails already in the book, the one subtle edge case the new map logic has to get right. B's inline version is slightly leaner, but it leaves that edge case without a test.",
+        "a_issues": [
+          "The helper normalizes an incoming new contact's email a second time and re-checks `has()`, which is redundant after the lookup already missed.",
+          "The small helper function adds a little indirection for what is a few lines of logic."
+        ],
+        "b_issues": [
+          "No test was added for the duplicate-in-existing-book edge case, even though its report highlights that behavior as preserved."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "40fe011a4fc9cbf9",
+    "ertugrul-dmr": "afcd8603644f1e20"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.25,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes swap the linear findIndex scan for a Map lookup, keep the first-index behavior for existing duplicates, and add an equivalent test, so either is correct. B normalizes each incoming email only once and reuses that value for both the lookup and the insert. A normalizes it again inside rememberFirstIndex and runs a redundant has() check for appended contacts. B's report also explains why the map key stays valid after a merge, though its 'Clean Code notes' paragraph is filler, while A's report usefully notes that the new test also passed against the old code.",
+        "a_issues": [
+          "New incoming contacts are normalized twice: once for the lookup and again inside rememberFirstIndex.",
+          "rememberFirstIndex is used for newly appended contacts, where its has() check can never be true, which slightly obscures intent."
+        ],
+        "b_issues": [
+          "The report includes a self-congratulatory 'Clean Code notes' paragraph that adds nothing.",
+          "The report does not say whether the new edge-case test was checked against the old implementation."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes replace the linear `findIndex` scan with a first-index Map. Both preserve the merge-into-first-duplicate behavior and add an equivalent test for it, so the code is functionally identical. A's code is marginally tighter because it normalizes each incoming email once. B's report is stronger: it says the new test was run against the old code to confirm behavior is unchanged, and it avoids A's self-congratulatory 'Clean Code notes' section.",
+        "a_issues": [
+          "The report includes a self-promotional 'Clean Code notes' paragraph that adds nothing a reviewer needs.",
+          "The new test is not stated to have been run against the old implementation, so it is weaker evidence that behavior is preserved."
+        ],
+        "b_issues": [
+          "On the append path, `rememberFirstIndex` normalizes the incoming email a second time and runs a redundant `has` check that cannot be true at that point."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

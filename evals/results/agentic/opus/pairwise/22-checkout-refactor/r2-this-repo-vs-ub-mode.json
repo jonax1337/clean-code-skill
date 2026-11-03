@@ -1,0 +1,87 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "734f546c14580c7f",
+    "ub-mode": "6cef040ea2d26425"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors split `process_order` into the same pipeline of steps, and both preserve behavior, including releasing `order.items` on a declined payment, which is equivalent to the old reserved list. B's pinned tests are stronger: they check the exact boundaries (4999 and 5000), per-line tax rounding versus summed, the full stock-operation log on a decline, log records, and the ordering of the receipt send. B also checked its tests with a mutation script. A has a better process: it added tests to the existing file and asked before committing, while B committed to local main unasked and duplicated test helpers in a new file.",
+        "a_issues": [
+          "The 'just below 5000' shipping test actually uses 4500, so it does not pin the real boundary.",
+          "The coupon-not-redeemed test relies on an obscure trick: it calls `redeem()` and then asserts the coupon still has uses.",
+          "`_discount` mixes coupon lookup and validation (it can raise) with the arithmetic."
+        ],
+        "b_issues": [
+          "Committed twice to local main without being asked.",
+          "The new test file duplicates `make_order` and `CUSTOMER` from `test_checkout.py`, and some test lines are very long.",
+          "The report has a garbled sentence ('the mutation tools  mentions aren't installed')."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors split process_order into almost the same steps and both preserve behavior. Each also makes the same safe change of releasing order.items on a declined payment. A's characterization tests are stronger: they cover the exact 4999/5000 shipping boundary, per-line rounding that differs from summed rounding, exact log records and the call order of the receipt. A also keeps _discount pure by moving the coupon lookup into _coupon_percent. B's change is just as correct but its tests pin less, and A's reported mutation check adds confidence.",
+        "a_issues": [
+          "Committed twice to local main without being asked.",
+          "The report has a garbled phrase (\"the mutation tools  mentions aren't installed\").",
+          "Characterization tests go in a new separate file instead of the existing test_checkout.py."
+        ],
+        "b_issues": [
+          "The shipping test named 'just below 5000' uses 4500, not 4999, so it does not pin the exact boundary.",
+          "The failed-receipt test checks only the log text, not the log level or traceback; the zero-quantity test does not check that the status is unchanged.",
+          "_discount both looks up the coupon (and can raise OrderRejected) and computes the discount, which is less cleanly separated than A's split."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

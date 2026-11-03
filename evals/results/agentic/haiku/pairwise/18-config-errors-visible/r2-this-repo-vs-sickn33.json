@@ -1,0 +1,90 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "e97ada354f0d9d66",
+    "sickn33": "34aa117067f18b3b"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.75,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes fix the problem the same way. Each collects all problems, rejects bad values and unknown keys, fails on a missing file and exits with status 2 from Main. A also rejects a zero request.timeout, a degenerate value that a real HTTP client would refuse or treat as unlimited. B instead adds an http/https-only scheme restriction the task did not ask for. B's tests are somewhat broader and its unknown-key message helpfully lists the valid keys, but A is simpler and closer to the request.",
+        "a_issues": [
+          "Report's \"9 existing, 7 new\" is confusing: 2 old tests were rewritten and 9 added, though the total of 16 is right.",
+          "Accepts non-http absolute URIs such as ftp:// or mailto: for upstream.url.",
+          "Unknown-key message does not list the valid keys."
+        ],
+        "b_issues": [
+          "Accepts request.timeout=0s/0ms, a degenerate timeout.",
+          "Restricts upstream.url to http/https, a new policy beyond the task (though flagged in the report).",
+          "Adds an inner Settings class, a little more structure than needed.",
+          "Report's example output for 'the typo from last week' includes an unrelated second error, so it reads as contrived."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes remove the silent fallbacks, collect every problem into one error, reject unknown keys, and exit with status 2 from Main, so either fixes the incident. A has broader, more targeted tests: one per integer key, a negative retry count, a scheme-less URL, a missing upstream, a problem-count check, and the file path in the message. A's unknown-key message also lists the valid keys, and its report names a real remaining gap (duplicate keys). B is slightly simpler and adds a sensible zero-timeout check, but its tests are fewer and some cases are bundled into multi-assert tests.",
+        "a_issues": [
+          "The report's sample output for the `4a` typo also shows a `metrics.enabled 'ture'` problem that the scenario never mentions, which is confusing.",
+          "Requiring an http/https scheme adds a restriction the task did not ask for, though the report calls it out.",
+          "Extracting `run()` in Main is a small refactor the task did not need.",
+          "A zero `request.timeout` is still accepted."
+        ],
+        "b_issues": [
+          "The unknown-key message does not list the valid keys and only points to the example file.",
+          "The test count '9 existing, 7 new' glosses over two existing tests that were rewritten. There are actually 9 new test methods.",
+          "Several rejection cases are bundled into one test method, so the first failure hides the rest.",
+          "No test checks that the file name appears in the error or that a scheme-less URL like `host/path` is rejected."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

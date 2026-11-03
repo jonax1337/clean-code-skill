@@ -1,0 +1,65 @@
+diff --git a/REVIEW.md b/REVIEW.md
+new file mode 100644
+index 0000000..1d70f52
+--- /dev/null
++++ b/REVIEW.md
+@@ -0,0 +1,59 @@
++# Review: PR 482 (user search, paged user list, bulk deactivation with audit log)
++
++Reviewed `pr/482.diff` and `pr/482.md`. Line numbers are in the new version of each file, taken from the diff hunk headers. I did not check out the branch or run the test suite, so the "28 passed" claim in the description is unverified.
++
++## Findings, most important first
++
++### 1. SQL injection in user search (blocker)
++- `adminhub/search.py:13`: `search_users` puts the raw `term` into the SQL string with an f-string:
++  `f"WHERE name LIKE '%{term}%' OR email LIKE '%{term}%' "`
++- `adminhub/api.py:26-29` passes `params["q"]` straight through, so any HTTP caller can inject SQL, for example a `q` containing `' OR 1=1 --` or a `UNION SELECT` against other tables.
++- The tests in `tests/test_search.py` only use plain words, so nothing covers this.
++- Fix: bind the value as a parameter, e.g. `WHERE name LIKE ? OR email LIKE ?` with `(f"%{term}%", f"%{term}%", per_page, offset)`. Also add a test with a quote character in `q`.
++
++### 2. Audit failures are silently swallowed, so deactivations can happen unaudited (blocker for compliance)
++- `adminhub/audit.py:15-16`: `except sqlite3.Error: pass` hides every failure of the audit insert.
++- `adminhub/users.py:63` then commits the bulk update (`conn.commit()` at line 64) even when the audit row was not written.
++- The description says compliance needs every deactivation in the audit trail. This code does not guarantee that.
++- Fix: remove the `try/except` from `audit.record` so the error propagates, and let `deactivate_users` roll back on failure (it already does).
++
++### 3. Page count is wrong: floor division, so the last partial page is not counted
++- `adminhub/api.py:37`: `total_pages = users.count_users(conn) // per_page`.
++- Example: 5 users with `per_page=2` gives `pages: 2`, but there are 3 pages, and the console's pager can never reach page 3.
++- Fix: `-(-total // per_page)` or `math.ceil(total / per_page)`. Add a test that checks `pages` in the response; the existing paging test only checks the length of `users`.
++
++### 4. Unvalidated paging input causes errors or bad queries
++- `adminhub/api.py:35-36`: `page` and `per_page` are not validated.
++  - `per_page=0` gives `ZeroDivisionError` at line 37.
++  - Negative `per_page` or `page=0` gives a negative `OFFSET` or `LIMIT`.
++  - `min(..., 100)` caps only the top end.
++- `adminhub/api.py:29` (`search`) and line 36 call `int(...)` on raw input, so `page=abc` raises an unhandled `ValueError`.
++- Fix: validate `page >= 1` and `1 <= per_page <= 100`, and return 400 on bad input, as the `search` handler already does for an empty `q`.
++
++### 5. Bulk deactivation: audit and result disagree
++- `adminhub/users.py:61-68`: the audit row is written for every id in `user_ids`, including ids that do not exist and ids given twice. The returned count is `cursor.rowcount`, which counts only rows the UPDATE matched.
++- So a request with an unknown id gives an audit entry for a user that was never deactivated, and a duplicated id gives two audit entries.
++- Also, no id list is checked for size, so a very large `ids` list can exceed SQLite's bound-parameter limit.
++- Fix: deduplicate the ids, audit only the rows that actually changed (or check existence first), and cap the number of ids.
++
++### 6. `actor` comes from the request and is required
++- `adminhub/api.py:62`: `actor=params["actor"]` raises `KeyError` when the field is missing, which becomes an unhandled 500.
++- The actor is also a client-supplied value. Unless the auth layer overwrites it (not shown in this diff), anyone can write any name into the audit log, which weakens the audit trail's purpose.
++- Fix: take the actor from the authenticated session, and return 400 if it is absent.
++
++### 7. Behaviour changes not mentioned in the description
++- `adminhub/api.py:34-39`: `list_users` used to return every user. It now returns one page of 25 by default. Existing API clients will see fewer users with no warning. This needs a changelog note or a version bump.
++- `search` returns no `pages` or total, so the console cannot render a pager for search results. The description says search is "paged the same way", which is not true for the response.
++- The description says "pages start at 1, as documented in the README". I did not verify this against the README.
++
++### 8. Smaller points
++- `adminhub/search.py:10`: the `TODO` about ranking exact matches is unfinished feature work in the same change.
++- Search does not escape `%` and `_`, so these characters in `q` act as wildcards.
++- `search_users` has its own default `per_page=25`, while `api.search` never reads a `per_page` parameter, so the handler cannot change page size.
++- `bulk_deactivate` silently ignores unknown ids, while `deactivate_user` raises `NotFound`. The two behave differently for the same mistake.
++
++## Would I merge it as it is?
++
++**No.** Finding 1 is a SQL injection reachable from an HTTP endpoint and must be fixed before merge. Finding 2 means the compliance requirement the PR exists for is not met. Finding 3 makes the pager wrong for the console team, who are waiting on it. Findings 4 to 6 are input-validation and audit-accuracy problems that should go in the same PR. The rest can follow.
++
++Once 1 to 3 are fixed and covered by tests, and the actor and paging validation is in, I would review it again.

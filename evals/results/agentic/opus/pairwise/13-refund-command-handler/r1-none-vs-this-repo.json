@@ -1,0 +1,81 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "143174c5ee5907bc",
+    "this-repo": "96a0292c5f2267e2"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two handlers are functionally identical and both correct. Each caps refunds at amountPaid minus amountRefunded, allows only SHIPPED or DELIVERED orders, and leaves the status unchanged. A's tests cover more of the input validation: null, zero, negative and too many decimals. B only tests a negative amount, though it also checks that a refund rejected for wrong status leaves amountRefunded unchanged. B's README edit is a bit cleaner, but A's broader test coverage tips the balance slightly.",
+        "a_issues": [
+          "The README table row crams the refund rules into the 'Moves the order from' column, which makes the row overlong and awkward."
+        ],
+        "b_issues": [
+          "Only a negative amount is tested for invalid input; null, zero and too-precise amounts are not tested through the refund handler."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two changes are functionally the same. Each adds a handler that follows the existing pattern, caps total refunds at amountPaid minus amountRefunded, accepts only SHIPPED or DELIVERED orders, keeps the status, and registers the handler in createBus. B is slightly better: a short comment in the handler explains why the cap is amountPaid and not the total, its tests cover more invalid amounts (null, zero, too many decimals), and its README entry stays inside the command table. A's README adds an extra paragraph and a table row that does not fit the 'Moves the order from' column well.",
+        "a_issues": [
+          "The README table row ('(no move) refunds SHIPPED or DELIVERED') reads awkwardly under the 'Moves the order from' column, and an extra paragraph was added.",
+          "Only a negative amount is tested for invalid input; null, zero and amounts with too many decimals are not exercised through the handler."
+        ],
+        "b_issues": [
+          "The wrong-status test does not check that the rejected order's amountRefunded is unchanged.",
+          "The README table row is very long and mixes rules into the 'Moves the order from' column."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

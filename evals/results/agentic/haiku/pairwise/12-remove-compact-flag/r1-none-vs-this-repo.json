@@ -1,0 +1,82 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "277dfa43aff8294e",
+    "this-repo": "ea21bf4559dbff79"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.5,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs make the same removal: the flag, its field and default, its parse arm, the compact renderer and helper, its tests, the help line, the README row and a CHANGELOG entry. B removes the compact tests cleanly. A leaves a stray blank line before the closing brace of the render test module, which rustfmt would flag. B's report and changelog entry also state the user-visible result more concretely: `-c` now gives an unknown-option error with exit code 2.",
+        "a_issues": [
+          "Leaves a stray blank line before the closing `}` of the render.rs test module after deleting the compact tests.",
+          "No test asserts that `-c`/`--compact` is now rejected as an unknown option."
+        ],
+        "b_issues": [
+          "No test asserts that `-c`/`--compact` is now rejected as an unknown option."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes remove the flag in the same way: the parser arm, the `compact` field, the help line, the render path, its helpers, the tests, and the README row. Both also add a changelog entry. A leaves `render.rs` cleanly formatted, while B leaves a stray blank line before the closing brace of the test module. A's changelog also tells users that `-c` now fails with an unknown-option error. Neither adds a test that `-c` is rejected.",
+        "a_issues": [
+          "No test asserts that `-c`/`--compact` are now rejected as unknown options, so a future re-add would go unnoticed."
+        ],
+        "b_issues": [
+          "Leaves a stray blank line before the closing brace of the `render.rs` test module, which rustfmt would flag.",
+          "No test asserts that `-c`/`--compact` are now rejected as unknown options.",
+          "The changelog entry does not mention that passing `-c` now errors out, which is the key breaking-change detail for users."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

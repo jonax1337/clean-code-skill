@@ -2,42 +2,45 @@
 private static final int PAYLOAD_MASK = 0x7F;
 private static final int CONTINUATION_BIT = 0x80;
 private static final int PAYLOAD_BITS_PER_BYTE = 7;
-private static final int MAX_SHIFT = 32;
+private static final int MAX_VARINT_BITS = 32;
 
-public static int readVarInt(ByteBuffer buf) {
+public static int readVarInt(ByteBuffer buffer) {
     int value = 0;
-    for (int shift = 0; shift < MAX_SHIFT; shift += PAYLOAD_BITS_PER_BYTE) {
-        byte current = buf.get();
+    int shift = 0;
+    do {
+        byte current = buffer.get();
         value |= (current & PAYLOAD_MASK) << shift;
-        if (isLastByte(current)) {
+        if (!hasContinuationBit(current)) {
             return value;
         }
-    }
+        shift += PAYLOAD_BITS_PER_BYTE;
+    } while (shift < MAX_VARINT_BITS);
+
     throw new RuntimeException("VarInt too big");
 }
 
-private static boolean isLastByte(byte b) {
-    return (b & CONTINUATION_BIT) == 0;
+private static boolean hasContinuationBit(byte current) {
+    return (current & CONTINUATION_BIT) != 0;
 }
 ```
 
 **What changed**
-- **Magic numbers** (`0x7F`, `0x80`, `7`, `32`) now have intention-revealing names.
-- **Loop structure:** `while (true)` with a `break` and a mid-loop bounds check became a bounded `for` loop. The exit conditions are now visible in the loop header and the early `return`, and the error path is the single line after the loop.
-- **Naming:** `b`, `pos` and the mutable `byte` declared outside the loop became `current` and `shift`. `pos` was really a bit shift, not a position. `current` is declared where it's used.
-- **Helper:** `isLastByte` names the continuation-bit test at the same level of abstraction as the rest of the method.
+- **Names:** `buf`, `b`, and `pos` became `buffer`, `current`, and `shift`. `pos` was misleading because it's a bit shift, not a buffer position. The magic numbers `0x7F`, `0x80`, `7`, and `32` are now named constants.
+- **Control flow:** the `while (true)` with `break` is now a `do/while` with a clear exit. The happy path returns early, and the error case sits at the bottom.
+- **Condition:** `hasContinuationBit` replaces the inline bit test, so the code reads as intent.
+- **Scope:** `current` is declared inside the loop, next to where it's used.
 
 **Behavior is preserved**
-- A VarInt still consumes at most 5 bytes. The original threw when `pos` reached 35 after a fifth byte that still had its continuation bit set. The new loop exits at the same point and throws.
-- Bits of the fifth byte that overflow 32 are still silently dropped, as before.
-- `buf.get()` still throws `BufferUnderflowException` on truncated input.
-- The exception type and message are unchanged.
+- It reads at most 5 bytes.
+- It throws `RuntimeException("VarInt too big")` only when the 5th byte still has its continuation bit set. The shift sequence is 0, 7, 14, 21, 28, and 35 fails the `< 32` check, exactly as before.
+- Overflow bits from the 5th byte are still silently dropped by the `int` shift.
+- A `BufferUnderflowException` from `buffer.get()` still propagates unchanged.
 
 **Performance**
-- The work per byte is the same: one `get`, a mask, a shift, an OR and a test. No allocations, boxing or extra branches were added.
-- The constants are `static final` primitives, so they are compile-time constants.
-- `isLastByte` is a tiny static method, which the JIT inlines.
+- I haven't run a profiler or benchmark here, so I can't prove it's no slower. The structure is equivalent, though. The constants are `static final` primitives, so they're compile-time inlined. `hasContinuationBit` is a tiny private static method that HotSpot inlines trivially. There are no allocations or extra branches.
+- I deliberately did not split the loop into more helper methods, since this is the hot path.
+- Please check it with a JMH benchmark against the old version before merging.
 
-I can't run a profiler here, so I haven't measured this. Since the method is this hot, run a quick JMH comparison against the old version before merging.
-
-If you're free to change behavior later, a dedicated exception type such as `VarIntTooBigException` would be better than a bare `RuntimeException`. Callers could then tell malformed packets from other failures. I left it alone to keep this a pure refactor.
+**Optional follow-ups** (they change behavior or add scope, so I left them out)
+- Throw a more specific exception, such as a custom `VarIntTooBigException extends RuntimeException`, so callers can catch it precisely.
+- If most VarInts in your traffic fit in one byte, a fast path at the top can cut the CPU cost. It would read the first byte and return immediately if the continuation bit is clear. Benchmark that on real packet data.

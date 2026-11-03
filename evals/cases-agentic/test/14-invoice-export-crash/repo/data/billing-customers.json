@@ -1,0 +1,6 @@
+[
+  { "customerId": "C-1001", "name": "Acme GmbH", "country": "DE" },
+  { "customerId": "C-1002", "name": "Nordwind, Inc.", "country": "US" },
+  { "customerId": "C-1003", "name": "Holm & Sønner", "country": "DK" },
+  { "customerId": "C-1004", "name": "Kestrel Logistics", "country": "GB" }
+]

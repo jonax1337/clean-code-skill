@@ -1,0 +1,83 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "d7973f4f87505e46",
+    "this-repo": "53b646e96733aea2"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both make the same one-line fix in `parse_entries`: skip whitespace-only lines before parsing, which keeps the real file line numbers in errors. B also adds a test that line numbers still count skipped blank lines, a property A claims in its report but never tests. B updates the README's CSV section, which describes exactly this format, and notes that it was not tried on the accountant's real file. A's single CLI-level test covers the blank-line skip but does not check the line numbers or that the entries are stored.",
+        "a_issues": [
+          "Report says line numbers in errors are unchanged, but no test protects that behavior.",
+          "README's CSV import section still does not mention that blank lines are accepted, so the documented format is now incomplete.",
+          "The new CLI test checks only the printed count, not that the right entries were stored (e.g. via report)."
+        ],
+        "b_issues": [
+          "No inline comment explaining why blank lines are skipped (minor)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both PRs make the same correct one-line fix: skip lines that are empty or whitespace-only while still counting them for line numbers. A also adds a test confirming that errors after a skipped blank line still report the real file line number. A also updates the README's CSV section, which documents exactly this behavior. B's report claims line numbers are preserved, but its single CLI test never checks that, and B leaves the README describing every line as an entry.",
+        "a_issues": [
+          "No CLI-level test of the full import path with a trailing blank line, though the unit tests cover the behavior."
+        ],
+        "b_issues": [
+          "README CSV import section not updated to say blank lines are skipped, although it documents the import format.",
+          "No test confirms that error line numbers still count skipped blank lines, even though the report states this.",
+          "The CLI test checks only the imported count and not the stored entries or report output."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

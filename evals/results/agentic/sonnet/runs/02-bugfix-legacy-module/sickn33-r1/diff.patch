@@ -1,5 +1,5 @@
 diff --git a/reports/periods.py b/reports/periods.py
-index b29beff..00b0725 100644
+index b29beff..1e6498d 100644
 --- a/reports/periods.py
 +++ b/reports/periods.py
 @@ -1,23 +1,30 @@
@@ -9,7 +9,7 @@ index b29beff..00b0725 100644
  
  
 +def _first_of_month(year, month):
-+    """First day of the given month; month 13 rolls over to January of the next year."""
++    """First day of the given month; a month of 13 rolls over to January of the next year."""
 +    if month > 12:
 +        return datetime.date(year + 1, month - 12, 1)
 +    return datetime.date(year, month, 1)

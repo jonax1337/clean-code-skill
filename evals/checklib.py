@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.request
 from dataclasses import dataclass
 from fnmatch import fnmatchcase
 from pathlib import Path
@@ -26,9 +27,15 @@ NODE_TEST = ["node", "--test"]
 NODE_TESTS_RAN = r"\btests [1-9]\d*\b"  # "# tests 3" (TAP) or "ℹ tests 3" (spec)
 TSC = ["node", "node_modules/typescript/bin/tsc", "--noEmit"]
 NODE_CACHE_DIR = CACHE_DIR / "node"
+# Java fixtures build without Maven or Gradle: `java tools/RunTests.java [extra test dir]` (see cases-agentic/_java).
+JAVA_TEST = ["java", "tools/RunTests.java"]
+JAVA_TEST_RUN = r"^java\s+(\S*[/\\])?RunTests\.java\b"  # a Windows shell may write tools\RunTests.java
+JUNIT_VERSION = "1.11.4"
+JAVA_CACHE_DIR = CACHE_DIR / "java"
+JAVA_SUPPORT_DIR = Path(__file__).resolve().parent / "cases-agentic" / "_java"
 EVIDENCE_LINES = 12
 
-DEBUG_OUTPUT = re.compile(r"\bprint\(|\bbreakpoint\(|\bpdb\b|console\.log\(|\bdebugger\b")
+DEBUG_OUTPUT = re.compile(r"\bprint\(|\bbreakpoint\(|\bpdb\b|console\.log\(|\bdebugger\b|\bdbg!\(")
 # Comments that tell the story of the edit instead of explaining the code.
 NARRATING_COMMENT = re.compile(
     r"(^|\s)(#|//)\s.*\b(fixed(\s+(the|a|an|this|it|bug|issue|crash|problem)\b|:|$)|changed (to|from)\b|"
@@ -232,6 +239,23 @@ def install_node_toolchain(repo: Path, packages: list[str]) -> None:
     shutil.copytree(modules, repo / "node_modules")
 
 
+def install_java_toolchain(repo: Path) -> None:
+    """Give a Java fixture the JUnit console launcher in `lib/` and the test runner in `tools/`."""
+    jar_name = f"junit-platform-console-standalone-{JUNIT_VERSION}.jar"
+    cached = JAVA_CACHE_DIR / jar_name
+    if not cached.exists():
+        url = f"https://repo1.maven.org/maven2/org/junit/platform/junit-platform-console-standalone/{JUNIT_VERSION}/{jar_name}"
+        JAVA_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        partial = cached.with_name(f"{jar_name}.{os.getpid()}.partial")
+        with urllib.request.urlopen(url, timeout=60) as response:
+            partial.write_bytes(response.read())
+        os.replace(partial, cached)
+    (repo / "lib").mkdir(exist_ok=True)
+    shutil.copyfile(cached, repo / "lib" / "junit-platform-console-standalone.jar")
+    (repo / "tools").mkdir(exist_ok=True)
+    shutil.copyfile(JAVA_SUPPORT_DIR / "RunTests.java", repo / "tools" / "RunTests.java")
+
+
 def _fill_node_cache(packages: list[str]) -> None:
     """Install into a scratch prefix and move it into place, so a crash or a parallel run never leaves half a cache."""
     npm = shutil.which("npm")
@@ -304,6 +328,8 @@ def _parse_python(source: str | None) -> ast.Module | None:
 
 def _is_commented_out_code(line: str) -> bool:
     stripped = line.strip()
+    if stripped.startswith(("#[", "#!")):
+        return False  # a Rust attribute (#[derive(..)], #![allow(..)]) or a shebang, not a comment
     if stripped.startswith("#"):
         return _is_python_code(stripped.lstrip("#").strip())
     if stripped.startswith("//"):

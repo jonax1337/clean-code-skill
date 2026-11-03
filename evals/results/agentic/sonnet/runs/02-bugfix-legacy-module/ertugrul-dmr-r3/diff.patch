@@ -1,0 +1,44 @@
+diff --git a/reports/periods.py b/reports/periods.py
+index b29beff..c39339e 100644
+--- a/reports/periods.py
++++ b/reports/periods.py
+@@ -1,23 +1,33 @@
+ """Date ranges for the sales reports. Every range is half-open: start <= day < end."""
+ 
+ import datetime
+ 
+ 
++MONTHS_PER_YEAR = 12
++MONTHS_PER_QUARTER = 3
++
++
++def _first_of_month(year, month):
++    """Return the first day of month, rolling months past 12 into the following year."""
++    year_offset, month_index = divmod(month - 1, MONTHS_PER_YEAR)
++    return datetime.date(year + year_offset, month_index + 1, 1)
++
++
+ def month_range(year, month):
+     """Return (first day of the month, first day of the next month)."""
+-    start = datetime.date(year, month, 1)
+-    end = datetime.date(year, month + 1, 1)
+-    return start, end
++    return _first_of_month(year, month), _first_of_month(year, month + 1)
+ 
+ 
+ def quarter_range(year, quarter):
+     """Return (first day of the quarter, first day of the next quarter) for quarter 1-4."""
+-    start = datetime.date(year, 3 * quarter - 2, 1)
+-    end = datetime.date(year, 3 * quarter + 1, 1)
+-    return start, end
++    first_month = MONTHS_PER_QUARTER * (quarter - 1) + 1
++    return (
++        _first_of_month(year, first_month),
++        _first_of_month(year, first_month + MONTHS_PER_QUARTER),
++    )
+ 
+ 
+ def week_range(day):
+     """Return (Monday of the ISO week containing day, Monday of the following week)."""
+     start = day - datetime.timedelta(days=day.weekday())
+     return start, start + datetime.timedelta(days=7)

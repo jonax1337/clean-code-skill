@@ -1,0 +1,82 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "dde994ff23d4766c",
+    "ertugrul-dmr": "8162982b3de32787"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "The source changes are effectively identical: the same event type, reducer guards, cleared resumeOn on cancel, audit line and notification. A also commits a new 408-line package-lock.json that the task didn't ask for, and its report doesn't mention it. B stays within scope, and its report flags a real edge case: pausing an already-canceled subscription still sends the email, because the notifier only sees the event.",
+        "a_issues": [
+          "Adds an untracked package-lock.json (408 lines), which is outside the task's scope.",
+          "The report omits the lockfile addition, so it is not accurate about what changed."
+        ],
+        "b_issues": [
+          "No test asserts that a freshly started subscription has resumeOn null (minor)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "The source changes are nearly identical and both implement the spec correctly: pause only from active, payment events ignored while paused, cancel clears resumeOn, the audit line matches the example, and a customer-only email carries resumeOn. B also commits a 408-line package-lock.json that the task did not ask for and the repo did not have, and its report never mentions it. That makes B's diff noisier and its report incomplete, so A is the cleaner merge.",
+        "a_issues": [
+          "Does not explicitly test that a new subscription starts with resumeOn null (only covered indirectly)."
+        ],
+        "b_issues": [
+          "Adds an unrequested 408-line package-lock.json that is unrelated to the feature.",
+          "The report omits the new lockfile, so it is not a complete account of what changed.",
+          "The comment 'so a payment event cannot fail there' is slightly misleading wording."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

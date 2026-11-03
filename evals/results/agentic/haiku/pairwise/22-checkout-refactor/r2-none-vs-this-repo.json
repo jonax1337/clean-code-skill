@@ -1,0 +1,88 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "a51aaac4bf2ebd5a",
+    "this-repo": "4f3f6b65055eb365"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.25,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors keep behavior: the same order of validation, pricing, reserve, charge, commit and redeem, the same messages and statuses, and the same swallowed receipt failure. B adds ten characterization tests that it confirmed against the original code. They pin the call order, rollback, per-line tax rounding, VIP stacking, free shipping and receipt-failure handling, which protects this production refactor from future regressions. A's 20k-case side-by-side fuzz was thorough, but it lives outside the repo and leaves no lasting protection. B does add churn by moving refund_order to a new position for no reason.",
+        "a_issues": [
+          "No tests added: the randomized equivalence check was thrown away, so the thin existing suite is all that guards future edits to this production code",
+          "Helper lists are typed as a bare `list` instead of `list[Item]`",
+          "_complete_order bundles stock commit, coupon redemption, status update and receipt sending in one helper"
+        ],
+        "b_issues": [
+          "Moves refund_order above the helpers without need, which makes the diff noisier and harder to review",
+          "Test name `test_declined_payment_releases_stock_in_reverse_of_reserve` is misleading: it uses a single item and does not check reverse order",
+          "The `_shipping_cents` helper is very thin"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors keep the computation order, error messages, status values and rollback behavior the same, so both look correct. A also adds ten characterization tests to the repository. They cover rollback logging, rejecting an invalid coupon before any stock is touched, per-line tax rounding and swallowing a receipt failure, which protects this production-critical refactor going forward. B only fuzzed the change once, outside the repo, and left no tests behind, and its `_complete_order` mixes committing the order with sending the receipt across seven parameters. A has some misleading test names and a slightly overstated report, but it is still the safer merge.",
+        "a_issues": [
+          "`test_vip_customer_gets_five_percent_off_after_coupon` uses no coupon, so it does not check the coupon-then-VIP ordering that its name and the report claim.",
+          "`test_declined_payment_releases_stock_in_reverse_of_reserve` is misnamed: it uses a single item, and the code releases in reserve order, not reverse.",
+          "Moving `refund_order` above the helpers adds diff noise that the task does not need.",
+          "`_charge` takes six parameters."
+        ],
+        "b_issues": [
+          "No tests are added to the repository; the 20k-case fuzz verification was thrown away, so nothing protects this refactor going forward.",
+          "`_complete_order` takes seven parameters and mixes committing stock and redeeming the coupon with sending the receipt.",
+          "Uses a bare `list` instead of `list[Item]` for reserved items."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

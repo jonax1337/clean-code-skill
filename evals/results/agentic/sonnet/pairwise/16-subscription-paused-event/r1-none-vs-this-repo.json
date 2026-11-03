@@ -1,0 +1,79 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "5f2690d022105286",
+    "this-repo": "d22fedb569e807ad"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The source changes in both are identical and correct: the new event type, the paused status, resumeOn set on pause and cleared on cancel, the paused guard on payment_failed, the audit line format and the customer-only email. The only differences are in tests and reports. B's cancel-while-paused test also checks that canceledAt is recorded, which better covers 'cancelling works as usual'. B's report also notes that a paused subscription has no way back to active yet.",
+        "a_issues": [
+          "The cancel-from-paused test does not check that canceledAt is set, so 'cancelling works as usual' is only partly checked.",
+          "Combines the 'resumeOn is null by default' check with the pause test, which is slightly less focused."
+        ],
+        "b_issues": [
+          "Minor: the notifier test uses sub_1 rather than the sub_9 example from the task, which is cosmetic."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The source changes are identical and both correctly add the event, the paused status, resumeOn handling, the audit line and the customer-only notification. A's tests are slightly stronger: the cancel-from-paused test also checks canceledAt, so it confirms cancellation 'works as usual', and its cases are split a little more clearly. Both reports are accurate, including their test counts (20 and 19).",
+        "a_issues": [],
+        "b_issues": [
+          "The cancel-from-paused test does not check canceledAt, so it does not show cancellation from paused works as usual.",
+          "The resumeOn-null check is folded into the pause test instead of being a separate case, which reads slightly less clearly."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

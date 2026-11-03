@@ -1,0 +1,87 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ba64f2dd10ba7272",
+    "ertugrul-dmr": "c897c31ae43d559b"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.75,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews block the PR for the same core problems: SQL injection, swallowed audit errors, the wrong `pages` value, and unvalidated paging input. A also catches two issues B misses. First, `list_users` now silently returns only 25 users instead of the README-documented 'all users', a breaking change for existing clients. Second, the single-user `deactivate_user` path writes no audit entry, so the compliance claim is false. B is stronger on verification: it applied the patch, reproduced most findings, gave accurate post-patch line numbers and found that the default page size reports `pages=0`. A's extra findings on preserved behavior and audit coverage weigh slightly more.",
+        "a_issues": [
+          "Did not apply the patch or run the tests, so no finding is reproduced (though A says this openly).",
+          "Line numbers refer to `pr/482.diff` lines rather than file lines, which makes them less convenient to act on.",
+          "Does not point out that the default page size gives `pages=0` for the common case."
+        ],
+        "b_issues": [
+          "Misses that paging `list_users` by default silently drops users beyond 25 for existing clients, contrary to the README.",
+          "Misses that the existing single-user `deactivate_user` path writes no audit entry, which undermines the 'every deactivation audited' claim.",
+          "Rates the forgeable `actor` as 'should fix' rather than blocking, even though the log is meant for compliance."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews catch the main blockers: the SQL injection in search, the swallowed audit errors, the floor-division `pages` bug, unvalidated paging input, the client-supplied actor and audit rows for unchanged ids. B also flags that `list_users` now silently returns only 25 users to existing callers, which contradicts the README's documented \"all users\" behavior and is a real regression that A misses. A has the stronger evidence: it applied the patch, reproduced most findings and cited post-patch file lines. B honestly says it did not run anything and cites diff line numbers, which are less convenient. Even so, B's more complete set of findings makes it the slightly more useful review.",
+        "a_issues": [
+          "Misses that `list_users` with no params now returns at most 25 users, a silent breaking change against the README contract.",
+          "Does not mention that single-user `deactivate_user` stays unaudited despite the \"every deactivation\" compliance goal.",
+          "Does not note that a non-list `ids` would be iterated character by character."
+        ],
+        "b_issues": [
+          "Did not apply the patch or run the tests, so no finding is reproduced and the \"28 passed\" claim is left unchecked.",
+          "Line numbers refer to `pr/482.diff` rather than the source files, which is less convenient to act on.",
+          "The \"Good\" section and longer explanations add length without adding much."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

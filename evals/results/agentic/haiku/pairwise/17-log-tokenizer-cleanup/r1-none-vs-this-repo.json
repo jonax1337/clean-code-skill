@@ -1,0 +1,87 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "950e2c38c78d06ec",
+    "this-repo": "c2d04bb7b3de8401"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors split the tokenizer into small per-token functions, and as far as I can trace they keep the same tokens, errors and positions. A's own benchmark puts it at a median of about 1.04\u00d7 the old time, which conflicts with the explicit 'must not get slower' requirement, and A leaves that unresolved. B measured the actual `Stats::add_line` path and found no slowdown, and it explains the cross-crate harness gap plausibly. B also adds seven edge-case tests that pin existing behavior: empty values, `a==b`, quote and escape errors, and separator errors. A adds no tests.",
+        "a_issues": [
+          "Its own benchmark shows a median of about 4% slower, against a hard requirement that the tokenizer must not get slower; A defers this to the nightly import.",
+          "No tests added to protect the refactor; the differential harness lives outside the repo.",
+          "The report calls the 8 integration tests in `tests/tokens.rs` 'lib tests'.",
+          "`read_value` sets `state` before scanning and relies on `next()` to override it on error, so state bookkeeping is spread across methods."
+        ],
+        "b_issues": [
+          "The extra `Step` struct and the closure-based `find`/`scan_run` helpers add some indirection, and their performance depends on the optimizer.",
+          "The cross-crate 2\u20133% gap is dismissed as an artifact rather than investigated further."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors keep the original tokens, errors and positions, and both checked this with differential tests against the original. A also adds focused regression tests for the edge cases the original suite missed. A's benchmark shows it is not slower, while B's own numbers point to a median slowdown of about 4%, which goes against the explicit requirement that the tokenizer must not get slower. A's design is also cleaner: the scanner functions are pure and return a `Step`, and all state and position updates happen in one place in `next()`. B's methods update `self.pos` and `self.state` in several places.",
+        "a_issues": [
+          "The generic `find`/`scan_run` closures depend on the optimizer to stay as fast as the original. The cross-crate benchmark showed a 2-3% gap, which A explains away rather than resolves.",
+          "Performance was not checked on a real dump, which the report says openly."
+        ],
+        "b_issues": [
+          "B's own benchmark shows a median of about 1.04x the original time. The task required no slowdown, and B ships anyway while calling speed an open question.",
+          "No tests were added to protect the refactor. The existing suite misses NestedBracket, InvalidEscape, ExpectedSeparator and empty values.",
+          "State and position changes are spread across the reader methods (`read_value` sets the state before reading, and the readers set `self.pos`). This makes the control flow harder to follow than one central update.",
+          "The report calls the 8 integration tests in tests/tokens.rs \"lib tests\"."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,317 @@
+diff --git a/src/token.rs b/src/token.rs
+index 1ee5ac4..4df4262 100644
+--- a/src/token.rs
++++ b/src/token.rs
+@@ -14,161 +14,180 @@ pub enum Token<'a> {
+     /// A run of characters that is neither a timestamp nor part of a pair.
+     Word(&'a str),
+ }
+ 
+ /// Streams the tokens of one line. After the first error it yields nothing more.
+ #[derive(Debug, Clone)]
+ pub struct Tokens<'a> {
+     src: &'a str,
++    /// Byte offset of the next unread byte; never past the end of `src`.
+     pos: usize,
+-    st: u8,
++    state: State,
+ }
+ 
++/// What the tokenizer expects to find at `pos`.
++#[derive(Debug, Clone, Copy, PartialEq, Eq)]
++enum State {
++    /// Optional separators, then a timestamp, a key or a word.
++    Token,
++    /// The value directly after a key's `=`.
++    Value,
++    /// An error has been reported; the stream is over.
++    Failed,
++}
++
++type LexResult<'a> = Result<Token<'a>, LexError>;
++
+ impl<'a> Tokens<'a> {
+     pub fn new(src: &'a str) -> Self {
+-        Tokens { src, pos: 0, st: 0 }
++        Tokens { src, pos: 0, state: State::Token }
+     }
+ }
+ 
+ /// Tokenizes one log line without copying any of it.
+ pub fn tokenize(line: &str) -> Tokens<'_> {
+     Tokens::new(line)
+ }
+ 
+ impl<'a> Iterator for Tokens<'a> {
+-    type Item = Result<Token<'a>, LexError>;
++    type Item = LexResult<'a>;
+ 
+     fn next(&mut self) -> Option<Self::Item> {
+-        let src: &'a str = self.src;
+-        let b = src.as_bytes();
+-        let n = b.len();
+-        let mut p = self.pos;
+-        match self.st {
+-            0 => {
+-                while p < n && (b[p] == b' ' || b[p] == b'\t') {
+-                    p += 1;
+-                }
+-                if p >= n {
+-                    self.pos = p;
+-                    return None;
+-                }
+-                match b[p] {
+-                    b'[' => {
+-                        let s = p + 1;
+-                        let mut i = s;
+-                        loop {
+-                            if i >= n {
+-                                self.st = 2;
+-                                self.pos = n;
+-                                return Some(Err(LexError::UnterminatedTimestamp { pos: p }));
+-                            }
+-                            match b[i] {
+-                                b']' => break,
+-                                b'[' => {
+-                                    self.st = 2;
+-                                    self.pos = n;
+-                                    return Some(Err(LexError::NestedBracket { pos: i }));
+-                                }
+-                                _ => i += 1,
+-                            }
+-                        }
+-                        if i + 1 < n && b[i + 1] != b' ' && b[i + 1] != b'\t' {
+-                            self.st = 2;
+-                            self.pos = n;
+-                            return Some(Err(LexError::ExpectedSeparator { pos: i + 1 }));
+-                        }
+-                        self.pos = i + 1;
+-                        Some(Ok(Token::Timestamp(&src[s..i])))
+-                    }
+-                    b'"' => {
+-                        self.st = 2;
+-                        self.pos = n;
+-                        Some(Err(LexError::UnexpectedQuote { pos: p }))
+-                    }
+-                    b'=' => {
+-                        self.st = 2;
+-                        self.pos = n;
+-                        Some(Err(LexError::EmptyKey { pos: p }))
+-                    }
+-                    _ => {
+-                        let mut i = p;
+-                        while i < n && b[i] != b' ' && b[i] != b'\t' && b[i] != b'=' {
+-                            if b[i] == b'"' {
+-                                self.st = 2;
+-                                self.pos = n;
+-                                return Some(Err(LexError::UnexpectedQuote { pos: i }));
+-                            }
+-                            i += 1;
+-                        }
+-                        if i < n && b[i] == b'=' {
+-                            self.st = 1;
+-                            self.pos = i + 1;
+-                            Some(Ok(Token::Key(&src[p..i])))
+-                        } else {
+-                            self.pos = i;
+-                            Some(Ok(Token::Word(&src[p..i])))
+-                        }
+-                    }
+-                }
++        let result = match self.state {
++            State::Token => self.token()?,
++            State::Value => self.value(),
++            State::Failed => return None,
++        };
++        if result.is_err() {
++            self.fail();
++        }
++        Some(result)
++    }
++}
++
++impl<'a> Tokens<'a> {
++    /// Reads the next timestamp, key or word, or returns `None` at the end of the line.
++    fn token(&mut self) -> Option<LexResult<'a>> {
++        self.skip_separators();
++        let start = self.pos;
++        let token = match *self.bytes().get(start)? {
++            b'[' => self.timestamp(start),
++            b'"' => Err(LexError::UnexpectedQuote { pos: start }),
++            b'=' => Err(LexError::EmptyKey { pos: start }),
++            _ => self.key_or_word(start),
++        };
++        Some(token)
++    }
++
++    /// Reads the value that follows a key: quoted, bare, or empty.
++    fn value(&mut self) -> LexResult<'a> {
++        self.state = State::Token;
++        let start = self.pos;
++        match self.bytes().get(start) {
++            Some(b'"') => self.quoted_value(start),
++            _ => self.bare_value(start),
++        }
++    }
++
++    fn timestamp(&mut self, open: usize) -> LexResult<'a> {
++        let close = self.closing_bracket(open)?;
++        self.finish_token_at(close)?;
++        Ok(Token::Timestamp(&self.src[open + 1..close]))
++    }
++
++    fn key_or_word(&mut self, start: usize) -> LexResult<'a> {
++        let end = self.unquoted_run_end(start, |b| is_separator(b) || b == b'=')?;
++        let text = &self.src[start..end];
++        if self.bytes().get(end) == Some(&b'=') {
++            self.state = State::Value;
++            self.pos = end + 1;
++            Ok(Token::Key(text))
++        } else {
++            self.pos = end;
++            Ok(Token::Word(text))
++        }
++    }
++
++    fn quoted_value(&mut self, open: usize) -> LexResult<'a> {
++        let close = self.closing_quote(open)?;
++        self.finish_token_at(close)?;
++        Ok(Token::Quoted(&self.src[open + 1..close]))
++    }
++
++    fn bare_value(&mut self, start: usize) -> LexResult<'a> {
++        let end = self.unquoted_run_end(start, is_separator)?;
++        self.pos = end;
++        Ok(Token::Bare(&self.src[start..end]))
++    }
++
++    /// Finds the `]` that closes the timestamp opened at `open`.
++    fn closing_bracket(&self, open: usize) -> Result<usize, LexError> {
++        let content_start = open + 1;
++        let bytes = self.bytes();
++        let found = bytes[content_start..].iter().position(|&b| b == b']' || b == b'[');
++        match found.map(|offset| content_start + offset) {
++            Some(close) if bytes[close] == b']' => Ok(close),
++            Some(nested) => Err(LexError::NestedBracket { pos: nested }),
++            None => Err(LexError::UnterminatedTimestamp { pos: open }),
++        }
++    }
++
++    /// Finds the `"` that closes the quoted value opened at `open`, checking escapes on the way.
++    fn closing_quote(&self, open: usize) -> Result<usize, LexError> {
++        let bytes = self.bytes();
++        let mut i = open + 1;
++        while let Some(&b) = bytes.get(i) {
++            match b {
++                b'"' => return Ok(i),
++                b'\\' => match bytes.get(i + 1) {
++                    Some(b'"' | b'\\' | b'n' | b't') => i += 2,
++                    Some(_) => return Err(LexError::InvalidEscape { pos: i }),
++                    None => break,
++                },
++                _ => i += 1,
+             }
+-            1 => {
+-                if p >= n || b[p] == b' ' || b[p] == b'\t' {
+-                    self.st = 0;
+-                    self.pos = p;
+-                    return Some(Ok(Token::Bare(&src[p..p])));
+-                }
+-                if b[p] == b'"' {
+-                    let s = p + 1;
+-                    let mut i = s;
+-                    loop {
+-                        if i >= n {
+-                            self.st = 2;
+-                            self.pos = n;
+-                            return Some(Err(LexError::UnterminatedQuote { pos: p }));
+-                        }
+-                        match b[i] {
+-                            b'"' => break,
+-                            b'\\' => {
+-                                if i + 1 >= n {
+-                                    self.st = 2;
+-                                    self.pos = n;
+-                                    return Some(Err(LexError::UnterminatedQuote { pos: p }));
+-                                }
+-                                match b[i + 1] {
+-                                    b'"' | b'\\' | b'n' | b't' => i += 2,
+-                                    _ => {
+-                                        self.st = 2;
+-                                        self.pos = n;
+-                                        return Some(Err(LexError::InvalidEscape { pos: i }));
+-                                    }
+-                                }
+-                            }
+-                            _ => i += 1,
+-                        }
+-                    }
+-                    if i + 1 < n && b[i + 1] != b' ' && b[i + 1] != b'\t' {
+-                        self.st = 2;
+-                        self.pos = n;
+-                        return Some(Err(LexError::ExpectedSeparator { pos: i + 1 }));
+-                    }
+-                    self.st = 0;
+-                    self.pos = i + 1;
+-                    Some(Ok(Token::Quoted(&src[s..i])))
+-                } else {
+-                    let mut i = p;
+-                    while i < n && b[i] != b' ' && b[i] != b'\t' {
+-                        if b[i] == b'"' {
+-                            self.st = 2;
+-                            self.pos = n;
+-                            return Some(Err(LexError::UnexpectedQuote { pos: i }));
+-                        }
+-                        i += 1;
+-                    }
+-                    self.st = 0;
+-                    self.pos = i;
+-                    Some(Ok(Token::Bare(&src[p..i])))
+-                }
++        }
++        Err(LexError::UnterminatedQuote { pos: open })
++    }
++
++    /// Returns the offset of the first byte from `start` on where `ends_run` holds, or the end of
++    /// the line. A `"` before that point is an error.
++    fn unquoted_run_end(&self, start: usize, ends_run: impl Fn(u8) -> bool) -> Result<usize, LexError> {
++        let bytes = self.bytes();
++        let found = bytes[start..].iter().position(|&b| b == b'"' || ends_run(b));
++        match found.map(|offset| start + offset) {
++            Some(quote) if bytes[quote] == b'"' => Err(LexError::UnexpectedQuote { pos: quote }),
++            Some(end) => Ok(end),
++            None => Ok(bytes.len()),
++        }
++    }
++
++    /// Ends a token whose last byte is at `last`. The byte after it must be a separator or the end of the line.
++    fn finish_token_at(&mut self, last: usize) -> Result<(), LexError> {
++        let next = last + 1;
++        match self.bytes().get(next) {
++            Some(&b) if !is_separator(b) => Err(LexError::ExpectedSeparator { pos: next }),
++            _ => {
++                self.pos = next;
++                Ok(())
+             }
+-            _ => None,
+         }
+     }
++
++    fn skip_separators(&mut self) {
++        let skipped = self.bytes()[self.pos..].iter().take_while(|&&b| is_separator(b)).count();
++        self.pos += skipped;
++    }
++
++    fn fail(&mut self) {
++        self.state = State::Failed;
++        self.pos = self.src.len();
++    }
++
++    fn bytes(&self) -> &'a [u8] {
++        self.src.as_bytes()
++    }
++}
++
++fn is_separator(byte: u8) -> bool {
++    byte == b' ' || byte == b'\t'
+ }

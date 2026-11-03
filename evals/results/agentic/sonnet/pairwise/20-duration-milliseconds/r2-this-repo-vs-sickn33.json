@@ -1,0 +1,88 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4b3d1f2201ff8f5a",
+    "sickn33": "bf33207a630457b7"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.25,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes are functionally the same and correct: the unit table is now in milliseconds, the `* 1000` multipliers are removed, the bounds in validate.ts are rescaled, and http.ts and report.ts divide back to seconds so their output is unchanged. A uses a named `MS_PER_SECOND` constant, splits report.ts into clearly named locals, and ran the type checker as well as the tests. B is slightly more minimal but did not run `tsc`, although it usefully flags that the public `parseDuration` contract has changed. Neither adds tests for http.ts or report.ts.",
+        "a_issues": [
+          "Exports a new `MS_PER_SECOND` constant from duration.ts, which slightly widens the module surface beyond what the task needed.",
+          "No tests added for the seconds conversion in http.ts or report.ts (the report states this openly).",
+          "The report does not mention that the exported `parseDuration` changes behaviour for outside callers."
+        ],
+        "b_issues": [
+          "Did not run `tsc --noEmit`.",
+          "Uses a bare literal 1000 in several files instead of a shared constant.",
+          "No tests added for the seconds conversion in http.ts or report.ts.",
+          "The report.ts template line gets long and harder to read."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes convert parseDuration to milliseconds and adapt every caller the same way, so behavior is equivalent. A does it without adding anything new. B adds an exported MS_PER_SECOND constant to duration.ts, which grows the module surface for little gain. A's report flags that the publicly exported parseDuration now returns values 1000\u00d7 larger, a breaking change for outside callers that B never mentions. B's claim that the type checker covers the seconds conversion is misleading.",
+        "a_issues": [
+          "Did not run tsc --noEmit",
+          "Added no tests for the divide-by-1000 paths in http.ts and report.ts"
+        ],
+        "b_issues": [
+          "Adds an exported MS_PER_SECOND constant that the task did not need",
+          "Report implies the type checker verifies the seconds conversion, which it cannot",
+          "Report omits that changing the public parseDuration return unit breaks external callers",
+          "Added no tests for the http.ts and report.ts conversions"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

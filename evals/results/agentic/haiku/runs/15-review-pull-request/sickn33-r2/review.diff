@@ -1,0 +1,71 @@
+diff --git a/REVIEW.md b/REVIEW.md
+new file mode 100644
+index 0000000..70ed3bc
+--- /dev/null
++++ b/REVIEW.md
+@@ -0,0 +1,65 @@
++# Review: PR 482 (user search, paged user list, bulk deactivation with audit log)
++
++I applied `pr/482.diff` to a scratch copy of `main` and ran the suite: 28 passed, as the PR says. I also probed the new code paths directly. Line numbers refer to the patched files.
++
++## Findings, most important first
++
++### 1. SQL injection in `search_users` (blocker)
++`adminhub/search.py:13` builds the query with an f-string:
++
++```python
++f"WHERE name LIKE '%{term}%' OR email LIKE '%{term}%' "
++```
++
++`term` comes straight from `params["q"]` (`adminhub/api.py:43`). I confirmed it is exploitable: `q = zzz%' OR 1=1 OR '` returns all 5 users in the sample data. This also contradicts the README rule that "All queries go through `sqlite3` with `?` placeholders".
++
++Fix: bind the term, e.g. `WHERE name LIKE ? OR email LIKE ?` with `f"%{escaped}%"` as the parameter. Escape `%`, `_` and the escape character too, or the user can use wildcards. Add a test with a quote and a wildcard in `q`. The TODO on line 10 can stay out of this PR.
++
++### 2. Audit failures are silently swallowed (blocker: compliance)
++`adminhub/audit.py:14-16`:
++
++```python
++except sqlite3.Error:
++    pass
++```
++
++Compliance wants every deactivation in the audit trail, but this drops the audit write without a trace. I dropped the `audit_log` table in the scratch copy and ran `bulk_deactivate` on user 5: it returned 200, `deactivated: 1`, the user was deactivated, and no audit entry was written. `users.deactivate_users` (`adminhub/users.py:61-63`) then commits the change anyway.
++
++Fix: remove the `try/except` so the error propagates and the `rollback` in `users.py:65-66` undoes the update. The audit write and the update should succeed or fail together.
++
++### 3. Bulk deactivation audits things that did not happen (`adminhub/users.py:55-68`)
++The audit loop runs over the requested ids, not the rows actually changed. I observed:
++- Nonexistent id `99`: response says `deactivated: 0`, but an audit row for target 99 is written.
++- Duplicate ids `[3, 3]`: two audit rows for one change.
++- Already-inactive user `2`: counted again in `deactivated` (`cursor.rowcount` counts matched rows, not changed ones), so the response reports 1 for a no-op.
++
++For an audit trail that compliance will rely on, each row should mean "this user was actually deactivated by this actor". Fix: dedupe the ids, select the matching active users first, update only those, and audit only those ids. Use the count of those ids for the response.
++
++### 4. Page count is wrong (`adminhub/api.py:37`)
++`total_pages = users.count_users(conn) // per_page` rounds down. With 5 users and `per_page=2` it reports `pages: 2`, so the third page cannot be reached from the pager. With 0 users it reports 0 pages. Fix: ceiling division, `-(-total // per_page)`, or `math.ceil`. Add a test with a partial last page; the existing tests only use `per_page=3` on 5 users, which hides this.
++
++### 5. Unvalidated paging and ID input (`adminhub/api.py:35-36, 46, 61`)
++- `per_page=0` raises `ZeroDivisionError` from line 37. The `min(..., 100)` on line 36 only caps the top end.
++- `page=0` silently returns page 1; `page=-1` returns 200 with a negative offset. Pages should be `>= 1`, and bad values should be a 400.
++- Non-numeric `page`, `per_page`, or `ids` entries raise a bare `ValueError` (lines 35, 36, 46, 61). The existing handlers convert these to `BadRequest`/400 via `_user_id`, so these new ones are inconsistent.
++
++Fix: one helper that parses a positive int and returns 400 on failure, used by `list_users`, `search` and `bulk_deactivate`.
++
++### 6. `actor` comes from the request (`adminhub/api.py:62`)
++`actor=params["actor"]` takes the audit actor from the caller-supplied parameters. Anyone who can call the endpoint can write any name into the trail, and a missing `actor` produces a `KeyError` rather than a 400. The actor should come from the authenticated session, which the web layer owns and this PR does not show. If that is not available here, at least reject a missing actor with a 400 and say in the PR that the actor is trusted from the caller.
++
++### 7. Search response and docs are inconsistent (`adminhub/api.py:42-49`, `README.md`)
++- `search` does not return `page`/`pages` and does not accept `per_page`, while `list_users` does. The console cannot render a pager for search.
++- The README handler table is not updated: `list_users` still says "none" for parameters, and `search` and `bulk_deactivate` are missing.
++
++### 8. Minor
++- `adminhub/search.py:3`: `import os` is unused.
++- Tests miss the cases above: no injection test, no `per_page=0`, no partial last page, no audit-failure test, no check of which audit rows exist for duplicate or missing ids. `test_bulk_deactivate` in `tests/test_api.py` checks only the response.
++- No upper bound on the number of `ids`. I tested 1000 ids and it worked with this SQLite build, but very large lists may hit the SQLite variable limit on older builds.
++
++### Not verified
++- Routing: this repo has no dispatch table, so I could not confirm that `search` and `bulk_deactivate` are reachable from the web layer. Check this where the handler names are registered.
++
++## Would I merge it as it is?
++
++**No.** Finding 1 is a SQL injection in a path that accepts user input, and finding 2 means the audit trail can silently miss deactivations. Both are blockers. Findings 3 to 6 also affect the correctness of the audit records, the pager, and input handling, and should be fixed in this PR rather than later. The console team's deadline is understandable, but I would not ship a search endpoint with a known injection or a trail that compliance will rely on and can silently lose. Once 1 to 6 are addressed with tests, the rest of the change looks reasonable.

@@ -1,0 +1,90 @@
+{
+  "case": "04-cleanup-report-module",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "96e9db859ca3fd24",
+    "ub-mode": "427cfeff8c888019"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 0.75,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors collapse the three copy-pasted region sections into one table-driven loop and keep the negative-amount quirks in the row output. A goes further: one `groupThousands` helper now serves both `formatMoney` and the row formatter, and its tests cover month filtering, unknown and zero-unit rows, truncation, option errors and the quirk. B leaves a third hand-written grouping loop in `rowMoney`, committed without being asked, and its report contains a garbled sentence about tools that don't exist. B's golden snapshots of the sample data and credits are solid, and it leaves `formatMoney` untouched, which is lower risk, but A is cleaner overall.",
+        "a_issues": [
+          "Rewrites the exported `formatMoney`, which the digest also uses. For non-finite inputs such as NaN, the old code printed \",aN \u20ac\" and the new code prints \"NaN,undefined \u20ac\", so the claim of identical output is not quite true at the edges.",
+          "Still has a region special case (the FR branch) inside `formatRowMoney`, rather than keeping it in the region table."
+        ],
+        "b_issues": [
+          "`rowMoney` reimplements the digit grouping with its own loop and regex, so the logic is still duplicated alongside `formatMoney`.",
+          "Sends NaN row amounts through `formatMoney`, which changes the row output from \"NaN,undefined \u20ac\" to \",aN \u20ac\" for bad input data.",
+          "Committed locally (4520b73) without being asked.",
+          "The report contains a garbled sentence about the \"crapper, dryer or mutator tools from ,\" which refers to tools that are not part of the task or the repo.",
+          "Hardcoded widths 5 and 14 remain inline while other magic numbers were named; the long single-line JSON fixtures in the test are hard to read."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors fold the three copied region sections into one loop, keep the negative-amount quirks in row money, and appear to preserve the report output for realistic inputs. B reuses a single `groupThousands` helper for both `formatMoney` and row money, while A's `rowMoney` re-implements grouping with a regex and a separate loop. B's tests are readable and broad: region order, month filter, formatting per region, unknown region and the pinned quirk. B's report is also cleaner, whereas A's contains a garbled sentence about non-existent tools and mentions an unrequested local commit.",
+        "a_issues": [
+          "`rowMoney` duplicates the digit-grouping logic already in `formatMoney`: a regex for FR and a hand loop for DE/UK.",
+          "For non-finite amounts (e.g. NaN from a bad unit price), row output differs from the original because positive and NaN rows now go through `formatMoney`.",
+          "The credit-note regression test is one long unreadable line of JSON and expected output.",
+          "The report has a garbled sentence about 'crapper, dryer or mutator tools from ,' that refers to nothing in the repo.",
+          "Committed locally (4520b73) without being asked."
+        ],
+        "b_issues": [
+          "Rewrote `formatMoney` with `Math.abs` and `split`, so its output for NaN/Infinity amounts (subtotal lines, digest) differs slightly from the original.",
+          "The FR special case in `formatRowMoney` is a little indirect: it strips and re-adds the sign by hand.",
+          "The month-filter test uses partial `startsWith`/`includes` assertions instead of a full expected string."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

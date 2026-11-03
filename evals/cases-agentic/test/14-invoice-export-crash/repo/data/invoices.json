@@ -1,0 +1,19 @@
+[
+  { "id": "INV-1038", "customerId": "C-1001", "issuedOn": "2026-10-02",
+    "lines": [{ "description": "Support plan", "quantity": 1, "unitPriceCents": 49900 }] },
+  { "id": "INV-1039", "customerId": "C-1003", "issuedOn": "2026-10-04",
+    "lines": [{ "description": "Seat", "quantity": 12, "unitPriceCents": 1500 }] },
+  { "id": "INV-1040", "customerId": "C-1002", "issuedOn": "2026-10-09",
+    "lines": [{ "description": "Seat", "quantity": 3, "unitPriceCents": 1500 },
+              { "description": "Onboarding", "quantity": 1, "unitPriceCents": 25000 }] },
+  { "id": "INV-1041", "customerId": "C-2201", "issuedOn": "2026-10-11",
+    "lines": [{ "description": "Seat", "quantity": 8, "unitPriceCents": 1500 }] },
+  { "id": "INV-1042", "customerId": "C-1004", "issuedOn": "2026-10-15",
+    "lines": [{ "description": "Support plan", "quantity": 2, "unitPriceCents": 49900 }] },
+  { "id": "INV-1043", "customerId": "C-2202", "issuedOn": "2026-10-18",
+    "lines": [{ "description": "Seat", "quantity": 20, "unitPriceCents": 1400 }] },
+  { "id": "INV-1044", "customerId": "C-1001", "issuedOn": "2026-10-21",
+    "lines": [{ "description": "Seat", "quantity": 5, "unitPriceCents": 1500 }] },
+  { "id": "INV-1045", "customerId": "C-2203", "issuedOn": "2026-10-27",
+    "lines": [{ "description": "Onboarding", "quantity": 1, "unitPriceCents": 25000 }] }
+]

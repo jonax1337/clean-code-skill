@@ -1,0 +1,7 @@
+# Reviewing a pull request (Python)
+
+Tests a code review done with tools: the agent gets a small sqlite3 user-admin service plus the patch of a pull request (`pr/482.diff`, with a description in `pr/482.md`) and must write its findings to `REVIEW.md` without touching the code. The PR plants three real problems: an SQL injection (an f-string query built from the `q` request parameter in `search_users`), a logic bug the PR's own tests do not cover (the pager's page count is computed with floor division, so partial last pages are dropped and a small table reports 0 pages), and a swallowed exception that silently drops audit entries (`audit.record` ignores `sqlite3.Error` although the PR exists to satisfy a compliance requirement). It also contains a decoy that looks suspicious but is correct (`deactivate_users` builds its `IN (...)` list with an f-string, but the f-string only contains generated `?` placeholders, values are bound, and the broad `except Exception` rolls back and re-raises) and a few harmless nits (unused import, TODO comment, duplicated page-size constant, short variable name). The traps are missing a real problem, accusing the decoy, burying the injection under nits, rewriting code instead of reviewing, and approving the PR.
+
+## Prompt
+
+Hi, could you review PR 482 before I merge it? The patch is in `pr/482.diff` and the description in `pr/482.md`. Please write your review to `REVIEW.md` in the repo root: the findings with file and line, most important first, and at the end whether you would merge it as it is.

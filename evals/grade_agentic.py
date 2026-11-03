@@ -3,7 +3,8 @@
 Usage: python evals/grade_agentic.py [--model sonnet] [--case ID]
 Grading is deterministic and costs nothing, so every stored run is regraded each time. Each grade rebuilds the
 workspace from the fixture plus the run's diff, adds the hidden tests and writes
-results/agentic/<model>/checks/<case>/<condition>-r<n>.json.
+results/agentic/<model>/checks/<case>/<condition>-r<n>.json with the checks and the function metrics of the changed
+source files. Runs made with --installed are graded into installed-checks/.
 """
 
 from __future__ import annotations
@@ -15,6 +16,10 @@ from pathlib import Path
 
 from agentic import AgenticCase, Transcript, coder_models, load_agentic_cases, results_dir, workspace_for
 from harness import write_text_atomic
+from metrics import change_metrics
+
+# Where runs live, and where their grades go.
+RUN_KINDS = [("runs", "checks"), ("installed", "installed-checks"), ("instructed", "instructed-checks")]
 
 
 def main() -> None:
@@ -26,21 +31,23 @@ def main() -> None:
         for case in load_agentic_cases():
             if args.case not in (None, case.case_id):
                 continue
-            for run_dir in sorted((results_dir(model, "runs") / case.case_id).glob("*-r*")):
-                if not (run_dir / "meta.json").exists():
-                    continue
-                try:
-                    _grade(model, case, run_dir)
-                except (RuntimeError, OSError, ValueError, SyntaxError) as error:
-                    print(f"FAILED {model} {case.case_id} {run_dir.name}: {error}")
+            for runs_kind, checks_kind in RUN_KINDS:
+                for run_dir in sorted((results_dir(model, runs_kind) / case.case_id).glob("*-r*")):
+                    if not (run_dir / "meta.json").exists():
+                        continue
+                    try:
+                        _grade(model, case, run_dir, checks_kind)
+                    except (RuntimeError, OSError, ValueError, SyntaxError) as error:
+                        print(f"FAILED {model} {case.case_id} {run_dir.name}: {error}")
 
 
-def _grade(model: str, case: AgenticCase, run_dir: Path) -> None:
+def _grade(model: str, case: AgenticCase, run_dir: Path, checks_kind: str) -> None:
     transcript = Transcript.from_jsonl((run_dir / "transcript.jsonl").read_text(encoding="utf-8"))
     with workspace_for(case) as workspace:
         workspace.apply((run_dir / "diff.patch").read_bytes().decode("utf-8"))
         workspace.add_hidden_tests()
         checks = case.checks_module().checks(workspace, transcript)
+        metrics = change_metrics(workspace)
     condition, rep = run_dir.name.rsplit("-r", 1)
     grade = {
         "case": case.case_id,
@@ -48,9 +55,10 @@ def _grade(model: str, case: AgenticCase, run_dir: Path) -> None:
         "condition": condition,
         "rep": int(rep),
         "checks": [asdict(check) for check in checks],
+        "metrics": metrics,
     }
     write_text_atomic(
-        results_dir(model, "checks") / case.case_id / f"{run_dir.name}.json", json.dumps(grade, indent=2)
+        results_dir(model, checks_kind) / case.case_id / f"{run_dir.name}.json", json.dumps(grade, indent=2)
     )
     failed = [check.name for check in checks if not check.passed]
     print(

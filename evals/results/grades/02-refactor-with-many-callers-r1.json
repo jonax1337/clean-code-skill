@@ -3,131 +3,163 @@
   "rep": 1,
   "judge_model": "opus",
   "blind_map": {
-    "A": "baseline",
-    "B": "v2",
-    "C": "sickn33",
-    "D": "v1"
+    "A": "none",
+    "B": "ertugrul-dmr",
+    "C": "this-repo",
+    "D": "sickn33",
+    "E": "ub-mode"
   },
+  "replies_fingerprint": "87806a8b6b9c288c",
   "results": {
-    "baseline": {
+    "none": {
       "assertions": [
         {
           "text": "Behavior is preserved for all inputs: member discount (10 % books, 5 % otherwise) is applied before the coupon, `SAVE10` subtracts 10 and floors at 0, unknown coupons do nothing, and the result is rounded to 2 decimals the same way.",
           "passed": true,
-          "evidence": "Member multiplier, then Math.max(0, price - SAVE10_AMOUNT) only on SAVE10, other coupons pass through, roundToCents last. The ==\u2192=== change is flagged."
+          "evidence": "Member multiplier is applied before applyCoupon. The coupon step is Math.max(0, price - SAVE10_AMOUNT), only \"SAVE10\" matches, and roundToCents runs last. Negative-price-without-coupon is preserved. The ==\u2192=== change on category is not flagged, but it is equivalent for the typed string input."
         },
         {
           "text": "The discount rates and coupon amount are named (constants or a lookup table) instead of bare literals.",
           "passed": true,
-          "evidence": "MEMBER_DISCOUNT_BOOKS, MEMBER_DISCOUNT_DEFAULT, SAVE10_AMOUNT. The 'DISCOUNT' names actually hold multipliers (0.9), which is slightly misleading."
+          "evidence": "MEMBER_DISCOUNT_BOOKS = 0.9, MEMBER_DISCOUNT_DEFAULT = 0.95, SAVE10_AMOUNT = 10"
         },
         {
           "text": "The exported signature stays call-compatible with the ~40 existing callers, or the response explicitly flags the breaking change and gives a migration path. Silently changing the signature fails.",
           "passed": true,
-          "evidence": "Changes to `p: Product` but says 'the compiler will now flag it\u2026 If you want zero type risk, keep `p: any` for now'. Doesn't mention excess-property errors on object-literal callers."
+          "evidence": "\"The function name, export, and parameter order are unchanged.\" It also flags that typed callers with a non-number price may fail to compile and offers reverting to any."
         },
         {
           "text": "`any` is replaced by a type for the product parameter, or the response explicitly mentions it.",
           "passed": true,
-          "evidence": "type Product = { price: number; category?: string }"
+          "evidence": "Priceable interface { price: number; category?: string }, with the compile-risk discussed"
         },
         {
           "text": "No over-engineering: no class hierarchy, strategy pattern or plugin mechanism for two discount rates and one coupon.",
           "passed": true,
-          "evidence": "Three small helpers and constants. No classes or strategies."
-        }
-      ],
-      "quality": 7
-    },
-    "v2": {
-      "assertions": [
-        {
-          "text": "Behavior is preserved for all inputs: member discount (10 % books, 5 % otherwise) is applied before the coupon, `SAVE10` subtracts 10 and floors at 0, unknown coupons do nothing, and the result is rounded to 2 decimals the same way.",
-          "passed": true,
-          "evidence": "Same order (multiplier, coupon, clamp, round). `coupon === SAVE10_COUPON` with Math.max. The === change is flagged with a revert option."
-        },
-        {
-          "text": "The discount rates and coupon amount are named (constants or a lookup table) instead of bare literals.",
-          "passed": true,
-          "evidence": "BOOK_MEMBER_MULTIPLIER, DEFAULT_MEMBER_MULTIPLIER, SAVE10_COUPON, SAVE10_DISCOUNT"
-        },
-        {
-          "text": "The exported signature stays call-compatible with the ~40 existing callers, or the response explicitly flags the breaking change and gives a migration path. Silently changing the signature fails.",
-          "passed": true,
-          "evidence": "'The signature and export are unchanged, so the 40 call sites are unaffected.'"
-        },
-        {
-          "text": "`any` is replaced by a type for the product parameter, or the response explicitly mentions it.",
-          "passed": true,
-          "evidence": "'I left `p: any` as is. Tightening it\u2026 could cause compile errors\u2026 should be a separate change'"
-        },
-        {
-          "text": "No over-engineering: no class hierarchy, strategy pattern or plugin mechanism for two discount rates and one coupon.",
-          "passed": true,
-          "evidence": "Two tiny helpers only."
+          "evidence": "Only three small pure helpers and constants"
         }
       ],
       "quality": 8
+    },
+    "ertugrul-dmr": {
+      "assertions": [
+        {
+          "text": "Behavior is preserved for all inputs: member discount (10 % books, 5 % otherwise) is applied before the coupon, `SAVE10` subtracts 10 and floors at 0, unknown coupons do nothing, and the result is rounded to 2 decimals the same way.",
+          "passed": true,
+          "evidence": "Multiplier is applied before the coupon. The guard-clause coupon uses Math.max(0, \u2026), and rounding is identical and last. It also checks the NaN edge case and flags ==\u2192=== for String objects."
+        },
+        {
+          "text": "The discount rates and coupon amount are named (constants or a lookup table) instead of bare literals.",
+          "passed": true,
+          "evidence": "BOOKS_MEMBER_MULTIPLIER, DEFAULT_MEMBER_MULTIPLIER, SAVE10_AMOUNT_OFF, plus BOOKS_CATEGORY and SAVE10_COUPON"
+        },
+        {
+          "text": "The exported signature stays call-compatible with the ~40 existing callers, or the response explicitly flags the breaking change and gives a migration path. Silently changing the signature fails.",
+          "passed": true,
+          "evidence": "\"exported name and the parameter order and arity are unchanged\". It deliberately keeps the isMember flag to avoid breaking the 40 callers."
+        },
+        {
+          "text": "`any` is replaced by a type for the product parameter, or the response explicitly mentions it.",
+          "passed": true,
+          "evidence": "\"any is replaced by a PricedProduct interface\", with the type-tightening risk noted"
+        },
+        {
+          "text": "No over-engineering: no class hierarchy, strategy pattern or plugin mechanism for two discount rates and one coupon.",
+          "passed": true,
+          "evidence": "Plain functions and constants only. The flag-argument split is suggested as an optional gradual migration."
+        }
+      ],
+      "quality": 8
+    },
+    "this-repo": {
+      "assertions": [
+        {
+          "text": "Behavior is preserved for all inputs: member discount (10 % books, 5 % otherwise) is applied before the coupon, `SAVE10` subtracts 10 and floors at 0, unknown coupons do nothing, and the result is rounded to 2 decimals the same way.",
+          "passed": true,
+          "evidence": "price *= memberMultiplier(...) runs before the coupon, which uses Math.max(0, price - SAVE10_AMOUNT). roundToCents runs last. Characterization tests pin order, clamp, unknown/empty coupons and the negative no-coupon case, and the expected values check out."
+        },
+        {
+          "text": "The discount rates and coupon amount are named (constants or a lookup table) instead of bare literals.",
+          "passed": true,
+          "evidence": "BOOKS_MEMBER_MULTIPLIER, DEFAULT_MEMBER_MULTIPLIER, SAVE10_AMOUNT, SAVE10_COUPON, BOOKS_CATEGORY"
+        },
+        {
+          "text": "The exported signature stays call-compatible with the ~40 existing callers, or the response explicitly flags the breaking change and gives a migration path. Silently changing the signature fails.",
+          "passed": true,
+          "evidence": "Same name and parameter order. It flags that the new parameter type could break callers (non-string category, fresh object literals with extra properties) and says to run tsc."
+        },
+        {
+          "text": "`any` is replaced by a type for the product parameter, or the response explicitly mentions it.",
+          "passed": true,
+          "evidence": "p: any is now PricedProduct"
+        },
+        {
+          "text": "No over-engineering: no class hierarchy, strategy pattern or plugin mechanism for two discount rates and one coupon.",
+          "passed": true,
+          "evidence": "Two tiny helpers. The isMember boolean is kept to avoid changing the signature."
+        }
+      ],
+      "quality": 9
     },
     "sickn33": {
       "assertions": [
         {
           "text": "Behavior is preserved for all inputs: member discount (10 % books, 5 % otherwise) is applied before the coupon, `SAVE10` subtracts 10 and floors at 0, unknown coupons do nothing, and the result is rounded to 2 decimals the same way.",
           "passed": true,
-          "evidence": "Final version keeps the same order and the clamp only on SAVE10. The === difference is flagged."
+          "evidence": "It keeps == on purpose to avoid coercion differences with any. The member discount runs before the coupon, Math.max(0, \u2026) is the clamp, rounding is last, and unknown or empty coupons are ignored."
         },
         {
           "text": "The discount rates and coupon amount are named (constants or a lookup table) instead of bare literals.",
           "passed": true,
-          "evidence": "Final version uses BOOKS_MEMBER_MULTIPLIER, DEFAULT_MEMBER_MULTIPLIER and SAVE10_AMOUNT_OFF. The first draft still had bare 0.9/0.95."
+          "evidence": "BOOK_MEMBER_DISCOUNT_RATE = 0.9, DEFAULT_MEMBER_DISCOUNT_RATE = 0.95, SAVE10_AMOUNT_OFF = 10"
         },
         {
           "text": "The exported signature stays call-compatible with the ~40 existing callers, or the response explicitly flags the breaking change and gives a migration path. Silently changing the signature fails.",
           "passed": true,
-          "evidence": "'The export name, parameter order, and return type are unchanged'. The p\u2192product rename doesn't affect callers."
+          "evidence": "\"The exported signature getPrice(p: any, isMember: boolean, coupon?: string) is unchanged\""
         },
         {
           "text": "`any` is replaced by a type for the product parameter, or the response explicitly mentions it.",
           "passed": true,
-          "evidence": "'I kept `product: any`. Tightening it\u2026 would be a good follow-up'"
+          "evidence": "It explicitly mentions this: \"I left p: any alone\u2026 should be done as a separate step\""
         },
         {
           "text": "No over-engineering: no class hierarchy, strategy pattern or plugin mechanism for two discount rates and one coupon.",
           "passed": true,
-          "evidence": "Small helpers only."
+          "evidence": "Small helper functions only"
         }
       ],
-      "quality": 6
+      "quality": 7
     },
-    "v1": {
+    "ub-mode": {
       "assertions": [
         {
           "text": "Behavior is preserved for all inputs: member discount (10 % books, 5 % otherwise) is applied before the coupon, `SAVE10` subtracts 10 and floors at 0, unknown coupons do nothing, and the result is rounded to 2 decimals the same way.",
           "passed": true,
-          "evidence": "isMember ? price * factor : price, then applyCoupon with Math.max on SAVE10 only, then roundToCents. NaN parity is noted correctly and === is flagged."
+          "evidence": "The final code applies the multiplier before the coupon (Math.max(0, price - SAVE10_AMOUNT)), then roundToCents. The tests pin order, clamp, unknown/case-variant coupons and rounding, and the values are correct."
         },
         {
           "text": "The discount rates and coupon amount are named (constants or a lookup table) instead of bare literals.",
           "passed": true,
-          "evidence": "BOOK_MEMBER_FACTOR, DEFAULT_MEMBER_FACTOR, SAVE10_COUPON, SAVE10_DISCOUNT"
+          "evidence": "The final 'clean version' uses BOOK_MEMBER_MULTIPLIER, DEFAULT_MEMBER_MULTIPLIER and SAVE10_AMOUNT. The first draft still had bare 0.9/0.95 and dead constants."
         },
         {
           "text": "The exported signature stays call-compatible with the ~40 existing callers, or the response explicitly flags the breaking change and gives a migration path. Silently changing the signature fails.",
           "passed": true,
-          "evidence": "'Signature\u2026 is unchanged because about 40 callers depend on it'"
+          "evidence": "\"argument order and the exported name are unchanged\". It flags the any\u2192Priceable compile risk and offers keeping any for now."
         },
         {
           "text": "`any` is replaced by a type for the product parameter, or the response explicitly mentions it.",
           "passed": true,
-          "evidence": "'`p: any` should become a typed `{ price: number; category?: string }`'. Left alone on purpose."
+          "evidence": "\"p: any became Priceable\""
         },
         {
           "text": "No over-engineering: no class hierarchy, strategy pattern or plugin mechanism for two discount rates and one coupon.",
           "passed": true,
-          "evidence": "Pure helper functions. The flag-argument redesign is only suggested, not implemented."
+          "evidence": "Plain helpers. The leftover Record lookup in the draft is dead code, not an architecture."
         }
       ],
-      "quality": 8
+      "quality": 5
     }
   }
 }

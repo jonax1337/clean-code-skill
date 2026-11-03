@@ -1,0 +1,80 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "594b79b61bfc8b48",
+    "sickn33": "0189771c6050f291"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two production diffs are identical: each removes the compact field, the parsing arm, the render path, the help line and the README row, and each adds a changelog entry. The only real difference is that A adds unit and integration tests asserting that `-c` and `--compact` are now rejected as unknown options. That protects the removal from being quietly undone, while B leaves it covered only by the generic unknown-option test. Both reports are accurate, including their test counts.",
+        "a_issues": [
+          "The two new tests largely duplicate each other across the unit and integration layers."
+        ],
+        "b_issues": [
+          "No test asserts that `-c` or `--compact` is now rejected, so the removal itself is unprotected."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes remove `--compact` identically and correctly: the field, the parse arm, the help line, the renderer, the docs and a changelog entry. B also adds unit and integration tests asserting that `-c` and `--compact` now give an unknown-option error, which protects the change against a regression. B's changelog entry also points users to `--max-width` as the replacement. Both reports are accurate, including their test counts.",
+        "a_issues": [
+          "Adds no test showing that `-c`/`--compact` are now rejected; it relies on the generic unknown-option test.",
+          "The changelog entry gives no migration hint, although the 0.8 deprecation note pointed users to `--max-width`."
+        ],
+        "b_issues": [
+          "The rejection is tested at two levels (unit and integration), which is slightly redundant."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

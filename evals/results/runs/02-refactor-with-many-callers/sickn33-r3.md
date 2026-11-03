@@ -2,45 +2,46 @@
 const BOOK_CATEGORY = "books";
 const BOOK_MEMBER_MULTIPLIER = 0.9;
 const DEFAULT_MEMBER_MULTIPLIER = 0.95;
-
-const TEN_OFF_COUPON = "SAVE10";
-const TEN_OFF_AMOUNT = 10;
+const SAVE10_COUPON = "SAVE10";
+const SAVE10_DISCOUNT = 10;
 
 export function getPrice(p: any, isMember: boolean, coupon?: string) {
-  let price = p.price;
-
-  if (isMember) {
-    price *= memberMultiplierFor(p.category);
-  }
-  if (coupon === TEN_OFF_COUPON) {
-    price = applyTenOffCoupon(price);
-  }
-
-  return roundToCents(price);
+  const memberPrice = applyMemberDiscount(p.price, p.category, isMember);
+  const finalPrice = applyCoupon(memberPrice, coupon);
+  return roundToCents(finalPrice);
 }
 
-function memberMultiplierFor(category: string): number {
-  return category === BOOK_CATEGORY
+function applyMemberDiscount(price: number, category: string, isMember: boolean) {
+  if (!isMember) return price;
+  const multiplier = category === BOOK_CATEGORY
     ? BOOK_MEMBER_MULTIPLIER
     : DEFAULT_MEMBER_MULTIPLIER;
+  return price * multiplier;
 }
 
-function applyTenOffCoupon(price: number): number {
-  return Math.max(0, price - TEN_OFF_AMOUNT);
+function applyCoupon(price: number, coupon?: string) {
+  if (coupon !== SAVE10_COUPON) return price;
+  return Math.max(0, price - SAVE10_DISCOUNT);
 }
 
-function roundToCents(amount: number): number {
+function roundToCents(amount: number) {
   return Math.round(amount * 100) / 100;
 }
 ```
 
 **What changed**
-- The nested `if`s became a flat flow: member discount, then coupon, then rounding. The member check now appears once instead of in both branches.
-- Magic numbers and strings are named constants, and each step is a small helper with a single purpose.
-- The `if (price < 0) price = 0` clamp became `Math.max(0, ...)`. It is still applied only for the coupon, so a negative `p.price` without a coupon behaves as before. `NaN` also passes through unchanged.
-- I kept the exported name and signature (`getPrice(p: any, isMember, coupon?)`), so all 40 call sites are unaffected.
+- `getPrice` now reads as three steps: member discount, coupon, rounding. Each helper does one thing.
+- The magic numbers and strings are named constants.
+- The nested `if`s are replaced by early returns and a ternary.
+- The `if (price < 0) price = 0` clamp became `Math.max(0, ...)`.
+- The helpers are not exported, so the public surface is unchanged. The name, parameters, and return type stay the same, so the ~40 call sites need no edits.
 
-**Things to be aware of**
-- I changed `==` to `===`. For string primitives, which is what `category` and `coupon` should be, the results are identical. It would only differ if a caller passed something like a `String` object or a non-string that coerces, which seems unlikely, but revert it if you want a strict guarantee.
-- I left `p: any` alone on purpose. Typing it as `{ price: number; category?: string }` would be a good follow-up, but it could cause compile errors at some of the 40 callers, so it deserves its own change.
-- I haven't run anything, so before merging, add a few characterization tests that pin current outputs. Good cases are books vs. non-books, member vs. non-member, `SAVE10` on a price under 10, an unknown coupon, and a rounding case like `19.995`. Run them against the old and new versions to confirm they match.
+**Behavior preserved**
+- The arithmetic is applied in the same order (`price * multiplier`, then `- 10`, then round), so floating-point results are identical.
+- An empty or unknown coupon is still ignored.
+- `NaN` still passes through, because `Math.max(0, NaN)` is `NaN` and `NaN < 0` was false.
+
+**Things to check**
+- I changed `==` to `===` for the category check. The only input where that differs is a `String` object (`new String("books")`) instead of a primitive. That's very unlikely, but search for it if you want to be certain.
+- I kept `p: any` on purpose. Tightening it to something like `{ price: number; category: string }` is a good next step, but it could produce compile errors at call sites I can't see, so I'd do it as a separate change.
+- I haven't run anything. Before merging, add characterization tests that pin current outputs: member vs non-member, books vs other, `SAVE10` driving the price below zero, an unknown coupon, and a rounding case like `19.995`. Run them against both the old and new versions.

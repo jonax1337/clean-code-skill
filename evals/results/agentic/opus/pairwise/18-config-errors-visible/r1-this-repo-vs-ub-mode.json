@@ -1,0 +1,89 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "bc431de125c4cef4",
+    "ub-mode": "c05f83ec4a9a987c"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.75
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement nearly the same fail-fast validation: errors are collected, unknown keys are rejected, Main exits non-zero with no stack trace, and the README is updated. A also rejects timeouts too large for the uplink's millisecond conversion and uses the conventional EX_CONFIG exit code. Its report is accurate and it leaves the changes uncommitted for review. B adds a useful end-to-end MainTest, but it lets a timeout through that later overflows in ConsoleUplink, misstates the old upstream.url behaviour, and committed without being asked.",
+        "a_issues": [
+          "metrics.enabled is now case-sensitive, so an existing config with 'TRUE', which used to work, fails to start; the report does not mention this",
+          "No test exercises Main's exit code or stderr output; it was only checked by hand",
+          "Adds a ConfigException(message, cause) constructor and key-name constants, slightly more surface than needed"
+        ],
+        "b_issues": [
+          "A timeout like 9223372036854775807s passes validation, then throws ArithmeticException at toMillis() in ConsoleUplink during delivery",
+          "Report says a missing upstream.url used to crash with a bare NullPointerException; the original caught it and silently returned null",
+          "Committed locally in two commits without being asked; the report also includes irrelevant notes about uninstalled crapper/dryer/mutator tools",
+          "Exit code 2 is less conventional than EX_CONFIG (78) for configuration errors",
+          "MainTest spawns a JVM subprocess and relies on code-source location for the classpath, which is heavier and potentially environment-sensitive"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs implement nearly the same fix: they collect every problem, reject bad or unknown values, catch the error in Main and exit with a distinct code. A keeps the existing case-insensitive handling of metrics.enabled, so `TRUE` still works, and it adds an end-to-end MainTest. That test checks the exit code, that no stack trace is printed and that nothing is relayed. B now rejects `metrics.enabled=TRUE` and uppercase URL schemes, which could stop existing configs from starting, and it leaves Main's behavior untested. B is better on one edge: it rejects timeouts that overflow toMillis, which A misses.",
+        "a_issues": [
+          "Durations such as `9223372036854775807s` parse but overflow `toMillis()` in ConsoleUplink at runtime; they are not rejected.",
+          "Made local commits without being asked.",
+          "The report includes noise about quality tools that aren't installed."
+        ],
+        "b_issues": [
+          "`metrics.enabled` is now case-sensitive, so `TRUE`, which used to mean true, is now rejected. This change in behavior is not mentioned.",
+          "The upstream.url scheme check is case-sensitive, so `HTTPS://` is rejected.",
+          "No automated test of Main's exit code or stderr output; it was only checked by hand."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

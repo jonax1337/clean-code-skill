@@ -1,0 +1,88 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "1912bff4c56a25ca",
+    "ub-mode": "b5ac8984bce9a540"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both PRs fix the bug the same way: they rename CRM `customer_id` to `customerId` at load time and switch `invoiceRow` to `requireCustomer`. Behaviour is equivalent. A's tests are hermetic: they use a temp-dir fixture and check the error type as well as the message. B's new tests read the live `data/` directory, so they depend on the working directory and on monthly data that will change. B also committed without being asked, and its report has a confusing, garbled aside about checklist tools, while A's report flags the real risk of duplicate ids across systems.",
+        "a_issues": [
+          "Import order puts ./customers.js before ./csv.js, which is not alphabetical",
+          "Report says the duplicate-id risk was not checked but gives no mitigation"
+        ],
+        "b_issues": [
+          "New sources tests depend on the real data/ files and the working directory, so they are brittle as the monthly data changes",
+          "Committed locally (43fa95a) without being asked",
+          "Unknown-customer test only matches the message with a regex and does not check that the error is an UnknownReferenceError",
+          "Report has a garbled, irrelevant aside about 'crapper, dryer or mutator tools from  checklist' and a CRLF note",
+          "Does not mention the risk of the same customer id existing in both billing and CRM"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes fix the bug the same way: they map CRM `customer_id` to `customerId` at load time and route the export lookup through `requireCustomer`. That fixes INV-1041 and follows the README's data-error convention. B's tests are better. It uses an isolated temp-dir fixture with an exact `deepEqual` and checks that the error is an `UnknownReferenceError`. A's tests read the real `data/` directory and depend on the working directory. B's report is also cleaner and points out a real remaining risk (duplicate ids across systems), while A's report has confusing tool references and A committed without being asked.",
+        "a_issues": [
+          "`tests/sources.test.js` reads the real `data/` directory, so the tests depend on production data and on the cwd.",
+          "The unknown-customer test matches only the message by regex and does not check the error type.",
+          "The report says the change was committed locally (43fa95a) although nobody asked for a commit.",
+          "The report mentions unclear 'crapper, dryer or mutator tools from checklist' and a CRLF\u2192LF conversion warning, which adds noise and some doubt about line-ending churn."
+        ],
+        "b_issues": [
+          "The `requireCustomer` import is placed before `csv.js`, breaking the existing alphabetical import order.",
+          "It does not check for, or guard against, duplicate customer ids across the two systems; this is acknowledged in the report but left unaddressed."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

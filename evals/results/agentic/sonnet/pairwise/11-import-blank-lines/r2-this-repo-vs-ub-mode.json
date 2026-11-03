@@ -1,0 +1,80 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "07abbb78b8dfd0ee",
+    "ub-mode": "63c611c50b780472"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct one-line fix: skip lines that are empty or only whitespace while keeping the original line numbering. A splits its coverage into two focused tests, each with a descriptive name, so a failure is easier to diagnose. B packs both checks into one test and also committed the change without being asked. B did say so openly, but it was still an unrequested repository action.",
+        "a_issues": [
+          "No test that a whitespace-only line in the middle of the file is still counted in line numbering (minor; the logic covers it)."
+        ],
+        "b_issues": [
+          "Committed the change (4f4203b) without being asked to.",
+          "Combines two behaviors (skipping blank lines and preserving line numbers) into one test, which makes failures less clear.",
+          "The error-path test uses the input 'bad', which fails on unpacking rather than on a realistic malformed field (minor)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes apply the same one-line fix: skip blank or whitespace-only lines while keeping the original line numbering. B covers this with two focused tests, one for skipping and one for line numbers after a skipped line. A puts both concerns into a single test, and it also committed the change to the repository without being asked. Both reports are accurate about the test counts (19 and 20) and about not running the import on the real file.",
+        "a_issues": [
+          "Committed the change (4f4203b) without being asked to; the developer had only asked for a fix.",
+          "Puts two separate behaviours (skipping blank lines and line numbering) into one test, so a failure says less about what broke."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

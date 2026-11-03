@@ -1,11 +1,8 @@
-I refactored `getPrice` in `src/pricing.ts`. I didn't run tests or a type-check, so it's untested.
+I refactored `getPrice` in `src/pricing.ts`. I haven't run any tests or a type-check, and I didn't look for existing tests.
 
-- **Same interface:** the signature and return value are unchanged, so the callers in `cart.ts`, `checkout.ts`, `admin/priceList.ts` and `feeds/export.ts` need no edits. I also kept `p: any` so callers that pass loosely typed objects still compile.
-- **Structure:** the nested `if`s are now three small helpers: `applyMemberDiscount`, `applyCoupon` and `roundToCents`. `getPrice` reads as member discount, then coupon, then rounding.
-- **Constants:** the magic numbers (`0.9`, `0.95`, `10`) are now named constants.
-- **Behavior:**
-  - Books get 10% off for members and everything else gets 5%.
-  - `SAVE10` takes 10 off and the price never goes below 0.
-  - Unknown coupons are ignored.
-  - The result is rounded to cents.
-  - Bad input behaves as before: a `NaN` price still gives `NaN`.
+The signature and the return value are unchanged. The callers in `cart.ts`, `checkout.ts`, `priceList.ts` and `feeds/export.ts` don't need any edits. I kept `p: any` on purpose, since I didn't want to break callers by narrowing the type.
+
+- **Named constants:** the discount multipliers (0.9 for books, 0.95 otherwise), the `SAVE10` coupon code and its 10 off are now constants instead of bare numbers and strings.
+- **Smaller helpers:** the function is now three steps. `applyMemberDiscount`, `applyCoupon` and `roundToCents` each do one thing, and `getPrice` reads top to bottom.
+- **Simpler clamping:** the nested ifs and the `if (price < 0) price = 0` are replaced by `Math.max(price - 10, 0)`.
+- **Stricter comparisons:** `==` became `===`. `category` and `coupon` are compared against string literals, so the result is the same unless someone passes a non-string value.

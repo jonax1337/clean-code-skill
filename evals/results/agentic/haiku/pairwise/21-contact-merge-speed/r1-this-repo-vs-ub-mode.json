@@ -1,0 +1,83 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "3c6d7f4b2238cd5d",
+    "ub-mode": "f06ed31be0bcc6b1"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix: build a Map from normalized email to the first index, then do one lookup per incoming row and register appended rows as they arrive. A adds a comment explaining why the first entry wins, and its test also covers case-insensitive matching while checking the merged entry's id. B adds a wall-clock test (under 1 s for 30k into 50k), which guards against a performance regression but can be flaky on slow CI machines. B's report also contains a garbled, irrelevant line about 'ub-mode' and 'crapper, dryer, and mutator tools', while A's report is clean and precise.",
+        "a_issues": [
+          "No automated guard against a performance regression; the benchmark was run in a scratch copy and not committed."
+        ],
+        "b_issues": [
+          "The timing-based assertion (elapsed < 1000 ms) can be flaky on slow or loaded CI runners.",
+          "The report contains a garbled, irrelevant paragraph about 'ub-mode' calling for 'crapper, dryer, and mutator tools'.",
+          "There is no comment explaining the first-entry-wins logic in the index build."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs make the same core change: a Map from normalized email to first index, updated when contacts are appended. That keeps the old semantics, including the first entry winning and duplicates inside the upload merging with each other. B adds a comment explaining why the first entry wins, and its edge-case test is slightly stronger because it also checks the id and case normalization. B's report is clean and precise. A adds a wall-clock test that can be flaky in CI, and its report contains a garbled, unexplained remark about \"ub-mode\" and \"crapper, dryer, and mutator tools\".",
+        "a_issues": [
+          "The wall-clock performance test (<1000ms on 80k objects) can fail on slow or loaded CI machines.",
+          "The report contains a garbled, unexplained line about \"ub-mode\" and \"crapper, dryer, and mutator tools\" that reads as noise.",
+          "No comment explains why the index keeps the first occurrence."
+        ],
+        "b_issues": [
+          "No automated guard against a performance regression; the benchmark ran only in a scratch copy outside the repo."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

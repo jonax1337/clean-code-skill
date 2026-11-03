@@ -1,0 +1,88 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "4761fa2bea6e3389",
+    "this-repo": "d152fe152f0e9628"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.75,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes are correct. Each reuses `allocate`, factors out the duplicate check into a shared helper, and makes `--with` and `--percent` mutually exclusive. A parses `NAME=PCT` in the splitting module and raises `MoneyError`, so every bad `--percent` input gets the existing `error: ...` output, and it rejects a 0% share as meaningless. B parses in an argparse type, which gives two different error styles for one option, and it adds a `WHOLE` constant that buys little. B's CLI tests are somewhat broader, but A's cleaner and more consistent error path tips it slightly.",
+        "a_issues": [
+          "No test that `add` fails when neither `--with` nor `--percent` is given.",
+          "Percent parse errors are raised as `MoneyError`, which is a slight semantic stretch for a malformed `NAME=PCT` argument."
+        ],
+        "b_issues": [
+          "A malformed `--percent` gets an argparse usage-style message, while a wrong total or repeated name gets `error: ...`, so one option has two error formats.",
+          "The `WHOLE = 100` constant is a needless abstraction for a fixed percentage total.",
+          "Allowing 0% records a person with a 0.00 share, which is of questionable use; the report does flag this choice.",
+          "Parsing lives in `cli.py` and has no unit tests; it is only exercised through `SystemExit` tests."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes implement percentage splitting correctly. Both reuse `allocate`, factor out the duplicate-name check, and use a required mutually exclusive group for `--with` and `--percent`. B is slightly better because every percent error, malformed input included, goes through the existing `error: ...`/exit-2 path, and it tolerates stray whitespace. A instead mixes argparse usage errors with the app's own error format. A's CLI-level tests are more thorough, which narrows the gap.",
+        "a_issues": [
+          "Malformed `--percent` values get an argparse usage-style message, while a wrong total or a repeated name gets the app's `error:` message, so error output is inconsistent.",
+          "A 0% share is accepted and stored as a 0.00 entry, which is debatable.",
+          "`partition` on the first `=` means a name containing `=` cannot be used."
+        ],
+        "b_issues": [
+          "No CLI-level test for a malformed `--percent` value, or for giving neither `--with` nor `--percent`.",
+          "The leftover-cent test only checks the total, not which person gets the extra cent.",
+          "Input parsing (`parse_percent`) lives in `splitting.py` rather than next to `parse_amount` or in the CLI.",
+          "Rejecting 0% is a policy choice the task did not ask for, though the report flags it."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

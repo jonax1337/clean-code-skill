@@ -1,0 +1,87 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d6a1786d0165b104",
+    "ertugrul-dmr": "b5149df62981deb0"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews catch the main problems: the SQL injection, the swallowed audit errors, the floor-division page count and the audit rows written for IDs that did not change. A also finds that single `deactivate_user` calls never write to the audit log, which directly contradicts the PR's \"every deactivation\" compliance claim, and it calls out the client-supplied actor as a real defect. B only raises the actor as something to confirm in the web layer. B has more small points (KeyError on a missing actor, duplicated column list, LIKE wildcards, correct line for `import os`), but A's extra compliance finding matters more.",
+        "a_issues": [
+          "Wrong line number for the unused `import os` (says search.py:4, it is line 3)",
+          "Misses the duplicated SELECT column list in search.py that could reuse `users.SELECT_USER`",
+          "Does not call out the KeyError raised when `actor` is missing in bulk_deactivate",
+          "Report leaves a temp scratch directory uncleaned"
+        ],
+        "b_issues": [
+          "Misses that single-user `deactivate_user` writes no audit row, so the PR's 'every deactivation is audited' claim is false",
+          "Treats the client-supplied `actor` as unverifiable instead of a clear defect, although the handlers receive decoded request params",
+          "Somewhat longer, with blocker/non-blocker lists that repeat the findings"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both reviews catch the SQL injection, the swallowed audit errors, the wrong page count, audit rows for IDs that did not change, and the crashes on bad input, and both correctly say do not merge. B also finds that the single `deactivate_user` path never writes to `audit_log`. That directly breaks the stated 'every deactivation' compliance goal, and A misses it. B also makes the client-supplied `actor` a probed finding, where A only flags it as something it could not check.",
+        "a_issues": [
+          "Misses that single `deactivate_user` is never audited, a direct gap in the compliance requirement the PR claims to meet.",
+          "Treats the client-controlled `actor` as an open question rather than a finding, even though the diff plainly reads it from request params."
+        ],
+        "b_issues": [
+          "Gives the wrong line for the unused `import os` (says `search.py:4`; it is line 3).",
+          "Report says it confirmed 'the first three' by probes, then cites a fourth probe (`mallory`), which is slightly inconsistent.",
+          "Left a scratch copy in a temp directory without cleaning it up (disclosed)."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

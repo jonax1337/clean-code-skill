@@ -1,0 +1,81 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "8d7c551fa22e2f97",
+    "this-repo": "5d58fea319db1eb1"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both changes contain the same code: a blank-line skip in `parse_entries` that keeps physical line numbering, plus two nearly identical tests. A's test names describe what the tests check more accurately. B's report is a little more useful: it notes that the reported line number was correct and warns about other possible quirks such as a header row. These small differences offset each other, so I would be equally happy to merge either.",
+        "a_issues": [
+          "Report does not mention other plausible quirks in the accountant's file, such as a header row or a different delimiter."
+        ],
+        "b_issues": [
+          "The test name `test_blank_lines_are_skipped_but_still_counted` claims it checks counting, but it only checks the parsed entries; line counting is covered by the other test.",
+          "The report describes the first test as covering blank lines 'between entries', but it also covers a trailing blank line, which is the reported case."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both changes make the same code fix: skip lines that are empty or whitespace-only in parse_entries, before parsing, so physical line numbers are preserved. The added tests are the same apart from their names. Both reports describe the cause and fix accurately and say the real file was not tried. A adds a useful caveat about header rows and other delimiters, but this is too small to prefer one over the other.",
+        "a_issues": [
+          "README's CSV import section not updated to mention that blank lines are skipped",
+          "Claims the new test fails without the fix but does not show how this was checked"
+        ],
+        "b_issues": [
+          "README's CSV import section not updated to mention that blank lines are skipped"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

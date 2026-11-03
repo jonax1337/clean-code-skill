@@ -1,0 +1,83 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "22b0c9c6d71b4b82",
+    "this-repo": "dde994ff23d4766c"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes implement the same correct behavior: a paused status, resumeOn that is null unless paused, pausing only from active, payment events ignored while paused, cancel clearing resumeOn, the specified audit line, and a customer-only email. B also adds a 408-line package-lock.json, which is unrelated to the task and never mentioned in its report. A's diff is limited to the task, and its report points out a real limitation: the notifier still emails on a pause that has no effect.",
+        "a_issues": [
+          "No explicit test that a fresh subscription starts with resumeOn null; this is only covered indirectly through the canceledAt/resumeOn assertions.",
+          "The report's '4 new audit/notifier/state groups' wording is vague about how many tests were added."
+        ],
+        "b_issues": [
+          "Adds an unrequested 408-line package-lock.json, a leftover from npm install that is unrelated to the feature.",
+          "The report does not mention the added lockfile, so it is incomplete about what changed."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes implement the same correct logic: a paused status, a resumeOn field cleared on cancel, a pause allowed only from active, failed payments ignored while paused, and matching audit and notifier cases. A also commits a 408-line package-lock.json that the task did not ask for. B's report also flags a real limitation: the notifier sends the pause email even when the pause is a no-op. A's tests are marginally broader, but that does not outweigh the stray lockfile.",
+        "a_issues": [
+          "Adds an unrequested 408-line package-lock.json to the change",
+          "Comment 'a payment event cannot fail there' is slightly misleading wording"
+        ],
+        "b_issues": [
+          "Report's test count description ('the 4 new audit/notifier/state groups') is vague",
+          "No explicit test that a fresh subscription has resumeOn null"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

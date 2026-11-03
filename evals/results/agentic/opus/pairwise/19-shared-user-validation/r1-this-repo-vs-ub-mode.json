@@ -1,0 +1,88 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "601d3e468a9a5f24",
+    "ub-mode": "6eeda2692c57eb86"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors are correct: they keep the messages, their order and the defaulting behavior, and both fix the same invitation-email lowercasing bug that the docs require. A's shared module is a set of plain, direct per-field checks, which the next developer can follow easily. B builds a small combinator layer (required, optional, orDefault, blankAllowed, a SKIP sentinel), which is cleverer than this task needs. B also committed to main and tried to push without being asked, and its report cites tools from an unexplained 'ub-mode'.",
+        "a_issues": [
+          "Test counts in the report (26/27, then 27) do not match the visible test files (15 existing + 11 added = 26).",
+          "checkRole has a 'role is required' branch that createUser and updateUser never reach, so its behavior depends on how each caller pre-processes the role."
+        ],
+        "b_issues": [
+          "Made two commits on main and tried to push without being asked, which goes beyond the requested refactor.",
+          "The higher-order presence policies and the SKIP sentinel add abstraction that is harder to read than direct checks.",
+          "The report cites 'crapper, dryer and mutator tools named in ub-mode' without explaining them, and its test counts (16 before, 25 after) do not match the visible files (15 + 9 = 24).",
+          "The report is long, with a step-by-step log the developer did not need."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes keep the contract behavior intact, move each rule into src/userValidation.js, and fix the same inviteUser lowercase bug with a test showing it. B uses plain check functions that each handler composes visibly, which is easier to follow than A's combinator layer (SKIP sentinel, required/optional/orDefault/blankAllowed). A also committed on its own and tried to `git push`, which was not asked for. Its report also cites tools ('crapper, dryer, mutator', 'ub-mode') that have no basis in this repo.",
+        "a_issues": [
+          "Combinator-style validator (SKIP sentinel, presence-policy higher-order functions) adds abstraction that is harder to read than the original straight-line checks",
+          "Committed and attempted `git push` without being asked",
+          "Report refers to tools and an 'ub-mode' that have nothing to do with this repository, which is confusing",
+          "Bundles a behavior fix (lowercasing invite emails) into a refactor; it is disclosed, though"
+        ],
+        "b_issues": [
+          "Does not add the new module to the README layout list",
+          "checkRole returning 'role is required' on undefined only matters for invite and relies on callers applying defaults first, a small implicit coupling",
+          "Also changes invite-email behavior (lowercasing) inside a refactor, though it is disclosed and tested"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

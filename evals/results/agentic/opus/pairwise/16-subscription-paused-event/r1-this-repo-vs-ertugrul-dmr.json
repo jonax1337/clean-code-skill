@@ -1,0 +1,82 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c079f3de1e5d6745",
+    "ertugrul-dmr": "ad53c4a3b11feb5f"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The source changes are effectively identical; the only difference is where `paused` sits in the status union. Both meet every requirement in the task: pause only from active, payment events ignored while paused, cancel clears `resumeOn`, the audit format, and a customer-only notification. Test coverage is also equivalent. B is slightly ahead on reporting: it flags a real unspecified behavior (a plan change while paused) for the developer to decide, and it reuses a shared payment-failed fixture. A's report adds a line-ending claim about the test file that the diff cannot confirm.",
+        "a_issues": [
+          "The report says test/subscription.test.ts uses CRLF line endings. This is unverifiable from the repository and adds noise.",
+          "The report does not raise the open question of how `plan_changed` should behave on a paused subscription."
+        ],
+        "b_issues": [
+          "The report does not mention that `resumeOn` is a new required field on the exported `Subscription` type, which could affect external code that builds these objects.",
+          "The new subscription tests are inserted before the last existing test instead of appended. This is harmless but slightly less tidy."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The source changes are identical and correct in both PRs: the paused status, resumeOn handling, the payment guard, clearing resumeOn on cancel, the audit format and the notification. Both test suites cover the same behaviours, and the reported counts check out (A: 13+6=19, B: 13+7=20). A gets a slight edge on its report, which raises a genuine open product question: what a plan change should do while paused. B's report includes a line-ending claim the diff cannot confirm and that has nothing to do with the task.",
+        "a_issues": [
+          "Folds the resumeOn-null check into an existing test instead of giving it its own test (minor)."
+        ],
+        "b_issues": [
+          "The report's CRLF line-ending claim about test/subscription.test.ts cannot be confirmed from the diff and is irrelevant to the task.",
+          "New tests are appended after the unrelated 'history rejected' test, which reads slightly less tidily."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

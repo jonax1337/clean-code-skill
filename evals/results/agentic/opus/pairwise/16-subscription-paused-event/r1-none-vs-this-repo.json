@@ -1,0 +1,83 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "2652ad20cc842f01",
+    "this-repo": "c079f3de1e5d6745"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production code in both changes is effectively identical and correct: it adds the new status, the resumeOn field, the pause guard, the payment no-ops while paused, clearing resumeOn on cancel, the audit line and the notification. B's audit test uses a reason containing quotes, so it actually checks the JSON-style quoting the task asked to match, while A's only covers the plain 'vacation' example. A adds a helpful code comment and raises a useful open question about plan changes while paused; B notes that the new required Subscription field affects outside callers. On balance B's stronger edge-case test tips it slightly.",
+        "a_issues": [
+          "Audit test uses a reason without quotes, so it does not check that quoting matches the cancellation reason's escaping"
+        ],
+        "b_issues": [
+          "Audit test no longer checks the task's exact example line verbatim",
+          "Report's CRLF remark is incidental and cannot be confirmed from the diff",
+          "Does not raise the plan-change-while-paused question"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The production changes are effectively identical and both correctly implement pause state, audit, and notification behavior as specified. A's audit test uses a reason containing quotes, so it actually protects the JSON-style quoting the task asked for. B's test only covers the plain example. A's report also flags the new required `resumeOn` field as a breaking change for external constructors of `Subscription`, though B's open question about plan changes while paused is also useful.",
+        "a_issues": [
+          "Report mentions CRLF line endings in a test file, which is unverifiable here and unrelated noise",
+          "Audit test does not use the exact example line from the request (minor)"
+        ],
+        "b_issues": [
+          "Audit test uses a reason without quotes, so it does not exercise the escaping behavior it is meant to mirror",
+          "Report does not note that the new required `resumeOn` field on `Subscription` affects code that builds subscriptions by hand"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

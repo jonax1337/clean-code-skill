@@ -1,0 +1,88 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "37075b9c61f427d6",
+    "ertugrul-dmr": "b2c0a86466e9fea0"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors keep behavior the same and split the function into similar steps. A first added 17 characterization tests and confirmed they passed against the original code; they cover the risky paths the existing suite missed: per-line rounding, VIP/coupon stacking, the free-shipping threshold, partial-reservation rollback, coupon redemption only on success, and receipt failures. B added no tests, and both its code comment and its report claim an unknown country 'fails first', which is false because `tax_rate` falls back to a default rate and never raises. A's report is accurate and matches what it verified.",
+        "a_issues": [
+          "`_charge` releases `order.items` rather than the reserved list. This is equivalent because every item has been reserved by that point, but it relies on an implicit invariant.",
+          "The added test file partly duplicates the `make_order`/`CUSTOMER` helpers from `test_checkout.py`."
+        ],
+        "b_issues": [
+          "No tests added, although the existing suite misses most of the pricing and rollback edge cases.",
+          "The new comment 'Tax is computed before the coupon is checked, so an unknown country fails first' is false, because `tax_rate` never raises. The report repeats this claim.",
+          "The report cites a nonexistent 'limit of 3' arguments, which appears nowhere in the repository.",
+          "`_charge` takes 6 parameters and uses a bare `list` type hint, which is less clear than A's."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep behavior and split `process_order` into similar helpers. B first added 17 characterization tests against the original code. They cover the risky parts the existing suite misses: per-line rounding, VIP stacking, the free-shipping threshold, partial-reservation rollback, coupon redemption only on success, and a failing notifier. A has no new tests, and its new code comment and report both say an unknown country 'fails first'. That is false, because `tax_rate` falls back to a default rate and never fails.",
+        "a_issues": [
+          "Added a misleading comment in `_calculate_total`: it says tax is computed first so an unknown country fails first, but `tax_rate` never fails for unknown countries.",
+          "The report repeats this false claim and mentions an unexplained 'limit of 3' arguments, with a stray double space where a qualifier seems to be missing.",
+          "No tests were added to protect the refactor of a production function; the existing 9 tests miss VIP, rounding, threshold and rollback edge cases.",
+          "Uses an untyped `list` in the `_reserve_stock`/`_charge` signatures and threads `reserved` through `_charge`, which adds parameters."
+        ],
+        "b_issues": [
+          "`_charge` releases `order.items` instead of the reserved list. This is equivalent only because `_reserve_stock` succeeded first, and that coupling is now implicit.",
+          "`_tax_cents` packs the rounding expression into one dense generator line, which reads less easily than the original loop.",
+          "Adds a separate new test file instead of extending `test_checkout.py`, which duplicates its `make_order`/`CUSTOMER` helpers."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

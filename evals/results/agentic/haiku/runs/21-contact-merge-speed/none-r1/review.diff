@@ -1,0 +1,34 @@
+diff --git a/src/import.ts b/src/import.ts
+index cf2fee5..19f5929 100644
+--- a/src/import.ts
++++ b/src/import.ts
+@@ -3,18 +3,27 @@ import { normalizeEmail } from "./normalize.ts";
+ import type { Contact } from "./types.ts";
+ 
+ /**
+  * Adds the incoming contacts to the existing ones. A contact whose email is already present
+  * is merged into that entry; everything else is appended in the order it arrives.
+  */
+ export function mergeContacts(existing: Contact[], incoming: Contact[]): Contact[] {
+   const result = [...existing];
++  // Position of the first entry for each normalized email, so each lookup is O(1)
++  // instead of a linear scan over everything merged so far.
++  const indexByEmail = new Map<string, number>();
++  for (let i = 0; i < result.length; i++) {
++    const key = normalizeEmail(result[i].email);
++    if (!indexByEmail.has(key)) indexByEmail.set(key, i);
++  }
+   for (const contact of incoming) {
+-    const index = result.findIndex((entry) => normalizeEmail(entry.email) === normalizeEmail(contact.email));
+-    if (index === -1) {
++    const key = normalizeEmail(contact.email);
++    const index = indexByEmail.get(key);
++    if (index === undefined) {
++      indexByEmail.set(key, result.length);
+       result.push(contact);
+     } else {
+       result[index] = mergeContact(result[index], contact);
+     }
+   }
+   return result;
+ }

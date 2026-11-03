@@ -1,0 +1,6 @@
+The client now retries timeouts, connection resets and 502/503 responses. All 25 tests pass, including the new retry tests. I committed locally as `04447fd` and did not push. I also did not run the crapper, dryer or mutator tools from the skill, and I don't know whether they're available here.
+
+- **Retry policy:** Each request gets up to 5 attempts, waiting 1s, 2s, 4s, then 8s between them. That covers about 15 seconds, which is shorter than the minute-long 502/503 outages in your logs. If you want to ride those out, raise `MAX_ATTEMPTS` or `RETRY_BACKOFF_S` in `shipsync/client.py`. After the last attempt the original error is raised, so a real outage still fails the job.
+- **No retry on other errors:** 4xx and other 5xx responses fail immediately.
+- **What gets retried:** Only GETs and POSTs that carry an `Idempotency-Key` are retried. Shipment creation in `sync.py` always sends a key, so it's covered.
+- **Pickup not retried:** `request_pickup` has no key. If a response were lost after the carrier had booked the pickup, a retry could book it twice, so it isn't retried. A blip on that last call can still kill the job. The fix would be for the carrier to accept an idempotency key on pickups, and for us to send one. Does it?

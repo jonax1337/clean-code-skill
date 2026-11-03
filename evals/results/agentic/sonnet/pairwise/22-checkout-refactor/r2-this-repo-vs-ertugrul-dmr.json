@@ -1,0 +1,87 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "b97cba07653d8e51",
+    "ertugrul-dmr": "ce0bdf3ebd055f9f"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors produce the same step-by-step structure and preserve observable behavior. Both release `order.items` on a declined payment, which matches what was reserved. A also added characterization tests that it ran against the unchanged code first, so the no-behavior-change refactor of production pricing and rollback logic is backed by tests. B relies only on the 9 original tests, which miss VIP, threshold, rounding and rollback paths, and its report contains an inaccurate claim about argument counts.",
+        "a_issues": [
+          "`_price_order` computes the discount (coupon validation) before tax, a slight reordering. It is harmless because `tax_rate` is a pure lookup, but the report does not mention it.",
+          "The tax helper recomputes each line amount instead of sharing it with the subtotal (minor)."
+        ],
+        "b_issues": [
+          "No new tests, so a production-critical refactor is verified only by 9 tests that miss most pricing and rollback edge cases.",
+          "The report says each helper takes three arguments, which is false: `_calculate_discount`, `_finalize_paid_order` and `_send_receipt` each take four. It also cites a 'three-argument limit' that the repository does not define.",
+          "`_release_items` is typed as a bare `list` instead of `list[Item]`.",
+          "`_coupon_discount` adds an extra layer of indirection with little benefit."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep production behavior the same and end up with nearly the same helper structure. B also added 18 characterization tests and, per its report, ran them against the unchanged code first. They cover VIP stacking, the shipping threshold edges, per-line tax rounding, rollback ordering, invalid coupons and receipt failures, so the refactor is protected. A relies only on the original 9 tests, which miss most pricing and rollback paths, and its report cites a 'three-argument limit' that the repository does not define.",
+        "a_issues": [
+          "No new tests: VIP discount, invalid coupon, the free-shipping boundary, per-line rounding, partial rollback and receipt failure stay unprotected during the refactor of production code",
+          "The `_release_items` parameter is typed as a bare `list`",
+          "The extra `_coupon_discount` helper adds a layer of indirection without much gain",
+          "The report cites a 'three-argument limit' that does not exist in the repo, and A's own helpers break it (four and five arguments)"
+        ],
+        "b_issues": [
+          "`_price_order` computes the discount before calling `tax_rate`, which reorders the original calls. This is harmless because `tax_rate` is pure and cannot raise, but the report does not mention it",
+          "The tax computation is folded into one long generator expression, which is a bit dense"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

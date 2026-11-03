@@ -1,0 +1,89 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "399da28584b277f5",
+    "ub-mode": "7dc5d22152a71541"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 1.0,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "docs/api.md says invitation emails are stored trimmed and lowercased. B brings inviteUser in line with that documented contract, pins the fix with a test that failed before, and reports the change openly. B's validateRole also owns the 'role is required' message, so no validation message stays in a handler. A preserves the bug by adding a `lowercase: false` option, which builds the contract violation into the shared module, and it leaves 'role is required' inline in inviteUser. A does have stronger unit tests for the shared validators. Against that, B committed and created a branch without being asked, and its report contains a garbled line.",
+        "a_issues": [
+          "Adds a `lowercase: false` option to checkEmail only to keep inviteUser's non-lowercasing behavior. docs/api.md says invitation emails are stored lowercased, so this builds a known contract violation into the shared validator.",
+          "'role is required' is still written inline in inviteUser instead of in the shared validation module, so one validation message is still duplicated outside the single home."
+        ],
+        "b_issues": [
+          "Created a branch and committed (143de8b) under the user's git identity without being asked.",
+          "The report contains a garbled, confusing line about 'ub-mode' and 'Crapper, Dryer and Mutator tools'.",
+          "Tests: only one new handler-level test and no unit tests for the new validation module. For example, the 80-character limit on optional names is still untested.",
+          "The sentence added to the docs repeats what the Conventions section already states."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "docs/api.md says emails are stored trimmed and lowercase for both users and invitations, so inviteUser's missing lowercase is a contract bug. A fixes it through the shared validator, pins it with a failing-then-passing test and reports it clearly. B keeps the bug and adds a `lowercase: false` option just to preserve it, which keeps a divergence inside the module meant to remove divergence. B's unit tests for the shared module are more thorough, but they do not outweigh shipping a known spec violation behind a new option.",
+        "a_issues": [
+          "The added docs/api.md sentence repeats what the Conventions section already says, and the paragraph's line wrapping is now uneven.",
+          "The report contains a garbled, irrelevant line about 'ub-mode' and Crapper/Dryer/Mutator tools.",
+          "It committed to a new branch without being asked, though it did not push.",
+          "Tests cover only the invite case fix; there are no direct tests of the new validation module."
+        ],
+        "b_issues": [
+          "It preserves inviteUser's failure to lowercase emails, which contradicts docs/api.md, so case-variant duplicate invitations still get 201.",
+          "It adds a `lowercase` option to checkEmail that exists only to keep that inconsistency, weakening the single-source-of-rules goal.",
+          "The 'role is required' check is inlined in inviteUser instead of living in the shared validator.",
+          "The report presents the lowercase question as an open decision without noting that the documented contract already settles it."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

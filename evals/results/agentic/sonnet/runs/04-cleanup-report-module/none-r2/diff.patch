@@ -1,0 +1,287 @@
+diff --git a/src/report.js b/src/report.js
+index 1ee16b1..242da7e 100644
+--- a/src/report.js
++++ b/src/report.js
+@@ -1,188 +1,129 @@
+ // Sales report. Used by the finance export (export.js) and the weekly digest (digest.js).
+ // The layout is parsed by the finance team's import, so do not move columns around.
+ // TODO: US region once the tax rules are clear
+ 
++const BULK_UNITS = 100;
++const BULK_FACTOR = 0.95;
++const LARGE_ORDER = 10000;
++const NAME_WIDTH = 20;
++
++// Output order of the sections is the order of this list.
++const REGIONS = {
++  DE: { title: 'Germany', taxRate: 0.19, thousands: '.', decimal: ',', symbol: 'suffix' },
++  FR: { title: 'France', taxRate: 0.2, thousands: ' ', decimal: ',', symbol: 'suffix' },
++  UK: { title: 'United Kingdom', taxRate: 0.2, thousands: ',', decimal: '.', symbol: 'prefix' },
++};
++
++const round2 = (n) => Math.round(n * 100) / 100;
++
++// Splits a string into groups of three from the right and joins them with `sep`.
++function groupThousands(digits, sep) {
++  const groups = [];
++  for (let end = digits.length; end > 0; end -= 3) {
++    groups.unshift(digits.slice(Math.max(0, end - 3), end));
++  }
++  return groups.join(sep);
++}
++
++function joinMoney(sign, integerPart, cents, region) {
++  const { thousands, decimal, symbol } = REGIONS[region];
++  const number = groupThousands(integerPart, thousands) + decimal + cents;
++  return symbol === 'prefix' ? sign + '£' + number : sign + number + ' €';
++}
++
+ export function formatMoney(amount, region) {
+-  let sign = '';
+-  if (amount < 0) {
+-    sign = '-';
+-    amount = -amount;
++  if (!REGIONS[region]) {
++    throw new Error('unknown region: ' + region);
+   }
+-  const fixed = amount.toFixed(2);
+-  const ip = fixed.slice(0, fixed.length - 3);
+-  const cents = fixed.slice(-2);
+-  const groups = [];
+-  for (let i = ip.length; i > 0; i -= 3) {
+-    groups.unshift(ip.slice(Math.max(0, i - 3), i));
++  const sign = amount < 0 ? '-' : '';
++  const fixed = Math.abs(amount).toFixed(2);
++  // Sliced rather than split on '.', so that NaN prints exactly as it always has.
++  return joinMoney(sign, fixed.slice(0, -3), fixed.slice(-2), region);
++}
++
++// Amount shown on a report row. For negative amounts DE and UK historically count
++// the minus sign as a digit when grouping (-123,00 prints as "-.123,00"); the finance
++// import has been built against that, so it is kept. FR never had the quirk.
++function formatRowMoney(amount, region) {
++  const [integerPart, cents] = amount.toFixed(2).split('.');
++  if (region === 'FR' && integerPart.startsWith('-')) {
++    return joinMoney('-', integerPart.slice(1), cents, region);
+   }
+-  if (region === 'DE') {
+-    return sign + groups.join('.') + ',' + cents + ' €';
++  return joinMoney('', integerPart, cents, region);
++}
++
++// Gross amount of a sale: discount, bulk discount, then tax, rounded to cents at each step.
++function grossAmount(sale, taxRate) {
++  let net = sale.units * sale.unitPrice;
++  if (sale.discountPct) {
++    net = net - (net * sale.discountPct) / 100;
+   }
+-  if (region === 'FR') {
+-    return sign + groups.join(' ') + ',' + cents + ' €';
++  if (sale.units >= BULK_UNITS) {
++    net = net * BULK_FACTOR;
+   }
+-  if (region === 'UK') {
+-    return sign + '£' + groups.join(',') + '.' + cents;
++  net = round2(net);
++  const tax = round2(net * taxRate);
++  return round2(net + tax);
++}
++
++function formatRow(sale, amount, region) {
++  const name =
++    sale.product.length > NAME_WIDTH ? sale.product.slice(0, NAME_WIDTH - 1) + '…' : sale.product;
++  let line =
++    name.padEnd(NAME_WIDTH) +
++    ' ' + String(sale.units).padStart(5) +
++    ' ' + formatRowMoney(amount, region).padStart(14);
++  if (amount >= LARGE_ORDER) {
++    line += ' *';
+   }
+-  throw new Error('unknown region: ' + region);
++  return line;
+ }
+ 
+ export function buildReport(sales, options) {
+   options = options || {};
+   if (options.format && options.format !== 'text') {
+     throw new Error('unsupported format: ' + options.format);
+   }
+   if (options.month && !/^\d{4}-\d{2}$/.test(options.month)) {
+     throw new Error('bad month: ' + options.month);
+   }
+-  const res = [];
+-  res.push(options.month ? 'SALES REPORT ' + options.month : 'SALES REPORT');
+-  res.push('');
++
++  const lines = [options.month ? 'SALES REPORT ' + options.month : 'SALES REPORT', ''];
++
+   let data = sales.slice();
+-  // data = data.filter((s) => s.status !== 'void');
+   if (options.month) {
+     data = data.filter((s) => s.date.slice(0, 7) === options.month);
+   }
+   data.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+-  let total = 0;
+-  let big = 0;
+ 
+-  /*
+-  const quarter = options.quarter;
+-  if (quarter) {
+-    data = data.filter((s) => Math.ceil(Number(s.date.slice(5, 7)) / 3) === quarter);
+-  }
+-  */
++  let rows = 0;
++  let largeOrders = 0;
+ 
+-  if (options.format === 'legacy') {
+-    // old finance import, replaced in 2021
+-    for (const s of data) {
+-      res.push([s.region, s.rep, s.product, s.units, s.unitPrice].join(';'));
++  for (const [region, { title, taxRate }] of Object.entries(REGIONS)) {
++    const regionSales = data.filter((s) => s.region === region && s.units > 0);
++    if (regionSales.length === 0) {
++      continue;
+     }
+-    return res.join('\r\n');
+-  }
+-
+-  // Germany
+-  const de = data.filter((s) => s.region === 'DE' && s.units > 0);
+-  if (de.length > 0) {
+-    res.push('== Germany ==');
+-    let sub = 0;
+-    for (let i = 0; i < de.length; i++) {
+-      const s = de[i];
+-      let x = s.units * s.unitPrice;
+-      if (s.discountPct) {
+-        x = x - (x * s.discountPct) / 100;
+-      }
+-      if (s.units >= 100) {
+-        x = x * 0.95;
+-      }
+-      x = Math.round(x * 100) / 100;
+-      const tax = Math.round(x * 0.19 * 100) / 100;
+-      const amount = Math.round((x + tax) * 100) / 100;
+-      const fixed = amount.toFixed(2);
+-      const ip = fixed.split('.')[0];
+-      let grouped = '';
+-      for (let k = 0; k < ip.length; k++) {
+-        if (k > 0 && (ip.length - k) % 3 === 0) {
+-          grouped += '.';
+-        }
+-        grouped += ip[k];
++    lines.push(`== ${title} ==`);
++    let subtotal = 0;
++    for (const sale of regionSales) {
++      const amount = grossAmount(sale, taxRate);
++      lines.push(formatRow(sale, amount, region));
++      if (amount >= LARGE_ORDER) {
++        largeOrders++;
+       }
+-      const money = grouped + ',' + fixed.split('.')[1] + ' €';
+-      let name = s.product;
+-      if (name.length > 20) {
+-        name = name.slice(0, 19) + '…';
+-      }
+-      let line = name;
+-      while (line.length < 20) {
+-        line += ' ';
+-      }
+-      line += ' ' + String(s.units).padStart(5);
+-      line += ' ' + money.padStart(14);
+-      if (amount >= 10000) {
+-        line += ' *';
+-        big++;
+-      }
+-      res.push(line);
+-      sub += amount;
+-      total++;
++      subtotal += amount;
++      rows++;
+     }
+-    res.push('Subtotal DE: ' + formatMoney(sub, 'DE'));
+-    res.push('');
+-  }
+-
+-  // France
+-  const fr = data.filter((s) => s.region === 'FR' && s.units > 0);
+-  if (fr.length > 0) {
+-    res.push('== France ==');
+-    let sub = 0;
+-    for (const s of fr) {
+-      const d = s.discountPct || 0;
+-      let n = s.units * s.unitPrice;
+-      n = n - (n * d) / 100;
+-      if (s.units >= 100) n *= 0.95;
+-      n = Math.round(n * 100) / 100;
+-      const t = Math.round(n * 0.2 * 100) / 100;
+-      const a = Math.round((n + t) * 100) / 100;
+-      const parts = a.toFixed(2).split('.');
+-      const money = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ',' + parts[1] + ' €';
+-      const nm = s.product.length > 20 ? s.product.substring(0, 19) + '…' : s.product;
+-      const u = String(s.units);
+-      let line = nm.padEnd(20) + ' ' + ' '.repeat(Math.max(0, 5 - u.length)) + u + ' ' + money.padStart(14);
+-      if (a >= 10000) {
+-        line = line + ' *';
+-        big += 1;
+-      }
+-      res.push(line);
+-      sub += a;
+-      total += 1;
+-    }
+-    res.push('Subtotal FR: ' + formatMoney(sub, 'FR'));
+-    res.push('');
+-  }
+-
+-  // United Kingdom
+-  const uk = data.filter((s) => s.units > 0 && s.region === 'UK');
+-  if (uk.length > 0) {
+-    res.push('== United Kingdom ==');
+-    let sub = 0;
+-    uk.forEach((s) => {
+-      let v = s.units * s.unitPrice;
+-      if (s.discountPct) v = v - (v * s.discountPct) / 100;
+-      if (s.units >= 100) {
+-        v = v * 0.95;
+-      }
+-      v = Math.round(v * 100) / 100;
+-      const vt = Math.round(v * 0.2 * 100) / 100;
+-      const g = Math.round((v + vt) * 100) / 100;
+-      const digits = g.toFixed(2).split('.');
+-      const chunks = [];
+-      const rev = digits[0].split('').reverse();
+-      for (let j = 0; j < rev.length; j += 3) {
+-        chunks.unshift(rev.slice(j, j + 3).reverse().join(''));
+-      }
+-      const money = '£' + chunks.join(',') + '.' + digits[1];
+-      const label = s.product.length <= 20 ? s.product : s.product.slice(0, 19) + '…';
+-      let line = label.padEnd(20);
+-      line += ' ' + String(s.units).padStart(5);
+-      line += ' ' + money.padStart(14);
+-      if (10000 <= g) {
+-        line += ' *';
+-        big++;
+-      }
+-      res.push(line);
+-      sub += g;
+-      total++;
+-    });
+-    res.push('Subtotal UK: ' + formatMoney(sub, 'UK'));
+-    res.push('');
++    lines.push(`Subtotal ${region}: ${formatMoney(subtotal, region)}`);
++    lines.push('');
+   }
+ 
+-  if (total === 0) {
+-    res.push('No sales.');
++  if (rows === 0) {
++    lines.push('No sales.');
+   } else {
+-    res.push('Rows: ' + total);
+-    res.push('Large orders: ' + big);
++    lines.push('Rows: ' + rows);
++    lines.push('Large orders: ' + largeOrders);
+   }
+-  return res.join('\n') + '\n';
++  return lines.join('\n') + '\n';
+ }

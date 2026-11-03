@@ -1,0 +1,87 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d152fe152f0e9628",
+    "ertugrul-dmr": "95fb5f30d9053881"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.25,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes reuse `allocate`, factor out the duplicate-name check, make `--with` and `--percent` mutually exclusive, and keep every cent. B checks all percentage input inside `split_by_percent` and reports it through the existing `error: ...` path, so bad input gives the same message style as a bad amount. A sends malformed values through argparse and other errors through `error:`, giving two output styles (which its report admits), and puts the range check in the CLI rather than the domain function. A has slightly more thorough CLI tests, but B's consistent error handling makes it the slightly better merge.",
+        "a_issues": [
+          "Malformed `--percent` values produce argparse usage-style errors, while a wrong total or a repeated name produces `error: ...`, so error output is inconsistent.",
+          "The 0\u2013100 range check lives only in the CLI parser; `split_by_percent` itself accepts negative or over-100 values as long as they sum to 100.",
+          "0% shares are allowed, which records a person who owes nothing; this is debatable but flagged in the report."
+        ],
+        "b_issues": [
+          "The greedy regex `.+=` takes everything up to the last `=` as the name, so `a=b=50` is accepted with the person named `a=b`.",
+          "The test for combining `--with` and `--percent` does not check the exit code, and no test covers giving neither option.",
+          "Rejecting 0% is a product choice the task did not ask for, though it is documented and flagged."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes share the same structure: a mutually exclusive `--with`/`--percent` group, `split_by_percent` reusing `allocate`, and the duplicate check moved into a helper. A keeps every `--percent` error on the existing `error: ...` path and puts the range checks inside `split_by_percent`, so that function validates its own input. B checks the format and the upper bound inside an argparse type and the total in the splitter, which spreads validation across two places and gives two different error styles (B's report says so). B does add a useful test that `add` fails when neither option is given.",
+        "a_issues": [
+          "The greedy regex accepts odd names such as `alice=` from `alice==50` instead of rejecting them.",
+          "The test for combining `--with` and `--percent` does not check the exit code.",
+          "There is no test that `add` fails when neither `--with` nor `--percent` is given."
+        ],
+        "b_issues": [
+          "A malformed `--percent` gets argparse's usage-style message, while a wrong total or repeated name gets the `error: ...` message, so error output is inconsistent.",
+          "Validation is split: the 0..100 range is checked in the CLI type and the total in `split_by_percent`, so the splitter does not check the range of its own input.",
+          "0% is allowed, which records a person who owes nothing (the report flags this as a decision)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

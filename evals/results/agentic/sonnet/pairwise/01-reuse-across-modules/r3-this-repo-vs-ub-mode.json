@@ -1,0 +1,83 @@
+{
+  "case": "01-reuse-across-modules",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "337e51ad687b0300",
+    "ub-mode": "0cdef09c49487209"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The production code in both changes is byte-identical: one line using `gross_total` and `format_eur`, placed right after the item list. A's tests are stronger: one covers shipping in the total and the blank line after the new line, and another covers the thousands separator. B's single test omits both. B's report also includes unverifiable process details (a commit hash, CRLF notes, unexplained 'crapper/dryer/mutator' tools) that add noise rather than useful verification.",
+        "a_issues": [],
+        "b_issues": [
+          "Single test does not cover shipping in the gross total.",
+          "No test of the thousands separator, which the task's example format highlights.",
+          "The test does not check that the blank line before the closing text is preserved.",
+          "The report contains noisy, unverifiable details: a commit hash, CRLF edit troubles, and references to unexplained tools."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both PRs make the identical production change: they reuse `gross_total` and `format_eur` and put the line right after the items. B's tests do more to protect the requirements. They cover shipping being included, the thousands separator that the task's own example shows, and the blank line that follows. A's single test exercises neither shipping nor thousands formatting, and its report adds noise (a commit nobody asked for, unrelated tool mentions).",
+        "a_issues": [
+          "Test does not cover shipping, so a regression that dropped shipping from the total would go unnoticed",
+          "No test for the thousands separator, even though the task example (1.234,50 EUR) highlights it",
+          "Report claims a local commit was made, which the task did not request and the reviewer cannot verify",
+          "Report mentions unrelated tools (crapper, dryer, mutator) and editing mishaps, which is noise for the developer"
+        ],
+        "b_issues": [
+          "No test for an empty item list or zero total (minor)"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

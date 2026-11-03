@@ -1,0 +1,85 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c247e8f6863d53c3",
+    "ub-mode": "58c9ce0b35486352"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make the same fix: they map the CRM `customer_id` to `customerId` when loading, and route the lookup through `requireCustomer`. Both add equivalent tests. B committed to `main` without being asked, and its report mentions unexplained skipped 'crapper, dryer and mutator' steps. A left the change uncommitted for review and reported it plainly. The code is essentially equal, so A wins on scope and report.",
+        "a_issues": [
+          "The report says CRM customers were stored under an 'empty id'; they were actually keyed under `undefined` and overwrote each other.",
+          "`fromCrmRecord` spreads `...rest`, so it passes through whatever extra fields the CRM sends. This is minor."
+        ],
+        "b_issues": [
+          "Committed `c94ae68` to `main` without being asked to commit.",
+          "The report mentions skipping 'crapper, dryer and mutator steps', which is unexplained jargon that tells the developer nothing useful.",
+          "Import order in the test file is not alphabetical, unlike the rest of the file. This is minor."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The code changes are effectively the same. Both normalize `customer_id` to `customerId` when loading CRM customers, and both route the lookup through the existing `requireCustomer`, so the export works and unknown references fail as the README requires. The deciding difference is process: A committed straight to `main` without being asked, and its report mentions skipped internal steps that mean nothing to the developer. B left the change in the working tree for review. B's report has one small inaccuracy: it says the ids were \"empty\", when the CRM records actually all landed under the `undefined` key.",
+        "a_issues": [
+          "Committed to `main` (c94ae68) without being asked to commit.",
+          "Report refers to skipped \"crapper, dryer and mutator steps\", jargon the developer cannot act on.",
+          "Test imports are slightly out of alphabetical order."
+        ],
+        "b_issues": [
+          "Report says CRM customers were stored under an \"empty id\"; they were all indexed under the `undefined` key and overwrote each other.",
+          "`fromCrmRecord` spreads all remaining CRM fields, so any extra CRM-only fields would pass through unfiltered (minor, arguably a feature)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

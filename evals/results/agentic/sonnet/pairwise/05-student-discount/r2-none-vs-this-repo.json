@@ -1,0 +1,81 @@
+{
+  "case": "05-student-discount",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "7c9e4310d6b970a4",
+    "this-repo": "18df5de12c3d773b"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same production edits: a `STUDENT` enum value, `STUDENT_RATE.max(loyaltyRateFor(...))` in `DiscountPolicy`, and the receipt label. B is slightly better because it adds a receipt test that protects the new label and the student discount amount. B's README also states the 'higher rate, not combined' rule outright, while A leaves it implied by where the table row sits. Both reports are accurate, and their test counts (14 and 16) match their diffs.",
+        "a_issues": [
+          "No test covers the new \"student\" receipt label.",
+          "The README does not say that the student and loyalty discounts are not combined. A reader has to infer it from the Student row sitting between the loyalty tiers."
+        ],
+        "b_issues": [
+          "The README table lists Student above the 15% gold tier. Without the added note, a reader could take that ordering to mean the student rate has priority."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make the same production change: a `STUDENT` enum member, `STUDENT_RATE.max(loyaltyRateFor(...))` in `DiscountPolicy`, and the receipt label. Both are correct and minimal. A goes a bit further: it tests the new receipt label and discount amount, and its README states the no-combining rule, which B's table alone does not. Both reports give accurate test counts (16 vs 14) and describe their changes correctly.",
+        "a_issues": [
+          "`studentsGetTenPercent` and the silver case are split into separate tests, which is slightly more verbose than needed but harmless."
+        ],
+        "b_issues": [
+          "No test covers the new `ReceiptFormatter` label for students, so a wrong or missing label would go unnoticed.",
+          "The README only adds a Student row and does not say that the student and loyalty discounts are not combined."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

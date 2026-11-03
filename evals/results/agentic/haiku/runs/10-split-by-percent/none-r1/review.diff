@@ -1,0 +1,259 @@
+diff --git a/README.md b/README.md
+index 1cf4aa4..b25446b 100644
+--- a/README.md
++++ b/README.md
+@@ -13,16 +13,17 @@ carol -10.00
+ 
+ ## Commands
+ 
+ All commands accept `--file PATH` before the command name (default `tabtally.json`).
+ 
+ | Command | What it does |
+ | --- | --- |
+ | `add --paid-by NAME --amount AMOUNT --description TEXT --with NAME ...` | Record an expense that the named people share equally. Repeat `--with` for each person. |
++| `add --paid-by NAME --amount AMOUNT --description TEXT --percent NAME=PCT ...` | Record an expense split by whole-number percentages, for example `--percent alice=50 --percent bob=30 --percent carol=20`. The percentages must add up to 100. Use either `--with` or `--percent`, not both. |
+ | `list` | Print every recorded expense. |
+ | `balances` | Print what each person is owed (positive) or owes (negative). |
+ 
+ Amounts are written like `12.50`, with at most two decimals. Internally every amount is a whole number of cents, so shares always add up to the amount that was paid.
+ 
+ ## Development
+ 
+ ```console
+diff --git a/tabtally/cli.py b/tabtally/cli.py
+index 4ac2c51..2a390f8 100644
+--- a/tabtally/cli.py
++++ b/tabtally/cli.py
+@@ -4,39 +4,47 @@ import argparse
+ import sys
+ from pathlib import Path
+ 
+ from tabtally import store
+ from tabtally.balances import net_balances
+ from tabtally.errors import TabtallyError
+ from tabtally.models import Expense
+ from tabtally.money import format_cents, parse_amount
+-from tabtally.splitting import split_equally
++from tabtally.splitting import parse_percent, split_by_percent, split_equally
+ 
+ DEFAULT_FILE = "tabtally.json"
+ USAGE_ERROR = 2
+ 
+ 
+ def build_parser() -> argparse.ArgumentParser:
+     parser = argparse.ArgumentParser(prog="tabtally", description="Track shared expenses.")
+     parser.add_argument("--file", type=Path, default=Path(DEFAULT_FILE), help="expense file")
+     commands = parser.add_subparsers(dest="command", required=True)
+ 
+     add = commands.add_parser("add", help="record an expense")
+     add.add_argument("--paid-by", required=True, metavar="NAME")
+     add.add_argument("--amount", required=True, help="for example 12.50")
+     add.add_argument("--description", required=True)
+-    add.add_argument(
++    split = add.add_mutually_exclusive_group(required=True)
++    split.add_argument(
+         "--with",
+         dest="people",
+         action="append",
+-        required=True,
+         metavar="NAME",
+         help="a person sharing the expense equally; repeat for each person",
+     )
++    split.add_argument(
++        "--percent",
++        dest="percents",
++        action="append",
++        metavar="NAME=PCT",
++        help="a person's whole-number share in percent, for example alice=50; "
++        "repeat for each person, the percentages must add up to 100",
++    )
+     add.set_defaults(handler=_add)
+ 
+     commands.add_parser("list", help="print all expenses").set_defaults(handler=_list)
+     commands.add_parser("balances", help="print who owes whom").set_defaults(handler=_balances)
+     return parser
+ 
+ 
+ def main(argv: list[str] | None = None) -> int:
+@@ -45,17 +53,20 @@ def main(argv: list[str] | None = None) -> int:
+         return args.handler(args)
+     except TabtallyError as error:
+         print(f"error: {error}", file=sys.stderr)
+         return USAGE_ERROR
+ 
+ 
+ def _add(args: argparse.Namespace) -> int:
+     cents = parse_amount(args.amount)
+-    shares = split_equally(cents, args.people)
++    if args.percents:
++        shares = split_by_percent(cents, [parse_percent(text) for text in args.percents])
++    else:
++        shares = split_equally(cents, args.people)
+     expenses = store.load(args.file)
+     expense = Expense(store.next_id(expenses), args.paid_by, args.description, cents, shares)
+     store.save(args.file, [*expenses, expense])
+     print(f"added #{expense.id}: {format_cents(cents)} for {args.description}")
+     return 0
+ 
+ 
+ def _list(args: argparse.Namespace) -> int:
+diff --git a/tabtally/splitting.py b/tabtally/splitting.py
+index f5739ee..c4d1eb8 100644
+--- a/tabtally/splitting.py
++++ b/tabtally/splitting.py
+@@ -1,11 +1,34 @@
+ """Decide how much of an expense each person owes."""
+ 
++import re
++
+ from tabtally.errors import MoneyError
+ from tabtally.money import allocate
+ 
+ 
+ def split_equally(cents: int, people: list[str]) -> dict[str, int]:
+-    duplicates = sorted({name for name in people if people.count(name) > 1})
++    _reject_duplicates(people)
++    return dict(zip(people, allocate(cents, [1] * len(people))))
++
++
++def parse_percent(text: str) -> tuple[str, int]:
++    """Turn user input such as "alice=50" into ("alice", 50)."""
++    name, separator, digits = text.rpartition("=")
++    if not separator or not name or not re.fullmatch(r"[0-9]+", digits):
++        raise MoneyError(f"expected NAME=PERCENT with a whole number percent: {text!r}")
++    return name, int(digits)
++
++
++def split_by_percent(cents: int, percents: list[tuple[str, int]]) -> dict[str, int]:
++    names = [name for name, _ in percents]
++    _reject_duplicates(names)
++    total = sum(percent for _, percent in percents)
++    if total != 100:
++        raise MoneyError(f"percentages must add up to 100, not {total}")
++    return dict(zip(names, allocate(cents, [percent for _, percent in percents])))
++
++
++def _reject_duplicates(names: list[str]) -> None:
++    duplicates = sorted({name for name in names if names.count(name) > 1})
+     if duplicates:
+         raise MoneyError(f"listed more than once: {', '.join(duplicates)}")
+-    return dict(zip(people, allocate(cents, [1] * len(people))))
+diff --git a/tests/test_cli.py b/tests/test_cli.py
+index 935c29c..c716c1f 100644
+--- a/tests/test_cli.py
++++ b/tests/test_cli.py
+@@ -56,8 +56,56 @@ def test_bad_amount_is_reported_and_nothing_is_saved(run):
+ 
+ def test_person_listed_twice_is_rejected(run):
+     code, _, err = run(
+         "add", "--paid-by", "alice", "--amount", "9", "--description", "x", "--with", "bob", "--with", "bob"
+     )
+     assert code == 2
+     assert "bob" in err
+     assert run("list")[1] == ""
++
++
++def test_add_with_percentages_splits_by_percent(run):
++    code, out, _ = run(
++        "add", "--paid-by", "alice", "--amount", "30.00", "--description", "Dinner",
++        "--percent", "alice=50", "--percent", "bob=30", "--percent", "carol=20",
++    )  # fmt: skip
++    assert code == 0
++    assert out == "added #1: 30.00 for Dinner\n"
++    _, out, _ = run("balances")
++    assert out == "alice 15.00\nbob -9.00\ncarol -6.00\n"
++
++
++def test_percentages_that_do_not_add_up_are_rejected_and_nothing_is_saved(run):
++    code, _, err = run(
++        "add", "--paid-by", "alice", "--amount", "30", "--description", "x",
++        "--percent", "alice=50", "--percent", "bob=30",
++    )  # fmt: skip
++    assert code == 2
++    assert "must add up to 100" in err
++    assert run("list")[1] == ""
++
++
++def test_malformed_percentage_is_rejected(run):
++    code, _, err = run(
++        "add", "--paid-by", "alice", "--amount", "30", "--description", "x",
++        "--percent", "alice=fifty", "--percent", "bob=50",
++    )  # fmt: skip
++    assert code == 2
++    assert "alice=fifty" in err
++    assert run("list")[1] == ""
++
++
++def test_with_and_percent_cannot_be_combined(run, capsys):
++    with pytest.raises(SystemExit) as excinfo:
++        run(
++            "add", "--paid-by", "alice", "--amount", "30", "--description", "x",
++            "--with", "bob", "--percent", "bob=100",
++        )  # fmt: skip
++    assert excinfo.value.code == 2
++    assert "not allowed with" in capsys.readouterr().err
++
++
++def test_add_needs_either_with_or_percent(run, capsys):
++    with pytest.raises(SystemExit) as excinfo:
++        run("add", "--paid-by", "alice", "--amount", "30", "--description", "x")
++    assert excinfo.value.code == 2
++    assert "--with" in capsys.readouterr().err
+diff --git a/tests/test_splitting.py b/tests/test_splitting.py
+index 37896ab..89a4670 100644
+--- a/tests/test_splitting.py
++++ b/tests/test_splitting.py
+@@ -1,19 +1,52 @@
+ import pytest
+ 
+ from tabtally.errors import MoneyError
+-from tabtally.splitting import split_equally
++from tabtally.splitting import parse_percent, split_by_percent, split_equally
+ 
+ 
+ def test_split_equally_gives_everyone_the_same_share():
+     assert split_equally(900, ["alice", "bob", "carol"]) == {"alice": 300, "bob": 300, "carol": 300}
+ 
+ 
+ def test_split_equally_keeps_every_cent():
+     shares = split_equally(1000, ["alice", "bob", "carol"])
+     assert sum(shares.values()) == 1000
+     assert sorted(shares.values()) == [333, 333, 334]
+ 
+ 
+ def test_split_equally_rejects_a_person_listed_twice():
+     with pytest.raises(MoneyError, match="bob"):
+         split_equally(1000, ["bob", "alice", "bob"])
++
++
++def test_parse_percent_reads_name_and_whole_number():
++    assert parse_percent("alice=50") == ("alice", 50)
++
++
++@pytest.mark.parametrize("text", ["alice", "=50", "alice=", "alice=-5", "alice=50.5", "alice=+5", "alice=50%"])
++def test_parse_percent_rejects_malformed_input(text):
++    with pytest.raises(MoneyError):
++        parse_percent(text)
++
++
++def test_split_by_percent_follows_the_percentages():
++    shares = split_by_percent(3000, [("alice", 50), ("bob", 30), ("carol", 20)])
++    assert shares == {"alice": 1500, "bob": 900, "carol": 600}
++
++
++def test_split_by_percent_keeps_every_cent():
++    shares = split_by_percent(1000, [("alice", 34), ("bob", 33), ("carol", 33)])
++    assert sum(shares.values()) == 1000
++    assert shares == {"alice": 340, "bob": 330, "carol": 330}
++
++
++def test_split_by_percent_requires_exactly_100():
++    with pytest.raises(MoneyError, match="not 90"):
++        split_by_percent(1000, [("alice", 50), ("bob", 40)])
++    with pytest.raises(MoneyError, match="not 110"):
++        split_by_percent(1000, [("alice", 60), ("bob", 50)])
++
++
++def test_split_by_percent_rejects_a_person_listed_twice():
++    with pytest.raises(MoneyError, match="bob"):
++        split_by_percent(1000, [("bob", 50), ("alice", 20), ("bob", 30)])

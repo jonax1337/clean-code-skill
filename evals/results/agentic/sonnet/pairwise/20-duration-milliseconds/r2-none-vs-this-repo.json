@@ -1,0 +1,87 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "6df2f45da8951ea9",
+    "this-repo": "4b3d1f2201ff8f5a"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes convert `parseDuration` to milliseconds and adapt the same callers correctly, so behavior is preserved in both, including `Retry-After` and the report text. A keeps the change minimal by dividing by 1000 inline. B adds and exports a new `MS_PER_SECOND` constant from `duration.ts`, which widens the module surface beyond what the task needs. B's report also claims the seconds conversion is 'checked by the type checker', which is misleading because tsc cannot catch a units error; A's report honestly says those paths are unverified.",
+        "a_issues": [
+          "No tests added for `rateLimitHeaders` or `describeSettings`, even though their unit conversion changed.",
+          "`Math.round` in `http.ts` is unnecessary because whole-unit durations are always multiples of 1000, though it is harmless.",
+          "Did not report running the typecheck."
+        ],
+        "b_issues": [
+          "Exports a new `MS_PER_SECOND` constant from `duration.ts`, a small extra abstraction and API surface the task did not ask for.",
+          "Report says the seconds conversion in `http.ts` and `report.ts` is 'checked only by the type checker', but tsc cannot verify a numeric units conversion, so this overstates verification.",
+          "No tests added for `rateLimitHeaders` or `describeSettings`."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two changes are functionally equivalent: both switch the unit table to milliseconds, drop the `* 1000` in cache, retry and scheduler, convert back to seconds in http and report, and rescale the validate bounds. B is more minimal: it adds no new exported surface, and its `Math.round` keeps `Retry-After` a whole number as its comment requires. A adds a new public `MS_PER_SECOND` export the task didn't ask for, and its report wrongly says the type checker checks the seconds conversion.",
+        "a_issues": [
+          "Adds a new public export `MS_PER_SECOND` from duration.ts that the task didn't need, which widens the module's API.",
+          "Report says the http/report seconds conversion is 'checked only by the type checker', but a type checker cannot catch a missing or wrong /1000.",
+          "Adds no tests for `rateLimitHeaders` or `describeSettings`, the two places where the unit is converted back to seconds."
+        ],
+        "b_issues": [
+          "`Math.round` in http.ts does nothing for today's inputs, since every unit is a multiple of 1000 ms.",
+          "Uses the bare 1000 literal in several files instead of a named constant.",
+          "Adds no tests for `rateLimitHeaders` or `describeSettings`, the two places where the unit is converted back to seconds."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

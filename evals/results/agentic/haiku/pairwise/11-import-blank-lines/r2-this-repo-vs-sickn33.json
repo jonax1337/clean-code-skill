@@ -1,0 +1,82 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "5d58fea319db1eb1",
+    "sickn33": "46cbb757dca2efaf"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.25,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes add the same guard in `parse_entries` to skip whitespace-only lines while keeping physical line numbers, and both add the same two tests. B wins only on naming: A's test `test_blank_lines_are_skipped_but_still_counted` does not check line counting, while B's test names match what each test checks. Both reports are accurate and both say the fix was not run against the accountant's real file.",
+        "a_issues": [
+          "Test name `test_blank_lines_are_skipped_but_still_counted` claims it checks line counting, but it only checks the parsed entries; the counting is covered by the other test.",
+          "README's CSV import section was not updated to say blank lines are ignored."
+        ],
+        "b_issues": [
+          "README's CSV import section was not updated to say blank lines are ignored."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two code changes are identical: each skips empty or whitespace-only lines before parsing and keeps physical line numbers, which fixes the trailing-blank-line error correctly. The added tests are also the same except for their names. B's name `test_blank_lines_are_skipped_but_still_counted` claims to check line counting, which that test does not do, while A's names describe their tests accurately. B's report is a bit more informative (it says the test fails without the fix and mentions possible header-row quirks), but the misleading name stays in the codebase and the report does not.",
+        "a_issues": [
+          "The README's CSV import section is not updated to say that blank lines are now ignored."
+        ],
+        "b_issues": [
+          "The test name `test_blank_lines_are_skipped_but_still_counted` overstates what the test checks; line counting is only covered by the second test.",
+          "The report describes the first test as covering blank lines 'between entries' and leaves out the trailing blank line, which is the case the task is about.",
+          "The README's CSV import section is not updated to say that blank lines are now ignored."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

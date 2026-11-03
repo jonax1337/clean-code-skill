@@ -1,0 +1,75 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "e0e7387d7f1c4175",
+    "ertugrul-dmr": "0480db254c596ae3"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "The two diffs are functionally identical: same event type, same reducer logic (pause only from active, payment_failed ignored while paused, cancel clears resumeOn), same audit and notification output, and essentially the same six tests. The only differences are cosmetic: A adds a short comment explaining why payment_failed is ignored while paused, and B lists 'paused' before 'canceled' in the status union and builds its past-due state with replay. Both reports are accurate and point out the same unspecified edge cases, so I would be equally happy to merge either.",
+        "a_issues": [
+          "No validation of the resumeOn format (noted in the report, and consistent with the rest of the codebase)."
+        ],
+        "b_issues": [
+          "No validation of the resumeOn format (noted in the report, and consistent with the rest of the codebase)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both changes are functionally identical. Each adds the event type, the 'paused' status and the nullable resumeOn field, guards payment_failed for paused subscriptions, clears resumeOn on cancel, and handles the new event in the audit log and notifier. Both add the same set of tests. The only differences are trivial: B adds a one-line comment in payment_failed, the status union is ordered differently, and the test setup varies slightly. Both reports are accurate and flag the same unspecified edge cases (plan change while paused, and resumeOn not being validated).",
+        "a_issues": [],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

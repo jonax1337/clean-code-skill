@@ -1,0 +1,75 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d22fedb569e807ad",
+    "ertugrul-dmr": "b7f836b7133480df"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "The source changes are identical: same event type, same reducer logic, same audit line and same notification. Both handle the spec's edge cases: pause only applies from active, payment events are ignored while paused, and cancelling clears resumeOn. The tests cover the same behaviors, with only cosmetic differences in placement and naming, and both reports are accurate, including the count of 20 tests. I would be equally happy to merge either.",
+        "a_issues": [],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both changes have byte-identical source in events, subscription, audit and notifier, and they implement every requirement correctly: paused status, a null resumeOn outside pause, payments ignored while paused, and cancel clearing resumeOn. Their tests cover the same cases, including the task's example audit line; the only differences are test placement and that B builds the past_due state with replay. Both reports are accurate, and B's note that a paused subscription has no way back to active yet is a minor plus but not enough to prefer it.",
+        "a_issues": [
+          "Inserts the pause audit test in the middle of the existing tests rather than at the end (cosmetic)."
+        ],
+        "b_issues": [
+          "The report's test list leaves out the initial-null resumeOn test it added (minor)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

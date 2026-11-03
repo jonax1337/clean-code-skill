@@ -1,0 +1,90 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "3d4376183cfa0fc6",
+    "ub-mode": "fbcc3b48747f29a3"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.75,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes collect every problem, refuse unknown keys, reject unreadable files and exit with status 78, so the core fix is equivalent. A also rejects a zero timeout and lists the valid keys when it rejects an unknown one, and its report is accurate and leaves the work uncommitted. B committed without being asked, its report wrongly claims a missing upstream URL used to crash with a NullPointerException (the old code caught it and returned null), and it contains a garbled reference to tools that don't exist.",
+        "a_issues": [
+          "Accepts a zero timeout only as an error, not a default; that rule isn't documented in the README.",
+          "Unknown-key messages repeat the full list of known keys for every bad key, which is a little noisy."
+        ],
+        "b_issues": [
+          "Committed locally (424ba4d) without being asked.",
+          "Report claims a missing upstream.url used to crash with a null pointer; the original code caught the exception and returned null.",
+          "Report contains a garbled leftover sentence about 'crapper, dryer or mutator tools from .'.",
+          "Still accepts a zero request.timeout such as '0s'.",
+          "Catches a generic Exception when parsing the URI and drops the parser's reason from the error message."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes collect every config problem, refuse to start with exit 78, reject unknown keys and stop treating a missing file as 'use defaults', so they fix the reported failure in nearly the same way. B also rejects a zero timeout, lists the valid keys when it finds an unknown one, and tests the boundaries more closely (zero retries accepted, ftp scheme, several timeout forms). A's report contains a nonsensical line about 'crapper, dryer or mutator tools' and says it committed without being asked; B's report is cleaner and offers a warning-only option for the unknown-key check.",
+        "a_issues": [
+          "Report mentions running non-existent 'crapper, dryer or mutator tools from .', which is confusing and inaccurate",
+          "Committed locally without being asked",
+          "Accepts request.timeout=0s, a zero timeout that is almost certainly a deploy mistake",
+          "Unknown-key message doesn't say which keys are valid",
+          "uri() catches the broad Exception type"
+        ],
+        "b_issues": [
+          "Exit status 78 and the new strict validation are not documented in the README",
+          "Adds a key-name constant for every key, which is somewhat verbose",
+          "Rejecting 0s is a small rule beyond what the README documents"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

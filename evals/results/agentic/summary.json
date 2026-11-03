@@ -1,612 +1,1031 @@
 {
   "haiku": {
     "test": {
-      "cases": 6,
+      "cases": 13,
       "conditions": {
-        "baseline": {
-          "runs": 18,
-          "checks_passed": 0.9782828282828283,
+        "none": {
+          "runs": 26,
+          "checks_passed": 0.958072483072483,
           "checks_passed_ci": [
-            0.9621212121212122,
-            0.9944444444444445
+            0.9478465978465979,
+            0.9682983682983684
           ],
-          "runs_all_passed": 14,
-          "cost_usd": 0.006401496111111111,
-          "turns": 14.333333333333334,
-          "duration_s": 29.351944444444445,
+          "runs_all_passed": 16,
+          "cost_usd": 0.010097776538461539,
+          "turns": 15.038461538461538,
+          "duration_s": 78.07884615384616,
           "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 24,
+            "long_functions_added": -0.08333333333333333,
+            "complex_functions_added": -0.16666666666666666,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.08333333333333333,
+            "max_nloc_after": 21.083333333333332,
+            "max_ccn_after": 6.458333333333333
+          },
           "deltas": {
-            "v2": {
-              "delta": 0.005555555555555536,
+            "this-repo": {
+              "delta": -0.006196581196581175,
               "ci": [
-                -0.011111111111111183,
-                0.026767676767676774
+                -0.02021034521034526,
+                0.00752580752580756
               ]
             }
           }
         },
-        "v2": {
-          "runs": 18,
-          "checks_passed": 0.9727272727272728,
+        "this-repo": {
+          "runs": 26,
+          "checks_passed": 0.9642690642690642,
           "checks_passed_ci": [
-            0.9616161616161616,
-            0.9833333333333334
+            0.9541791541791542,
+            0.9743589743589743
           ],
-          "runs_all_passed": 13,
-          "cost_usd": 0.00835728,
-          "turns": 15.055555555555555,
-          "duration_s": 47.67583333333334,
+          "runs_all_passed": 18,
+          "cost_usd": 0.015246886538461539,
+          "turns": 15.76923076923077,
+          "duration_s": 74.837,
           "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 24,
+            "long_functions_added": -0.041666666666666664,
+            "complex_functions_added": -0.16666666666666666,
+            "runs_adding_long_function": 0.041666666666666664,
+            "runs_adding_complex_function": 0.08333333333333333,
+            "max_nloc_after": 21.25,
+            "max_ccn_after": 6.458333333333333
+          },
           "deltas": {
-            "baseline": {
-              "delta": -0.005555555555555536,
+            "none": {
+              "delta": 0.006196581196581175,
               "ci": [
-                -0.02626262626262632,
-                0.01565656565656559
+                -0.007875457875457847,
+                0.020268620268620308
               ]
             }
           }
         },
-        "v3a": {
-          "runs": 18,
-          "checks_passed": 0.9727272727272728,
+        "ub-mode": {
+          "runs": 26,
+          "checks_passed": 0.9732905982905983,
           "checks_passed_ci": [
-            0.9616161616161616,
-            0.9833333333333334
+            0.9626068376068376,
+            0.9839743589743589
           ],
-          "runs_all_passed": 13,
-          "cost_usd": 0.008590972777777778,
-          "turns": 14.333333333333334,
-          "duration_s": 44.34427777777778,
+          "runs_all_passed": 21,
+          "cost_usd": 0.013690068846153848,
+          "turns": 17.03846153846154,
+          "duration_s": 93.86711538461539,
           "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 24,
+            "long_functions_added": -0.16666666666666666,
+            "complex_functions_added": -0.16666666666666666,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.08333333333333333,
+            "max_nloc_after": 20.125,
+            "max_ccn_after": 5.916666666666667
+          },
           "deltas": {
-            "baseline": {
-              "delta": -0.005555555555555536,
+            "none": {
+              "delta": 0.015218115218115225,
               "ci": [
-                -0.02626262626262632,
-                0.011616161616161635
+                0.001329226329226385,
+                0.02894050394050396
               ]
             },
-            "v2": {
-              "delta": 0.0,
+            "this-repo": {
+              "delta": 0.00902153402153405,
               "ci": [
-                -0.016161616161616266,
-                0.016161616161616266
+                -0.005050505050505083,
+                0.023093573093573072
               ]
             }
           }
         },
-        "v3b": {
-          "runs": 18,
-          "checks_passed": 0.9727272727272728,
+        "sickn33": {
+          "runs": 26,
+          "checks_passed": 0.9455710955710955,
           "checks_passed_ci": [
-            0.956060606060606,
-            0.9893939393939394
+            0.9343822843822844,
+            0.9567599067599067
           ],
-          "runs_all_passed": 13,
-          "cost_usd": 0.008146862777777777,
-          "turns": 15.444444444444445,
-          "duration_s": 38.645111111111106,
+          "runs_all_passed": 15,
+          "cost_usd": 0.010108318846153846,
+          "turns": 13.923076923076923,
+          "duration_s": 53.359115384615386,
           "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 24,
+            "long_functions_added": -0.08333333333333333,
+            "complex_functions_added": -0.16666666666666666,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.08333333333333333,
+            "max_nloc_after": 20.541666666666668,
+            "max_ccn_after": 6.291666666666667
+          },
           "deltas": {
-            "baseline": {
-              "delta": -0.005555555555555536,
+            "none": {
+              "delta": -0.012501387501387518,
               "ci": [
-                -0.02777777777777779,
-                0.016161616161616266
+                -0.027672327672327746,
+                0.0023199023199023117
               ]
             },
-            "v2": {
-              "delta": 0.0,
+            "this-repo": {
+              "delta": -0.018697968697968692,
               "ci": [
-                -0.02171717171717169,
-                0.02171717171717169
+                -0.035198135198135194,
+                -0.00366300366300365
               ]
             }
           }
+        },
+        "ertugrul-dmr": {
+          "runs": 14,
+          "checks_passed": 0.9598330241187384,
+          "checks_passed_ci": [
+            0.9390538033395176,
+            0.9806122448979592
+          ],
+          "runs_all_passed": 9,
+          "cost_usd": 0.00803739,
+          "turns": 12.857142857142858,
+          "duration_s": 43.48314285714285,
+          "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 12,
+            "long_functions_added": -0.08333333333333333,
+            "complex_functions_added": 0,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.16666666666666666,
+            "max_nloc_after": 20.333333333333332,
+            "max_ccn_after": 5.5
+          },
+          "deltas": {}
         }
       },
       "pairwise": {
-        "v2 vs v3a": {
-          "first": "v2",
-          "second": "v3a",
-          "units": 18,
-          "first_score": 0.375,
+        "none vs this-repo": {
+          "first": "none",
+          "second": "this-repo",
+          "units": 26,
+          "first_score": 0.46153846153846156,
           "first_score_ci": [
-            0.2361111111111111,
-            0.5138888888888888
+            0.34615384615384615,
+            0.5769230769230769
           ],
-          "first_wins": 6,
+          "first_wins": 11,
           "ties": 2,
-          "second_wins": 10,
-          "contradictory": 0.05555555555555555
+          "second_wins": 13,
+          "contradictory": 0.038461538461538464,
+          "dimension_scores": {
+            "correctness": 0.5384615384615384,
+            "scope": 0.5192307692307693,
+            "design": 0.5384615384615384,
+            "readability": 0.5,
+            "tests": 0.38461538461538464,
+            "report": 0.3942307692307692
+          }
+        },
+        "this-repo vs ub-mode": {
+          "first": "this-repo",
+          "second": "ub-mode",
+          "units": 26,
+          "first_score": 0.46153846153846156,
+          "first_score_ci": [
+            0.34615384615384615,
+            0.5769230769230769
+          ],
+          "first_wins": 11,
+          "ties": 2,
+          "second_wins": 13,
+          "contradictory": 0.07692307692307693,
+          "dimension_scores": {
+            "correctness": 0.5096153846153846,
+            "scope": 0.5480769230769231,
+            "design": 0.4519230769230769,
+            "readability": 0.5288461538461539,
+            "tests": 0.4423076923076923,
+            "report": 0.6346153846153846
+          }
+        },
+        "this-repo vs sickn33": {
+          "first": "this-repo",
+          "second": "sickn33",
+          "units": 26,
+          "first_score": 0.6346153846153846,
+          "first_score_ci": [
+            0.5384615384615384,
+            0.7307692307692307
+          ],
+          "first_wins": 14,
+          "ties": 6,
+          "second_wins": 6,
+          "contradictory": 0.23076923076923078,
+          "dimension_scores": {
+            "correctness": 0.5576923076923077,
+            "scope": 0.5,
+            "design": 0.6057692307692307,
+            "readability": 0.5288461538461539,
+            "tests": 0.6153846153846154,
+            "report": 0.5096153846153846
+          }
+        },
+        "this-repo vs ertugrul-dmr": {
+          "first": "this-repo",
+          "second": "ertugrul-dmr",
+          "units": 14,
+          "first_score": 0.75,
+          "first_score_ci": [
+            0.5714285714285714,
+            0.9285714285714286
+          ],
+          "first_wins": 10,
+          "ties": 1,
+          "second_wins": 3,
+          "contradictory": 0.07142857142857142,
+          "dimension_scores": {
+            "correctness": 0.4642857142857143,
+            "scope": 0.5,
+            "design": 0.5892857142857143,
+            "readability": 0.6428571428571429,
+            "tests": 0.6428571428571429,
+            "report": 0.6785714285714286
+          }
         }
       }
     }
   },
   "opus": {
     "test": {
-      "cases": 6,
+      "cases": 13,
       "conditions": {
-        "baseline": {
-          "runs": 18,
-          "checks_passed": 0.9833333333333334,
+        "none": {
+          "runs": 26,
+          "checks_passed": 0.9692890442890443,
           "checks_passed_ci": [
-            0.9833333333333334,
-            0.9833333333333334
+            0.9622960372960373,
+            0.9762820512820513
+          ],
+          "runs_all_passed": 19,
+          "cost_usd": 0.24406859230769232,
+          "turns": 10.346153846153847,
+          "duration_s": 70.24307692307693,
+          "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 24,
+            "long_functions_added": -0.16666666666666666,
+            "complex_functions_added": -0.20833333333333334,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.08333333333333333,
+            "max_nloc_after": 19.666666666666668,
+            "max_ccn_after": 6.125
+          },
+          "deltas": {
+            "this-repo": {
+              "delta": -0.006138306138306127,
+              "ci": [
+                -0.01925019425019414,
+                0.006973581973581999
+              ]
+            }
+          }
+        },
+        "this-repo": {
+          "runs": 26,
+          "checks_passed": 0.9754273504273504,
+          "checks_passed_ci": [
+            0.9658119658119658,
+            0.985042735042735
+          ],
+          "runs_all_passed": 21,
+          "cost_usd": 0.32881580769230767,
+          "turns": 10.538461538461538,
+          "duration_s": 74.168,
+          "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 24,
+            "long_functions_added": -0.125,
+            "complex_functions_added": -0.20833333333333334,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.08333333333333333,
+            "max_nloc_after": 19.041666666666668,
+            "max_ccn_after": 5.791666666666667
+          },
+          "deltas": {
+            "none": {
+              "delta": 0.006138306138306127,
+              "ci": [
+                -0.006973581973581999,
+                0.01925019425019414
+              ]
+            }
+          }
+        },
+        "ub-mode": {
+          "runs": 26,
+          "checks_passed": 0.9410839160839161,
+          "checks_passed_ci": [
+            0.9271950271950272,
+            0.954972804972805
           ],
           "runs_all_passed": 15,
-          "cost_usd": 0.19436825555555556,
-          "turns": 10.88888888888889,
-          "duration_s": 54.20561111111111,
+          "cost_usd": 0.3583155538461539,
+          "turns": 12.115384615384615,
+          "duration_s": 114.40738461538461,
           "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 24,
+            "long_functions_added": -0.16666666666666666,
+            "complex_functions_added": -0.25,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.08333333333333333,
+            "max_nloc_after": 18.625,
+            "max_ccn_after": 5.625
+          },
           "deltas": {
-            "v2": {
-              "delta": 0.0,
+            "none": {
+              "delta": -0.028205128205128216,
               "ci": [
-                0.0,
-                0.0
-              ]
-            }
-          }
-        },
-        "v2": {
-          "runs": 18,
-          "checks_passed": 0.9833333333333334,
-          "checks_passed_ci": [
-            0.9833333333333334,
-            0.9833333333333334
-          ],
-          "runs_all_passed": 15,
-          "cost_usd": 0.24127305555555556,
-          "turns": 10.833333333333334,
-          "duration_s": 54.81805555555555,
-          "runs_reading_skill_files": 0,
-          "deltas": {
-            "baseline": {
-              "delta": 0.0,
-              "ci": [
-                0.0,
-                0.0
-              ]
-            }
-          }
-        },
-        "v3a": {
-          "runs": 18,
-          "checks_passed": 0.9888888888888889,
-          "checks_passed_ci": [
-            0.9833333333333334,
-            1.0
-          ],
-          "runs_all_passed": 16,
-          "cost_usd": 0.24901806666666665,
-          "turns": 10,
-          "duration_s": 62.64188888888889,
-          "runs_reading_skill_files": 0,
-          "deltas": {
-            "baseline": {
-              "delta": 0.005555555555555536,
-              "ci": [
-                0.0,
-                0.016666666666666607
+                -0.04529914529914525,
+                -0.010955710955710907
               ]
             },
-            "v2": {
-              "delta": 0.005555555555555536,
+            "this-repo": {
+              "delta": -0.03434343434343434,
               "ci": [
-                0.0,
-                0.016666666666666607
+                -0.052078477078477015,
+                -0.01660839160839156
               ]
             }
           }
         },
-        "v3b": {
-          "runs": 18,
-          "checks_passed": 0.9888888888888889,
+        "sickn33": {
+          "runs": 26,
+          "checks_passed": 0.9865384615384616,
           "checks_passed_ci": [
-            0.9833333333333334,
-            1.0
+            0.9794871794871794,
+            0.9935897435897436
           ],
-          "runs_all_passed": 16,
-          "cost_usd": 0.2224231777777778,
-          "turns": 10.277777777777779,
-          "duration_s": 64.04233333333333,
+          "runs_all_passed": 23,
+          "cost_usd": 0.2642774,
+          "turns": 11.115384615384615,
+          "duration_s": 68.43376923076923,
           "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 24,
+            "long_functions_added": -0.16666666666666666,
+            "complex_functions_added": -0.25,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.08333333333333333,
+            "max_nloc_after": 17.25,
+            "max_ccn_after": 5.416666666666667
+          },
           "deltas": {
-            "baseline": {
-              "delta": 0.005555555555555536,
+            "none": {
+              "delta": 0.01724941724941731,
               "ci": [
-                0.0,
-                0.016666666666666607
+                0.006701631701631627,
+                0.02779720279720277
               ]
             },
-            "v2": {
-              "delta": 0.005555555555555536,
+            "this-repo": {
+              "delta": 0.011111111111111183,
               "ci": [
-                0.0,
-                0.016666666666666607
+                0.0008547008547008517,
+                0.023931623931623958
               ]
             }
           }
+        },
+        "ertugrul-dmr": {
+          "runs": 14,
+          "checks_passed": 0.9928571428571429,
+          "checks_passed_ci": [
+            0.9857142857142858,
+            1.0
+          ],
+          "runs_all_passed": 13,
+          "cost_usd": 0.22850975714285715,
+          "turns": 8.142857142857142,
+          "duration_s": 62.364642857142854,
+          "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 12,
+            "long_functions_added": -0.16666666666666666,
+            "complex_functions_added": 0,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.16666666666666666,
+            "max_nloc_after": 18.916666666666668,
+            "max_ccn_after": 5.583333333333333
+          },
+          "deltas": {}
         }
       },
       "pairwise": {
-        "v2 vs v3a": {
-          "first": "v2",
-          "second": "v3a",
-          "units": 18,
-          "first_score": 0.3194444444444444,
+        "none vs this-repo": {
+          "first": "none",
+          "second": "this-repo",
+          "units": 26,
+          "first_score": 0.28846153846153844,
           "first_score_ci": [
-            0.20833333333333334,
-            0.4166666666666667
+            0.23076923076923078,
+            0.34615384615384615
           ],
-          "first_wins": 3,
-          "ties": 6,
-          "second_wins": 9,
-          "contradictory": 0.2777777777777778
+          "first_wins": 7,
+          "ties": 1,
+          "second_wins": 18,
+          "contradictory": 0,
+          "dimension_scores": {
+            "correctness": 0.47115384615384615,
+            "scope": 0.46153846153846156,
+            "design": 0.4807692307692308,
+            "readability": 0.5769230769230769,
+            "tests": 0.2980769230769231,
+            "report": 0.2403846153846154
+          }
+        },
+        "this-repo vs ub-mode": {
+          "first": "this-repo",
+          "second": "ub-mode",
+          "units": 26,
+          "first_score": 0.8076923076923077,
+          "first_score_ci": [
+            0.75,
+            0.8653846153846154
+          ],
+          "first_wins": 19,
+          "ties": 4,
+          "second_wins": 3,
+          "contradictory": 0.15384615384615385,
+          "dimension_scores": {
+            "correctness": 0.49038461538461536,
+            "scope": 0.7788461538461539,
+            "design": 0.5,
+            "readability": 0.5384615384615384,
+            "tests": 0.46153846153846156,
+            "report": 0.8942307692307693
+          }
+        },
+        "this-repo vs sickn33": {
+          "first": "this-repo",
+          "second": "sickn33",
+          "units": 26,
+          "first_score": 0.7403846153846154,
+          "first_score_ci": [
+            0.6442307692307693,
+            0.8365384615384616
+          ],
+          "first_wins": 18,
+          "ties": 3,
+          "second_wins": 5,
+          "contradictory": 0.11538461538461539,
+          "dimension_scores": {
+            "correctness": 0.5480769230769231,
+            "scope": 0.5480769230769231,
+            "design": 0.5,
+            "readability": 0.47115384615384615,
+            "tests": 0.7211538461538461,
+            "report": 0.6923076923076923
+          }
+        },
+        "this-repo vs ertugrul-dmr": {
+          "first": "this-repo",
+          "second": "ertugrul-dmr",
+          "units": 14,
+          "first_score": 0.5892857142857143,
+          "first_score_ci": [
+            0.4642857142857143,
+            0.7142857142857143
+          ],
+          "first_wins": 7,
+          "ties": 3,
+          "second_wins": 4,
+          "contradictory": 0.14285714285714285,
+          "dimension_scores": {
+            "correctness": 0.42857142857142855,
+            "scope": 0.5892857142857143,
+            "design": 0.4107142857142857,
+            "readability": 0.48214285714285715,
+            "tests": 0.5,
+            "report": 0.6785714285714286
+          }
         }
       }
     }
   },
   "sonnet": {
     "dev": {
-      "cases": 3,
+      "cases": 7,
       "conditions": {
-        "baseline": {
-          "runs": 9,
-          "checks_passed": 0.7037037037037037,
+        "none": {
+          "runs": 21,
+          "checks_passed": 0.8214285714285714,
           "checks_passed_ci": [
-            0.7037037037037037,
-            0.7037037037037037
+            0.7817460317460317,
+            0.8492063492063492
           ],
-          "runs_all_passed": 0,
-          "cost_usd": 0.040804155555555555,
-          "turns": 5.777777777777778,
-          "duration_s": 13.956666666666665,
+          "runs_all_passed": 8,
+          "cost_usd": 0.07898818095238096,
+          "turns": 8.904761904761905,
+          "duration_s": 36.51414285714286,
           "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 18,
+            "long_functions_added": 0,
+            "complex_functions_added": 0.05555555555555555,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.1111111111111111,
+            "max_nloc_after": 18.055555555555557,
+            "max_ccn_after": 6
+          },
           "deltas": {
-            "v2": {
-              "delta": -0.18518518518518512,
+            "this-repo": {
+              "delta": -0.17490842490842495,
               "ci": [
-                -0.20987654320987648,
-                -0.16049382716049376
+                -0.21062271062271065,
+                -0.14713064713064716
+              ]
+            }
+          }
+        },
+        "this-repo": {
+          "runs": 21,
+          "checks_passed": 0.9963369963369964,
+          "checks_passed_ci": [
+            0.989010989010989,
+            1.0
+          ],
+          "runs_all_passed": 20,
+          "cost_usd": 0.1475432523809524,
+          "turns": 12.238095238095237,
+          "duration_s": 54.98461904761905,
+          "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 18,
+            "long_functions_added": -0.1111111111111111,
+            "complex_functions_added": -0.16666666666666666,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0,
+            "max_nloc_after": 12.88888888888889,
+            "max_ccn_after": 4.5
+          },
+          "deltas": {
+            "none": {
+              "delta": 0.17490842490842495,
+              "ci": [
+                0.14713064713064716,
+                0.21092796092796096
+              ]
+            }
+          }
+        },
+        "ub-mode": {
+          "runs": 21,
+          "checks_passed": 0.9513634513634514,
+          "checks_passed_ci": [
+            0.9172771672771672,
+            0.9768009768009768
+          ],
+          "runs_all_passed": 15,
+          "cost_usd": 0.09682589999999999,
+          "turns": 8.619047619047619,
+          "duration_s": 51.627428571428574,
+          "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 18,
+            "long_functions_added": -0.05555555555555555,
+            "complex_functions_added": -0.05555555555555555,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.05555555555555555,
+            "max_nloc_after": 15.666666666666666,
+            "max_ccn_after": 5.166666666666667
+          },
+          "deltas": {
+            "none": {
+              "delta": 0.12993487993487995,
+              "ci": [
+                0.08465608465608465,
+                0.17724867724867732
+              ]
+            },
+            "this-repo": {
+              "delta": -0.044973544973545,
+              "ci": [
+                -0.07743182743182742,
+                -0.017501017501017513
               ]
             }
           }
         },
         "sickn33": {
-          "runs": 9,
-          "checks_passed": 0.7283950617283951,
+          "runs": 21,
+          "checks_passed": 0.8822751322751322,
           "checks_passed_ci": [
-            0.7037037037037037,
-            0.7407407407407407
+            0.876984126984127,
+            0.8928571428571428
           ],
-          "runs_all_passed": 0,
-          "cost_usd": 0.05046233333333333,
-          "turns": 6.444444444444445,
-          "duration_s": 15.410555555555554,
+          "runs_all_passed": 9,
+          "cost_usd": 0.09189975714285714,
+          "turns": 8.761904761904763,
+          "duration_s": 38.46552380952381,
           "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 18,
+            "long_functions_added": -0.1111111111111111,
+            "complex_functions_added": -0.1111111111111111,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0,
+            "max_nloc_after": 16.333333333333332,
+            "max_ccn_after": 5.5
+          },
           "deltas": {
-            "baseline": {
-              "delta": 0.024691358024691357,
+            "none": {
+              "delta": 0.060846560846560815,
               "ci": [
-                0.0,
-                0.03703703703703698
+                0.02777777777777779,
+                0.0978835978835979
               ]
             },
-            "v2": {
-              "delta": -0.16049382716049376,
+            "this-repo": {
+              "delta": -0.11406186406186414,
               "ci": [
-                -0.19753086419753085,
-                -0.12345679012345678
+                -0.12301587301587302,
+                -0.10347985347985356
               ]
             }
           }
         },
-        "v2": {
-          "runs": 9,
+        "ertugrul-dmr": {
+          "runs": 15,
           "checks_passed": 0.8888888888888888,
           "checks_passed_ci": [
-            0.8641975308641975,
-            0.9135802469135802
+            0.8740740740740741,
+            0.9037037037037037
           ],
-          "runs_all_passed": 4,
-          "cost_usd": 0.06328653333333333,
-          "turns": 8.222222222222221,
-          "duration_s": 19.017444444444447,
+          "runs_all_passed": 6,
+          "cost_usd": 0.07884193333333334,
+          "turns": 8,
+          "duration_s": 34.08886666666667,
           "runs_reading_skill_files": 0,
-          "deltas": {
-            "baseline": {
-              "delta": 0.18518518518518512,
-              "ci": [
-                0.16049382716049376,
-                0.20987654320987648
-              ]
-            }
-          }
-        },
-        "v3a": {
-          "runs": 9,
-          "checks_passed": 1,
-          "checks_passed_ci": [
-            1.0,
-            1.0
-          ],
-          "runs_all_passed": 9,
-          "cost_usd": 0.07445597777777778,
-          "turns": 10,
-          "duration_s": 22.324,
-          "runs_reading_skill_files": 0,
-          "deltas": {
-            "baseline": {
-              "delta": 0.2962962962962963,
-              "ci": [
-                0.2962962962962963,
-                0.2962962962962963
-              ]
-            },
-            "v2": {
-              "delta": 0.11111111111111116,
-              "ci": [
-                0.0864197530864198,
-                0.13580246913580252
-              ]
-            }
-          }
-        },
-        "v3b": {
-          "runs": 9,
-          "checks_passed": 1,
-          "checks_passed_ci": [
-            1.0,
-            1.0
-          ],
-          "runs_all_passed": 9,
-          "cost_usd": 0.06913264444444445,
-          "turns": 10.444444444444445,
-          "duration_s": 25.56266666666667,
-          "runs_reading_skill_files": 0,
-          "deltas": {
-            "baseline": {
-              "delta": 0.2962962962962963,
-              "ci": [
-                0.2962962962962963,
-                0.2962962962962963
-              ]
-            },
-            "v2": {
-              "delta": 0.11111111111111116,
-              "ci": [
-                0.0864197530864198,
-                0.13580246913580252
-              ]
-            }
-          }
+          "metrics": {
+            "runs": 12,
+            "long_functions_added": 0,
+            "complex_functions_added": 0,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0,
+            "max_nloc_after": 10.833333333333334,
+            "max_ccn_after": 3.8333333333333335
+          },
+          "deltas": {}
         }
       },
       "pairwise": {
-        "baseline vs sickn33": {
-          "first": "baseline",
-          "second": "sickn33",
-          "units": 9,
-          "first_score": 0.3888888888888889,
-          "first_score_ci": [
-            0.3333333333333333,
-            0.5
-          ],
-          "first_wins": 1,
-          "ties": 5,
-          "second_wins": 3,
-          "contradictory": 0.2222222222222222
-        },
-        "baseline vs v2": {
-          "first": "baseline",
-          "second": "v2",
-          "units": 9,
-          "first_score": 0.1388888888888889,
+        "none vs this-repo": {
+          "first": "none",
+          "second": "this-repo",
+          "units": 21,
+          "first_score": 0.023809523809523808,
           "first_score_ci": [
             0.0,
-            0.3333333333333333
-          ],
-          "first_wins": 1,
-          "ties": 0,
-          "second_wins": 8,
-          "contradictory": 0
-        },
-        "sickn33 vs v2": {
-          "first": "sickn33",
-          "second": "v2",
-          "units": 9,
-          "first_score": 0.1388888888888889,
-          "first_score_ci": [
-            0.0,
-            0.3333333333333333
-          ],
-          "first_wins": 1,
-          "ties": 0,
-          "second_wins": 8,
-          "contradictory": 0
-        },
-        "v2 vs v3a": {
-          "first": "v2",
-          "second": "v3a",
-          "units": 9,
-          "first_score": 0.1388888888888889,
-          "first_score_ci": [
-            0.027777777777777776,
-            0.25
+            0.07142857142857142
           ],
           "first_wins": 0,
+          "ties": 1,
+          "second_wins": 20,
+          "contradictory": 0.047619047619047616,
+          "dimension_scores": {
+            "correctness": 0.39285714285714285,
+            "scope": 0.5119047619047619,
+            "design": 0.32142857142857145,
+            "readability": 0.36904761904761907,
+            "tests": 0.023809523809523808,
+            "report": 0.2380952380952381
+          }
+        },
+        "this-repo vs ub-mode": {
+          "first": "this-repo",
+          "second": "ub-mode",
+          "units": 21,
+          "first_score": 0.9523809523809524,
+          "first_score_ci": [
+            0.9047619047619048,
+            1.0
+          ],
+          "first_wins": 19,
           "ties": 2,
-          "second_wins": 7,
-          "contradictory": 0
-        },
-        "v2 vs v3b": {
-          "first": "v2",
-          "second": "v3b",
-          "units": 9,
-          "first_score": 0.08333333333333333,
-          "first_score_ci": [
-            0.0,
-            0.16666666666666666
-          ],
-          "first_wins": 0,
-          "ties": 1,
-          "second_wins": 8,
-          "contradictory": 0.1111111111111111
-        },
-        "v3a vs v3b": {
-          "first": "v3a",
-          "second": "v3b",
-          "units": 9,
-          "first_score": 0.6111111111111112,
-          "first_score_ci": [
-            0.3611111111111111,
-            0.8333333333333334
-          ],
-          "first_wins": 5,
-          "ties": 1,
-          "second_wins": 3,
-          "contradictory": 0.1111111111111111
+          "second_wins": 0,
+          "contradictory": 0.09523809523809523,
+          "dimension_scores": {
+            "correctness": 0.6071428571428571,
+            "scope": 0.6904761904761905,
+            "design": 0.6428571428571429,
+            "readability": 0.6666666666666666,
+            "tests": 0.9047619047619048,
+            "report": 0.8690476190476191
+          }
         }
       }
     },
     "test": {
-      "cases": 6,
+      "cases": 13,
       "conditions": {
-        "baseline": {
-          "runs": 18,
-          "checks_passed": 0.9721099887766554,
+        "none": {
+          "runs": 26,
+          "checks_passed": 0.9629093129093129,
           "checks_passed_ci": [
-            0.9597643097643098,
-            0.9833333333333334
+            0.949020424020424,
+            0.9767982017982018
           ],
-          "runs_all_passed": 13,
-          "cost_usd": 0.0575963,
-          "turns": 8.333333333333334,
-          "duration_s": 17.147555555555556,
+          "runs_all_passed": 16,
+          "cost_usd": 0.09234510384615384,
+          "turns": 9.307692307692308,
+          "duration_s": 43.02892307692308,
           "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 24,
+            "long_functions_added": -0.08333333333333333,
+            "complex_functions_added": -0.16666666666666666,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.08333333333333333,
+            "max_nloc_after": 20.333333333333332,
+            "max_ccn_after": 6.458333333333333
+          },
           "deltas": {
-            "v2": {
-              "delta": -0.027890011223344557,
+            "this-repo": {
+              "delta": -0.021065046065046,
               "ci": [
-                -0.04023569023569018,
-                -0.016666666666666607
+                -0.03559496059496059,
+                -0.0067182817182817045
               ]
             }
           }
         },
-        "v2": {
-          "runs": 18,
-          "checks_passed": 1,
+        "this-repo": {
+          "runs": 26,
+          "checks_passed": 0.9839743589743589,
           "checks_passed_ci": [
-            1.0,
-            1.0
+            0.9807692307692307,
+            0.9871794871794872
           ],
-          "runs_all_passed": 18,
-          "cost_usd": 0.08883346111111111,
-          "turns": 9.11111111111111,
-          "duration_s": 21.843222222222224,
+          "runs_all_passed": 23,
+          "cost_usd": 0.16651807692307694,
+          "turns": 12.807692307692308,
+          "duration_s": 85.64407692307692,
           "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 24,
+            "long_functions_added": -0.16666666666666666,
+            "complex_functions_added": -0.25,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.08333333333333333,
+            "max_nloc_after": 19.291666666666668,
+            "max_ccn_after": 6.041666666666667
+          },
           "deltas": {
-            "baseline": {
-              "delta": 0.027890011223344557,
+            "none": {
+              "delta": 0.021065046065046,
               "ci": [
-                0.016666666666666607,
-                0.04023569023569018
+                0.006535131535131522,
+                0.03541181041181052
               ]
             }
           }
         },
-        "v3a": {
-          "runs": 18,
-          "checks_passed": 1,
+        "ub-mode": {
+          "runs": 26,
+          "checks_passed": 0.9653679653679653,
           "checks_passed_ci": [
-            1.0,
-            1.0
+            0.9586663336663337,
+            0.9720695970695971
           ],
-          "runs_all_passed": 18,
-          "cost_usd": 0.09956315,
-          "turns": 8.555555555555555,
-          "duration_s": 24.490166666666667,
+          "runs_all_passed": 19,
+          "cost_usd": 0.11284975,
+          "turns": 10,
+          "duration_s": 53.73365384615384,
           "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 24,
+            "long_functions_added": -0.08333333333333333,
+            "complex_functions_added": -0.125,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.125,
+            "max_nloc_after": 20.041666666666668,
+            "max_ccn_after": 6.083333333333333
+          },
           "deltas": {
-            "baseline": {
-              "delta": 0.027890011223344557,
+            "none": {
+              "delta": 0.0024586524586523995,
               "ci": [
-                0.016666666666666607,
-                0.04023569023569018
+                -0.014041514041513992,
+                0.018667443667443773
               ]
             },
-            "v2": {
-              "delta": 0,
+            "this-repo": {
+              "delta": -0.0186063936063936,
               "ci": [
-                0,
-                0
+                -0.028513153513153422,
+                -0.008699633699633669
               ]
             }
           }
         },
-        "v3b": {
-          "runs": 18,
-          "checks_passed": 0.9833333333333334,
+        "sickn33": {
+          "runs": 26,
+          "checks_passed": 0.9871794871794872,
           "checks_passed_ci": [
-            0.9722222222222222,
-            0.9944444444444445
+            0.9871794871794872,
+            0.9871794871794872
           ],
-          "runs_all_passed": 15,
-          "cost_usd": 0.09903327222222222,
-          "turns": 10.055555555555555,
-          "duration_s": 29.6525,
+          "runs_all_passed": 22,
+          "cost_usd": 0.1264169346153846,
+          "turns": 12.615384615384615,
+          "duration_s": 67.92942307692307,
           "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 24,
+            "long_functions_added": -0.16666666666666666,
+            "complex_functions_added": -0.25,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.08333333333333333,
+            "max_nloc_after": 18.916666666666668,
+            "max_ccn_after": 5.916666666666667
+          },
           "deltas": {
-            "baseline": {
-              "delta": 0.01122334455667795,
+            "none": {
+              "delta": 0.024270174270174305,
               "ci": [
-                -0.005555555555555647,
-                0.028619528619528656
+                0.010381285381285466,
+                0.038159063159063256
               ]
             },
-            "v2": {
-              "delta": -0.016666666666666607,
+            "this-repo": {
+              "delta": 0.0032051282051283048,
               "ci": [
-                -0.02777777777777779,
-                -0.005555555555555536
+                0.0,
+                0.0064102564102564985
               ]
             }
           }
+        },
+        "ertugrul-dmr": {
+          "runs": 14,
+          "checks_passed": 0.9792207792207792,
+          "checks_passed_ci": [
+            0.9727272727272728,
+            0.9857142857142858
+          ],
+          "runs_all_passed": 11,
+          "cost_usd": 0.09282195,
+          "turns": 8.928571428571429,
+          "duration_s": 31.71114285714286,
+          "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 12,
+            "long_functions_added": -0.16666666666666666,
+            "complex_functions_added": 0,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.16666666666666666,
+            "max_nloc_after": 18.666666666666668,
+            "max_ccn_after": 5.5
+          },
+          "deltas": {}
         }
       },
       "pairwise": {
-        "v2 vs v3a": {
-          "first": "v2",
-          "second": "v3a",
-          "units": 18,
-          "first_score": 0.2222222222222222,
+        "none vs this-repo": {
+          "first": "none",
+          "second": "this-repo",
+          "units": 26,
+          "first_score": 0.057692307692307696,
           "first_score_ci": [
-            0.1111111111111111,
-            0.3333333333333333
+            0.0,
+            0.11538461538461539
           ],
-          "first_wins": 2,
-          "ties": 4,
-          "second_wins": 12,
-          "contradictory": 0.05555555555555555
+          "first_wins": 1,
+          "ties": 1,
+          "second_wins": 24,
+          "contradictory": 0.038461538461538464,
+          "dimension_scores": {
+            "correctness": 0.4326923076923077,
+            "scope": 0.5096153846153846,
+            "design": 0.38461538461538464,
+            "readability": 0.22115384615384615,
+            "tests": 0.0673076923076923,
+            "report": 0.22115384615384615
+          }
         },
-        "v2 vs v3b": {
-          "first": "v2",
-          "second": "v3b",
-          "units": 18,
-          "first_score": 0.2916666666666667,
+        "this-repo vs ub-mode": {
+          "first": "this-repo",
+          "second": "ub-mode",
+          "units": 26,
+          "first_score": 1.0,
           "first_score_ci": [
-            0.18055555555555555,
-            0.3888888888888889
+            1.0,
+            1.0
           ],
-          "first_wins": 4,
-          "ties": 3,
-          "second_wins": 11,
-          "contradictory": 0.1111111111111111
+          "first_wins": 26,
+          "ties": 0,
+          "second_wins": 0,
+          "contradictory": 0,
+          "dimension_scores": {
+            "correctness": 0.6442307692307693,
+            "scope": 0.7596153846153846,
+            "design": 0.5961538461538461,
+            "readability": 0.7115384615384616,
+            "tests": 0.7403846153846154,
+            "report": 0.9807692307692307
+          }
+        },
+        "this-repo vs sickn33": {
+          "first": "this-repo",
+          "second": "sickn33",
+          "units": 26,
+          "first_score": 0.8365384615384616,
+          "first_score_ci": [
+            0.7884615384615384,
+            0.8846153846153846
+          ],
+          "first_wins": 20,
+          "ties": 5,
+          "second_wins": 1,
+          "contradictory": 0.15384615384615385,
+          "dimension_scores": {
+            "correctness": 0.5288461538461539,
+            "scope": 0.5096153846153846,
+            "design": 0.6538461538461539,
+            "readability": 0.5769230769230769,
+            "tests": 0.8076923076923077,
+            "report": 0.6442307692307693
+          }
+        },
+        "this-repo vs ertugrul-dmr": {
+          "first": "this-repo",
+          "second": "ertugrul-dmr",
+          "units": 14,
+          "first_score": 0.7857142857142857,
+          "first_score_ci": [
+            0.6785714285714286,
+            0.8928571428571429
+          ],
+          "first_wins": 9,
+          "ties": 4,
+          "second_wins": 1,
+          "contradictory": 0.07142857142857142,
+          "dimension_scores": {
+            "correctness": 0.5535714285714286,
+            "scope": 0.5714285714285714,
+            "design": 0.5535714285714286,
+            "readability": 0.42857142857142855,
+            "tests": 0.75,
+            "report": 0.6964285714285714
+          }
         }
+      }
+    },
+    "installed": {
+      "this-repo": {
+        "runs": 13,
+        "skill_loaded": 0.8461538461538461,
+        "checks_passed": 0.958974358974359
+      },
+      "ub-mode": {
+        "runs": 13,
+        "skill_loaded": 0,
+        "checks_passed": 0.9596736596736597
+      },
+      "sickn33": {
+        "runs": 13,
+        "skill_loaded": 0,
+        "checks_passed": 0.9865967365967366
+      },
+      "ertugrul-dmr": {
+        "runs": 7,
+        "skill_loaded": 0.14285714285714285,
+        "checks_passed": 0.9857142857142858
+      }
+    },
+    "instructed": {
+      "this-repo": {
+        "runs": 13,
+        "skill_loaded": 1,
+        "checks_passed": 0.9743589743589743
+      },
+      "ub-mode": {
+        "runs": 13,
+        "skill_loaded": 1,
+        "checks_passed": 0.9548784548784549
+      },
+      "sickn33": {
+        "runs": 13,
+        "skill_loaded": 1,
+        "checks_passed": 0.9724941724941725
+      },
+      "ertugrul-dmr": {
+        "runs": 7,
+        "skill_loaded": 1,
+        "checks_passed": 0.9714285714285714
       }
     }
   }

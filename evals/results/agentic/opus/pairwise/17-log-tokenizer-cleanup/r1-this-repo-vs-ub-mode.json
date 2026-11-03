@@ -1,0 +1,91 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "751f6b2e4f9cbc9b",
+    "ub-mode": "390a62fc5283ad92"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve the tokenizer's behavior; I traced every branch, error position and the after-the-end and after-an-error states. A delivers a readable split plus 19 focused edge-case tests that keep their value, with no other changes. B adds a 164-line frozen copy of the old tokenizer, an exhaustive test of about 1.1M lines that pushes the README to recommend `cargo test --release`, a benchmark example and README workflow changes. That oracle test will fail on every intentional format change, which is friction for a user who says they extend the format often. B also made commits nobody asked for, and its report contains an odd note about uninstalled 'crapper, dryer and mutator' tools.",
+        "a_issues": [
+          "Did not mention that the Debug output of `Tokens` changes (`state` instead of `st`), although the fields are private",
+          "Old-vs-new equivalence and benchmark ran in a deleted scratch crate, so that evidence cannot be reproduced from the PR",
+          "Methods mutate `self.pos` and `self.state` in several places, which is slightly less self-contained than returning the result"
+        ],
+        "b_issues": [
+          "Adds a full frozen copy of the old tokenizer to tests/oracle, duplicating the code and requiring manual deletion or update whenever the format changes",
+          "The exhaustive test of about 1.1M lines is slow in debug builds, and the README now tells developers to run `cargo test --release`, changing the dev workflow without being asked",
+          "Out-of-scope additions: examples/throughput.rs and README edits",
+          "Committed three times to local main without being asked",
+          "Report contains a confusing reference to 'crapper, dryer and mutator' tools",
+          "Sprinkles `#[inline]` on every helper, which adds noise without demonstrated need"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors look behavior-preserving on every path I traced: same tokens, error positions and post-error exhaustion. A's restructuring with pure `lex_*` functions returning `Lexed` is a bit cleaner than B's methods that set state as a side effect. But A also adds a 164-line frozen copy of the old tokenizer, a benchmark example, and README changes (including switching the documented test command to `--release`). B stays focused and pins behavior with 19 lasting edge-case tests that it ran against the original code first.",
+        "a_issues": [
+          "Adds a 164-line verbatim copy of the old tokenizer under tests/oracle that duplicates code and must be maintained or deleted later",
+          "README edits change the documented dev command to `cargo test --release` and add a benchmark workflow, which goes beyond the requested cleanup",
+          "The exhaustive 1.1M-line test likely makes debug `cargo test` slow, which is why the README now pushes release mode",
+          "Report refers to unexplained 'crapper, dryer and mutator' workflow tools and says it committed three commits without being asked"
+        ],
+        "b_issues": [
+          "Methods like `value()` and `key_or_word()` change `self.state` and `self.pos` internally, so state changes are spread across helpers rather than centralized in `next()`",
+          "The old-vs-new random comparison was run in a deleted scratch crate, so that equivalence check cannot be reproduced from the PR",
+          "token.rs grew slightly in line count"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

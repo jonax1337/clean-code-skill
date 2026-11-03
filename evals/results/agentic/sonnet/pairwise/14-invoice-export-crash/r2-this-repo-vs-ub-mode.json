@@ -1,0 +1,88 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "944d175d31f77bd9",
+    "ub-mode": "b67526a883a55de4"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both fix the root cause the same way: they normalize the CRM `customer_id` to `customerId` at load time and route lookups through `requireCustomer`, so both produce correct exports. A's error message, `referenced by invoice INV-9`, follows the convention shown in the existing `requireCustomer` test, and A's test checks the error class. A's report is accurate and candid about what it did not verify. B committed to the repository without being asked, and its report contains a garbled sentence about tools it did not run, which makes it less trustworthy.",
+        "a_issues": [
+          "The sources test reads the real `data/` directory, so it depends on fixture data that can change every month.",
+          "The new tests were not confirmed to fail against the old code, though the report says so openly."
+        ],
+        "b_issues": [
+          "Committed the change locally (`e8dc54e`) without being asked.",
+          "The report has a garbled line: \"I didn't run the crapper, dryer or mutator tools from .\"",
+          "`referencedBy` is passed as the bare invoice id, giving `referenced by INV-1` instead of the `invoice INV-\u2026` style the existing tests use.",
+          "The unknown-customer test matches only a message regex and does not check for `UnknownReferenceError`.",
+          "Imports are no longer in alphabetical order, and the temp directory created in the test is never cleaned up."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both fix the root cause the same way: they rename the CRM `customer_id` to `customerId` at load time and route the lookup through `requireCustomer`, which matches the README convention. B passes `invoice ${id}` as `referencedBy`, matching the existing message format in the customers test. Its export test checks both the error type and the exact message. B's report is careful and honest, and B leaves committing to the developer. A's tests are better isolated, but A made an unrequested local commit, its error message is less consistent, and its report contains a garbled sentence about tools.",
+        "a_issues": [
+          "Passes bare `invoice.id` as `referencedBy`, so the message reads `referenced by INV-1041` instead of the `invoice INV-\u2026` form used in the existing customers test",
+          "Made a local git commit the developer did not ask for",
+          "Report contains an unclear, garbled line about not running 'crapper, dryer or mutator tools from .'",
+          "Export test only regex-matches the message and does not assert the error is an `UnknownReferenceError`"
+        ],
+        "b_issues": [
+          "The new sources test reads the real `data/` directory, so it depends on the working directory and on the production data file instead of an isolated fixture",
+          "Did not confirm that the new tests fail on the old code (stated openly in the report)"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "B",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

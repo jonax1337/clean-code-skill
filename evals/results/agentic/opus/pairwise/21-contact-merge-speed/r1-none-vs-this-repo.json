@@ -1,0 +1,83 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "6346f870a97d85dc",
+    "this-repo": "70920b8ef3a9c02c"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 1.0,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes replace the quadratic findIndex scan with a normalized-email Map. Both keep the first entry as the merge target when stored emails are duplicated, so their behavior is equivalent. B adds a regression test pinning that edge case, which it checked against the old code; A changes the lookup without any new test. A's code is marginally more direct and documents why stored indices stay valid. B's `remember(contact.email, result.push(contact) - 1)` is a bit clever and normalizes new emails twice, but the extra test protection decides it.",
+        "a_issues": [
+          "No test covers the first-entry-wins behavior when the stored book already contains duplicate emails, even though the report calls it preserved.",
+          "Benchmark details (synthetic data, script not kept) are not described, so it is unclear how the timing was obtained."
+        ],
+        "b_issues": [
+          "`remember(contact.email, result.push(contact) - 1)` relies on push's return value, which is slightly clever and harder to read.",
+          "New contacts' emails are normalized twice, once for the lookup and again inside `remember`; this is minor redundancy.",
+          "There is no comment explaining why stored indices stay valid (mergeContact keeps the current entry's email)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes swap the linear findIndex for the same Map lookup keyed on the normalized email. Both keep the first matching position, so behavior is identical and preserved. A adds a regression test pinning the first-duplicate merge behavior, which the new indexing could otherwise silently break, and reports checking that test against the old code. B's code is a bit more direct and better commented, but it adds no test for the behavior it claims to preserve.",
+        "a_issues": [
+          "`remember(contact.email, result.push(contact) - 1)` relies on push's return value, which is a bit clever and harder to read.",
+          "It re-normalizes the incoming email inside remember after already normalizing it for the lookup."
+        ],
+        "b_issues": [
+          "No test covers the preserved first-of-duplicate merge behavior, so the claim in the report is not protected by the suite."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

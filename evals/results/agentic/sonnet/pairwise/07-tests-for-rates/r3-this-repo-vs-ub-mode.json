@@ -1,0 +1,86 @@
+{
+  "case": "07-tests-for-rates",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "dffde66a5d970f18",
+    "ub-mode": "b77bfae7d1ff365e"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs add only test/rates.test.ts, and every expected value I checked by hand is correct in both, including half-even vs half-up ties, the fee floor and cap, and quote coverage. A adds a few useful touches: the 1199 boundary, a negative half-up tie pinned for both 5 and 15, and a note in its report about how quote fails on negative amounts. B's report has a garbled reference to nonexistent 'crapper, dryer or mutator' tools and says it committed locally, which nobody asked for. Both reports miscount their tests slightly.",
+        "a_issues": [
+          "Report says 31 new tests plus 8 existing. The file has 29 new tests and the repo already had 10, although the total of 39 is right.",
+          "minorUnitsOf is not checked for USD or CHF."
+        ],
+        "b_issues": [
+          "Report says 29 tests, but the file contains 30.",
+          "Report refers to 'crapper, dryer or mutator tools from ,', which do not exist in this repo. The sentence is confusing and looks hallucinated.",
+          "Committed the file locally without being asked."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs add only test/rates.test.ts, and every expected value I recomputed in both suites is correct. Coverage is comparable across conversion, rounding ties, fee limits, quote and errors. B adds a few more discriminating cases (the 1199 EUR fee boundary, 2020 EUR vs USD fee ties, a JPY quote with a half-up fee tie and a capped fee). B's report is cleaner and points out the negative-quote behavior that is now pinned. A's report has garbled references to nonexistent tools and an unrequested local commit.",
+        "a_issues": [
+          "Report refers to 'crapper, dryer or mutator tools from ,', garbled text about tools that do not exist in this repo.",
+          "Committed locally without being asked to.",
+          "Report says 29 new tests, but the file contains 30.",
+          "The 5 EUR cents to USD tie does not tell half-up from half-even; other cases (JPY 162.5, fee 1380) do cover that."
+        ],
+        "b_issues": [
+          "Report says 31 new tests plus 8 existing, but the file has 29 tests and the repo already has 10. The 39 total is right, the breakdown is not.",
+          "minorUnitsOf only checks EUR, JPY and KWD, not USD or CHF."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

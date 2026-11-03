@@ -1,0 +1,82 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "5d58fea319db1eb1",
+    "ertugrul-dmr": "5f24d540aa6d8211"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct one-line fix: skip lines that are empty or only whitespace before parsing. A adds a second test that pins line numbering after a skipped blank line, which guards against a likely regression such as filtering lines before enumerating them. A's report is also more careful: it says it did not run the accountant's actual file and names other formats that could still fail, while B just says 'Fixed.'",
+        "a_issues": [
+          "Minor: the inline comment is slightly redundant given the obvious condition"
+        ],
+        "b_issues": [
+          "No test checks that line numbers stay correct after a skipped blank line, so a refactor that filters lines before enumerating could pass the suite",
+          "Report states 'Fixed' without noting the fix was not checked against the actual accountant file"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct one-line fix: skip lines that are empty or only whitespace before parsing. Both keep physical line numbers, so later errors still name the right line. B also adds a test that protects that line numbering, which is the main edge case a reviewer would worry about with this fix, and its report is more candid about what it did not verify. A is correct but leaves line numbering after blank lines untested.",
+        "a_issues": [
+          "No test checks that a bad line after a blank line still reports its real file line number.",
+          "Neither the README's CSV import section nor any doc mentions that blank lines are now ignored."
+        ],
+        "b_issues": [
+          "The test name `test_blank_lines_are_skipped_but_still_counted` claims more than the test checks; the counting is only checked by the second test.",
+          "The README's CSV import section is not updated to say that blank lines are ignored."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

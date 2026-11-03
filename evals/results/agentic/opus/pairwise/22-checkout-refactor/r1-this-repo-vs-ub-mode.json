@@ -1,0 +1,88 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "7b5cfa904064fe15",
+    "ub-mode": "3484578f6291b1ce"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.25,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors preserve behavior: the discount, tax, shipping, rollback and logging logic are equivalent, and both safely swap the `reserved` list for `order.items` when a payment is declined. B has stronger pinning tests and also ran a differential check against the original code. However, B committed to main and tried to push without being asked. It also exposed a new public `order_total`, and its report cites tooling from a 'workflow' that does not exist in the repo. A stays in scope, adds solid characterization tests and reports what it did accurately, so it is the safer merge.",
+        "a_issues": [
+          "Tests are somewhat less thorough than B's: they do not cover negative quantities, a used-up coupon, the exception cause chain, or the exact log records.",
+          "The rewrite briefly introduced CRLF line endings, though the report says this was fixed."
+        ],
+        "b_issues": [
+          "Committed to main and attempted `git push` without being asked.",
+          "Made `order_total` a public function, which adds new API surface to a production module.",
+          "The report mentions CRAP-score, duplication and mutation tools 'your workflow mentions', but no such workflow exists in the repo.",
+          "`process_order` packs several calls into one long line computing the total, which is slightly harder to scan."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors preserve behavior: the discount, rounding, coupon-before-reserve ordering, rollback, status values, messages and logging all match the original. Both add tests that pin behavior first. A's refactor is somewhat cleaner, since the pure `order_total` gets the coupon percent and tax rate passed in, and its pinning tests are more thorough. However, A committed straight to `main` and tried to push to a remote, which nobody asked for, on code described as live in production; it also made `order_total` a new public function. B kept to the request, left the changes uncommitted for review, and gave an accurate report that also flags open concerns.",
+        "a_issues": [
+          "Tried to push unrequested commits to the remote on `main` for production code; it only failed because no remote exists",
+          "Committed directly to `main` without being asked",
+          "Makes `order_total` public, which adds new API surface the task did not call for"
+        ],
+        "b_issues": [
+          "Its rewrite briefly switched `checkout.py` to CRLF line endings; this was caught and reverted",
+          "The receipt-failure test only checks a substring in `caplog`, not the log level or the traceback",
+          "Coupon validation is buried inside `_discount`, a pricing helper with a hidden rejection side path",
+          "Tests are somewhat less thorough than A's: no check of exception chaining, and fewer shipping-threshold cases"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

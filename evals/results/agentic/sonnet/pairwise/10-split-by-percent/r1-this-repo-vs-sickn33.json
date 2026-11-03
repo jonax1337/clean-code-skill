@@ -1,0 +1,86 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "f6b9c9c33acd563d",
+    "sickn33": "e67053ae8c8ecb60"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement the feature correctly, reuse `allocate`, and pull out a shared duplicate-name check. A enforces 'exactly one of --with/--percent' with argparse's mutually exclusive group. That is the idiomatic tool, and it keeps the help/usage output accurate. B drops `required=True` and adds a hand-written check in `_split`, so argparse's usage line no longer shows that a split option is required. Tests are comparable: A covers more unit edge cases, while B covers the neither-option case and checks that nothing is saved on failure.",
+        "a_issues": [
+          "No test for giving neither --with nor --percent.",
+          "The CLI test for percentages that don't add up to 100 doesn't check that nothing was saved.",
+          "`rpartition` accepts names containing '=' (for example 'a=b=50' gives the name 'a=b'), which is a little surprising."
+        ],
+        "b_issues": [
+          "Re-implements argparse's mutually exclusive group by hand in `_split`, so `--help`/usage no longer shows that one of the two options is required.",
+          "Fewer unit edge-case tests: there is no test that a 0% share is rejected, even though the report says it is."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes add a correct `--percent` split, reuse `allocate` and the shared duplicate check, and validate whole numbers, a total of 100 and zero shares. B enforces 'exactly one of --with/--percent' with argparse's required mutually exclusive group. That is the idiomatic tool for this, and it shows the rule in usage and help output. A drops `required` and recreates the rule by hand, with a clumsy 'not both or neither' message. A tests the neither case at the CLI and B does not, but B's tests are otherwise slightly stronger, so B's simpler design tips it.",
+        "a_issues": [
+          "Hand-rolled check for both/neither of --with and --percent duplicates what argparse's mutually exclusive group already does, and the rule is not visible in `--help`/usage",
+          "Error message 'give either ... not both or neither' is awkward",
+          "split_by_percent checks only `== 0`, so negative weights rely on `allocate` failing (or on parse_percent rejecting them first)"
+        ],
+        "b_issues": [
+          "No CLI test for omitting both --with and --percent",
+          "parse_percent uses rpartition, so 'a=b=50' is accepted as the name 'a=b'",
+          "Report includes a side note about converting line endings back, which is irrelevant to the reviewer"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

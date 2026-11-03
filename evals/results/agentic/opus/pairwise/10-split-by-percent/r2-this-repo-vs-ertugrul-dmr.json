@@ -1,0 +1,86 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4dd2900bd86cee80",
+    "ertugrul-dmr": "92bddc4cacede669"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.25,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes correctly reuse `allocate`, make `--with` and `--percent` mutually exclusive, share a duplicate-name helper, document the option, and report accurately. B is slightly better: it validates the NAME=PCT format with an argparse type, so malformed values get the normal usage error. Its name pattern `[^=]+` also rejects stray `=` signs. Its CLI tests cover more, including malformed values, exit codes, and the case where neither option is given. B's only real blemish is a negative-percent check that the CLI regex already makes unreachable.",
+        "a_issues": [
+          "The pattern `.+=[0-9]+` accepts names that contain `=`, so `a=b=50` is read as the name `a=b`.",
+          "Format errors are raised as MoneyError, although a NAME=PCT format problem is not a money error.",
+          "No test covers giving neither `--with` nor `--percent`, and the both-options test does not check the exit code."
+        ],
+        "b_issues": [
+          "The negative-percentage check in `split_by_percent` cannot be reached from the CLI because the regex only accepts digits, so it is partly dead code.",
+          "Allowing 0% means a person with a 0.00 balance appears in `balances` output; the report discloses this choice."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes reuse `allocate`, share a duplicate-name check, use a required mutually exclusive argparse group and keep every cent, so the core behavior is equivalent. A checks the NAME=PCT format at argparse level and keeps parsing in the CLI, where it belongs. A's CLI tests are also more thorough: they assert exit codes for malformed values, for combining both options and for giving neither. B puts CLI text parsing in splitting.py and raises it as a MoneyError, its regex lets names contain '=', and its CLI tests are weaker.",
+        "a_issues": [
+          "Allows a 0% share, which is debatable, though the report flags it for the developer",
+          "The negative-percentage check in split_by_percent can't be reached from the CLI because the regex already rejects negatives (harmless defensive code)"
+        ],
+        "b_issues": [
+          "The CLI parsing helper `parse_percentage` lives in splitting.py and raises MoneyError for what is really a format error",
+          "The regex `.+=` accepts names containing '=' (e.g. 'a=b=50' gives the name 'a=b')",
+          "test_with_and_percent_cannot_be_combined doesn't assert the exit code, and nothing tests giving neither option",
+          "Rejecting 0% is a product decision the task didn't ask for, though the report flags it"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

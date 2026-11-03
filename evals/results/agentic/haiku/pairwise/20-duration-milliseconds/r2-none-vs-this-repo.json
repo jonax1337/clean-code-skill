@@ -1,0 +1,85 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "ca8193137a80ed7e",
+    "this-repo": "4d4273c889f959f9"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.75,
+    "readability": 0.25,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes behave the same: parseDuration returns milliseconds, the ms consumers drop `* 1000`, the seconds consumers (http, report) divide by 1000, and validate's bounds are converted to ms. A does this with the fewest edits. B adds a new exported `MS_PER_SECOND` constant and rewrites the unit table, which adds module surface without much gain. That is a small scope and design cost, so A wins slightly.",
+        "a_issues": [
+          "Keeps the `SECONDS_PER_UNIT` table and multiplies by a bare 1000, which is slightly less self-describing than a table already in ms.",
+          "No tests added for the seconds-based outputs (Retry-After header, describeSettings) or the validateTtl minimum bound, so the unit conversion at those call sites is unprotected."
+        ],
+        "b_issues": [
+          "Introduces and exports a new `MS_PER_SECOND` constant from duration.ts, widening the module's API beyond what the task required.",
+          "Rewrites the whole unit table, a larger diff than needed.",
+          "No tests added for the seconds-based outputs (Retry-After header, describeSettings) or the validateTtl minimum bound."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "B",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes behave the same: parseDuration returns milliseconds, cache, retry and scheduler drop their `* 1000`, the validate bounds move to milliseconds, and http/report divide by 1000 so their output stays the same. B does this with fewer edits: it reuses the existing seconds table and multiplies once. A rewrites the unit table and adds an exported `MS_PER_SECOND` constant, which grows the module's public surface for small benefit. Neither adds tests for the http/report conversions, and both reports are accurate and point out the breaking change.",
+        "a_issues": [
+          "Adds a new exported `MS_PER_SECOND` constant to duration.ts, widening the module API beyond what the task needs.",
+          "Rewrites the whole unit table rather than reusing the existing seconds table, which makes the diff larger.",
+          "No tests cover the seconds output of `rateLimitHeaders` or `describeSettings`, which are the most error-prone call sites."
+        ],
+        "b_issues": [
+          "Uses a bare `1000` in several places (duration, http, report, validate) instead of one named constant.",
+          "No tests cover the seconds output of `rateLimitHeaders` or `describeSettings`."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

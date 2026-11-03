@@ -1,0 +1,86 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "b477b75d43eca366",
+    "this-repo": "37075b9c61f427d6"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors preserve production behavior. Pricing, rounding, discount order, stock rollback, statuses and receipt handling are all equivalent. B also added 17 characterization tests, checked against the original code first, that cover the risky paths the existing suite missed: VIP, rounding, shipping threshold, coupon redemption on decline, partial-reservation rollback and a failing notifier. A only ran the existing tests and left the developer to check coverage, which is risky for a live production refactor.",
+        "a_issues": [
+          "Adds no tests, even though the existing suite doesn't cover the VIP, per-line rounding, free-shipping threshold, partial rollback or failing-notifier paths.",
+          "`_charge` has a long six-parameter signature on one line, and it threads a `reserved` list through just to release it.",
+          "The report pushes coverage checking onto the developer instead of doing it."
+        ],
+        "b_issues": [
+          "`_charge` releases `order.items` instead of the reserved list. This is correct only because `_reserve_stock` guarantees every item is reserved, an implicit coupling between the two functions.",
+          "The new test file duplicates the `make_order` and `CUSTOMER` helpers from `test_checkout.py`."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior: the same order of side effects, the same error messages and the same statuses. A is the safer merge because it first added 17 characterization tests, verified against the original code, for parts the existing suite left untested. Those parts include per-line half-up tax rounding, VIP and coupon stacking, the free-shipping boundary, partial-reservation rollback, coupon redemption only on success, and receipt-failure tolerance. B ran only the existing 9 tests on a live production path, and its report admits it did not check what they cover.",
+        "a_issues": [
+          "`_charge` releases `order.items` instead of the list that was actually reserved. This is equivalent today only because reservation either fully succeeds or raises first, and that invariant is implicit.",
+          "Subtotal and tax are now computed in two separate passes over the items. This is harmless, but it moves slightly away from the original single loop."
+        ],
+        "b_issues": [
+          "No tests were added, although the existing suite does not cover VIP, tax rounding, the shipping threshold, partial-stock rollback or receipt failure.",
+          "`_charge` has an overly long signature line, and it uses the bare `list` type instead of `list[Item]`.",
+          "`process_order` is moved to the bottom of the module, which makes the diff noisier and hides the public entry point below the helpers.",
+          "The report says behavior 'should be identical' but hands the coverage check back to the developer."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

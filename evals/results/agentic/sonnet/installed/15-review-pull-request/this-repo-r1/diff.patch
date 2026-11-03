@@ -1,0 +1,83 @@
+diff --git a/REVIEW.md b/REVIEW.md
+new file mode 100644
+index 0000000..978f83f
+--- /dev/null
++++ b/REVIEW.md
+@@ -0,0 +1,77 @@
++# Review of PR 482: user search, paged user list, bulk deactivation with audit log
++
++Line numbers refer to the lines of `pr/482.diff`. I read the patch and description only. I did not apply the patch or run the tests, so "28 passed" is the author's claim.
++
++## Blocking
++
++1. **SQL injection in `search_users`** (`adminhub/search.py`, diff line 105).
++   `term` is interpolated into the SQL with an f-string, and it comes straight from the request parameter `q` (`api.py`, diff line 26).
++   - A `q` like `%' OR 1=1 --` or a UNION payload reads arbitrary data.
++   - Use bound parameters: `WHERE name LIKE ? OR email LIKE ?` with `f"%{term}%"` as the value.
++   - Consider escaping `%` and `_` in the term (`ESCAPE '\'`), so they match literally.
++   - No test covers this.
++
++2. **The audit trail can silently lose entries** (`adminhub/audit.py`, diff lines 66-67).
++   `record` catches `sqlite3.Error` and does `pass`.
++   - If the insert fails (missing table, locked database, constraint), `deactivate_users` still runs `conn.commit()` (`users.py`, diff line 163). Users are deactivated with no audit row and no error.
++   - This defeats the stated compliance requirement, and it also makes the `try/except ... rollback` in `deactivate_users` pointless for audit failures.
++   - Remove the try/except and let the error propagate, so the transaction rolls back.
++
++3. **The audit log records deactivations that did not happen** (`users.py`, diff lines 160-162).
++   The `UPDATE` only touches ids that exist, but the loop writes an audit row for every id in the request.
++   - Unknown ids and already-inactive users get a "deactivate" entry, while the returned count (`cursor.rowcount`) is lower.
++   - A compliance log should not contain false entries. Audit only the rows actually changed, for example by selecting the matching active ids first.
++   - Decide whether unknown ids should raise `NotFound`, as the single-user `deactivate_user` does.
++
++4. **`actor` is taken from the request body** (`api.py`, diff line 40).
++   The audit identity is whatever the caller sends in `params["actor"]`, so any client can attribute deactivations to someone else.
++   - A missing `actor` raises `KeyError`, which is a 500 instead of a 400.
++   - The actor should come from the authenticated session or context, not from client-controlled params.
++
++## Should fix before merge
++
++5. **`pages` is wrong** (`api.py`, diff line 20).
++   `count // per_page` rounds down. With 5 users and `per_page=3` it returns 1, but there are 2 pages, so the console pager would hide the last page.
++   - Use ceiling division: `-(-count // per_page)`.
++   - For an empty table this gives 0 pages. Decide whether that should be 1.
++   - No test checks `page` or `pages`, which is how this slipped through.
++
++6. **Missing validation of `page` and `per_page`** (`api.py`, diff lines 18-19 and 29).
++   - `per_page=0` raises `ZeroDivisionError` (diff line 20).
++   - A negative `per_page` is passed to `LIMIT`, and SQLite treats a negative limit as unlimited. `min(..., 100)` only caps the upper end.
++   - `page=0` or a negative page gives a negative offset.
++   - Non-numeric values raise `ValueError`, which is a 500 instead of a 400. The same applies to `ids` in `bulk_deactivate` (diff line 39).
++   - Clamp or reject with `BadRequest`/`error(400, ...)`, consistent with the other handlers.
++
++7. **`search` is not "paged the same way" as described** (`api.py`, diff lines 25-30).
++   - It ignores `per_page` and always uses the default of 25 in `search_users`.
++   - It does not return `page` or `pages`, so the console cannot render a pager for search results.
++   - It also has no cap on `per_page`.
++
++8. **Bulk deactivation has no size limit** (`users.py`, diff line 158).
++   One `?` is generated per id. SQLite limits bound variables (999 on older builds), so a large request fails with an `OperationalError` (a 500). Cap the list length or chunk it within the one transaction.
++
++9. **The single-user path is not audited** (`users.py`, diff lines 146-151).
++   `deactivate_user` and its API handler remain unaudited. If compliance wants every deactivation in the trail, this path bypasses it.
++
++## Minor
++
++10. `adminhub/search.py`, diff line 95: unused `import os`.
++11. `adminhub/search.py`, diff line 102: a `TODO` is left in the merged code. Track it in an issue instead.
++12. `adminhub/api.py`, diff line 18: `list_users` now changes the default response. Callers that sent no params used to get everyone and now get only the first 25. The existing test passes only because the fixture has 5 users. Please call this out for API consumers.
++
++## Tests
++
++The new tests cover only the happy paths. Missing:
++- SQL injection and wildcard input for search.
++- The `pages` value, including a non-multiple of `per_page`.
++- Bad `page`/`per_page` values.
++- Bulk deactivation with unknown or already-inactive ids.
++- Audit failure and rollback.
++- `actor` missing or spoofed.
++
++## Verdict
++
++**I would not merge it as it is.** Findings 1-4 are blocking. The first is an exploitable injection, and the other three undermine the audit trail that is the reason for the bulk deactivation feature. Finding 5 would visibly break the pager the console team is waiting for.
++
++The fixes are small and local. After 1-6 are fixed and tests added for them, I would be happy to re-review quickly.

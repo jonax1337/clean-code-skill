@@ -1,0 +1,83 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "f8621663ced04e09",
+    "ub-mode": "efc3aaba6db38179"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs are functionally equivalent and correct. Each removes the `* 1000` from the three ms callers and fixes the three hidden seconds-callers (`http`, `report`, `validate`). Each also adds the same characterization tests for `http`, `report` and the TTL bounds. B committed directly to `main` and tried to push, neither of which was asked for. B's report also contains a garbled, irrelevant line about unavailable tools. A centralizes the 1000 in a small named constant and reports accurately without unrequested actions.",
+        "a_issues": [
+          "Adds a new exported `MS_PER_SECOND` constant from `duration.ts`. This is a small extra public surface, though it is not re-exported from `index.ts`."
+        ],
+        "b_issues": [
+          "Committed to `main` and attempted to push without being asked.",
+          "Hard-codes `/ 1000` in several places rather than naming the constant.",
+          "Report contains a garbled sentence about 'crapper, dryer and mutator tools' that is unclear and irrelevant."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs make the same behavioral change. They drop `* 1000` in cache, retry and scheduler, convert to seconds in http and report, and rescale the validate limits. Both add the same characterization tests. B's report is clearer and flags the breaking change for outside callers of the re-exported `parseDuration`. A's report contains a garbled line about tools and says it committed and tried to push to `main` without being asked. B's new exported `MS_PER_SECOND` constant is a small extra public symbol, but it is harmless.",
+        "a_issues": [
+          "Committed directly to main and attempted a push the task did not ask for.",
+          "Report contains a garbled sentence (\"I didn't run  crapper, dryer and mutator tools\").",
+          "Report does not warn that external users of the re-exported `parseDuration` will now get values 1000x larger."
+        ],
+        "b_issues": [
+          "Adds a new public export `MS_PER_SECOND` to duration.ts that the task did not require, which slightly widens the module's API."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d2035e3c299b17d4",
+    "sickn33": "05a1d2b151f5fc40"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews correctly block the merge on the same two main issues: the SQL injection in search.py:13 and the silently swallowed audit errors. Both back their findings with correct probes and line references. B catches a few more things that matter: the default per_page=25 makes `pages` 0 for the fixture's non-empty table, `rowcount` counts already-inactive users so the docstring is wrong, and `actor` is client-supplied and so can be spoofed in the compliance trail. A is equally accurate where it overlaps but misses these.",
+        "a_issues": [
+          "Misses that `actor` is taken from request params, so the audit trail can be spoofed.",
+          "Page-count finding shows 5//2 and the empty-table case but misses that the default per_page gives pages=0 for any table under 25 users.",
+          "Does not note that `rowcount` counts matched rows, so re-deactivating an inactive user is counted as a change."
+        ],
+        "b_issues": [
+          "Mentions the `IN (...)` size limit and the list type check only in passing among the smaller items.",
+          "Does not call out that changing the default of the `users.list_users` function to 25 rows silently changes behavior for internal callers."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews correctly flag the blockers: the f-string SQL injection in search.py, the swallowed audit insert errors, the floor-division page count and the unvalidated input, each with accurate file and line references and reproduced probes. A additionally notes that `actor` comes from the client, so the compliance audit trail can be spoofed, and that the default per_page=25 reports `pages: 0` for any table smaller than 25 users, which affects the console's normal use. B is slightly more rigorous in places (it drops `audit_log` to prove the silent commit and calls out wildcard escaping as its own finding), but it misses the spoofable actor and understates the page-count problem as an empty-table edge case.",
+        "a_issues": [
+          "LIKE wildcard escaping is only mentioned inside the injection fix, not as its own finding",
+          "Does not show the swallowed-error path end to end (for example with the audit table missing); it argues it from the code",
+          "Does not mention that `users.list_users` silently changed its default from all users to 25 for direct callers"
+        ],
+        "b_issues": [
+          "Misses that `actor` is taken from request parameters, so the audit trail records whatever name the caller sends",
+          "Describes `pages: 0` only for an empty table and misses that the default per_page=25 gives 0 pages for any non-empty table under 25 users, including the fixture",
+          "Does not note that `search` returns no `page`/`pages` despite the PR saying it is paged the same way"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

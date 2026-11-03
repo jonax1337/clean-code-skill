@@ -1,0 +1,86 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "b577008e0f3a3250",
+    "this-repo": "4dd2900bd86cee80"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.75,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes are nearly identical in structure: a mutually exclusive `--with`/`--percent` group, reuse of `allocate`, a shared duplicate-name check and matching README updates. A gives clearer errors for out-of-range values at parse time and rejects blank names. Its tests also go further: a CLI test for malformed `--percent`, an exit-code assertion when both options are given, and message matching on parse errors. Both reports check out against the diffs (53 and 52 tests, correct examples).",
+        "a_issues": [
+          "`parse_percent` strips whitespace from names, but `--with` does not, so the two split modes handle names slightly differently.",
+          "The 0% rule lives in `parse_percent` rather than in `split_by_percent`, so calling `split_by_percent` directly does not enforce it (the total check still catches values over 100)."
+        ],
+        "b_issues": [
+          "The greedy regex accepts whitespace-only names such as ' =50' and does not strip spaces around names or numbers.",
+          "There is no CLI test for a malformed `--percent` value, and the test for combining `--with` and `--percent` does not assert the exit code.",
+          "`test_parse_percentage_rejects_bad_input` does not match the error message, so it is weaker at pinning down which check failed.",
+          "The report claims the tests were written before the code, which cannot be verified."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes are correct and nearly identical in structure. Each uses a mutually exclusive `--with`/`--percent` group, reuses `allocate`, factors out the duplicate check, and updates the README. B's tests protect a little more: a malformed `--percent` through the CLI, the argparse exit code when both options are given, and 0 and 101 at the parse level, with tests matching on the error message. B also accepts whitespace around `=` and its report is accurate, so it edges ahead.",
+        "a_issues": [
+          "Whitespace around the name (e.g. `' alice=50'`) is kept in the name, so it can silently create a separate person.",
+          "No CLI test for a malformed `--percent` value, and the combined `--with`/`--percent` test does not check the exit code.",
+          "Percentages over 100 are only caught by the total check; there is no test for a single value above 100."
+        ],
+        "b_issues": [
+          "`split_by_percent` builds the names list twice: once inline for the duplicate check and again for the result.",
+          "The 1\u2013100 range check lives in `parse_percent`, so a direct caller of `split_by_percent` could pass 0% without an error."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

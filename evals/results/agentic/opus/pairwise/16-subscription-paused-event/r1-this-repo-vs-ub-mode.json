@@ -1,0 +1,83 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c079f3de1e5d6745",
+    "ub-mode": "085033bc2ae4fce8"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The production code is essentially the same in both: the same event type, the same reducer guards, the same audit line and the same notification, all meeting the spec. A's audit test uses a reason containing quotes, so it actually checks the cancellation-style escaping; B's test uses plain \"vacation\" and would not catch a broken quoting rule. B also committed to main without being asked, and its report contains a garbled paragraph about \"crapper, dryer and mutator tools\" that are not in the repo, which makes it less trustworthy.",
+        "a_issues": [
+          "Pause fixture is typed as the broad SubscriptionEvent rather than SubscriptionPaused; this works through narrowing but is less explicit."
+        ],
+        "b_issues": [
+          "Committed to main (7b51b17) although the task did not ask for a commit.",
+          "Report contains a garbled, confusing paragraph about crapper/dryer/mutator tools that do not exist in the repo.",
+          "Audit test uses a reason without quotes, so the JSON.stringify escaping for the new event is not exercised."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The source changes are effectively identical and both cover every required behavior: the paused status, the resumeOn lifecycle, payment events leaving a paused subscription alone, the audit format and the notification. B's audit test uses a reason with quotes in it, so it checks the escaping that the task asked to match. B's report is clean and points out that the new required `resumeOn` field affects code that builds `Subscription` objects. A's report contains a garbled sentence about tools that don't exist, and A committed to main without being asked.",
+        "a_issues": [
+          "Committed directly to `main` without being asked to.",
+          "The report has a garbled, confusing passage about \"crapper, dryer and mutator tools\" that refers to instructions nobody gave.",
+          "The audit test uses only a plain reason, so the quote escaping for the pause reason is not checked."
+        ],
+        "b_issues": [
+          "The `paused` test fixture is typed as the broad `SubscriptionEvent`. It relies on assignment narrowing for the `{ ...paused, resumeOn }` override, which is slightly less explicit than A's specific type."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

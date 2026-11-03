@@ -1,0 +1,88 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4dd2900bd86cee80",
+    "sickn33": "43544727e598a2a6"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes reuse `allocate`, make `--with` and `--percent` a required mutually exclusive group, and update the README the same way, so they are very close. A's parser is a strict ASCII-digit regex. B's `str.isdigit()` accepts Unicode digits such as '\u00b2', and `int()` then raises a `ValueError` that is not caught, so the CLI crashes instead of reporting an error. B also adds a range check that is redundant because the total must be 100, while A's tests pin the exact leftover-cent distribution. B does have a nice test for omitting both split options and tolerates whitespace, but on balance A is slightly cleaner and safer.",
+        "a_issues": [
+          "The greedy `.+` name group accepts odd input such as 'alice==50' and reads the name as 'alice='.",
+          "Whitespace around '=' (e.g. 'bob = 30') is rejected rather than tolerated.",
+          "No test that `add` fails when neither `--with` nor `--percent` is given."
+        ],
+        "b_issues": [
+          "`percent.isdigit()` accepts Unicode digits such as '\u00b2'; `int()` then raises a `ValueError` that is not caught, so the CLI crashes instead of reporting an error.",
+          "`_reject_out_of_range` checks for negatives and >100, which cannot happen after parsing and the sum-to-100 check; it is redundant code.",
+          "The leftover-cent test only checks the sum, not which person gets the extra cent.",
+          "Strips whitespace from `--percent` names but not from `--with` names, which is slightly inconsistent."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs add a mutually exclusive `--with`/`--percent` group, reuse `allocate` for exact cent splitting and move the duplicate-name check into a shared helper. The two are close. B's ASCII `[0-9]+` regex can't be fooled by Unicode digits. A's `str.isdigit()` accepts characters like '\u00b2' that `int()` then fails on, so the user gets an unhandled ValueError traceback instead of an `error:` message. B also needs no separate range check, since the sum check catches any value over 100, and its test pins down exactly which person gets the leftover cent.",
+        "a_issues": [
+          "`percent.isdigit()` accepts Unicode digits such as '\u00b2' that `int()` rejects, so input like `alice=\u00b2` crashes with a traceback instead of a clean error.",
+          "The upper bound in `_reject_out_of_range` repeats what the sum check already enforces, and the parser already rules out negatives.",
+          "Names are stripped of whitespace for `--percent` but not for `--with`, a small inconsistency between the two split types.",
+          "The leftover-cent test only checks the total, not which person gets the extra cent."
+        ],
+        "b_issues": [
+          "There is no CLI test that `add` fails when neither `--with` nor `--percent` is given.",
+          "The greedy regex accepts names containing '=' (for example `a=b=50` gives the name `a=b`), which is harmless but undocumented."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

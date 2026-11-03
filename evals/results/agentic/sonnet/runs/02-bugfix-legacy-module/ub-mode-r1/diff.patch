@@ -1,0 +1,77 @@
+diff --git a/reports/periods.py b/reports/periods.py
+index b29beff..ccd92c3 100644
+--- a/reports/periods.py
++++ b/reports/periods.py
+@@ -1,23 +1,28 @@
+-"""Date ranges for the sales reports. Every range is half-open: start <= day < end."""
+-
+-import datetime
+-
+-
+-def month_range(year, month):
+-    """Return (first day of the month, first day of the next month)."""
+-    start = datetime.date(year, month, 1)
+-    end = datetime.date(year, month + 1, 1)
+-    return start, end
+-
+-
+-def quarter_range(year, quarter):
+-    """Return (first day of the quarter, first day of the next quarter) for quarter 1-4."""
+-    start = datetime.date(year, 3 * quarter - 2, 1)
+-    end = datetime.date(year, 3 * quarter + 1, 1)
+-    return start, end
+-
+-
+-def week_range(day):
+-    """Return (Monday of the ISO week containing day, Monday of the following week)."""
+-    start = day - datetime.timedelta(days=day.weekday())
+-    return start, start + datetime.timedelta(days=7)
++"""Date ranges for the sales reports. Every range is half-open: start <= day < end."""
++
++import datetime
++
++
++def _first_of_month(year, month):
++    """First day of the given month; month may be 13 and rolls into the next year."""
++    return datetime.date(year + (month - 1) // 12, (month - 1) % 12 + 1, 1)
++
++
++def month_range(year, month):
++    """Return (first day of the month, first day of the next month)."""
++    start = _first_of_month(year, month)
++    end = _first_of_month(year, month + 1)
++    return start, end
++
++
++def quarter_range(year, quarter):
++    """Return (first day of the quarter, first day of the next quarter) for quarter 1-4."""
++    start = _first_of_month(year, 3 * quarter - 2)
++    end = _first_of_month(year, 3 * quarter + 1)
++    return start, end
++
++
++def week_range(day):
++    """Return (Monday of the ISO week containing day, Monday of the following week)."""
++    start = day - datetime.timedelta(days=day.weekday())
++    return start, start + datetime.timedelta(days=7)
+diff --git a/tests/test_periods.py b/tests/test_periods.py
+index 1b9f309..3bd3adf 100644
+--- a/tests/test_periods.py
++++ b/tests/test_periods.py
+@@ -8,8 +8,16 @@ def test_month_range_is_half_open():
+ 
+ 
+ def test_quarter_range_is_half_open():
+     assert quarter_range(2026, 2) == (datetime.date(2026, 4, 1), datetime.date(2026, 7, 1))
+ 
+ 
+ def test_week_range_starts_on_monday():
+     assert week_range(datetime.date(2026, 11, 5)) == (datetime.date(2026, 11, 2), datetime.date(2026, 11, 9))
++
++
++def test_december_month_range_rolls_into_next_year():
++    assert month_range(2026, 12) == (datetime.date(2026, 12, 1), datetime.date(2027, 1, 1))
++
++
++def test_fourth_quarter_range_rolls_into_next_year():
++    assert quarter_range(2026, 4) == (datetime.date(2026, 10, 1), datetime.date(2027, 1, 1))

@@ -1,0 +1,83 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "594b79b61bfc8b48",
+    "ub-mode": "85265dd2dda54201"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both diffs make the same code and docs changes: they remove the `compact` field, parsing arm, help line, render path, README row, and add a CHANGELOG entry. A also adds unit and integration tests asserting that `-c` and `--compact` now give an unknown-option error, which guards the intended breaking change. A's report is accurate, while B's contains a garbled reference to nonexistent \"crapper, dryer or mutator tools from .\" and adds no tests for the new behavior.",
+        "a_issues": [
+          "The new rejection tests are spread across both `src/cli.rs` and `tests/cli.rs`, which is slightly redundant but harmless."
+        ],
+        "b_issues": [
+          "No test asserts that `-c`/`--compact` are now rejected, so the removal is unprotected.",
+          "The report has a confusing, apparently garbled sentence about running \"crapper, dryer or mutator tools from .\" that don't exist in this repo.",
+          "The report mentions a local commit hash, which is extra noise and can't be verified."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both diffs make the same correct removal of the flag, its field, the parse arm, the render path and its helpers, the help line, the README row and a changelog entry. B also replaces the deleted compact tests with tests that `-c` and `--compact` now give an unknown-option error. That locks in the breaking change at both the parser and the CLI level. B's report is clear and accurate, while A's report admits it did not add a rejection test and contains a garbled sentence about tools it did not run.",
+        "a_issues": [
+          "No test checks that `-c`/`--compact` are now rejected, so the flag could quietly return in a later change.",
+          "The report has a garbled, unclear line about not running 'crapper, dryer or mutator tools from .'.",
+          "It committed locally without being asked; this is minor and was disclosed."
+        ],
+        "b_issues": [
+          "The new rejection tests partly repeat the generic unknown-option test, but they record intent and are cheap."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

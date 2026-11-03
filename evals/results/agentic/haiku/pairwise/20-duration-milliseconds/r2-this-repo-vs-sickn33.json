@@ -1,0 +1,84 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4d4273c889f959f9",
+    "sickn33": "b90f49fce4a1442b"
+  },
+  "score": 0.75,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both changes are functionally identical. Each converts the unit table to milliseconds, drops the `* 1000` in cache, retry and scheduler, moves the validate bounds to ms, divides by 1000 in http and report to keep their seconds output, and updates the duration tests. A adds a small exported `MS_PER_SECOND` constant, which is a mild extra abstraction but documents intent. B uses literal `1_000` and makes a purely cosmetic digit-separator edit in retry.test.ts. Neither difference outweighs the other, and both reports accurately describe the change and flag the public behavior change.",
+        "a_issues": [
+          "Exports a new `MS_PER_SECOND` constant from duration.ts, which widens the module surface beyond what the task needs.",
+          "No tests pin the unchanged seconds output of `rateLimitHeaders` or `describeSettings`."
+        ],
+        "b_issues": [
+          "Makes a cosmetic, unrelated edit to test/retry.test.ts (`240000` -> `240_000`) that does not change behavior.",
+          "No tests pin the unchanged seconds output of `rateLimitHeaders` or `describeSettings`."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes are functionally identical: every caller is adapted correctly, and the seconds-based outputs (Retry-After and describeSettings) are preserved by dividing by 1000. B names the conversion factor through MS_PER_SECOND, which keeps the seconds-based callers and the TTL bounds free of bare 1000s. A makes an unneeded cosmetic edit to the retry test. Neither adds tests that pin the unchanged outputs of http.ts or report.ts, and both reports are accurate and flag the public API break.",
+        "a_issues": [
+          "Unneeded cosmetic edit to test/retry.test.ts (240000 -> 240_000).",
+          "Bare 1_000 literals repeated in http.ts, report.ts and validate.ts.",
+          "No tests added for rateLimitHeaders or describeSettings to show their output is unchanged."
+        ],
+        "b_issues": [
+          "Adds a new exported MS_PER_SECOND constant from duration.ts, a small expansion of the module's surface.",
+          "No tests added for rateLimitHeaders or describeSettings to show their output is unchanged."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

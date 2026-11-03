@@ -1,64 +1,49 @@
-The cause is two empty-array edge cases. With no orders, `average([])` computes `0 / 0`, which is `NaN`, and `Math.max()` with no arguments returns `-Infinity`.
-
-I chose `"0.00"` and `0` as the values for "no orders", because they keep the existing types (`avg` is a string, `max` is a number) and the dashboard won't need new handling. If you'd rather show a placeholder like "—", return `null` instead and have the UI handle it. I haven't run any of this, so please run the tests yourself.
+The bug is in `summarize`. With no orders, `average([])` computes `0 / 0`, which is `NaN`, and `Math.max()` of nothing is `-Infinity`. I fixed it by handling the empty case explicitly at the top of `summarize`.
 
 ```js
 // stats.js
 function average(values) {
-  if (values.length === 0) return 0;
-  return sum(values) / values.length;
+  let sum = 0;
+  for (const v of values) sum += v;
+  return sum / values.length;
 }
 
-function sum(values) {
-  let total = 0;
-  for (const v of values) total += v;
-  return total;
-}
-
-function maximum(values) {
-  if (values.length === 0) return 0;
-  return Math.max(...values);
+function emptySummary() {
+  return { count: 0, avg: (0).toFixed(2), max: 0 };
 }
 
 function summarize(orders) {
+  if (orders.length === 0) return emptySummary();
+
   const amounts = orders.map(o => o.amount);
   return {
     count: orders.length,
     avg: average(amounts).toFixed(2),
-    max: maximum(amounts),
+    max: Math.max(...amounts),
   };
 }
 
 module.exports = { average, summarize };
 ```
 
-Tests to add to `stats.test.js`. The two empty-case tests should fail against the old code and pass now:
+Add these tests to `stats.test.js`. I couldn't see that file, so I'm assuming it already imports from `./stats`:
 
 ```js
-const { average, summarize } = require('./stats');
-
-describe('average', () => {
-  it('returns 0 for no values', () => {
-    expect(average([])).toBe(0);
-  });
-
-  it('averages the values', () => {
-    expect(average([2, 4, 9])).toBe(5);
-  });
-});
+const { summarize } = require('./stats');
 
 describe('summarize', () => {
-  it('returns zeroed stats for a customer with no orders', () => {
+  it('returns zeroed values for a customer with no orders', () => {
     expect(summarize([])).toEqual({ count: 0, avg: '0.00', max: 0 });
   });
 
-  it('summarizes existing orders', () => {
-    const orders = [{ amount: 10 }, { amount: 20.5 }];
-    expect(summarize(orders)).toEqual({ count: 2, avg: '15.25', max: 20.5 });
+  it('still summarizes customers who have orders', () => {
+    const orders = [{ amount: 10 }, { amount: 25 }];
+    expect(summarize(orders)).toEqual({ count: 2, avg: '17.50', max: 25 });
   });
 });
 ```
 
-Changes beyond the fix:
-- I extracted `sum` and `maximum` so each function does one thing and `summarize` reads at a single level of abstraction.
-- `Math.max(...amounts)` can throw a `RangeError` for very large arrays (on the order of 100k+ items). That's unrelated to this bug, so I left it, but it's worth watching if a customer could have that many orders.
+I haven't run these, so please run `npx jest stats.test.js` to confirm.
+
+- **Zero vs. blank:** I chose `'0.00'` and `0` so the output keeps the same types the dashboard already receives (`avg` is a string, `max` is a number). If you'd rather show "—" or "N/A" for customers with no orders, return `null` for `avg` and `max` instead and have the dashboard render that. That is a product decision, so say if you want it.
+- **`average` unchanged:** `average([])` still returns `NaN`. I left it alone so other callers don't change behavior. If nothing else uses it on empty input, you could make it return `0` as well.

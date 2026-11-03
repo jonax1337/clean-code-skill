@@ -1,0 +1,66 @@
+diff --git a/reports/periods.py b/reports/periods.py
+index b29beff..6eb6032 100644
+--- a/reports/periods.py
++++ b/reports/periods.py
+@@ -1,23 +1,28 @@
+ """Date ranges for the sales reports. Every range is half-open: start <= day < end."""
+ 
+ import datetime
+ 
+ 
++def _first_of_month(year, month):
++    """First day of the given month; month 13 rolls over to January of the next year."""
++    return datetime.date(year + (month - 1) // 12, (month - 1) % 12 + 1, 1)
++
++
+ def month_range(year, month):
+     """Return (first day of the month, first day of the next month)."""
+-    start = datetime.date(year, month, 1)
+-    end = datetime.date(year, month + 1, 1)
++    start = _first_of_month(year, month)
++    end = _first_of_month(year, month + 1)
+     return start, end
+ 
+ 
+ def quarter_range(year, quarter):
+     """Return (first day of the quarter, first day of the next quarter) for quarter 1-4."""
+-    start = datetime.date(year, 3 * quarter - 2, 1)
+-    end = datetime.date(year, 3 * quarter + 1, 1)
++    start = _first_of_month(year, 3 * quarter - 2)
++    end = _first_of_month(year, 3 * quarter + 1)
+     return start, end
+ 
+ 
+ def week_range(day):
+     """Return (Monday of the ISO week containing day, Monday of the following week)."""
+     start = day - datetime.timedelta(days=day.weekday())
+     return start, start + datetime.timedelta(days=7)
+diff --git a/tests/test_sales.py b/tests/test_sales.py
+index c5ace3a..d91dee4 100644
+--- a/tests/test_sales.py
++++ b/tests/test_sales.py
+@@ -11,8 +11,24 @@ ROWS = [
+ 
+ 
+ def test_monthly_report_counts_only_the_month():
+     assert monthly_report(ROWS, 2026, 3) == {"period": "2026-03", "orders": 2, "total_cents": 4000}
+ 
+ 
+ def test_quarterly_report_counts_only_the_quarter():
+     assert quarterly_report(ROWS, 2026, 1) == {"period": "2026-Q1", "orders": 3, "total_cents": 4999}
++
++
++DEC_ROWS = [
++    {"date": datetime.date(2026, 11, 30), "amount_cents": 100},
++    {"date": datetime.date(2026, 12, 1), "amount_cents": 200},
++    {"date": datetime.date(2026, 12, 31), "amount_cents": 300},
++    {"date": datetime.date(2027, 1, 1), "amount_cents": 400},
++]
++
++
++def test_december_report_runs_to_year_end():
++    assert monthly_report(DEC_ROWS, 2026, 12) == {"period": "2026-12", "orders": 2, "total_cents": 500}
++
++
++def test_fourth_quarter_report_runs_to_year_end():
++    assert quarterly_report(DEC_ROWS, 2026, 4) == {"period": "2026-Q4", "orders": 3, "total_cents": 600}

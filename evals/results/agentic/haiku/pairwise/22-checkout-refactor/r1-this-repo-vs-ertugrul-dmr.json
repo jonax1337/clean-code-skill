@@ -1,0 +1,89 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "a07a5b15cc705cfe",
+    "ertugrul-dmr": "e8726ab0352082d8"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior. A also adds characterization tests, run against the original code first, that cover branches the existing suite missed: zero quantity, unknown coupon, VIP stacked on a coupon, the free-shipping threshold, per-line tax rounding, partial-reservation rollback, a failing receipt, and non-decline gateway errors. A's top-level flow keeps the decline handling and its raise visible inline, and it extracts pricing fully. B hides a raise inside a NoReturn helper, leaves the discount logic inline, adds no tests, and justifies its choices with a 'three-argument rule' that does not exist in the repository.",
+        "a_issues": [
+          "Stock commit, coupon redeem and status update stay inline in process_order, while the release loop is extracted; minor asymmetry",
+          "Some characterization tests use local fake classes instead of the conftest fixtures (acceptable but slightly ad hoc)"
+        ],
+        "b_issues": [
+          "No tests added; the refactor relies only on the 9 existing tests plus an unshipped differential script",
+          "_abort_declined_payment hides the raise inside a NoReturn helper, making control flow in the except block less obvious",
+          "Coupon/VIP discount logic is left inline, so process_order is still only partially decomposed",
+          "Report cites a 'project's three-argument rule' that appears nowhere in the repository, and _abort_declined_payment itself takes three arguments",
+          "Very thin helpers such as _mark_paid and _commit_stock add indirection without much readability gain"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior: the remaining helper splits are side-effect-free or keep the same order of effects. B first added characterization tests for the branches the suite did not cover, which is the right way to protect a production refactor. B's report also openly explains the reserved\u2192order.items change, while A's report hides that same change and cites a three-argument rule that does not exist in the repo.",
+        "a_issues": [
+          "No tests added for branches the suite misses (VIP, invalid coupon, free shipping, per-line rounding, partial reservation rollback, receipt failure), so the refactor is protected only by 9 tests and an unshipped differential run.",
+          "Report cites a 'project's three-argument rule' that does not appear anywhere in the repository.",
+          "Report says behavior is preserved but does not mention that the decline path now releases order.items instead of the reserved list.",
+          "Discount logic and receipt try/except stay inline, so process_order is only partly decomposed. _mark_paid and _commit_stock are thin wrappers that add little."
+        ],
+        "b_issues": [
+          "Iterates order.items twice (once for subtotal, once for tax) and recomputes line_cents in two places, which duplicates a little logic.",
+          "Tax is now computed after the coupon check instead of before. This is harmless because it has no side effects, but it is a small reordering the report does not mention.",
+          "Post-charge steps (commit, redeem, mark paid) stay inline in process_order."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

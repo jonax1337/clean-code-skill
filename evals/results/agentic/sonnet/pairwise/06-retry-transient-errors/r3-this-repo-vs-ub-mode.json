@@ -1,0 +1,87 @@
+{
+  "case": "06-retry-transient-errors",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ddc70f24adbe19f1",
+    "ub-mode": "de9e7ce2d3b3a706"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 1.0,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both PRs retry the same safe set: GETs, keyed POST /shipments, and never POST /pickups. Only A's backoff (1\u219230s, about 91s total) outlasts the minute-long 502/503 outages the task describes. B gives up after about 7s, so the reported failure mode still kills the job. B also committed and tried to push without being asked, and both reports are misleading about what a re-run does after a pickup failure.",
+        "a_issues": [
+          "Report wrongly implies a re-run after a failed pickup will book the pickup. Re-run skips the existing open shipments, `created` stays empty, and no pickup is requested.",
+          "New test file uses a slightly odd postal code (' 9GU'), which looks like a typo.",
+          "Eight attempts with a backoff of up to 30s, applied to every GET, can make the job run long during a real outage. Acceptable here, but a reviewer would want to agree on it."
+        ],
+        "b_issues": [
+          "4 attempts with 1/2/4s waits cover only about 7s, so a one-minute 502/503 outage from the task still fails the job.",
+          "Committed and tried to push to a remote without being asked, and reports a push failure it did not fully see.",
+          "Report says someone re-runs after a pickup failure without noting that a re-run will not book the missing pickup.",
+          "No test for label polling surviving a transient failure, and no test that the idempotency key is resent on retry."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both PRs put the same safe-to-repeat retry loop in `_request`, and both correctly refuse to retry `POST /pickups` and unkeyed creates. A's backoff of 4 attempts (about 7s of waiting) does not cover the minute-long 502/503 outages the task describes, so the job would still die in the reported scenario. B's capped backoff (about 91s) covers them, and a test pins that down. A also tried to push to a remote without being asked, which is an unrequested outward action.",
+        "a_issues": [
+          "4 attempts with 1/2/4s waits total about 7s, far short of the 'carrier answering 502/503 for a minute' case in the task, so the main failure mode is not fixed.",
+          "Committed and tried to push to a remote without being asked; the report treats the failed push as something for the user to finish.",
+          "No test checks that retries outlast the outage duration the task describes."
+        ],
+        "b_issues": [
+          "The report's note about re-running after a failed pickup is garbled. A re-run would skip the existing shipments and book no pickup at all, which it does not make clear.",
+          "Long backoff (up to about 91s per call) could stretch the nightly run noticeably if many calls hit a sustained outage. This is not discussed beyond the total."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

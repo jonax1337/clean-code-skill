@@ -1,0 +1,81 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "4c9569c089292f8a",
+    "this-repo": "ffffe84b2e6a3f25"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes make the same correct fix: `parse_entries` skips lines that are empty or whitespace-only, and line numbers still count the skipped lines. B also adds two focused tests. One shows that blank and whitespace-only lines (including `\\r\\n`) are skipped, and the other shows that line numbers still count those blank lines. A leaves the new behavior untested and says so honestly. Both reports are accurate, but B's also explains the cause of the error.",
+        "a_issues": [
+          "No test covers the new blank-line skipping, so a regression would go unnoticed",
+          "README not updated to mention that blank lines are ignored during import"
+        ],
+        "b_issues": [
+          "README not updated to mention that blank lines are ignored during import"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes make the identical fix in `parse_entries`: blank or whitespace-only lines are skipped and line numbers still count them. A also adds two focused tests, one for blank lines including a trailing `\\r\\n` and one confirming line numbers still count skipped lines. B ships the fix with no regression test. Both reports are accurate, including the test counts of 20 and 18.",
+        "a_issues": [
+          "Did not mention blank-line skipping in the README's CSV import section (minor)."
+        ],
+        "b_issues": [
+          "No test protects the new blank-line behavior or the line numbering after skipped lines, so a regression would go unnoticed.",
+          "Did not mention blank-line skipping in the README's CSV import section (minor)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

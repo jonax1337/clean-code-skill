@@ -5,7 +5,7 @@
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-2a78d6"></a>
   <a href="https://agentskills.io"><img alt="Agent Skills format" src="https://img.shields.io/badge/format-Agent%20Skills-52514e"></a>
-  <a href="evals/README.md"><img alt="Evals: 17 tasks, blind-graded" src="https://img.shields.io/badge/evals-17%20tasks%2C%20blind--graded-52514e"></a>
+  <a href="evals/README.md"><img alt="Evals: 28 tasks, blind-graded" src="https://img.shields.io/badge/evals-28%20tasks%2C%20blind--graded-52514e"></a>
   <a href="README.de.md"><img alt="Deutsch" src="https://img.shields.io/badge/lang-Deutsch-52514e"></a>
 </p>
 
@@ -15,84 +15,111 @@ Most clean-code skills restate the book. This one also tells the agent **when th
 
 ## Why another clean-code skill
 
-An agent that applies the book literally makes predictable mistakes. In the eval runs below:
+An agent that applies the book literally, or does not get it at all, makes predictable mistakes. In the eval runs below:
 
-- the first version of this skill replaced idiomatic Kotlin `String?` with an exception in all three runs, because "don't return null";
-- with a book-summary skill loaded, the agent moved bit tests on a per-packet hot path into helper methods, because "functions should be small";
-- with book-based skills loaded, a two-line bugfix grew into a refactoring of code the bug did not touch;
-- without any skill, the agent added a `currency` parameter nobody asked for in all three runs;
-- with v2 of this skill, an agent asked to refactor untested TypeScript left its `any` types in place and wrote no tests to pin the old behavior first, in all three runs.
+- without a skill, and with ub-mode or sickn33 loaded, the agent added a `currency` parameter nobody asked for, in all three runs;
+- with a book-summary skill loaded, the agent pulled the bit test of a per-packet hot loop into a helper method in all three runs, because "functions should be small", and left the vague exception as it was;
+- without a skill, the agent added a feature with no test and never ran the tests after its last edit, and fixed a bug without a regression test, in all three runs;
+- installed next to the code and never mentioned, the other clean-code skills loaded on their own in 1 of 33 runs, so in practice they were not used at all.
 
-This skill addresses these with four additions on top of the book:
+This skill addresses these with five additions on top of the book:
 
 <p align="center">
   <img src="docs/assets/precedence.svg" alt="Precedence: 1 correct and verified, 2 the codebase and the language, 3 Beck's four rules, 4 heuristics C1–T9" width="760">
 </p>
 
 1. **A precedence order.** Correctness first, then the codebase's conventions and the language's idioms, then Beck's rules, then the heuristics. Every bent rule needs a one-line reason.
-2. **Scope discipline and agent failure modes.** Search before writing, keep the diff to the task, no speculative abstractions, no swallowed errors, no narrating comments, no unverified "tests pass". When the task *is* a cleanup, the whole unit is in scope.
+2. **Scope discipline and agent failure modes.** Search before writing, keep the diff to the task, no speculative abstractions or parameters, no swallowed errors, no narrating comments, no unverified "tests pass". When the task *is* a cleanup, the whole unit is in scope.
 3. **Explicit exceptions.** Hot paths, generated code, throwaway scripts, legacy consistency, deep modules.
-4. **Verified work, reported accurately.** Pin untested code with characterization tests before refactoring it, cover every fix with a test, let the type checker and the tests decide what is safe, and end with a report that claims only what was checked.
+4. **Verified work, reported accurately.** Pin untested code with characterization tests before refactoring it, cover every fix and every visible behavior with a test, let the type checker and the tests decide what is safe, check the design against the numbers the task states, and end with a report that claims only what was checked.
+5. **A description that makes it load.** It tells the agent to load the skill before its first edit on any coding task, so it is used without anyone asking for it.
 
 ## Results
 
-Two benchmarks. The agentic one is the main evidence: the agent works in a real repository with real tools, and six of its nine tasks were held out while the skill was written.
+Two benchmarks compare this skill as it is in the repository with no skill and with three other clean-code skills: [unclebob/ub-mode](https://github.com/unclebob/ub-mode) by Robert C. Martin, [sickn33/clean-code](https://github.com/sickn33/agentic-awesome-skills/tree/main/skills/clean-code) (the clean-code skill with the most installs on skills.sh as of November 2026) and [ertugrul-dmr/clean-code-skills](https://github.com/ertugrul-dmr/clean-code-skills) (Python and TypeScript only). The agentic one is the main evidence: the agent works in a real repository with real tools, and 13 of its 20 tasks were held out while the skill was improved.
 
 ### Agentic track: real repositories, held-out tasks
 
-The coding agent gets a fresh copy of a small repository in Python, TypeScript or Rust and the tools Claude Code normally has: read, search, edit and a shell. Deterministic checks grade what it did: hidden tests, which files changed, whether its regression test fails on the old code, whether it ran the tests after its last edit. A blind judge (Claude Opus 5.5) then reads two pull requests for the same task, once in each order, and says which one it would rather merge.
+The coding agent gets a fresh copy of a small repository in Python, TypeScript, JavaScript, Java or Rust and the tools Claude Code normally has: read, search, edit and a shell. Deterministic checks grade what it did: hidden tests, which files changed, whether its regression test fails on the old code, whether its tests catch planted bugs, whether it ran the tests after its last edit. A blind judge (Claude Opus 5.5) then reads two pull requests for the same task, once in each order, and says which one it would rather merge and which one is better on correctness, scope, design, readability, tests and the report.
 
-Three tasks were used while writing v3. The other six were written by separate agents that never saw the skill, and v3 had to beat v2 on those.
+The 13 held-out tasks were written by separate agents that never saw the skill. Each ran twice per coding agent and condition, and every pull request written with this skill was compared with the one written without a skill and with each other skill on the same task.
 
 <p align="center">
-  <img src="docs/assets/agentic-preference.svg" alt="Blind judge on six held-out tasks, v3 against v2: Sonnet 12 wins, 4 ties, 2 losses, preference 78%; Opus 9, 6, 3, 68%; Haiku 10, 2, 6, 62% with an interval that includes 50%" width="760">
+  <img src="docs/assets/agentic-preference.svg" alt="Blind judge on 13 held-out tasks, this skill against each alternative. Sonnet: 24 wins of 26 against no skill (94%), 26 of 26 against ub-mode (100%), 20 against sickn33 (84%), 9 of 14 against ertugrul-dmr (79%). Opus: 18 against no skill (71%), 19 against ub-mode (81%), 18 against sickn33 (74%), 7 of 14 against ertugrul-dmr (59%, interval includes 50%). Haiku: 13 against no skill (54%) and 11 against ub-mode (46%), both intervals include 50%; 14 against sickn33 (63%), 10 of 14 against ertugrul-dmr (75%)" width="760">
 </p>
 
-| Coding agent | v3 wins / ties / v2 wins | Preference for v3 [95% CI] | Checks passed: no skill / v2 / v3 | Avg. cost per run with v3 |
-|---|---|---|---|---|
-| Claude Sonnet 5.5 | 12 / 4 / 2 | 78% [67–89%] | 97% / 100% / 100% | $0.10 |
-| Claude Opus 5.5 | 9 / 6 / 3 | 68% [58–79%] | 98% / 98% / 99% | $0.25 |
-| Claude Haiku 5.5 | 10 / 2 / 6 | 62% [49–76%] | 98% / 97% / 97% | $0.009 |
+| Coding agent | vs no skill | vs ub-mode | vs sickn33 | vs ertugrul-dmr (7 tasks) | Avg. cost per run: no skill → this skill |
+|---|---|---|---|---|---|
+| Claude Sonnet 5.5 | 24 / 1 / 1 · 94% | 26 / 0 / 0 · 100% | 20 / 5 / 1 · 84% | 9 / 4 / 1 · 79% | $0.09 → $0.17 |
+| Claude Opus 5.5 | 18 / 1 / 7 · 71% | 19 / 4 / 3 · 81% | 18 / 3 / 5 · 74% | 7 / 3 / 4 · 59%\* | $0.24 → $0.33 |
+| Claude Haiku 5.5 | 13 / 2 / 11 · 54%\* | 11 / 2 / 13 · 46%\* | 14 / 6 / 6 · 63% | 10 / 1 / 3 · 75% | $0.010 → $0.015 |
+
+Wins / ties / losses for this skill and the judge's preference for it, a tie counting half. \* The 95% interval includes 50%, so that comparison is a trend, not a result.
 
 What the numbers say:
 
-- **On held-out tasks the judge prefers v3 over v2** with Sonnet and Opus, and both intervals stay above 50%. With Haiku the direction is the same, but the interval includes 50%, so that one is a trend, not a result.
-- **The production code is often the same; the tests are not.** In the judge's stated reasons, v3's pull requests win mostly on their tests (behavior pinned before a refactor, regression tests with edge cases) and on tighter types, not on longer reports.
-- **The checks no longer separate the skills on held-out tasks.** Every condition passes 97–100% of them there, so the judge decides. On the dev tasks they still did: without a skill the agent never ran the tests after its last edit and added no regression test for the bugfix; v2 fixed both, and v3 also pinned untested code with characterization tests before refactoring it.
+- **With Sonnet and Opus the judge prefers this skill over every alternative,** and every interval but one stays above 50%. The lead is largest with Sonnet: 24 of 26 comparisons against no skill and all 26 against ub-mode.
+- **With Haiku the skill does not measurably help** against no skill or ub-mode; it still wins against sickn33 and ertugrul-dmr. The small model follows the extra rules less reliably, so the skill pays off most with the larger models.
+- **The lead comes mostly from the tests and the report, less from the production code.** Share of the judge's per-dimension verdicts that went to this skill against no skill:
+
+  | Dimension | Sonnet | Opus | Haiku |
+  |---|---|---|---|
+  | Tests | 93% | 70% | 62% |
+  | Report | 78% | 76% | 61% |
+  | Readability | 78% | 42% | 50% |
+  | Design | 62% | 52% | 46% |
+  | Correctness | 57% | 53% | 46% |
+  | Scope | 49% | 54% | 48% |
+
+  With Sonnet the code itself also reads better. With Opus and Haiku correctness and design come out about even, and with Opus the code written without a skill even reads slightly better; there the pull request wins on its tests and on a report that says what was run and what was left alone.
+- **The checks barely separate the skills on held-out tasks.** Every condition passes 94–99% of them there, so the judge decides. On the dev tasks, where the skill was tuned, they still do: no skill 82%, this skill 100%.
+- **The skill costs more.** A run with it costs 35–82% more than without a skill and takes more turns (Sonnet: 12.8 instead of 9.3), mostly for writing and running tests.
 
 <p align="center">
-  <img src="docs/assets/agentic-checks.svg" alt="Checks passed with Sonnet. Dev tasks: no skill 70%, sickn33 73%, v2 89%, v3 100%. Held-out tasks: no skill 97%, v2 100%, v3 100%" width="760">
+  <img src="docs/assets/agentic-checks.svg" alt="Checks passed with Sonnet. Dev tasks: no skill 82%, this skill 100%, ub-mode 95%, sickn33 88%, ertugrul-dmr 89%. Held-out tasks: no skill 96%, this skill 98%, ub-mode 97%, sickn33 99%, ertugrul-dmr 98%" width="760">
 </p>
 
-Nine tasks with three runs per cell are a small sample, and the intervals describe these tasks, not tasks in general. The skill was appended to the system prompt rather than triggered, so whether it loads on its own is not tested. The first grading of the held-out runs had false alarms (Windows line endings, a CLI's intended `print`, Rust unit tests) that put v3 slightly behind v2; they were fixed for every condition and all runs regraded before these numbers. Transcripts, diffs, checks with evidence and every verdict with its reasons are under [`evals/results/agentic/`](evals/results/agentic).
+#### Does a skill load on its own?
 
-### Single-turn suite (measured with v2)
+The runs above put the skill into the system prompt. In real use it is installed next to the code, and the agent decides whether to load it. Claude Sonnet 5.5, held-out tasks, one run each:
 
-The first benchmark asks for one reply without tools. Eight realistic coding tasks across Python, TypeScript, Java, Go, Kotlin, C# and JavaScript, each run three times under four conditions: no skill, [sickn33/clean-code](https://github.com/sickn33/agentic-awesome-skills/tree/main/skills/clean-code) (the clean-code skill with the most installs on skills.sh as of November 2026), the first version of this skill, and v2. Claude Sonnet 5.5 wrote the code; Claude Opus 5.5 graded all four answers to each task under shuffled labels. v3 keeps every rule of v2 and adds the ones above; it has not been rerun on this suite.
+| Installed as a project skill … | This skill | ub-mode | sickn33 | ertugrul-dmr |
+|---|---|---|---|---|
+| and nothing mentions it | **11 / 13** | 0 / 13 | 0 / 13 | 1 / 7 |
+| with one line in `CLAUDE.md` ([below](#usage)) | 13 / 13 | 13 / 13 | 13 / 13 | 7 / 7 |
+
+This skill loaded itself on every task except the pull-request review, where nothing is edited, and a performance task. ub-mode is meant to be switched on with `/ub-mode`, so it is not expected to load on its own. With the one line in `CLAUDE.md`, every skill loaded in every run. On five tasks without code (a poem, an email, a question about TCP, a README summary, a regex explanation) this skill never loaded.
+
+Thirteen tasks with two runs per cell are a small sample, and the intervals describe these tasks, not tasks in general. The judge is Claude Opus, which also wrote one third of the code; it does not know which skill wrote which pull request but may prefer code that reads like its own. ub-mode was measured without its companion tools. After the final runs, one check turned out to misread commit messages as file writes, which only hurt ub-mode (the only skill that makes the agent commit); it was fixed and every run regraded. [`evals/README.md`](evals/README.md#limits) lists these limits in full; transcripts, diffs, checks with evidence and every verdict with its reasons are under [`evals/results/agentic/`](evals/results/agentic).
+
+### Single-turn suite
+
+The second benchmark asks for one reply without tools. Eight realistic coding tasks across Python, TypeScript, Java, Go, Kotlin, C# and JavaScript, each run three times per condition. Claude Sonnet 5.5 wrote the code; Claude Opus 5.5 graded all answers to each task at once under shuffled labels.
 
 <p align="center">
-  <img src="docs/assets/results-quality.svg" alt="Judge quality score: no skill 7.5, sickn33 7.5, v1 6.2, v2 8.4" width="49%">
-  <img src="docs/assets/results-pass-rate.svg" alt="Assertions passed: no skill 95.8%, sickn33 92.5%, v1 89.2%, v2 99.2%" width="49%">
+  <img src="docs/assets/results-quality.svg" alt="Judge quality score: no skill 7.6, this skill 8.5, ub-mode 6.5, sickn33 7.2, ertugrul-dmr 6.7 on 3 of 8 tasks" width="49%">
+  <img src="docs/assets/results-pass-rate.svg" alt="Assertions passed: no skill 93.3%, this skill 99.2%, ub-mode 95.0%, sickn33 92.5%, ertugrul-dmr 88.9% on 3 of 8 tasks" width="49%">
 </p>
 
 | Condition | Assertions passed | Judge quality (1–10) | Avg. cost per task |
 |---|---|---|---|
-| No skill | 95.8% | 7.5 | $0.013 |
-| sickn33/clean-code | 92.5% | 7.5 | $0.018 |
-| This repo, v1 | 89.2% | 6.2 | $0.019 |
-| **This repo, v2** | **99.2%** | **8.4** | $0.017 |
+| No skill | 93.3% | 7.6 | $0.012 |
+| **This skill** | **99.2%** | **8.5** | $0.022 |
+| unclebob/ub-mode | 95.0% | 6.5 | $0.023 |
+| sickn33/clean-code | 92.5% | 7.2 | $0.018 |
+| ertugrul-dmr/clean-code (3 of 8 tasks) | 88.9% | 6.7 | $0.022 |
 
 What the numbers say:
 
-- **A strong model is already good at this.** Without any skill, Sonnet passed 95.8% of the assertions. A clean-code skill has little room to help and plenty of room to hurt.
-- **A skill can make things worse.** sickn33/clean-code dropped to 60% on the hot-path task: it moved bit tests into helper methods inside the per-packet loop and left the vague exception unchanged. This repo's own first version dropped to 60% on Kotlin by replacing `String?` with an exception. Both scored below no skill at all on those tasks.
-- **v2 passed at least as many assertions as no skill on every task** and raised the average quality score from 7.5 to 8.4. Its quality score was slightly lower than no skill on one task (the PR review, 8.0 vs 8.3). The gains come mostly from scope discipline (no unrequested parameters, minimal bugfixes) and from knowing when not to apply a rule.
+- **A strong model is already good at this.** Without any skill, Sonnet passed 93.3% of the assertions. A clean-code skill has little room to help and plenty of room to hurt.
+- **A skill can make things worse.** sickn33/clean-code dropped to 60% on the hot-path task, below no skill, and ertugrul-dmr to 80% on the pull-request review, where no skill passed everything. ub-mode passed more assertions than no skill but got the lowest quality score.
+- **This skill passed at least as many assertions as no skill on every task** and raised the average quality score from 7.6 to 8.5. Its one miss: an unrequested `currency` parameter in one of three runs.
 
 <p align="center">
   <img src="docs/assets/results-by-case.svg" alt="Assertions passed per case and condition" width="760">
 </p>
 
-Treat these as a sanity check, not a leaderboard: eight cases, an LLM judge that can partly tell skill-guided answers apart (they cite heuristic codes), and cases written alongside v2. Every reply and every verdict with its evidence is committed under [`evals/results/`](evals/results), and [`evals/README.md`](evals/README.md) explains both benchmarks and how to rerun them.
+Treat these as a sanity check, not a leaderboard: eight cases that were also used to improve the skill, and an LLM judge that sees the answers as written. Every reply and every verdict with its evidence is committed under [`evals/results/`](evals/results), and [`evals/README.md`](evals/README.md) explains both benchmarks and how to rerun them.
 
 ## Install
 
@@ -120,16 +147,16 @@ cp -r clean-code-skill/skills/clean-code ~/.claude/skills/
 
 ## Usage
 
-The skill triggers on its own whenever the agent writes, changes, refactors, fixes or reviews code. You can also call it directly:
+The skill's description tells the agent to load it before its first edit, so it loads on its own whenever the agent writes, changes, fixes, refactors or tests code, and stays out of tasks without code. You can also call it directly:
 
 ```text
 /clean-code src/billing/invoice.py      refactor a file or folder, behavior preserved
-review this diff with /clean-code       findings ordered by impact, with C1–T9 codes
+review this diff with /clean-code       findings ordered by impact, must-fix apart from suggestions
 ```
 
 Installed as a Claude Code plugin, the skill is namespaced: use `/clean-code:clean-code` instead of `/clean-code`.
 
-If you want it applied every time without relying on triggering, add one line to your `CLAUDE.md` or `AGENTS.md`:
+To make loading certain, for this skill or any other, add one line to your `CLAUDE.md` or `AGENTS.md`. In the trigger test above it made every measured skill load in every run, reviews included:
 
 ```markdown
 Before writing, changing or reviewing code, load the clean-code skill and follow it.
@@ -161,15 +188,17 @@ skills/clean-code/
 
 ## Other clean-code skills
 
-Several good skills cover the same book with different goals (descriptions as of November 2026):
+Several good skills cover the same book with different goals (descriptions as of November 2026; the measured ones at the commits pinned in [`evals/harness.py`](evals/harness.py)):
 
-| Skill | Approach |
-|---|---|
-| [sickn33/agentic-awesome-skills → clean-code](https://github.com/sickn33/agentic-awesome-skills/tree/main/skills/clean-code) | Compact summary of the book in one file, with a note to follow repository conventions |
-| [hatlesswizard/clean-code-skills](https://github.com/hatlesswizard/clean-code-skills) | 18 skills, one checker per book chapter, plus an orchestrator |
-| [nghorbani/clean-code-skill](https://github.com/nghorbani/clean-code-skill) | On-demand knowledge base with glossary, patterns and the G1–G36 heuristics |
-| [markoa/clean-code-skill](https://github.com/markoa/clean-code-skill) | A short, mandatory operating contract of 14 rules |
-| **this repo** | Book plus precedence, agent failure modes and explicit exceptions, measured with published evals |
+| Skill | Approach | Measured here |
+|---|---|---|
+| [unclebob/ub-mode](https://github.com/unclebob/ub-mode) | Robert C. Martin's own short skill: make it work, make it right, follow practice. Meant to be switched on with `/ub-mode`; its companion tools (crapper, dryer, mutator) are installed separately | yes, the skill file without the tools |
+| [sickn33/agentic-awesome-skills → clean-code](https://github.com/sickn33/agentic-awesome-skills/tree/main/skills/clean-code) | Compact summary of the book in one file, with a note to follow repository conventions | yes |
+| [ertugrul-dmr/clean-code-skills](https://github.com/ertugrul-dmr/clean-code-skills) | One main skill per language (Python, TypeScript) plus six topic skills: names, functions, comments, tests, general rules, boy scout | yes, on the Python and TypeScript tasks |
+| [hatlesswizard/clean-code-skills](https://github.com/hatlesswizard/clean-code-skills) | 18 skills, one checker per book chapter, plus an orchestrator | no |
+| [nghorbani/clean-code-skill](https://github.com/nghorbani/clean-code-skill) | On-demand knowledge base with glossary, patterns and the G1–G36 heuristics | no |
+| [markoa/clean-code-skill](https://github.com/markoa/clean-code-skill) | A short, mandatory operating contract of 14 rules | no |
+| **this repo** | Book plus precedence, scope discipline, agent failure modes and explicit exceptions, with a description that makes the agent load it before the first edit | yes |
 
 Pick by what you need: a reference to look things up, a per-chapter checker, or a set of working rules for an agent that edits real codebases.
 

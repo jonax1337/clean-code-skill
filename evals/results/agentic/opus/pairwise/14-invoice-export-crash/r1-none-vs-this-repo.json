@@ -1,0 +1,80 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "e4400eec465e24c8",
+    "this-repo": "8074c3e7445d4b1e"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same production fix: they map the CRM `customer_id` to `customerId` when loading, and they route lookups through the existing `requireCustomer` so the README's error convention holds. The differences are in the tests and the report. B's sources test deletes its temporary directory with `rmSync` in a `finally` block, while A's leaves temp directories behind on every run. B's report also adds that nothing is written to stdout on error and that the new tests failed before the fix.",
+        "a_issues": [
+          "tests/sources.test.js creates a temporary directory with mkdtempSync and never removes it, so every test run leaves files behind."
+        ],
+        "b_issues": [
+          "The sources test helper `withDataDirectory` is a bit more ceremony than one test needs, though it is justified by the cleanup."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same source fix: they map the CRM `customer_id` to `customerId` at load time and route lookups through the existing `requireCustomer`, so the README's error convention holds. The only real difference is test hygiene. A's sources test removes its temp directory in a try/finally helper, while B's leaves a directory behind on every test run. Both reports are accurate.",
+        "a_issues": [
+          "The `withDataDirectory` helper is slightly more scaffolding than one test needs, though it is justified by the cleanup."
+        ],
+        "b_issues": [
+          "`tests/sources.test.js` creates a temp directory with `mkdtempSync` and never removes it, so every test run leaks a directory.",
+          "The sources test inlines file writes without cleanup, which is less robust than A's helper."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

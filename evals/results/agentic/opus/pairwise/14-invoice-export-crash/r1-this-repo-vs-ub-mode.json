@@ -1,0 +1,87 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "8074c3e7445d4b1e",
+    "ub-mode": "1f292e6007c46b02"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.75,
+    "scope": 0.75,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes fix the problem the same way: they normalize the CRM `customer_id` field when the data is loaded and use `requireCustomer` in the export, so missing customers fail as the README describes. A's mapper keeps any other CRM fields through a rest spread. B's mapper lists the fields by hand and silently drops anything else. B's new test leaves its temp directories behind, while A's cleans up in a `finally`. B also committed directly to `main` without being asked, and its report has a garbled, irrelevant line about tools that do not exist.",
+        "a_issues": [
+          "Minor: the rest spread could pass unexpected CRM fields through unchanged, though this is arguably the safer behavior."
+        ],
+        "b_issues": [
+          "`fromCrm` keeps only `name` and `country`, so any future or extra CRM fields are silently dropped.",
+          "The test in `tests/sources.test.js` creates temp directories and never removes them.",
+          "Made two commits directly on `main` without the user asking for commits.",
+          "The report contains a garbled, irrelevant line about 'crapper, dryer and mutator tools'.",
+          "The import order in `tests/export.test.js` is inconsistent (not alphabetical, unlike the rest of the file)."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix. They normalize the CRM `customer_id` to `customerId` where the files are loaded, and they reuse `requireCustomer` so that a truly unknown customer fails as the README describes. B's rename keeps any other CRM fields instead of dropping them, and its test deletes its temp directory. B's report is also cleaner and more accurate. A's report contains a garbled, irrelevant line about missing tools and claims the CLI 'writes no file', when it actually writes nothing to stdout (a shell redirect still creates an empty file).",
+        "a_issues": [
+          "`fromCrm` copies only `name` and `country`, so any other CRM fields are silently dropped.",
+          "The temp directory created in `tests/sources.test.js` is never removed.",
+          "The report contains a garbled line ('crapper, dryer and mutator tools aren't in  folder') that has nothing to do with the task.",
+          "The report says the CLI 'writes no file'; it actually prints nothing to stdout, and `> invoices.csv` would still create an empty file.",
+          "The new import in `tests/export.test.js` breaks the alphabetical import order."
+        ],
+        "b_issues": [
+          "`...rest` would also pass through any unexpected extra CRM fields; this is minor and arguably the intended behavior."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

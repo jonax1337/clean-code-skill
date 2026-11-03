@@ -1,0 +1,3 @@
+I fixed it in `hourlog/importer.py`. `parse_entries` now skips blank or whitespace-only lines instead of trying to split them into three values. Line numbers in error messages still count the skipped lines, so errors on real rows point to the right place in the file.
+
+The existing 18 tests pass. I didn't add a test for the blank-line case, and I didn't run `hourlog import` on your accountant's actual CSV.

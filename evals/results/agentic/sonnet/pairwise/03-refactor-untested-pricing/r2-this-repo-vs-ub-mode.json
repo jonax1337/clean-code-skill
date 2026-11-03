@@ -1,0 +1,87 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "f519d2171bf101ca",
+    "ub-mode": "b5cf94640c9af647"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors keep the behavior, type-check at every call site, and add tests that pin the behavior first. A keeps the member rates as the exact multipliers the old code used, has slightly broader tests (including uncategorized products and the empty-string coupon), and its report is accurate. B computes `1 - discount` instead of using the multiplier directly, and its report has small inaccuracies plus an irrelevant aside about unavailable tools.",
+        "a_issues": [
+          "Exports the new `Priceable` interface, which widens the module's public surface a little more than the task needed."
+        ],
+        "b_issues": [
+          "Stores discounts as fractions and computes `price * (1 - discount)` instead of using the 0.9/0.95 multipliers directly. The result is the same here, but it adds an indirection.",
+          "Report says 'All 7 tests', which reads as if the new file has 7, but it has 5 (7 counts the 2 cart tests). 'All five call sites' does not match the actual count (six calls across four files).",
+          "Report includes an irrelevant note about 'crapper, dryer and mutator tools' not being available.",
+          "Committed locally even though the task did not ask for a commit.",
+          "Tests do not cover a product with no category or an empty-string coupon."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors preserve behavior exactly, and both type-check against every caller: A's `1 - 0.1` and `1 - 0.05` evaluate to the same doubles as 0.9 and 0.95. B's pinning tests are more thorough, covering uncategorized products (the feed callers) and an empty-string coupon. B's report is accurate and points out the awkward `cartTotal` usage without touching it. A's report miscounts call sites and mentions unrelated tooling (crapper, dryer, mutator), which adds noise.",
+        "a_issues": [
+          "Report says 'all five call sites', but there are six `getPrice` calls across four files.",
+          "Report mentions unavailable 'crapper, dryer and mutator' tools, which are irrelevant to this task.",
+          "Tests do not cover a product with no category, which is how `feeds/export.ts` calls `getPrice`.",
+          "Tests do not cover an empty-string coupon."
+        ],
+        "b_issues": [
+          "Exports the new `Priceable` interface, which slightly widens the public API without need.",
+          "The coupon logic is an inline ternary inside `getPrice` rather than a named step, which is slightly less self-documenting."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

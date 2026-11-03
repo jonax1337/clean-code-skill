@@ -1,0 +1,104 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "condition": "sickn33",
+  "rep": 2,
+  "checks": [
+    {
+      "name": "malformed_values_fail_naming_key_and_value",
+      "description": "A value that is present but malformed (a non-number, a number out of range, a timeout without a unit, the boolean typo `ture`, an unparsable URL) makes the loader throw, and the exception message names the key and shows the bad value.",
+      "passed": true,
+      "evidence": "[        12 tests found           ]\n[         0 tests skipped         ]\n[        12 tests started         ]\n[         0 tests aborted         ]\n[        12 tests successful      ]\n[         0 tests failed          ]\n\nsrc\\main\\java\\com\\acme\\relay\\config\\ConfigException.java:4: Warnung: [serial] Serialisierbare Klasse ConfigException enth\ufffdlt keine Definition von serialVersionUID\npublic class ConfigException extends RuntimeException {\n       ^\n1 Warnung\nstty: /dev/tty: No such device or address"
+    },
+    {
+      "name": "missing_required_keys_and_unreadable_file_fail",
+      "description": "A missing upstream.url or api.token, and a configuration file that cannot be read, make the loader throw with a message that names the key or the file.",
+      "passed": true,
+      "evidence": "[         3 tests found           ]\n[         0 tests skipped         ]\n[         3 tests started         ]\n[         0 tests aborted         ]\n[         3 tests successful      ]\n[         0 tests failed          ]\n\nsrc\\main\\java\\com\\acme\\relay\\config\\ConfigException.java:4: Warnung: [serial] Serialisierbare Klasse ConfigException enth\ufffdlt keine Definition von serialVersionUID\npublic class ConfigException extends RuntimeException {\n       ^\n1 Warnung\nstty: /dev/tty: No such device or address"
+    },
+    {
+      "name": "optional_keys_and_valid_files_unchanged",
+      "description": "A file with only the two required keys still loads with the documented defaults, each optional key can be left out on its own, and a valid full file (comments, padded values, `True`, every timeout unit) loads exactly as before.",
+      "passed": false,
+      "evidence": "[         4 tests found           ]\n[         0 tests skipped         ]\n[         4 tests started         ]\n[         0 tests aborted         ]\n[         3 tests successful      ]\n[         1 tests failed          ]\n\nsrc\\main\\java\\com\\acme\\relay\\config\\ConfigException.java:4: Warnung: [serial] Serialisierbare Klasse ConfigException enth\ufffdlt keine Definition von serialVersionUID\npublic class ConfigException extends RuntimeException {\n       ^\n1 Warnung\nstty: /dev/tty: No such device or address"
+    },
+    {
+      "name": "entry_point_refuses_to_start_cleanly",
+      "description": "Started as a real process, Main exits with a non-zero status and a short stderr message that names the bad key and value (or the missing file), without a stack trace and without processing any message; with a valid file it still relays messages and exits 0.",
+      "passed": true,
+      "evidence": "[         3 tests found           ]\n[         0 tests skipped         ]\n[         3 tests started         ]\n[         0 tests aborted         ]\n[         3 tests successful      ]\n[         0 tests failed          ]\n\nsrc\\main\\java\\com\\acme\\relay\\config\\ConfigException.java:4: Warnung: [serial] Serialisierbare Klasse ConfigException enth\ufffdlt keine Definition von serialVersionUID\npublic class ConfigException extends RuntimeException {\n       ^\n1 Warnung\nstty: /dev/tty: No such device or address"
+    },
+    {
+      "name": "only_expected_files_changed",
+      "description": "Only Java sources, tests, the README and the sample config (to document the stricter rules) changed; no build tooling or library files were touched.",
+      "passed": true,
+      "evidence": "changed: ['README.md', 'src/main/java/com/acme/relay/Main.java', 'src/main/java/com/acme/relay/config/ConfigLoader.java', 'src/test/java/com/acme/relay/config/ConfigLoaderTest.java']"
+    },
+    {
+      "name": "no_swallowing_catch_in_config_package",
+      "description": "No catch block in the configuration package absorbs the error: each one throws, records the problem for a later ConfigException (adds it to a collection), or reports 'no value' as an empty Optional; none returns a default or null, logs and continues, or is empty. This is the point of the request.",
+      "passed": true,
+      "evidence": "no catch block absorbs an error"
+    },
+    {
+      "name": "caught_exceptions_keep_their_cause",
+      "description": "A catch block in the configuration package that throws passes the caught exception on (as the cause or rethrown itself), so the operator and the log keep the original failure.",
+      "passed": true,
+      "evidence": "causes are kept"
+    },
+    {
+      "name": "no_exit_outside_the_entry_point",
+      "description": "System.exit and Runtime.exit/halt appear neither in the configuration package nor in the classes that existed before (Main aside): the loader reports the error and the startup code decides to stop the process. A new startup class next to Main may do it.",
+      "passed": true,
+      "evidence": "no exit call outside the startup code"
+    },
+    {
+      "name": "tests_assert_the_new_failures",
+      "description": "The agent added or rewrote tests that assert a configuration error is thrown (the old tests pinned the silent fallback), and the changed tests do not pass on the untouched original code.",
+      "passed": true,
+      "evidence": "['src/test/java/com/acme/relay/config/ConfigLoaderTest.java'] on the original code: exit 1\n[        15 tests found           ]\n[         0 tests skipped         ]\n[        15 tests started         ]\n[         0 tests aborted         ]\n[         7 tests successful      ]\n[         8 tests failed          ]\n\nsrc\\main\\java\\com\\acme\\relay\\config\\ConfigException.java:4: Warnung: [serial] Serialisierbare Klasse ConfigException enth\ufffdlt keine Definition von serialVersionUID\npublic class ConfigException extends RuntimeException {\n       ^\n1 Warnung\nstty: /dev/tty: No such device or address"
+    },
+    {
+      "name": "test_suite_passes",
+      "description": "The repository's own test suite passes.",
+      "passed": true,
+      "evidence": "[        15 tests found           ]\n[         0 tests skipped         ]\n[        15 tests started         ]\n[         0 tests aborted         ]\n[        15 tests successful      ]\n[         0 tests failed          ]\n\nsrc\\main\\java\\com\\acme\\relay\\config\\ConfigException.java:4: Warnung: [serial] Serialisierbare Klasse ConfigException enth\ufffdlt keine Definition von serialVersionUID\npublic class ConfigException extends RuntimeException {\n       ^\n1 Warnung\nstty: /dev/tty: No such device or address"
+    },
+    {
+      "name": "clean_diff",
+      "description": "The diff has no debug output, commented-out code or narrating comments.",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "tests_run_after_last_edit",
+      "description": "After its last edit the agent ran the test suite and it passed.",
+      "passed": true,
+      "evidence": "as/AppData/Local/Temp/cc-agentic-omw1bfyn/repo && java tools/RunTests.java 2>&1 | tail -40; printf 'upstream.url=https://x.example/a\\napi.token=t\\nworker.threads=4x\\n' > /tmp/bad.properties; java -cp build/classes com.acme.relay.Main /tmp/bad.properties </dev/null; echo \"exit=$?\"; git status --short"
+    }
+  ],
+  "metrics": {
+    "files": [
+      "src/main/java/com/acme/relay/Main.java",
+      "src/main/java/com/acme/relay/config/ConfigLoader.java"
+    ],
+    "before": {
+      "functions": 9,
+      "nloc": 78,
+      "max_nloc": 19,
+      "max_ccn": 6,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 13,
+      "nloc": 149,
+      "max_nloc": 28,
+      "max_ccn": 7,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
+}

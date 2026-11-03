@@ -1,0 +1,70 @@
+diff --git a/REVIEW.md b/REVIEW.md
+new file mode 100644
+index 0000000..6facacb
+--- /dev/null
++++ b/REVIEW.md
+@@ -0,0 +1,64 @@
++# Review of PR 482: user search, paged user list, bulk deactivation with audit log
++
++Line numbers refer to the files after the patch in `pr/482.diff` is applied.
++I applied the patch in a scratch copy, ran `python -m pytest -q` (28 passed, as the PR says), and ran the probes described below. The working tree was not changed.
++
++## Findings, most important first
++
++### 1. SQL injection in `search_users` (must fix)
++- **`adminhub/search.py:13`**: `f"WHERE name LIKE '%{term}%' OR email LIKE '%{term}%' "` puts the user's `q` straight into the SQL text. The README says all queries use `?` placeholders, and this line breaks that rule.
++- Probe: `search_users(conn, "' OR 1=1 OR '")` returned every user. A term with a single quote (`x'`) raised an unhandled `sqlite3.OperationalError`, which shows the input reaches the SQL parser.
++- Fix: bind the pattern as a parameter, e.g. `"WHERE name LIKE ? OR email LIKE ? ..."` with `(f"%{term}%", f"%{term}%", per_page, offset)`. Escape `%` and `_` in the term if literal matching is wanted.
++- Tests that would catch it: a search with a quote in the term, and a search with `' OR 1=1 OR '` that must return no rows.
++
++### 2. Deactivations are not all audited (compliance requirement not met)
++- The PR says "every deactivation" goes to the audit trail. Only the new bulk path writes to it. **`adminhub/api.py:50-57`** (`deactivate_user`) still calls `users.deactivate_user`, which does not call `audit.record`. Probe: a single deactivation left `audit_log` with 0 rows.
++- Fix: put the audit write inside `users.deactivate_user` as well, in the same transaction, so every path goes through one function.
++- Test: deactivate one user through `api.deactivate_user` and assert one `audit_log` row.
++
++### 3. The audit write fails silently, so deactivation can succeed without a record
++- **`adminhub/audit.py:15-16`**: `except sqlite3.Error: pass` discards any failure to write the audit row. In `users.deactivate_users` the `UPDATE` then runs without a matching audit row.
++- Probe: after `DROP TABLE audit_log`, `bulk_deactivate` returned `{"deactivated": 1}` and user 2 was inactive, with no audit row written.
++- Fix: remove the `try/except` and let the error propagate. The caller already rolls back. Errors should not be swallowed on a compliance path.
++
++### 4. The actor in the audit trail comes from the request
++- **`adminhub/api.py:62`**: `actor=params["actor"]` takes the actor from the client's parameters. Probe: `bulk_deactivate(conn, {"ids": ["2"], "actor": "mallory"})` wrote `mallory` to the audit log.
++- For an audit trail the actor has to come from the authenticated session, not from the request body. Pass the authenticated user in from the web layer, and reject the call if it is missing.
++
++### 5. Bulk deactivation audits IDs that do not exist
++- **`adminhub/users.py:55-68`** (`deactivate_users`): it writes one audit row per requested ID, not per row changed. Probe: `ids: ["2", "999"]` wrote audit rows for both, although only 1 user was deactivated.
++- Fix: audit only the IDs whose rows were actually changed. Re-selecting the matching IDs before the update, or writing audit rows from the `UPDATE ... RETURNING` result, both work.
++
++### 6. Page count is wrong
++- **`adminhub/api.py:37`**: `total_pages = users.count_users(conn) // per_page` uses floor division. With 5 users and `per_page=2` it gives 2 pages, but there are 3. The `page`/`pages` fields are what the pager renders, so this affects every page.
++- Fix: `-(-total // per_page)` or `math.ceil(total / per_page)`, and return 1 page for an empty table if that is the convention.
++- Test: 5 users, `per_page=2` must give `pages == 3`. The existing tests only cover the list, not the page count.
++
++### 7. Bad paging input crashes or misbehaves
++- `per_page=0` raised `ZeroDivisionError` at `api.py:37`. Negative values and `page=0` (negative offset) are not validated either.
++- `int(params.get("page", 1))` and `int(...per_page...)` in `list_users` and `search` raise a bare `ValueError` on input like `page=abc`, which the handlers do not catch. `deactivate_user` and `get_user` turn the same problem into a 400.
++- Fix: validate `page >= 1` and `1 <= per_page <= 100` and return 400 with a message, the same way `_user_id` does.
++
++### 8. Smaller points
++- **`adminhub/api.py` `search`**: `per_page` is not read from the request, so it is always 25. The PR says results are "paged the same way" as `list_users`, which accepts `per_page`.
++- **`adminhub/search.py:10`**: the `# TODO: rank exact matches first` is an open item. Note it in the PR or in an issue, rather than merging it as a comment.
++- **`adminhub/search.py:4`**: `import os` is unused.
++- **`adminhub/api.py` `bulk_deactivate`**: `params["ids"]` that is a plain string (e.g. `"2"`) is iterated character by character, and non-integer IDs raise an uncaught `ValueError`.
++- **`README.md`**: the handler table still says `list_users` takes no parameters and does not list `search` or `bulk_deactivate`.
++
++## What is good
++- Paging uses `LIMIT`/`OFFSET` with pages numbered from 1, as the README requires, and `list_users` is covered by tests for page size and for pages past the end.
++- `deactivate_users` runs its update and audit writes in one transaction and rolls back on error.
++- `audit_log` is added to the schema with `CREATE TABLE IF NOT EXISTS`, so existing databases pick it up on connect.
++- The new tests are readable and follow the existing style.
++
++## Tests that are missing
++- SQL injection and quote-handling in `search`.
++- Audit rows for single deactivation.
++- Audit rows only for users that changed.
++- Page count with a partial last page.
++- Invalid `page` / `per_page` values.
++
++## Would I merge it as it is?
++
++**No.** The SQL injection (finding 1) alone blocks it, and the audit trail (findings 2–5) does not meet the compliance requirement the PR is built for. The page count (finding 6) would show the console the wrong number of pages. The fixes are small and local, so this should be doable today if the author takes them. The console team's deadline is not a reason to merge the injection.

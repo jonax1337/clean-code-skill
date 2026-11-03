@@ -1,0 +1,87 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "6cbb88408c2821da",
+    "this-repo": "1912bff4c56a25ca"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.25,
+    "scope": 0.0,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both fix the root cause, CRM records keyed by `customer_id`, and both route the export through `requireCustomer`, so unknown customers fail cleanly as the README requires. B converts CRM records where they are loaded in `sources.js`, which keeps `buildCustomerIndex` unchanged and leaves its existing tests untouched. A puts source-specific key handling into the domain index and has to weaken three existing identity assertions to `deepEqual`. B also adds a test for the new unknown-customer behavior of the export, which A leaves untested, and B's report honestly flags the remaining risk of duplicate ids.",
+        "a_issues": [
+          "Puts CRM-specific key handling into `buildCustomerIndex`, which mixes source-format concerns into the domain index and accepts either key from any source.",
+          "Changes three existing assertions from `equal` to `deepEqual`, weakening tests that previously checked the index returns the original record.",
+          "No test covers the new `requireCustomer` behavior in `exportInvoices` (unknown customer gives `UnknownReferenceError` naming the invoice).",
+          "The normalized copy keeps the stray `customer_id` field alongside `customerId`."
+        ],
+        "b_issues": [
+          "The new `requireCustomer` import is placed out of alphabetical order before `csv.js`, a minor style nit.",
+          "If an id appeared in both systems, the CRM record would silently override the billing one; this is noted in the report but not handled."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes fix the crash by reconciling the CRM `customer_id` key and switching the export to `requireCustomer`, which follows the README rule on unknown references. A maps CRM records to `customerId` where they are loaded in `sources.js`, so the domain index keeps a single schema and `buildCustomerIndex` behaves as before. B puts a `customerId ?? customer_id` fallback into `buildCustomerIndex` and stores copies of each record, which changes object identity and forced three existing test assertions to be loosened. A also tests the new unknown-customer path in the export, and its report points out the remaining risk of the same id appearing in both systems.",
+        "a_issues": [
+          "New import of customers.js is placed before csv.js, breaking the alphabetical order of the imports (cosmetic)",
+          "Does not detect duplicate customer ids across billing and CRM, though the report says so"
+        ],
+        "b_issues": [
+          "Normalizes the CRM schema inside the domain function `buildCustomerIndex` instead of where the data is loaded, so both key spellings leak into core code",
+          "The index now stores copies instead of the original records, which changes behavior and required loosening three existing assertions from `equal` to `deepEqual`",
+          "No test covers the new `requireCustomer` error path in `exportInvoices`",
+          "Does not mention the risk of duplicate ids across the two systems"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

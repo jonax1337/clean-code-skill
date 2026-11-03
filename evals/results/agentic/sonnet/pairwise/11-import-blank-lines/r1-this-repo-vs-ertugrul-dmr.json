@@ -1,0 +1,80 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ffffe84b2e6a3f25",
+    "ertugrul-dmr": "8e171f437c9cccf0"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both diffs make the same code change: blank or whitespace-only lines are skipped in parse_entries, and line numbering is preserved. Both add the same two tests and differ only in where they sit in the file and in their sample data. Both reports are accurate, say the tests were run but not the real file, and give the 20-test count correctly. I would be equally happy merging either.",
+        "a_issues": [
+          "README's CSV section not updated to mention that blank lines are skipped"
+        ],
+        "b_issues": [
+          "README's CSV section not updated to mention that blank lines are skipped"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both changes add the same two-line guard in `parse_entries`, which skips empty and whitespace-only lines while keeping the original line numbering. They also add essentially equivalent tests: blank lines are skipped, including a whitespace `\\r\\n` line, and an error after a blank line still reports the correct line number. Both reports correctly explain the cause and the fix, and both say the fix was not run on the real file. B names the test command and notes nothing was committed, but that difference is negligible.",
+        "a_issues": [
+          "README's CSV import section not updated to mention that blank lines are skipped",
+          "Report says tests pass without naming the command run"
+        ],
+        "b_issues": [
+          "README's CSV import section not updated to mention that blank lines are skipped"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

@@ -1,24 +1,25 @@
 diff --git a/reports/periods.py b/reports/periods.py
-index b29beff..319b021 100644
+index b29beff..00b0725 100644
 --- a/reports/periods.py
 +++ b/reports/periods.py
-@@ -1,23 +1,29 @@
+@@ -1,23 +1,30 @@
  """Date ranges for the sales reports. Every range is half-open: start <= day < end."""
  
  import datetime
  
  
-+def _first_of_month_after(year, month):
-+    if month == 12:
-+        return datetime.date(year + 1, 1, 1)
-+    return datetime.date(year, month + 1, 1)
++def _first_of_month(year, month):
++    """First day of the given month; month 13 rolls over to January of the next year."""
++    if month > 12:
++        return datetime.date(year + 1, month - 12, 1)
++    return datetime.date(year, month, 1)
 +
 +
  def month_range(year, month):
      """Return (first day of the month, first day of the next month)."""
      start = datetime.date(year, month, 1)
 -    end = datetime.date(year, month + 1, 1)
-+    end = _first_of_month_after(year, month)
++    end = _first_of_month(year, month + 1)
      return start, end
  
  
@@ -26,7 +27,7 @@ index b29beff..319b021 100644
      """Return (first day of the quarter, first day of the next quarter) for quarter 1-4."""
      start = datetime.date(year, 3 * quarter - 2, 1)
 -    end = datetime.date(year, 3 * quarter + 1, 1)
-+    end = _first_of_month_after(year, 3 * quarter)
++    end = _first_of_month(year, 3 * quarter + 1)
      return start, end
  
  

@@ -1,0 +1,83 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4d4273c889f959f9",
+    "ertugrul-dmr": "eb38182187d066a6"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two changes behave the same: both drop the `* 1000` in cache, retry and scheduler, and both divide by `MS_PER_SECOND` in http and report so their seconds-based output is unchanged. The only real difference is in `validate.ts`. A builds its TTL bounds from the new `MS_PER_SECOND` constant, while B uses bare `1000` literals there even though it exports the constant for that purpose. That makes B slightly inconsistent, so A is the cleaner merge.",
+        "a_issues": [
+          "No tests added for `rateLimitHeaders` or `describeSettings`, the two callers now converting ms back to seconds, so a regression there would go unnoticed.",
+          "No test covers the `validateTtl` minimum bound in the new unit."
+        ],
+        "b_issues": [
+          "`validate.ts` uses literal `5 * 1000` and `24 * 60 * 60 * 1000` instead of the newly exported `MS_PER_SECOND`, which is inconsistent with `http.ts` and `report.ts`.",
+          "No tests added for `rateLimitHeaders` or `describeSettings`, the two callers now converting ms back to seconds.",
+          "No test covers the `validateTtl` minimum bound in the new unit."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two diffs are functionally identical. Both convert `parseDuration` to milliseconds, drop the `* 1000` in cache, retry and scheduler, and divide by `MS_PER_SECOND` in http and report so their output is unchanged. The only difference is in `validate.ts`: B builds the TTL bounds from the exported `MS_PER_SECOND` constant, while A introduces that constant and then writes a bare `1000` there anyway. Both reports are accurate and flag the breaking change to the public API.",
+        "a_issues": [
+          "Introduces an exported `MS_PER_SECOND` but uses the literal `1000` for the bounds in `validate.ts`, so the code is inconsistent.",
+          "No tests were added for the unit conversion in `http.ts` and `report.ts`, or for the TTL bounds now measured in ms (for example the below-minimum case)."
+        ],
+        "b_issues": [
+          "No tests were added for the unit conversion in `http.ts` and `report.ts`, or for the TTL bounds now measured in ms (for example the below-minimum case)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

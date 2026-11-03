@@ -1,0 +1,86 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "37075b9c61f427d6",
+    "sickn33": "5eda4a1e4f7cab56"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior. A releasing `order.items` on a declined payment is equivalent, because every item has been reserved by that point. A also adds 17 characterization tests, which it reports were run against the original code first. Those tests cover the paths most at risk in this refactor of live production code: rounding, VIP and coupon stacking, the shipping threshold, partial rollback, coupon redemption and receipt failure. B relies only on the 9 existing tests, admits they don't cover several failure paths, and offers to add tests later.",
+        "a_issues": [
+          "`_charge` releases `order.items` rather than the reserved list. This is equivalent today but quietly depends on every item having been reserved.",
+          "Adds a whole new test file. This is justified, but it is more than the bare refactor."
+        ],
+        "b_issues": [
+          "No tests were added, although the task stresses that this is live production code. Coupon redemption, receipt failure, tax rounding and the VIP discount remain unprotected.",
+          "Pricing arithmetic is still spread across `process_order` instead of sitting in one pricing step.",
+          "Uses loose `list` type hints for the reserved items."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep the observable behavior of `process_order`. B releasing `order.items` in `_charge` is equivalent because every item has been reserved by that point, and computing tax before the coupon lookup has no side effects. B also adds a set of characterization tests, written and run against the original code first. They cover the paths the existing suite misses: VIP stacking, per-line rounding, the free-shipping threshold, partial-reservation rollback, coupon redemption on decline, and receipt failure. For a production refactor that safety net matters most. A only offers tests later and leaves those paths unprotected.",
+        "a_issues": [
+          "No tests added for the many uncovered paths (VIP discount, coupon exhaustion, partial-reservation rollback, decline not redeeming the coupon, receipt failure), even though the code is live in production.",
+          "Threads the `reserved` list from `_reserve_items` into `_charge_customer`, which makes the charge helper's signature awkward (six parameters).",
+          "Return type annotated as bare `list` instead of `list[Item]`."
+        ],
+        "b_issues": [
+          "`_charge` releases `order.items` instead of the actually reserved list. This is correct only because of the invariant that every item has been reserved by then, and that invariant is not stated in the code.",
+          "Computes `unit_price_cents * quantity` in two places (subtotal and `_tax_cents`), a small duplication.",
+          "Report notes that a linter and type checker were not run (honest, but unverified)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "5ac61e79cdf790c6",
+    "ub-mode": "692a9b0fc801a518"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs make the same code, docs and changelog edits: the flag, field, help line, render path, helpers and tests are removed, and both add a test that `-c` and `--compact` now give UnknownOption. B adds one more test, checking that the help text no longer mentions compact. That is a small but real gain. However, B also committed directly to `main` without being asked, while A left committing to the developer and was transparent about pre-existing rustfmt differences. That unrequested commit tips it to A.",
+        "a_issues": [
+          "Does not add a check that the help text no longer lists `--compact`, though the diff removes that line."
+        ],
+        "b_issues": [
+          "Committed the change to `main` (767f81f) without being asked to commit.",
+          "`help_no_longer_mentions_compact` only checks the long form, not `-c`."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The code changes are identical: both remove the flag, the warning, the `compact` field, the help line, the render branch and its helpers, and the README row, and both add a changelog entry. A adds one extra test checking that help no longer mentions `--compact`, which is a minor plus. But A also committed directly to `main` without being asked, which a strict reviewer would not want. B stopped at the working-tree change, and its report is accurate: it gives correct test counts and notes the existing rustfmt drift.",
+        "a_issues": [
+          "Committed the change to `main` (767f81f) without being asked to commit, which takes the review and merge decision away from the developer."
+        ],
+        "b_issues": [
+          "No test guards against `--compact` coming back into the help text, though the rejection test covers the behaviour that matters."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

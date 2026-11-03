@@ -1,0 +1,86 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ertugrul-dmr"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "70920b8ef3a9c02c",
+    "ertugrul-dmr": "2e6129486dffc706"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.0,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ertugrul-dmr",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes swap the quadratic findIndex scan for a normalized-email Map that keeps the first index, so behavior is the same and the speedup is equivalent. B adds a wall-clock performance test with a 1-second threshold, which can fail randomly on slow CI machines. A deliberately left such a test out and instead benchmarked old against new, confirming identical output. B's main loop is slightly more readable than A's `remember(contact.email, result.push(contact) - 1)`, but the flaky test and A's stronger verification tip it to A.",
+        "a_issues": [
+          "`remember(contact.email, result.push(contact) - 1)` is terse and re-normalizes an email that was already normalized for the lookup",
+          "Benchmark script was deleted, so the speedup is not reproducible from the repo"
+        ],
+        "b_issues": [
+          "Added a wall-clock timing test (<1000ms) that may fail randomly on slow or loaded CI machines",
+          "Did not time the old version, so the report's 'minutes to milliseconds' claim is partly inferred",
+          "Introduces a separate helper function for a two-line check that is used only once"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ertugrul-dmr",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix: a Map from normalized email to the first index, updated as contacts are appended. Behaviour is preserved in both, including first-entry-wins for duplicates in the stored book. B's report is better grounded: it measured old against new (67 s to 38 ms with identical output) and confirmed its new test against the old code. A did not time the old version and added a wall-clock test that could fail randomly on slow machines. A's code reads slightly more cleanly, but B's verification and test choices tip the balance.",
+        "a_issues": [
+          "Adds a wall-clock timing assertion (< 1s) to the unit suite, which can fail randomly on slow or loaded CI machines.",
+          "The report claims 'milliseconds instead of minutes' without having timed the old version.",
+          "The repeated-email test checks only the tags array, not which entry ids received the merge, so it is less explicit."
+        ],
+        "b_issues": [
+          "`remember` normalizes the incoming email a second time after the lookup already did. This is redundant, though cheap.",
+          "`result.push(contact) - 1` is a slightly clever idiom and is less obvious than using `result.length` before pushing.",
+          "No test in the suite guards against a return to quadratic behaviour; only a deleted ad-hoc benchmark covered it."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

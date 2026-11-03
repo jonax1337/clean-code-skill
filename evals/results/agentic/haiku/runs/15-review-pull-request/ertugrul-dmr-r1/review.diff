@@ -1,0 +1,71 @@
+diff --git a/REVIEW.md b/REVIEW.md
+new file mode 100644
+index 0000000..2f6f746
+--- /dev/null
++++ b/REVIEW.md
+@@ -0,0 +1,65 @@
++# Review: PR 482 (user search, paged user list, bulk deactivation with audit log)
++
++Method: read `pr/482.diff` and `pr/482.md`, checked the README contract, and ran the suite on a scratch copy with the patch applied (`git apply` is clean). The suite passes: 28 tests, matching the PR description. The defects below come from reading the code and from small probes run against the patched code in that scratch copy. The working tree was not modified.
++
++## Findings, most important first
++
++### 1. Blocker: SQL injection in `search_users` (G3, G16; contradicts README)
++`adminhub/search.py:13`: the search term is interpolated into the SQL with an f-string:
++`f"WHERE name LIKE '%{term}%' OR email LIKE '%{term}%' "`
++The README says "All queries go through `sqlite3` with `?` placeholders", and this breaks that rule. Probe: a term containing `' --` altered the statement's structure. The `LIMIT ? OFFSET ?` placeholders were commented out and the call failed with a binding error. Any caller-controlled `q` can rewrite the query. Fix: bind the term, e.g. `WHERE name LIKE ? OR email LIKE ?` with `f"%{term}%"` as parameters. Add a test that uses a quote-containing term.
++
++### 2. Audit trail can silently fail, so deactivations can go unrecorded (G4: don't override safeties)
++`adminhub/audit.py:15-16`: `except sqlite3.Error: pass` swallows every audit write failure. Probe: with the `audit_log` table dropped, `bulk_deactivate` returned 200 with `deactivated: 1` and the user was deactivated, with no audit row. Compliance asked for every deactivation to be recorded, so a failed audit write must fail the operation and roll back. Remove the `try/except` and let the error propagate; `deactivate_users` already rolls back on exceptions (`users.py:65-66`).
++
++### 3. Single-user deactivation is not audited (requirement gap)
++`adminhub/users.py:47-52` and `adminhub/api.py:50-57`: `deactivate_user` never calls `audit.record`. Probe: `deactivate_user` left 0 audit rows, where 1 is required. The PR says compliance wants "every deactivation" in the audit trail, so this path needs the same audit write, or the PR should say explicitly that single deactivation is out of scope.
++
++### 4. Audit `actor` is caller-supplied (trust boundary)
++`adminhub/api.py:62`: `actor=params["actor"]` takes the actor name from the request parameters. Unless the web layer (not in this repo) overwrites it with the authenticated user, any client can write any actor name into the audit log. Confirm where `params` comes from. If it is client input, derive `actor` from the session and never from `params`.
++
++### 5. Page count is wrong (off-by-one in the pager)
++`adminhub/api.py:37`: `total_pages = users.count_users(conn) // per_page` uses floor division. With 5 users and `per_page=2` it returns `pages: 2`, but 3 pages are needed, so the last page cannot be reached from the pager. Use ceiling division (`-(-count // per_page)` or `math.ceil`). Also add a test for a non-multiple count; the current tests only check the item count.
++
++### 6. Bad paging parameters crash or misbehave (G3)
++- `adminhub/api.py:36`: `per_page` has an upper bound of 100 but no lower bound. Probe: `per_page=0` raised `ZeroDivisionError` at `api.py:37`. Negative values are not rejected either.
++- `adminhub/api.py:35`, `api.py:46`: `page` is not validated. `page=0` is silently treated like page 1 (returned users 1 and 2), and negative pages are accepted. Return 400 for `page < 1` and `per_page < 1`.
++- `adminhub/api.py:35-36`, `api.py:46`, `api.py:61`: non-integer values raise an uncaught `ValueError`, unlike `_user_id`, which maps it to 400. Follow the same pattern.
++- `adminhub/api.py:62`: a missing `actor` raises an uncaught `KeyError` (probe confirmed). Return 400.
++
++### 7. Bulk deactivation audits IDs that changed nothing
++`adminhub/users.py:61-63`: the audit loop writes one row per requested ID, including IDs that match no user. Probe: `ids=[98, 99]` returned `deactivated: 0` and still wrote 2 audit rows. The audit trail should record only real changes. Also, `rowcount` (`users.py:67`) counts rows matched by the `WHERE`, which includes users that were already inactive, so the docstring "returns how many changed" (`users.py:56`) is not accurate. Filter with `AND active = 1` and audit only the rows that changed. This is from reading the code; I did not probe the already-inactive case.
++
++### 8. Unbounded `IN (...)` list (G3)
++`adminhub/users.py:59-61`: the number of placeholders equals the number of IDs, with no cap. Very large batches can exceed SQLite's bound-parameter limit. Cap the batch size and return 400 above it.
++
++### 9. Magic number and dead code (G25, G12, F4)
++- `adminhub/api.py:36`: `100` should be a named constant such as `MAX_PAGE_SIZE`.
++- `adminhub/search.py:3`: `import os` is unused.
++- `adminhub/search.py:10`: the `# TODO` belongs in the issue tracker, not in the code (C3).
++
++### 10. Search is not wired for paging consistently
++`adminhub/search.py:9` defaults `per_page` to 25, and `api.search` (`api.py:46`) never reads `per_page`, unlike `list_users`. Either expose it the same way or document the difference. `%` and `_` in the term are also LIKE wildcards and are not escaped (`search.py:13`), so `q=_` matches every user. Escape them, or document the behavior.
++
++### 11. Test gaps
++- No test for SQL-special characters in `q` (would have caught #1).
++- No test that a failed audit write fails the deactivation (would have caught #2).
++- No test that single deactivation is audited (#3).
++- No test for the page count with a non-multiple total (#5), or for `per_page=0` / `page=0` (#6).
++- No test that `bulk_deactivate` with non-existent or already-inactive IDs writes the correct audit rows (#7).
++
++### 12. Docs are stale (G12)
++`README.md`, handler table: `list_users` still says "Parameters: none", and the table does not list `search` or `bulk_deactivate`. The new handlers should be documented there, since the README is the contract for the console team.
++
++## Merge recommendation
++
++**No, I would not merge this as it is.**
++
++Blockers:
++- #1 SQL injection in `search_users`. It violates the stated "placeholders only" rule and is exploitable by any caller who can set `q`.
++- #2 Audit write failures are swallowed, so the compliance guarantee does not hold.
++- #3 Single-user deactivation is not audited, which may not meet the compliance requirement. Confirm the scope with compliance.
++
++Fix before merging, though not necessarily blocking: #4 (confirm where `actor` comes from), #5 (wrong page count, which affects the pager the console is waiting for), and #6 (crashes on bad input).
++
++The rest (#7–#12) can follow in a fast follow-up if the blockers are fixed. The PR's green test run does not cover any of the defects above, so the claim that the feature is tested should not be read as covering them.

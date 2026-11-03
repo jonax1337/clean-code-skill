@@ -1,0 +1,88 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "dbdaeecbe349d174",
+    "this-repo": "f32dced5091400d2"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make config loading strict in nearly the same way: they collect every problem, reject unknown keys, fail on a missing file, and print the problems and exit from Main. B has stronger edge-case tests (blank token, empty optional value, overflowing timeout, boundary values accepted, case-insensitive booleans, http accepted). Its report is precise, with a correct test count. A also adds an unrequested rule rejecting a zero timeout, and its report miscounts the new tests.",
+        "a_issues": [
+          "Rejects request.timeout=0s, which the README and task do not require (a small scope expansion, though it is disclosed)",
+          "Report says 10 new tests, but the diff adds 11",
+          "No tests confirm that valid boundary values (worker.threads=1, retry.max-attempts=0, http URL, TRUE) are still accepted"
+        ],
+        "b_issues": [
+          "ConfigLoader becomes a stateful instance with a mutable problems list; this is a little more structure than needed",
+          "No test checks that the api.token value stays out of error messages, even though the report claims it does",
+          "The missing-file message reuses the generic 'Cannot read' text with the exception's toString instead of a clear 'not found' message"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two changes are nearly equivalent: both collect every problem, reject unknown keys, bad values, a missing file and a bad URL, and exit with a clear message. A sticks more closely to the documented rules and its tests cover boundaries in both directions (the minimum accepted, minus one rejected). Its report is accurate. B quietly adds a new rule rejecting a zero timeout, adds a problems-list API to the exception, and its report misstates the old upstream.url behavior and the number of new tests.",
+        "a_issues": [
+          "Exit code 2 is less conventional than EX_CONFIG (78) for configuration errors",
+          "No explicit test that the api.token value stays out of error messages"
+        ],
+        "b_issues": [
+          "Rejects request.timeout=0s, a new rule not in the README; this goes beyond the task",
+          "Adds a problems list and accessor to ConfigException that only tests use",
+          "Report says a missing upstream.url crashed with a NullPointerException, but the old code caught it and returned null",
+          "Report says 10 new tests; the diff adds 11",
+          "Tests don't check that boundary values (minimum allowed) are still accepted"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

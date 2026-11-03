@@ -1,0 +1,80 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ea21bf4559dbff79",
+    "sickn33": "fe61a8dfa11a7240"
+  },
+  "score": 0.75,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The code, test and README changes are byte-for-byte identical. Both cleanly remove the flag, field, parser arm, render path and tests, and keep `join_lines`, which the normal path still uses. The only difference is the CHANGELOG. A's entry tells users that passing `-c` now fails with an unknown option error, which is useful for a breaking removal. B's entry only says the flag was removed.",
+        "a_issues": [
+          "No test asserts that `-c`/`--compact` is now rejected as an unknown option."
+        ],
+        "b_issues": [
+          "No test asserts that `-c`/`--compact` is now rejected as an unknown option.",
+          "The CHANGELOG entry does not tell users that passing `-c` now causes an error."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "The code, test, README and help-text changes are identical. Both cleanly remove the field, the parser arm, the render path, the now-unused helpers and all compact tests, while keeping `join_lines`. The only difference is wording: B's changelog says that `-c` now errors, and A's report openly notes that the rejection is untested. Neither difference is enough to prefer one over the other.",
+        "a_issues": [
+          "No test asserting that `-c`/`--compact` is now rejected with UnknownOption, though the report acknowledges this gap"
+        ],
+        "b_issues": [
+          "No test asserting that `-c`/`--compact` is now rejected with UnknownOption; the report describes the behavior as observed but does not mention that tests don't cover it"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

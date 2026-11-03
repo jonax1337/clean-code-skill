@@ -1,0 +1,81 @@
+diff --git a/src/import.ts b/src/import.ts
+index cf2fee5..f8873b5 100644
+--- a/src/import.ts
++++ b/src/import.ts
+@@ -1,20 +1,27 @@
+-import { mergeContact } from "./merge.ts";
+-import { normalizeEmail } from "./normalize.ts";
+-import type { Contact } from "./types.ts";
+-
+-/**
+- * Adds the incoming contacts to the existing ones. A contact whose email is already present
+- * is merged into that entry; everything else is appended in the order it arrives.
+- */
+-export function mergeContacts(existing: Contact[], incoming: Contact[]): Contact[] {
+-  const result = [...existing];
+-  for (const contact of incoming) {
+-    const index = result.findIndex((entry) => normalizeEmail(entry.email) === normalizeEmail(contact.email));
+-    if (index === -1) {
+-      result.push(contact);
+-    } else {
+-      result[index] = mergeContact(result[index], contact);
+-    }
+-  }
+-  return result;
+-}
++import { mergeContact } from "./merge.ts";
++import { normalizeEmail } from "./normalize.ts";
++import type { Contact } from "./types.ts";
++
++/**
++ * Adds the incoming contacts to the existing ones. A contact whose email is already present
++ * is merged into that entry; everything else is appended in the order it arrives.
++ */
++export function mergeContacts(existing: Contact[], incoming: Contact[]): Contact[] {
++  const result = [...existing];
++  const indexByEmail = new Map<string, number>();
++  result.forEach((entry, i) => {
++    const key = normalizeEmail(entry.email);
++    if (!indexByEmail.has(key)) indexByEmail.set(key, i);
++  });
++  for (const contact of incoming) {
++    const key = normalizeEmail(contact.email);
++    const index = indexByEmail.get(key);
++    if (index === undefined) {
++      indexByEmail.set(key, result.length);
++      result.push(contact);
++    } else {
++      result[index] = mergeContact(result[index], contact);
++    }
++  }
++  return result;
++}
+diff --git a/test/import.test.ts b/test/import.test.ts
+index 0a44c37..fe9813f 100644
+--- a/test/import.test.ts
++++ b/test/import.test.ts
+@@ -27,8 +27,24 @@ test("emails are compared without case and surrounding whitespace", () => {
+   assert.equal(result.length, 1);
+ });
+ 
+ test("duplicates inside the incoming list are merged with each other", () => {
+   const result = mergeContacts([], [contact("1", "a@x.io", { phone: "111" }), contact("2", "a@x.io", { name: "" })]);
+   assert.equal(result.length, 1);
+   assert.equal(result[0].phone, "111");
+ });
++
++test("an existing duplicate email merges into the first entry", () => {
++  const result = mergeContacts([contact("1", "a@x.io"), contact("2", "A@x.io")], [contact("3", "a@x.io", { phone: "9" })]);
++  assert.equal(result.length, 2);
++  assert.equal(result[0].phone, "9");
++  assert.equal(result[1].phone, "");
++});
++
++test("a large import finishes quickly", { timeout: 5000 }, () => {
++  const existing = Array.from({ length: 50_000 }, (_, i) => contact(`e${i}`, `user${i}@x.io`));
++  const incoming = Array.from({ length: 30_000 }, (_, i) => contact(`n${i}`, `user${i * 2}@x.io`));
++  const start = performance.now();
++  const result = mergeContacts(existing, incoming);
++  assert.equal(result.length, 55_000);
++  assert.ok(performance.now() - start < 2000);
++});

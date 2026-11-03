@@ -3,73 +3,74 @@
   "rep": 3,
   "judge_model": "opus",
   "blind_map": {
-    "A": "v1",
-    "B": "sickn33",
-    "C": "baseline",
-    "D": "v2"
+    "A": "ub-mode",
+    "B": "this-repo",
+    "C": "none",
+    "D": "sickn33"
   },
+  "replies_fingerprint": "3f3cbc0865eae26c",
   "results": {
-    "v1": {
-      "assertions": [
-        {
-          "text": "The nullable return type for \"user not found\" is kept (or the response explicitly justifies a change); it is not replaced by throwing an exception for the normal not-found case.",
-          "passed": false,
-          "evidence": "Replaces `String?` with `?: throw UserNotFoundException(id)` for the normal not-found case. It flags the change, but it still makes it."
-        },
-        {
-          "text": "No Java `Optional` is introduced.",
-          "passed": true,
-          "evidence": "No Optional is used. It uses an exception instead."
-        },
-        {
-          "text": "Uses Kotlin idioms such as `?.`, `?:`, `takeIf`/`ifBlank`/`isNullOrBlank` or string templates instead of Java-style null checks and concatenation.",
-          "passed": true,
-          "evidence": "Uses `nickname.isNullOrBlank()` and the template \"$firstName $lastName\"."
-        },
-        {
-          "text": "Behavior is preserved: unknown id \u2192 `null`; non-blank nickname \u2192 nickname; null or blank nickname \u2192 \"firstName lastName\".",
-          "passed": false,
-          "evidence": "An unknown id now throws instead of returning null. The answer says so itself: \"Unknown ids now throw instead of returning `null`\"."
-        },
-        {
-          "text": "No over-extraction: the result is not split into more than two additional functions or classes.",
-          "passed": true,
-          "evidence": "Adds exactly two things: the `UserNotFoundException` class and the `User.displayName()` extension."
-        }
-      ],
-      "quality": 4
-    },
-    "sickn33": {
+    "ub-mode": {
       "assertions": [
         {
           "text": "The nullable return type for \"user not found\" is kept (or the response explicitly justifies a change); it is not replaced by throwing an exception for the normal not-found case.",
           "passed": true,
-          "evidence": "\"I kept `String?` because changing it would alter the public contract\""
+          "evidence": "Return type stays nullable: \"Public API is unchanged: displayName(id: Long): String?\"; no exception is thrown."
         },
         {
           "text": "No Java `Optional` is introduced.",
           "passed": true,
-          "evidence": "No Optional."
+          "evidence": "No Optional appears; absence is handled with `?.`."
         },
         {
           "text": "Uses Kotlin idioms such as `?.`, `?:`, `takeIf`/`ifBlank`/`isNullOrBlank` or string templates instead of Java-style null checks and concatenation.",
           "passed": true,
-          "evidence": "`repo.findById(id)?.displayName()`, `nickname?.takeIf { it.isNotBlank() } ?: fullName()`, and a string template."
+          "evidence": "Uses `repo.findById(id)?.displayName()`, `nickname?.takeIf { it.isNotBlank() } ?: \"$firstName $lastName\"`."
         },
         {
           "text": "Behavior is preserved: unknown id \u2192 `null`; non-blank nickname \u2192 nickname; null or blank nickname \u2192 \"firstName lastName\".",
           "passed": true,
-          "evidence": "Null on a missing user, an untrimmed non-blank nickname, otherwise \"$firstName $lastName\"."
+          "evidence": "Code preserves all three cases, and four pinning tests cover missing user, nickname, null nickname and blank nickname."
         },
         {
           "text": "No over-extraction: the result is not split into more than two additional functions or classes.",
           "passed": true,
-          "evidence": "Exactly two private extensions, `displayName()` and `fullName()`. That is at the limit, and `fullName()` is borderline over-extraction."
+          "evidence": "Adds only one extra function: top-level private `User.displayName()`."
         }
       ],
-      "quality": 7
+      "quality": 8
     },
-    "baseline": {
+    "this-repo": {
+      "assertions": [
+        {
+          "text": "The nullable return type for \"user not found\" is kept (or the response explicitly justifies a change); it is not replaced by throwing an exception for the normal not-found case.",
+          "passed": true,
+          "evidence": "\"The nullable return stays. In Kotlin, `String?` for 'user not found' is idiomatic.\""
+        },
+        {
+          "text": "No Java `Optional` is introduced.",
+          "passed": true,
+          "evidence": "No Optional is used."
+        },
+        {
+          "text": "Uses Kotlin idioms such as `?.`, `?:`, `takeIf`/`ifBlank`/`isNullOrBlank` or string templates instead of Java-style null checks and concatenation.",
+          "passed": true,
+          "evidence": "`repo.findById(id)?.nicknameOrFullName()` plus `takeIf`, `?:` and a string template."
+        },
+        {
+          "text": "Behavior is preserved: unknown id \u2192 `null`; non-blank nickname \u2192 nickname; null or blank nickname \u2192 \"firstName lastName\".",
+          "passed": true,
+          "evidence": "Explicitly lists the preserved cases (missing user gives null, nickname returned untrimmed, null/blank falls back to first last), and the code matches."
+        },
+        {
+          "text": "No over-extraction: the result is not split into more than two additional functions or classes.",
+          "passed": true,
+          "evidence": "Adds one private extension, `nicknameOrFullName`."
+        }
+      ],
+      "quality": 9
+    },
+    "none": {
       "assertions": [
         {
           "text": "The nullable return type for \"user not found\" is kept (or the response explicitly justifies a change); it is not replaced by throwing an exception for the normal not-found case.",
@@ -79,55 +80,55 @@
         {
           "text": "No Java `Optional` is introduced.",
           "passed": true,
-          "evidence": "No Optional."
+          "evidence": "No Optional is used."
         },
         {
           "text": "Uses Kotlin idioms such as `?.`, `?:`, `takeIf`/`ifBlank`/`isNullOrBlank` or string templates instead of Java-style null checks and concatenation.",
           "passed": true,
-          "evidence": "Uses `?.`, `takeIf`, `?:`, and the template \"$firstName $lastName\"."
+          "evidence": "Uses `?.`, `takeIf { it.isNotBlank() }`, `?:` and the template `\"$firstName $lastName\"`."
         },
         {
           "text": "Behavior is preserved: unknown id \u2192 `null`; non-blank nickname \u2192 nickname; null or blank nickname \u2192 \"firstName lastName\".",
           "passed": true,
-          "evidence": "\"unknown id returns `null`, a non-blank nickname wins, and otherwise you get \\\"first last\\\"\" matches the code."
+          "evidence": "Null user propagates via `?.`; a non-blank nickname is kept; null or blank falls back to `fullName()`."
         },
         {
           "text": "No over-extraction: the result is not split into more than two additional functions or classes.",
           "passed": true,
-          "evidence": "One private extension, `User.displayName()`."
+          "evidence": "Adds exactly two private extensions (`displayName`, `fullName`), which is within the limit."
         }
       ],
-      "quality": 9
+      "quality": 7
     },
-    "v2": {
+    "sickn33": {
       "assertions": [
         {
           "text": "The nullable return type for \"user not found\" is kept (or the response explicitly justifies a change); it is not replaced by throwing an exception for the normal not-found case.",
           "passed": true,
-          "evidence": "\"The nullable `String?` return... I didn't switch to exceptions or a `Result` type\""
+          "evidence": "Keeps `String?` and floats an exception only as an option: \"I left it alone because that changes the public contract.\""
         },
         {
           "text": "No Java `Optional` is introduced.",
           "passed": true,
-          "evidence": "No Optional."
+          "evidence": "No Optional is used."
         },
         {
           "text": "Uses Kotlin idioms such as `?.`, `?:`, `takeIf`/`ifBlank`/`isNullOrBlank` or string templates instead of Java-style null checks and concatenation.",
           "passed": true,
-          "evidence": "Uses `?: return null`, `nickname?.takeIf { it.isNotBlank() }`, and the template \"${user.firstName} ${user.lastName}\"."
+          "evidence": "`nickname.takeUnless { it.isNullOrBlank() } ?: fullName()`, `?.`, string template."
         },
         {
           "text": "Behavior is preserved: unknown id \u2192 `null`; non-blank nickname \u2192 nickname; null or blank nickname \u2192 \"firstName lastName\".",
           "passed": true,
-          "evidence": "Same three-way behavior, and the nickname stays untrimmed."
+          "evidence": "takeUnless on a nullable receiver with isNullOrBlank correctly yields null for null or blank nicknames; the answer lists the preserved cases."
         },
         {
           "text": "No over-extraction: the result is not split into more than two additional functions or classes.",
           "passed": true,
-          "evidence": "No functions or classes extracted."
+          "evidence": "Adds two private extensions (`displayName`, `fullName`), at the limit."
         }
       ],
-      "quality": 9
+      "quality": 7
     }
   }
 }

@@ -1,0 +1,86 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "1912bff4c56a25ca",
+    "sickn33": "f355807d732bfc2d"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same source fix: they map the CRM `customer_id` to `customerId` at load time and route the lookup through `requireCustomer`, so behavior is identical. A's sources test builds its own fixture in a temp directory, while B's reads the real `data/` directory, which makes it depend on the working directory and on production data. B also exports `fromCrmRecord` although nothing uses it. A's report adds a useful caveat: a customer id present in both systems would be silently overwritten by the CRM record.",
+        "a_issues": [
+          "The temp directory created in `sources.test.js` is never cleaned up.",
+          "The report does not tell the developer how to produce the CSV file for accounting."
+        ],
+        "b_issues": [
+          "`fromCrmRecord` is exported but used nowhere outside the module.",
+          "`sources.test.js` reads the real `data/` directory, so it depends on the working directory and breaks if the production data changes.",
+          "The error test matches on `error.name` instead of `instanceof UnknownReferenceError`.",
+          "The report does not mention the risk of a customer id that appears in both systems."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes fix the actual cause the same way: they map the CRM `customer_id` to `customerId` at load time and route the lookup through `requireCustomer`, so the production code behaves identically. B keeps the mapper private and tests `loadCustomerRecords` with its own fixtures, checking the full record shape. A exports the helper without need and tests against the live `data/` directory. B's report also flags a real remaining risk: duplicate ids across billing and the CRM would be silently overwritten.",
+        "a_issues": [
+          "`fromCrmRecord` is exported although nothing outside `sources.js` uses it.",
+          "`tests/sources.test.js` reads the real `data/` directory, so it breaks whenever the monthly data changes and only spot-checks two names.",
+          "The unknown-customer test checks `error.name` instead of `instanceof UnknownReferenceError`, which is weaker than the existing test conventions.",
+          "The report does not mention the risk of duplicate customer ids across the two systems."
+        ],
+        "b_issues": [
+          "The sources test creates a temp directory and never removes it."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

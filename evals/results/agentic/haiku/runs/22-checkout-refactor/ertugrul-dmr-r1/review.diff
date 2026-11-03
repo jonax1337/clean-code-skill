@@ -1,0 +1,177 @@
+diff --git a/shop/checkout.py b/shop/checkout.py
+index 5e06454..4833495 100644
+--- a/shop/checkout.py
++++ b/shop/checkout.py
+@@ -1,17 +1,18 @@
+ """Order checkout: prices an order, reserves stock, charges the customer and sends the receipt."""
+ 
+ import logging
+ from decimal import ROUND_HALF_UP, Decimal
++from typing import NoReturn
+ 
+ from shop.coupons import CouponBook
+ from shop.errors import OrderRejected, OutOfStock, PaymentDeclined
+ from shop.inventory import Inventory
+-from shop.models import Customer, Order
++from shop.models import Customer, Item, Order
+ from shop.payments import PaymentGateway, ReceiptNotifier
+ from shop.pricing import tax_rate
+ 
+ logger = logging.getLogger(__name__)
+ 
+ SHIPPING_CENTS = 490
+ FREE_SHIPPING_FROM_CENTS = 5000
+ VIP_DISCOUNT_PERCENT = 5
+@@ -21,68 +22,38 @@ def process_order(
+     order: Order,
+     customer: Customer,
+     inventory: Inventory,
+     gateway: PaymentGateway,
+     notifier: ReceiptNotifier,
+     coupons: CouponBook,
+ ) -> str:
+     """Checks out the order and returns the receipt id of the payment."""
+-    if not order.items:
+-        raise OrderRejected("order has no items")
+-    for item in order.items:
+-        if item.quantity <= 0:
+-            raise OrderRejected(f"invalid quantity for {item.sku}")
+-
+-    # Tax is rounded per line, as the accounting export expects, and is charged on the undiscounted line price.
+-    rate = tax_rate(customer.country)
+-    subtotal = 0
+-    tax = 0
+-    for item in order.items:
+-        line_cents = item.unit_price_cents * item.quantity
+-        subtotal += line_cents
+-        tax += int((Decimal(line_cents) * rate).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
++    _validate_items(order)
++    subtotal, tax = _price_items(order.items, customer.country)
+ 
+     discount = 0
+     if order.coupon is not None:
+-        percent = coupons.discount_percent(order.coupon)
+-        if percent is None:
+-            raise OrderRejected(f"invalid coupon: {order.coupon}")
+-        discount += subtotal * percent // 100
++        discount = _coupon_discount(order.coupon, subtotal, coupons)
+     if customer.vip:
+         discount += (subtotal - discount) * VIP_DISCOUNT_PERCENT // 100
+-    shipping = 0 if subtotal - discount >= FREE_SHIPPING_FROM_CENTS else SHIPPING_CENTS
+-    total = subtotal - discount + tax + shipping
+ 
+-    reserved = []
+-    try:
+-        for item in order.items:
+-            inventory.reserve(item.sku, item.quantity)
+-            reserved.append(item)
+-    except OutOfStock as error:
+-        for item in reserved:
+-            inventory.release(item.sku, item.quantity)
+-        order.status = "rejected"
+-        raise OrderRejected(f"out of stock: {error.sku}") from error
++    shipping = _shipping_cents(subtotal - discount)
++    total = subtotal - discount + tax + shipping
+ 
++    _reserve_stock(order, inventory)
+     try:
+         receipt_id = gateway.charge(customer.email, total)
+     except PaymentDeclined as error:
+-        for item in reserved:
+-            inventory.release(item.sku, item.quantity)
+-        order.status = "payment_failed"
+-        raise OrderRejected(f"payment declined: {error}") from error
++        _abort_declined_payment(order, inventory, error)
+ 
+-    for item in order.items:
+-        inventory.commit(item.sku, item.quantity)
++    _commit_stock(order.items, inventory)
+     if order.coupon is not None:
+         coupons.redeem(order.coupon)
+-    order.status = "paid"
+-    order.total_cents = total
+-    logger.info("order %s paid: %s cents", order.id, total)
++    _mark_paid(order, total)
+ 
+     try:
+         notifier.send_receipt(customer.email, order.id, receipt_id)
+     except Exception:
+         logger.warning("receipt for order %s could not be sent", order.id, exc_info=True)
+     return receipt_id
+ 
+ 
+@@ -90,8 +61,74 @@ def refund_order(order: Order, customer: Customer, inventory: Inventory, gateway
+     """Refunds a paid order in full and puts its items back into stock."""
+     if order.status != "paid":
+         raise OrderRejected(f"order {order.id} is not paid")
+     gateway.refund(customer.email, order.total_cents)
+     for item in order.items:
+         inventory.restock(item.sku, item.quantity)
+     order.status = "refunded"
+     logger.info("order %s refunded: %s cents", order.id, order.total_cents)
++
++
++def _validate_items(order: Order) -> None:
++    if not order.items:
++        raise OrderRejected("order has no items")
++    for item in order.items:
++        if item.quantity <= 0:
++            raise OrderRejected(f"invalid quantity for {item.sku}")
++
++
++def _price_items(items: list[Item], country: str) -> tuple[int, int]:
++    """Returns the undiscounted subtotal and the tax, in cents."""
++    # Tax is rounded per line, as the accounting export expects, and is charged on the undiscounted line price.
++    rate = tax_rate(country)
++    subtotal = 0
++    tax = 0
++    for item in items:
++        line_cents = item.unit_price_cents * item.quantity
++        subtotal += line_cents
++        tax += int((Decimal(line_cents) * rate).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
++    return subtotal, tax
++
++
++def _coupon_discount(code: str, subtotal: int, coupons: CouponBook) -> int:
++    percent = coupons.discount_percent(code)
++    if percent is None:
++        raise OrderRejected(f"invalid coupon: {code}")
++    return subtotal * percent // 100
++
++
++def _shipping_cents(goods_cents: int) -> int:
++    return 0 if goods_cents >= FREE_SHIPPING_FROM_CENTS else SHIPPING_CENTS
++
++
++def _reserve_stock(order: Order, inventory: Inventory) -> None:
++    reserved = []
++    try:
++        for item in order.items:
++            inventory.reserve(item.sku, item.quantity)
++            reserved.append(item)
++    except OutOfStock as error:
++        _release_stock(reserved, inventory)
++        order.status = "rejected"
++        raise OrderRejected(f"out of stock: {error.sku}") from error
++
++
++def _abort_declined_payment(order: Order, inventory: Inventory, error: PaymentDeclined) -> NoReturn:
++    _release_stock(order.items, inventory)
++    order.status = "payment_failed"
++    raise OrderRejected(f"payment declined: {error}") from error
++
++
++def _release_stock(items: list[Item], inventory: Inventory) -> None:
++    for item in items:
++        inventory.release(item.sku, item.quantity)
++
++
++def _commit_stock(items: list[Item], inventory: Inventory) -> None:
++    for item in items:
++        inventory.commit(item.sku, item.quantity)
++
++
++def _mark_paid(order: Order, total: int) -> None:
++    order.status = "paid"
++    order.total_cents = total
++    logger.info("order %s paid: %s cents", order.id, total)

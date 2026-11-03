@@ -1,0 +1,83 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "62b5fd2906c15d51",
+    "ub-mode": "507a2944b8fb8a0a"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes fix the bug the same way: they rename `customer_id` to `customerId` where the CRM file is loaded, and they route the lookup through `requireCustomer`, as the README convention asks. B's unknown-customer test is stronger because it checks `instanceof UnknownReferenceError` and the exact message. A's test only checks `error.name` and that the message contains the invoice id. B also reports that both new tests failed before the fix, while A says it did not check this. Otherwise the two changes are practically identical.",
+        "a_issues": [
+          "The unknown-customer test only checks `error.name` and that the message contains the invoice id, so it would miss a regression in the customer id or the message format.",
+          "The new tests were never run against the old code to confirm they fail there, as the report itself says.",
+          "The new `requireCustomer` import is placed before the `./csv.js` import, which breaks the alphabetical import order the file used."
+        ],
+        "b_issues": [
+          "The Verification section lists only `node --test`. The successful `npm run export` run is claimed in the summary, but no actual output row is shown as evidence."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make the same fix: they rename `customer_id` to `customerId` at the CRM load boundary and route the lookup through `requireCustomer`, which follows the README conventions. A's unknown-customer test asserts `instanceof UnknownReferenceError` and the exact message format, while B only checks `error.name` and that the message contains the invoice id. A's report also says its new tests failed against the old code; B openly admits it did not check this. B's spread order, with `customerId` placed last, is slightly more robust, but that does not outweigh A's stronger test and verification.",
+        "a_issues": [
+          "`{ customerId: customer_id, ...rest }` would let a stray `customerId` field in a CRM record override the renamed id (unlikely edge case)."
+        ],
+        "b_issues": [
+          "The unknown-customer test is loose: it checks `error.name` and `includes(\"INV-9\")` instead of `instanceof UnknownReferenceError` and the exact message.",
+          "The new `customers.js` import is placed before `csv.js`, which breaks the alphabetical import order used in the file.",
+          "It did not confirm that the new tests fail against the old code (the report says so honestly)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "name": "clean-code",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "Clean Code after Robert C. Martin, adapted for coding agents: precedence for language idioms and project conventions, scope discipline, agent failure modes and a blind-graded eval suite.",
   "author": {
     "name": "Jonas Laux",

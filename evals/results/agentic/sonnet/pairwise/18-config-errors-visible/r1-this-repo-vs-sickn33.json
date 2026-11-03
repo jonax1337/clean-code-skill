@@ -1,0 +1,87 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "f1a549990499bcec",
+    "sickn33": "3924a31e8a4a0d9c"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 0.75,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes turn silent fallbacks into one aggregated ConfigException that Main reports before exiting with status 2, and both also reject unknown keys and missing files. A reaches this with simpler code: it reuses `required()` for the URL check and needs no special null/containsKey handling. B rewrites the value lookup with awkward `raw == null ? \"\" : raw` branches and also adds a new rule rejecting a zero timeout, which the task did not ask for. Both have solid tests and honest reports; A's all-problems test also covers missing required keys.",
+        "a_issues": [
+          "Unknown-key rejection goes beyond the literal ask, though the report flags it and explains how to remove it",
+          "No explicit test for a blank optional value or a blank api.token, although the code does handle them"
+        ],
+        "b_issues": [
+          "Adds a new zero-timeout rule that changes previously accepted behavior (`0s`) beyond the task",
+          "intValue/requestTimeout/metricsEnabled use convoluted null and containsKey handling with repeated `raw == null ? \"\" : raw`",
+          "Separate upstream()/apiToken() methods duplicate the required-check logic instead of sharing one helper",
+          "Uses a fully qualified java.net.URISyntaxException inline instead of an import"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make bad configuration stop startup, collect every problem into one error, exit with status 2, and cover missing files and unknown keys in the same way. B stays closer to the task: A also rejects `request.timeout=0s`, a value the documented format allowed, and A's report does flag this. B reuses `required` for the URL check, names its key constants, and adds a boundary test that zero retries is still accepted. B's error message also shows the absolute config path, which helps whoever is deploying.",
+        "a_issues": [
+          "Rejecting a zero `request.timeout` is a new restriction the task did not ask for, and the documented format allowed it.",
+          "The `intValue` check `raw == null && !properties.containsKey(key)` and the repeated `raw == null ? \"\" : raw` handling are harder to follow.",
+          "No test confirms that the minimum allowed values (for example `retry.max-attempts=0`) are still accepted."
+        ],
+        "b_issues": [
+          "No explicit test for a blank optional value or a blank `api.token`, although both are rejected.",
+          "The `KNOWN_KEYS` TreeSet wrapper exists mainly to give a sorted error message, which is a small extra.",
+          "`required` is used for both the URL and the token, so the 'is required' message wording is shared between them; this is minor."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

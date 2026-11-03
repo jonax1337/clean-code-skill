@@ -1,23 +1,18 @@
 ## Review
 
-**Blocking**
+**Bugs**
+1. **Off-by-one:** `range(1, len(rows) - 1)` never processes the last data row. Use `rows[1:]`.
+2. **`except Exception: pass`** hides everything: malformed rows, DB failures, mailer outages. If `mailer.send` fails, the user is already saved but never appears in `imported`, so the return value no longer matches the DB.
 
-1. **Off-by-one bug:** `range(1, len(rows) - 1)` skips the header and also the last data row. Use `rows[1:]`.
-2. **`except Exception: pass` hides every failure:** DB outages, mailer errors, and `IndexError` on short rows all vanish. The caller can't tell "skipped" from "broken". At minimum, log the failure with the row number. I avoided logging the row itself so emails don't end up in logs.
-3. **Partial failure:** if `mailer.send` raises after `db.save`, the user is persisted but missing from `imported`. Decide whether that's acceptable. I kept the current behavior and logged it, but a real fix is to separate "saved" from "welcomed".
+**Clean-code issues**
+3. **Duplicated validation:** the `"@"`/length check reimplements `is_valid_email`. Please confirm that function covers the 254-char limit; if not, add it there rather than inline.
+4. **Magic indices** (`row[0]`, `row[1]`, `row[2]`) hide what the columns mean.
+5. **Commented-out "old version"** is dead code. Git history already has it.
+6. **`# skip header`** is a comment compensating for an unclear loop. `rows[1:]` makes it unnecessary.
+7. **The function does four things:** parse, validate, persist, notify. Splitting them makes each testable.
+8. **Invalid rows vanish silently.** At minimum, log them.
 
-**Should fix**
-
-4. **Duplicated validation:** `"@" not in email or len(email) > 254` reimplements `is_valid_email`. Use the existing helper. I can't see its body, so please confirm it covers the 254-char limit, since it is likely stricter than the `@` check.
-5. **Magic indices** (`row[0]`, `row[1]`, `row[2]`) hide the column layout. Name them.
-6. **Dead commented-out "old version"** belongs in git history. Delete it. The `# skip header` comment becomes unnecessary once the code says it.
-7. **One function, four jobs:** parsing, validating, saving, and notifying. Splitting them lets the main loop read at one level of abstraction.
-
-**Nit**
-
-8. The boolean flag `send_welcome` is a mild smell, but changing the signature is out of scope here.
-
-## Suggested refactor
+## Suggested version
 
 ```python
 import logging
@@ -29,54 +24,51 @@ logger = logging.getLogger(__name__)
 FIRST_NAME_COLUMN = 0
 LAST_NAME_COLUMN = 1
 EMAIL_COLUMN = 2
-FIRST_DATA_ROW_NUMBER = 2  # 1-based, after the header
 
 
 def import_users(rows, send_welcome=False):
-    imported_users = []
-    data_rows = rows[1:]
-    for row_number, row in enumerate(data_rows, start=FIRST_DATA_ROW_NUMBER):
+    imported = []
+    for row in rows[1:]:
         try:
-            user = _import_user(row, send_welcome)
-        except Exception:
-            logger.exception("Row %d failed to import", row_number)
+            user = _build_user(row)
+        except ValueError as error:
+            logger.warning("Skipping invalid row %r: %s", row, error)
             continue
-        if user is not None:
-            imported_users.append(user)
-    return imported_users
+
+        db.save(user)
+        if send_welcome:
+            _send_welcome_email(user)
+        imported.append(user)
+    return imported
 
 
-def _import_user(row, send_welcome):
+def _build_user(row):
     email = row[EMAIL_COLUMN].strip().lower()
     if not is_valid_email(email):
-        return None
-    user = User(name=_full_name(row), email=email)
-    db.save(user)
-    if send_welcome:
-        mailer.send(email, "Welcome!", WELCOME_TEMPLATE)
-    return user
+        raise ValueError(f"invalid email: {email!r}")
+    name = f"{row[FIRST_NAME_COLUMN]} {row[LAST_NAME_COLUMN]}"
+    return User(name=name, email=email)
 
 
-def _full_name(row):
-    return f"{row[FIRST_NAME_COLUMN]} {row[LAST_NAME_COLUMN]}"
+def _send_welcome_email(user):
+    try:
+        mailer.send(user.email, "Welcome!", WELCOME_TEMPLATE)
+    except MailerError:  # use the mailer's actual exception type
+        logger.exception("Welcome email failed for %s", user.email)
 ```
 
-If you'd rather avoid `None` returns, inline the validity check in the loop and let `_import_user` always return a user.
+## Behavior changes to confirm
+- **The last row is now imported.** This is the bug fix.
+- **DB errors now propagate** instead of being swallowed. If you want to keep importing after a failed save, catch your DB layer's specific exception around `db.save` and log it.
+- **A failed welcome email no longer drops the user** from the result, since they're already saved.
+- **Short rows:** `row[EMAIL_COLUMN]` raises `IndexError` on a row with fewer than 3 columns. Either catch it in `_build_user` and re-raise as `ValueError`, or decide that malformed CSVs should fail loudly.
+- **Validation strictness:** if `is_valid_email` is stricter than `"@" in email`, some previously accepted rows will now be skipped.
 
-## Behavior changes to call out in the PR
+## Tests I'd ask for
+- Header-only and empty `rows` return `[]`.
+- The last row is imported (regression test for the off-by-one).
+- An invalid email is skipped and logged.
+- Emails are normalized (stripped and lowercased).
+- `send_welcome=True` calls the mailer once per imported user, and a mailer failure doesn't remove the user from the result.
 
-- The last data row is now imported (bug fix).
-- Validation now follows `is_valid_email`, not the inline check.
-- Failures are logged instead of silently swallowed. Rows are still skipped, so the return contract is unchanged.
-
-## Tests to request
-
-I haven't run anything, so these are the cases I'd want covered:
-
-- The last row is imported.
-- Empty input and header-only input return `[]`.
-- An invalid email is skipped and doesn't call `db.save`.
-- Emails are stripped and lowercased.
-- `send_welcome=True` calls the mailer, and `False` doesn't.
-- A short row or a `db.save` failure is logged and doesn't stop later rows.
-- A mailer failure documents the current partial-failure behavior.
+Optionally, consider replacing the `send_welcome` boolean with a separate step, e.g. `send_welcome_emails(import_users(rows))`. That removes the flag argument entirely, but it's a bigger API change, so it may belong in a follow-up PR.

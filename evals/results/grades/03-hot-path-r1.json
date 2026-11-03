@@ -3,38 +3,99 @@
   "rep": 1,
   "judge_model": "opus",
   "blind_map": {
-    "A": "baseline",
-    "B": "sickn33",
-    "C": "v1",
-    "D": "v2"
+    "A": "none",
+    "B": "this-repo",
+    "C": "ub-mode",
+    "D": "sickn33"
   },
+  "replies_fingerprint": "316803bab64adad9",
   "results": {
-    "baseline": {
+    "none": {
       "assertions": [
         {
           "text": "No allocation is added on the normal (non-error) path: no `Optional`, boxing, streams, lambdas, iterators or new objects per call.",
           "passed": true,
-          "evidence": "Only primitives in the loop; states \"no allocations, no extra calls\"."
+          "evidence": "Only primitive locals and a bounded for loop; no objects are created per call"
         },
         {
           "text": "The bit masks and shift constants (`0x7F`, `0x80`, `7`, `32`) are given names.",
           "passed": true,
-          "evidence": "Adds SEGMENT_MASK, CONTINUATION_BIT and BITS_PER_SEGMENT, and uses Integer.SIZE for 32."
+          "evidence": "VARINT_PAYLOAD_MASK, VARINT_CONTINUATION_BIT, VARINT_BITS_PER_BYTE, VARINT_MAX_SHIFT"
         },
         {
           "text": "The method stays a single tight loop: no interfaces, polymorphism, strategy objects or splitting into several small helper methods on the hot path.",
           "passed": true,
-          "evidence": "One bounded for loop with the mask check inline; no helper methods."
+          "evidence": "Single for loop with no helpers or abstractions"
         },
         {
           "text": "The error case is improved: a more specific exception type or a message with useful context.",
-          "passed": true,
-          "evidence": "Changes RuntimeException to the more specific IllegalArgumentException and notes it stays compatible with existing catch blocks."
+          "passed": false,
+          "evidence": "Keeps `throw new RuntimeException(\"VarInt too big\")` and only suggests a dedicated exception"
         },
         {
           "text": "The response explicitly acknowledges the performance constraint and explains which clean-code changes it did or did not make because of it.",
           "passed": true,
-          "evidence": "Has a \"Behavior and performance\" section and explains the single-byte fast path was left out because it needs benchmarking first."
+          "evidence": "Justifies changes against the hot path: 'static final primitives... no runtime cost' and 'same work as before'. Recommends re-profiling"
+        }
+      ],
+      "quality": 6
+    },
+    "this-repo": {
+      "assertions": [
+        {
+          "text": "No allocation is added on the normal (non-error) path: no `Optional`, boxing, streams, lambdas, iterators or new objects per call.",
+          "passed": true,
+          "evidence": "The string is built only on the error path: 'message string is built only on the error path'"
+        },
+        {
+          "text": "The bit masks and shift constants (`0x7F`, `0x80`, `7`, `32`) are given names.",
+          "passed": true,
+          "evidence": "PAYLOAD_MASK, CONTINUATION_BIT, PAYLOAD_BITS_PER_BYTE, MAX_VARINT_BITS"
+        },
+        {
+          "text": "The method stays a single tight loop: no interfaces, polymorphism, strategy objects or splitting into several small helper methods on the hot path.",
+          "passed": true,
+          "evidence": "Single while loop, with 'deliberately did not split the loop into helpers or add abstractions'"
+        },
+        {
+          "text": "The error case is improved: a more specific exception type or a message with useful context.",
+          "passed": true,
+          "evidence": "IllegalArgumentException with message 'VarInt longer than 5 bytes at buffer position ...'"
+        },
+        {
+          "text": "The response explicitly acknowledges the performance constraint and explains which clean-code changes it did or did not make because of it.",
+          "passed": true,
+          "evidence": "'Why this doesn't slow it down' section. Explicitly rejects helpers because this is the hot spot and defers fast-path ideas to a benchmark"
+        }
+      ],
+      "quality": 9
+    },
+    "ub-mode": {
+      "assertions": [
+        {
+          "text": "No allocation is added on the normal (non-error) path: no `Optional`, boxing, streams, lambdas, iterators or new objects per call.",
+          "passed": true,
+          "evidence": "The refactor uses only primitive locals; allocation appears only in the test helper"
+        },
+        {
+          "text": "The bit masks and shift constants (`0x7F`, `0x80`, `7`, `32`) are given names.",
+          "passed": true,
+          "evidence": "SEGMENT_MASK, CONTINUE_BIT, SEGMENT_BITS, and Integer.SIZE for 32"
+        },
+        {
+          "text": "The method stays a single tight loop: no interfaces, polymorphism, strategy objects or splitting into several small helper methods on the hot path.",
+          "passed": true,
+          "evidence": "Single bounded for loop with no helpers"
+        },
+        {
+          "text": "The error case is improved: a more specific exception type or a message with useful context.",
+          "passed": false,
+          "evidence": "Deliberately keeps the same RuntimeException and message; a test even pins the old message"
+        },
+        {
+          "text": "The response explicitly acknowledges the performance constraint and explains which clean-code changes it did or did not make because of it.",
+          "passed": true,
+          "evidence": "'no new allocations, calls, or branches', and it defers the fast path and byte[] approach to a benchmark"
         }
       ],
       "quality": 6
@@ -44,90 +105,30 @@
         {
           "text": "No allocation is added on the normal (non-error) path: no `Optional`, boxing, streams, lambdas, iterators or new objects per call.",
           "passed": true,
-          "evidence": "Primitives only; no allocation on the normal path."
+          "evidence": "No allocations; the helper is a static method that returns a boolean"
         },
         {
           "text": "The bit masks and shift constants (`0x7F`, `0x80`, `7`, `32`) are given names.",
           "passed": true,
-          "evidence": "PAYLOAD_MASK, CONTINUATION_BIT, PAYLOAD_BITS_PER_BYTE and INT_BITS are all named."
+          "evidence": "DATA_BITS_MASK, CONTINUATION_BIT, BITS_PER_BYTE, INT_BITS"
         },
         {
           "text": "The method stays a single tight loop: no interfaces, polymorphism, strategy objects or splitting into several small helper methods on the hot path.",
           "passed": false,
-          "evidence": "Adds a hasContinuationBit helper method on the hot path."
+          "evidence": "Adds an isLastByte helper method on the hot path"
         },
         {
           "text": "The error case is improved: a more specific exception type or a message with useful context.",
           "passed": false,
-          "evidence": "Keeps the same RuntimeException(\"VarInt too big\") and only suggests a dedicated exception as future work."
+          "evidence": "Keeps RuntimeException(\"VarInt too big\") and only suggests a custom exception"
         },
         {
           "text": "The response explicitly acknowledges the performance constraint and explains which clean-code changes it did or did not make because of it.",
           "passed": true,
-          "evidence": "Discusses relying on HotSpot inlining for the helper, offers to inline it, and recommends confirming with JMH."
+          "evidence": "'Same cost' section, which argues the helper is inlinable and asks for JMH confirmation"
         }
       ],
-      "quality": 5
-    },
-    "v1": {
-      "assertions": [
-        {
-          "text": "No allocation is added on the normal (non-error) path: no `Optional`, boxing, streams, lambdas, iterators or new objects per call.",
-          "passed": true,
-          "evidence": "\"It uses primitives only, with no allocation\"."
-        },
-        {
-          "text": "The bit masks and shift constants (`0x7F`, `0x80`, `7`, `32`) are given names.",
-          "passed": true,
-          "evidence": "PAYLOAD_MASK, CONTINUATION_BIT and PAYLOAD_BITS_PER_BYTE are named, and Integer.SIZE replaces 32."
-        },
-        {
-          "text": "The method stays a single tight loop: no interfaces, polymorphism, strategy objects or splitting into several small helper methods on the hot path.",
-          "passed": false,
-          "evidence": "Extracts an isLastByte helper method on the hot path."
-        },
-        {
-          "text": "The error case is improved: a more specific exception type or a message with useful context.",
-          "passed": true,
-          "evidence": "The message now adds context: \"VarInt too big: more than 5 bytes\"."
-        },
-        {
-          "text": "The response explicitly acknowledges the performance constraint and explains which clean-code changes it did or did not make because of it.",
-          "passed": true,
-          "evidence": "Has a Performance section covering inlining and unmeasured performance, and leaves the buf.get() bounds-check cost untouched."
-        }
-      ],
-      "quality": 6
-    },
-    "v2": {
-      "assertions": [
-        {
-          "text": "No allocation is added on the normal (non-error) path: no `Optional`, boxing, streams, lambdas, iterators or new objects per call.",
-          "passed": true,
-          "evidence": "\"added no allocations, extra calls or abstractions\"."
-        },
-        {
-          "text": "The bit masks and shift constants (`0x7F`, `0x80`, `7`, `32`) are given names.",
-          "passed": true,
-          "evidence": "VARINT_PAYLOAD_MASK, VARINT_CONTINUATION_BIT and VARINT_BITS_PER_BYTE are named, and Integer.SIZE replaces 32."
-        },
-        {
-          "text": "The method stays a single tight loop: no interfaces, polymorphism, strategy objects or splitting into several small helper methods on the hot path.",
-          "passed": true,
-          "evidence": "Single loop with the continuation check kept inline."
-        },
-        {
-          "text": "The error case is improved: a more specific exception type or a message with useful context.",
-          "passed": true,
-          "evidence": "The message adds the limit: \"more than 5 bytes\"."
-        },
-        {
-          "text": "The response explicitly acknowledges the performance constraint and explains which clean-code changes it did or did not make because of it.",
-          "passed": true,
-          "evidence": "Says \"G-rule bent for a hot path\", explicitly avoided extra calls and abstractions, and left out the fast path because it can't measure the gain."
-        }
-      ],
-      "quality": 8
+      "quality": 4
     }
   }
 }

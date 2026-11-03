@@ -1,0 +1,83 @@
+{
+  "case": "02-bugfix-legacy-module",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "274b0451986207ba",
+    "this-repo": "0a26114e2ea94aad"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes fix the December crash and the matching Q4 crash correctly, and both keep the other months unchanged. B also adds regression tests that cover December, Q4, and the month boundaries for the report, and it reports running the full suite. A did not add tests and verified only by calling the functions by hand. B's small helper removes the duplicated rollover logic without adding much abstraction.",
+        "a_issues": [
+          "No regression tests added for the December or Q4 rollover",
+          "Did not run the existing test suite",
+          "Rollover logic is repeated inline in two functions"
+        ],
+        "b_issues": [
+          "The `_first_of_month` helper handles only month values of 1-24, which is fine for current callers but is not obvious from its name"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes fix the December crash and the matching Q4 bug correctly. A also adds tests for the month and quarter rollover and a boundary-checking December report test, and it reports a test run. B adds no tests and ran no suite, though its report says so honestly. A's small helper avoids writing the rollover logic twice and is easy to read.",
+        "a_issues": [
+          "The _first_of_month helper only handles month 13. That is fine for the current callers, but it is a narrow helper."
+        ],
+        "b_issues": [
+          "Adds no regression tests for the December or Q4 rollover.",
+          "The rollover logic is written twice in two special-case branches.",
+          "Did not run the test suite or monthly_report on real rows."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

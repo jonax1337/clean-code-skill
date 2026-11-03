@@ -1,0 +1,91 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "4818212d1bbbcf8b",
+    "this-repo": "77170ee207707cbd"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find the same core blockers: the SQL injection, the swallowed audit errors, the floor-division page count, the unvalidated paging input, the audit rows for unknown ids, and the actor taken from the request. B also flags that `list_users` silently stops returning every user by default, which breaks the documented README contract. It is also more accurate on line numbers in api.py and users.py, and gives concrete fix code and edge-case tests. A has some good extra catches (the string `ids` being read character by character, and the weak case-insensitivity test), but several of its line references are off and it misses the `list_users` behavior change.",
+        "a_issues": [
+          "Line numbers for bulk_deactivate are off: it cites api.py:58-59, but the `ids`/`actor` code sits at lines 61-62 after the patch.",
+          "Cites users.py:66 for the `cursor` return, which is actually at about line 68.",
+          "Misses that `list_users` with no params now returns only 25 users, contradicting the README's 'all users' contract.",
+          "Treats the actor-from-request point as a definite blocker, although the web layer is not visible in the repo."
+        ],
+        "b_issues": [
+          "Misses that a string `ids` value is iterated character by character, so `\"45\"` deactivates users 4 and 5.",
+          "Does not mention that already-inactive users get re-audited and still counted.",
+          "Doesn't point out that `test_search_matches_name_case_insensitively` doesn't actually test case-insensitivity.",
+          "Has some low-value minor items, such as renaming `res` to `rows` and moving the TODO to an issue."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews catch the same core blockers with reproductions: the SQL injection, the swallowed audit errors, the floor-divided `pages`, unvalidated paging input, and audit rows written for unknown ids. A's line references check out against the patched files almost everywhere. A also flags a real behavior regression B only half-mentions: no-argument `list_users` now silently truncates to 25 users for existing callers. B adds genuine extra findings (a string `ids` iterated per character, re-auditing already-inactive users, a weak case-insensitivity test) but cites several wrong line numbers, which matters because the task asked for file and line.",
+        "a_issues": [
+          "Misses that a string `ids` is iterated character by character (\"45\" deactivates users 4 and 5).",
+          "Misses that already-inactive users get audited again and counted.",
+          "Does not point out that `test_search_matches_name_case_insensitively` doesn't actually prove case-insensitivity.",
+          "The users.py line range for the audit loop is off by one (63-64 vs 62-63).",
+          "Treats the client-controlled `actor` only as a question rather than a finding."
+        ],
+        "b_issues": [
+          "Several wrong line numbers: actor at api.py:59 (actually 62), ids at api.py:58 (actually 61), SELECT list at search.py:14 (actually 12), cursor at users.py:66 (actually 68).",
+          "Does not call out that `list_users` without params now silently drops users beyond 25 for existing callers; only notes the README isn't updated.",
+          "Does not mention the leftover TODO in search.py."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

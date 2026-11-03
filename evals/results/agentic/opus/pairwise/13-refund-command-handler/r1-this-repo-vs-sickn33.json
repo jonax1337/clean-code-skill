@@ -1,0 +1,84 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "96a0292c5f2267e2",
+    "sickn33": "5c53c03a0441fce3"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes put the same correct handler in place: amount validation, a SHIPPED/DELIVERED status check, a cap at amountPaid minus amountRefunded, and the status left unchanged. They also report the same accurate 28-test count. B edges ahead because its tests cover more of the invalid-input space (null, zero, negative and too precise). It also names the refundable calculation on Order, and its report notes the read-check-save race without overreaching. A is equally correct but tests only one invalid amount.",
+        "a_issues": [
+          "Invalid-amount coverage is limited to a negative value; null, zero and too-precise amounts are not tested for refunds.",
+          "README row text '(no move) refunds SHIPPED or DELIVERED' reads awkwardly under the 'Moves the order from' column."
+        ],
+        "b_issues": [
+          "README table row is much longer than the others and breaks the table's alignment.",
+          "refundableAmount() is called twice in the failure path, which is minor.",
+          "The INVALID_STATE test does not assert that amountRefunded stayed unchanged."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement the same correct handler: status check, cap at amountPaid minus amountRefunded, refund recorded, status unchanged, and the handler registered in createBus. A puts the refundable calculation on Order as refundableAmount(), which is a small but clean domain method. A's tests also cover every invalid-amount case (null, zero, negative, too many decimals), while B tests only a negative amount. B is equally correct and well tested on the cap rules, so the margin is small.",
+        "a_issues": [
+          "README row puts a sentence into the 'Moves the order from' column, which reads awkwardly",
+          "rejectsAnOrderThatIsOnlyPaid does not check that amountRefunded stayed unchanged"
+        ],
+        "b_issues": [
+          "Invalid-input tests cover only a negative amount, not null, zero or too many decimals",
+          "README row '(no move) refunds SHIPPED or DELIVERED' does not fit the column's meaning well"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "22894be5300d6d8b",
+    "this-repo": "3fc8c7b1e9052bd9"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs use a mutually exclusive argparse group, reuse `allocate`, factor out the duplicate check, and add the same README row. A's parser is stricter: it accepts only ASCII digits after the last `=`, while B's `int()` also takes `+5`, ` 50 `, `5_0` and non-ASCII digits. A also has more thorough tests, covering parse_percent edge cases, the neither-given case, and the argparse error text. B's rejection of 0% is a reasonable, disclosed choice, but it does not make up for its looser parsing and thinner tests.",
+        "a_issues": [
+          "Allows a 0% share, which records a person with a zero share; this is disclosed in the report.",
+          "Uses MoneyError for a malformed NAME=PCT argument, which is not strictly a money error."
+        ],
+        "b_issues": [
+          "`int(value)` accepts inputs such as `+5`, ` 50`, `5_0` and non-ASCII digits, so the whole-number check is looser than it appears.",
+          "The parsing helper lives in cli.py, so it is only tested indirectly through the CLI.",
+          "The combined-flags test asserts only SystemExit, not the exit code or message, and there is no test for passing neither flag."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes reuse `allocate`, make `--with` and `--percent` mutually exclusive, factor out the duplicate check, and update the README in the same way. B parses percentages more strictly: a digits-only regex rejects `+5`, `-5`, `50%` and `1_0`. A relies on `int()`, which accepts surrounding whitespace, a sign and underscores. B also keeps parsing next to the splitting logic, and its tests are somewhat more thorough: parametrized malformed inputs, the case where neither option is given, and checks on the exit code and message. A's rejection of 0% is reasonable, but B allows 0% and says so openly in its report, so that difference is a disclosed choice rather than a defect.",
+        "a_issues": [
+          "`_parse_percent` uses `int()`, which also accepts `' 50'`, `'+5'`, `'1_0'` and non-ASCII digits, so the 'whole number' check is looser than its error message suggests.",
+          "No test covers giving neither `--with` nor `--percent`, and the combined-options test does not check the exit code or the message."
+        ],
+        "b_issues": [
+          "0% shares are allowed, so a person can end up in the shares with 0 cents and appear in balances with 0.00. This is disclosed, but probably not what users want.",
+          "There is no splitting-level test for the case of 1 cent split across several percentages."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

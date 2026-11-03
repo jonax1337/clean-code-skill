@@ -1,0 +1,89 @@
+diff --git a/REVIEW.md b/REVIEW.md
+new file mode 100644
+index 0000000..b622ec5
+--- /dev/null
++++ b/REVIEW.md
+@@ -0,0 +1,83 @@
++# Review of PR 482: user search, paged user list, bulk deactivation with audit log
++
++Line numbers refer to the files as they would be after the patch (diff line numbers in brackets). I read the diff and
++description only; I did not check out the branch or run the tests. The 28 passing tests are the author's claim.
++
++## Blocking
++
++1. **SQL injection in `search_users`** (`adminhub/search.py:13`, diff line 105).
++   `term` comes straight from the request (`q`) and is interpolated into the query with an f-string:
++   `LIKE '%{term}%'`. Any caller of the admin API can inject SQL, for example `x%' OR 1=1 --`, or use a UNION to read
++   other tables. Use a bound parameter: `LIKE ? ESCAPE '\'` with `f"%{escaped}%"`, where `%`, `_` and `\` in the term are
++   escaped so they match literally. The tests only use harmless terms, so none of them catch this.
++
++2. **The audit log silently swallows errors** (`adminhub/audit.py:11-12`, diff lines 66-67).
++   `record` catches `sqlite3.Error` and does `pass`. If the insert fails (missing `audit_log` table on an existing
++   database, a constraint error, a locked database), `deactivate_users` still deactivates the users and commits with no
++   audit entry. This defeats the stated purpose, because compliance wants every deactivation in the trail. It also makes
++   the `except Exception: rollback` in `deactivate_users` unreachable for audit failures. Remove the try/except so a
++   failed audit write rolls the whole bulk deactivation back. Also check how `audit_log` gets created on existing
++   databases: `CREATE IF NOT EXISTS` in the schema only helps if the schema is re-run.
++
++3. **`pages` is computed wrongly** (`adminhub/api.py:20`, diff line 20).
++   `count_users(conn) // per_page` rounds down. With 5 users and `per_page=2` it returns 2 (should be 3). With fewer
++   users than `per_page` (the default case, 5 users and 25 per page) it returns 0. The pager the console team is waiting
++   for would drop the last page or show none. Use ceiling division, `-(-total // per_page)`, and decide what an empty
++   table returns. No test checks `pages`.
++
++4. **The audit actor is client-supplied, and bulk deactivation has no input checks** (`adminhub/api.py:60-61`, diff lines 40-41).
++   - `params["actor"]` comes from the request body. Anyone can write any name into the audit trail, and a missing
++     `actor` raises `KeyError` (a 500). The actor should come from the authenticated session, not the payload.
++   - Unknown ids are not rejected, unlike `deactivate_user`, which returns 404. `audit.record` is still called for them,
++     so the log can contain "deactivations" of users that never existed.
++   - Already inactive users get a fresh audit entry each time. Duplicate ids produce duplicate entries, and the returned
++     count (`cursor.rowcount`) can then differ from the number of audit rows.
++   - There is no cap on `ids`. A large list exceeds SQLite's bound-variable limit and fails with `OperationalError`. The
++     list endpoint is capped at 100, but this one is not.
++   - A non-numeric id raises `ValueError` (a 500) instead of a 400.
++
++## Should fix
++
++5. **Paging parameters are not validated** (`adminhub/api.py:18-19, 29`, diff lines 18-19 and 29).
++   `per_page=0` gives `ZeroDivisionError` (500). `page=0` or negative values produce negative offsets. A negative
++   `per_page` becomes `LIMIT -1`, which means no limit and bypasses the cap of 100, because `min` only bounds above.
++   Non-numeric values raise `ValueError` (500). The README says pages start at 1, so return 400 for `page < 1` or
++   `per_page < 1`, and clamp `per_page` to the 1-100 range.
++
++6. **`search` pages differently from what the description says** (`adminhub/api.py:25-30`, diff lines 25-30).
++   The description says "paged the same way", but the handler ignores `per_page` (it always uses 25), applies no cap, and
++   returns no `page` or `pages`. The console cannot render a pager for search results.
++
++7. **`list_users` changes behaviour for existing callers** (`adminhub/users.py:35`, `README.md:11`, diff lines 134-138).
++   `users.list_users(conn)` now returns only the first 25 users, and the default `list_users` API call is capped the same
++   way. The README still says "200 with all users", and the test `test_list_users_returns_everyone` passes only because
++   the fixture has 5 users. Update the README table for `list_users`, `search` and `bulk_deactivate`. Confirm that no
++   other consumer, such as `reports`, relied on the full list. I found no other caller in this repo.
++
++8. **Single deactivation is not audited** (`adminhub/users.py:61-66`, existing `deactivate_user`).
++   If compliance needs every deactivation in the trail, `deactivate_user` and the `deactivate_user` handler need the
++   same audit write. As it stands, the same action is audited or not depending on which endpoint was used.
++
++## Minor
++
++9. `adminhub/search.py:4`: unused `import os`.
++10. `adminhub/search.py:10`: leftover `# TODO: rank exact matches first`. Either do it or open an issue.
++11. Search orders by `name` only, so ties give unstable page boundaries. Add `, id` as a tiebreaker.
++12. The `except Exception: rollback; raise` in `deactivate_users` (`adminhub/users.py:63-66`) is fine in principle, but it
++    only helps once finding 2 is fixed.
++
++## Tests
++
++The tests cover only the happy paths, which is why the green run hides findings 1-6. Missing:
++- Injection and wildcard terms (`'`, `%`, `_`) for search.
++- `pages` values (for example 5 users with `per_page=2` should give 3), `page=0`, `per_page=0`, and a non-numeric `page`.
++- Bulk deactivation with an unknown id, a duplicate id, an already inactive user, and a failing audit insert, which should
++  roll everything back.
++- Audit rows carry the right `actor` and `action`. Currently `test_bulk_deactivate` only checks the response.
++
++## Verdict
++
++**I would not merge this as it is.** Finding 1 (SQL injection) is a security hole in an admin endpoint, finding 2 breaks
++the compliance guarantee the feature exists for, and finding 3 makes the pager wrong in the default case. Findings 1-4
++should be fixed before merge, and I would fix 5 and 6 in the same pass since they are small. The overall structure
++(separate `audit` and `search` modules, one transaction for bulk deactivation) is sound, so I expect a short second round.

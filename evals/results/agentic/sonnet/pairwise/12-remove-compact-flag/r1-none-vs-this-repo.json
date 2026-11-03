@@ -1,0 +1,83 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "f9686ec69d7f7017",
+    "this-repo": "1bed82f5001c2452"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes remove the flag, its warning, the `compact` field, the render path, the help line and the README row identically, and add the same CHANGELOG entry, so behavior is equivalent. B's tests are a bit stronger: the unit test checks the exact `UnknownOption` error for both `--compact` and `-c`, and it adds an end-to-end integration test through `run`. A checks `-c` only with `is_err()` and leaves a stray blank line before the closing brace of the render tests module. B's report also usefully notes that the version is still 0.9.0.",
+        "a_issues": [
+          "The `-c` rejection test only asserts `is_err()`, not the specific `UnknownOption` error.",
+          "No integration test confirms that `run` rejects `--compact` end to end.",
+          "Leaves a stray blank line before the closing `}` of the `render.rs` test module, which rustfmt would flag."
+        ],
+        "b_issues": [
+          "The integration test covers only `--compact`, not `-c`; this is minor because the unit test covers both."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes remove the flag, the `compact` field, the render path, the help line and the README row, and add the same CHANGELOG entry, so the production code is effectively identical. A's tests are stronger: they assert the exact `UnknownOption` error for both `--compact` and `-c`, and an integration test covers rejection through `run`. B only checks that `-c` returns some error, has no integration coverage of the removal, and leaves a stray blank line at the end of the render tests module.",
+        "a_issues": [
+          "Does not mention that the 0.8.0 changelog entry still describes the deprecation (harmless, since it is history)."
+        ],
+        "b_issues": [
+          "The unit test only checks `parse_args(&[\"-c\"]).is_err()` rather than the specific `UnknownOption` error.",
+          "No integration test confirms that `run` rejects the removed flag.",
+          "Leaves a stray blank line before the closing brace of the render tests module."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

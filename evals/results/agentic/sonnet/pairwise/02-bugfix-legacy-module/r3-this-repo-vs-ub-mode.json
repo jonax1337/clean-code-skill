@@ -1,0 +1,85 @@
+{
+  "case": "02-bugfix-legacy-module",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "0a26114e2ea94aad",
+    "ub-mode": "ab100fb552d2a15e"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 1.0,
+    "design": 1.0,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both fix the December and Q4 rollover with a `_first_of_month` helper. A keeps the start date as strict `datetime.date(year, month, 1)`, so invalid months still raise. B sends the start through the wrap-around helper, so `month_range(2026, 13)` and month 0 now silently return dates in another year. A also adds a report-level December test covering the boundary days, and its report is clean and accurate.",
+        "a_issues": [
+          "Helper handles only month > 12 rollover, which is enough for its callers but not fully general."
+        ],
+        "b_issues": [
+          "Start dates now go through the wrap-around helper, so invalid input like month 13 or 0 is silently accepted instead of raising. The report admits this regression but leaves it unfixed.",
+          "Rewrote both function bodies into one-line returns, which is more churn than the fix needed.",
+          "No test of `monthly_report` for December, the reported failure; only the range functions are tested.",
+          "Report contains a garbled, irrelevant paragraph about 'crapper, dryer or mutator tools from .'.",
+          "Committed changes without being asked."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes fix the December and Q4 rollover with a small helper. A also routes the start date through the helper, so `month_range(2026, 13)` and `quarter_range(2026, 5)` now silently return dates in the next year instead of raising, and month 0 maps to the previous December. B keeps the start dates strict and adds a report-level December boundary test. A's report also contains a garbled sentence about unrelated 'crapper, dryer or mutator' tools.",
+        "a_issues": [
+          "Routing the start date through `_first_of_month` removes input validation: invalid months or quarters silently roll into other years instead of raising, which is a behavior change beyond the fix.",
+          "No test at the `monthly_report` level for the reported December scenario.",
+          "The report has a garbled, irrelevant paragraph about 'crapper, dryer or mutator tools from .' that adds noise."
+        ],
+        "b_issues": [
+          "`_first_of_month` handles only month values up to 24. This is fine for current callers but is a narrower helper than a general modulo version."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "B",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

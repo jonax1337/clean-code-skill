@@ -1,0 +1,86 @@
+{
+  "case": "06-retry-transient-errors",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "7932811275cb15c8",
+    "ub-mode": "0016abda24e46c68"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes retry the same failures: timeouts, connection resets and 502/503, but only for GETs and keyed POSTs. Both correctly leave the unkeyed pickup call unretried. A's backoff schedule (2, 4, 8, 16, 30, 30 s, about 90 s) actually rides out the minute-long outages the task describes. B's schedule (1, 2, 4, 8 s, about 15 s) does not, and B's own report admits it, so the job would still die during the outages that prompted the task. A's tests also pin the capped backoff, the total span and a wider set of non-retried statuses.",
+        "a_issues": [
+          "Report's breakdown of '22 existing, 7 new test functions' is wrong: there were 15 existing tests and 14 new parametrized cases from 7 functions, though the 29 total is right.",
+          "Retry logic is split into a separate `_send_with_retries` with if/else branches across exception and response paths, which is slightly harder to follow than a single exception-based loop.",
+          "No jitter or Retry-After handling (acknowledged in the report)."
+        ],
+        "b_issues": [
+          "Total retry window is about 15 s, shorter than the roughly one-minute 502/503 outages described in the task, so the main failure mode is still not fixed.",
+          "Report contains garbled, irrelevant text about 'crapper, dryer or mutator tools from ,' that has nothing to do with this repo.",
+          "Tests do not check the full backoff schedule or other 5xx statuses such as 500 and 504 being left unretried; only a 404 is checked."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes retry only safe requests (GETs, and POSTs that carry an Idempotency-Key), correctly leave the pickup unretried, and cover timeouts, connection resets and 502/503. A's backoff gives up after about 15 seconds, so the minute-long 502/503 outages the task describes still kill the job; A's report admits this but leaves it unfixed. B spans about 90 seconds with a capped backoff and tests that. B's tests also check that 400, 404, 429, 500 and 504 are not retried. B's report has a small miscount of existing tests, while A's report contains a garbled reference to unrelated tools.",
+        "a_issues": [
+          "Retry window of about 15 seconds (1+2+4+8) does not cover the minute-long 502/503 outages named in the task, so the reported failure mode largely remains",
+          "Report contains a confusing leftover sentence about 'crapper, dryer or mutator tools from ,' that has nothing to do with this repository",
+          "Tests only check 404 as non-retried; they do not check that other 5xx statuses (500, 504) are excluded"
+        ],
+        "b_issues": [
+          "Report says '22 existing, 7 new test functions', but the repository had 15 existing tests and the change adds 14 test cases (the total of 29 is correct)",
+          "No jitter and no Retry-After handling (acknowledged in the report)"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

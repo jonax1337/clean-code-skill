@@ -1,0 +1,87 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "77170ee207707cbd",
+    "ub-mode": "17db41614bb97cfd"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.25,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both reviews correctly identify and reproduce the main blockers: the SQL injection in search, the swallowed audit errors, the floor-division page count and the unvalidated paging input. B also finds several real, verifiable defects that A misses. Passing `ids` as a string iterates it character by character, so the wrong users get deactivated. Already-inactive and duplicate ids get audited. Single-user deactivation is never audited, despite the compliance requirement. B also ties the gap in test coverage explicitly to why each bug passed, which makes it the more complete and useful review.",
+        "a_issues": [
+          "Misses that a string `ids` is iterated per character and deactivates the wrong users",
+          "Misses that single-user `deactivate_user` writes no audit entry, though the PR says compliance wants every deactivation recorded",
+          "Misses that re-deactivating an already-inactive user or passing duplicate ids writes extra audit rows",
+          "Line reference for the audit loop (users.py:63-64) is off by one"
+        ],
+        "b_issues": [
+          "Does not raise A's useful question about whether `actor` is client-controlled and can be spoofed",
+          "Some 'should fix' items (input validation) overlap with blockers, so severity grouping is slightly blurred"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews catch the main defects with reproductions and correct line numbers: the SQL injection, the swallowed audit errors, the floor-division page count, input that crashes instead of returning 400, and unknown ids being audited. A also finds that single-user deactivation is never audited, despite the PR's 'every deactivation' claim, and that `ids` sent as a string is iterated character by character and deactivates the wrong accounts. Both matter directly for the compliance and safety goals of this PR. B adds its own useful points: the client-controlled `actor` question, the silent change to `list_users` from returning all users to 25, and concrete fix code. Overall A's unique findings weigh slightly more.",
+        "a_issues": [
+          "Does not stress that `list_users` with no parameters now silently returns only 25 users, which breaks existing callers; it only notes the README table is stale.",
+          "Does not question whether `actor` is client-controlled and therefore spoofable in the audit log."
+        ],
+        "b_issues": [
+          "Misses that single-user `deactivate_user` writes no audit row, even though the PR claims every deactivation is audited.",
+          "Misses that `ids` passed as a string is iterated per character and deactivates unintended users.",
+          "Misses duplicate and already-inactive ids producing extra audit rows.",
+          "The `users.py` line reference for the audit loop (63-64) is slightly off; it should be 62-63."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

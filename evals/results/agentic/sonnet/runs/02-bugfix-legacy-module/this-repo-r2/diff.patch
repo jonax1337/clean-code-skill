@@ -1,0 +1,93 @@
+diff --git a/reports/periods.py b/reports/periods.py
+index b29beff..61efab1 100644
+--- a/reports/periods.py
++++ b/reports/periods.py
+@@ -1,23 +1,26 @@
+ """Date ranges for the sales reports. Every range is half-open: start <= day < end."""
+ 
+ import datetime
+ 
+ 
++def _first_of_month(year, month):
++    """First day of the month; month 13 rolls over to January of the next year."""
++    if month == 13:
++        return datetime.date(year + 1, 1, 1)
++    return datetime.date(year, month, 1)
++
++
+ def month_range(year, month):
+     """Return (first day of the month, first day of the next month)."""
+-    start = datetime.date(year, month, 1)
+-    end = datetime.date(year, month + 1, 1)
+-    return start, end
++    return _first_of_month(year, month), _first_of_month(year, month + 1)
+ 
+ 
+ def quarter_range(year, quarter):
+     """Return (first day of the quarter, first day of the next quarter) for quarter 1-4."""
+-    start = datetime.date(year, 3 * quarter - 2, 1)
+-    end = datetime.date(year, 3 * quarter + 1, 1)
+-    return start, end
++    return _first_of_month(year, 3 * quarter - 2), _first_of_month(year, 3 * quarter + 1)
+ 
+ 
+ def week_range(day):
+     """Return (Monday of the ISO week containing day, Monday of the following week)."""
+     start = day - datetime.timedelta(days=day.weekday())
+     return start, start + datetime.timedelta(days=7)
+diff --git a/tests/test_periods.py b/tests/test_periods.py
+index 1b9f309..f13d97a 100644
+--- a/tests/test_periods.py
++++ b/tests/test_periods.py
+@@ -6,10 +6,18 @@ from reports.periods import month_range, quarter_range, week_range
+ def test_month_range_is_half_open():
+     assert month_range(2026, 3) == (datetime.date(2026, 3, 1), datetime.date(2026, 4, 1))
+ 
+ 
+ def test_quarter_range_is_half_open():
+     assert quarter_range(2026, 2) == (datetime.date(2026, 4, 1), datetime.date(2026, 7, 1))
+ 
+ 
++def test_month_range_december_ends_in_january_of_next_year():
++    assert month_range(2026, 12) == (datetime.date(2026, 12, 1), datetime.date(2027, 1, 1))
++
++
++def test_quarter_range_fourth_quarter_ends_in_january_of_next_year():
++    assert quarter_range(2026, 4) == (datetime.date(2026, 10, 1), datetime.date(2027, 1, 1))
++
++
+ def test_week_range_starts_on_monday():
+     assert week_range(datetime.date(2026, 11, 5)) == (datetime.date(2026, 11, 2), datetime.date(2026, 11, 9))
+diff --git a/tests/test_sales.py b/tests/test_sales.py
+index c5ace3a..3dbac33 100644
+--- a/tests/test_sales.py
++++ b/tests/test_sales.py
+@@ -9,10 +9,28 @@ ROWS = [
+     {"date": datetime.date(2026, 4, 1), "amount_cents": 700},
+ ]
+ 
+ 
+ def test_monthly_report_counts_only_the_month():
+     assert monthly_report(ROWS, 2026, 3) == {"period": "2026-03", "orders": 2, "total_cents": 4000}
+ 
+ 
++def test_monthly_report_for_december_includes_the_last_day():
++    rows = [
++        {"date": datetime.date(2026, 11, 30), "amount_cents": 100},
++        {"date": datetime.date(2026, 12, 31), "amount_cents": 250},
++        {"date": datetime.date(2027, 1, 1), "amount_cents": 400},
++    ]
++    assert monthly_report(rows, 2026, 12) == {"period": "2026-12", "orders": 1, "total_cents": 250}
++
++
++def test_quarterly_report_for_q4_includes_december():
++    rows = [
++        {"date": datetime.date(2026, 9, 30), "amount_cents": 100},
++        {"date": datetime.date(2026, 12, 31), "amount_cents": 250},
++        {"date": datetime.date(2027, 1, 1), "amount_cents": 400},
++    ]
++    assert quarterly_report(rows, 2026, 4) == {"period": "2026-Q4", "orders": 1, "total_cents": 250}
++
++
+ def test_quarterly_report_counts_only_the_quarter():
+     assert quarterly_report(ROWS, 2026, 1) == {"period": "2026-Q1", "orders": 3, "total_cents": 4999}

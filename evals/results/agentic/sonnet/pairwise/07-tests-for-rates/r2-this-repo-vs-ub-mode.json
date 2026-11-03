@@ -1,0 +1,86 @@
+{
+  "case": "07-tests-for-rates",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "this-repo",
+    "ub-mode"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "0455e317038e2448",
+    "ub-mode": "b37df95d38bcde75"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "ub-mode",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs add only test/rates.test.ts, leave the code alone, and every expected value I checked by hand against the rate table is correct. Their test coverage is comparable: rounding ties in both modes, negative symmetry, the minimum and maximum fee boundaries, quote coverage and error paths. A's report is more useful: it points out behavior the tests now lock in (quote on a negative amount fails in feeFor, convert accepts negatives while feeFor rejects them, the fee uses the target currency's rounding) right before the module changes. B's report has a garbled line about unavailable 'mutator, crapper or dryer tools from ,'.",
+        "a_issues": [
+          "Uses describe() nesting while the existing test files use flat test() calls, a small style inconsistency",
+          "Does not test a quote where the fee hits the maximum, and does not say so"
+        ],
+        "b_issues": [
+          "The report contains a garbled sentence about missing 'mutator, crapper or dryer tools from ,', which is noise unrelated to the repository",
+          "The report does not flag the behavior that the tests now pin and that the developer should review before changing the module",
+          "No quote test where the fee hits the maximum (acknowledged in the report)"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "ub-mode",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both add a correct, well-targeted rates.test.ts without touching src/rates.ts, and I checked the expected values by hand against the rate table; they hold in both. B groups the tests with describe blocks, tests the minimum-fee boundary from both sides, and covers half-up ties across a currency with no minor units. B's report also usefully points out current behaviors that the tests pin before the module changes. A's report has an odd line about \"mutator, crapper or dryer tools\" that the task never mentioned, which makes it read less reliably.",
+        "a_issues": [
+          "Report mentions tools (mutator, crapper, dryer) from an unspecified source that the task never asked for, which is confusing noise",
+          "Flat list of tests with no describe grouping, so it is a bit harder to scan than B",
+          "No quote test where the fee hits the maximum (acknowledged in the report)"
+        ],
+        "b_issues": [
+          "Report says the minimum and maximum fee are tested in each currency, but USD and CHF limits are not tested",
+          "No half-even tie test for CHF and no large-amount cross-currency precision test beyond the same-currency MAX_SAFE_INTEGER case",
+          "No quote test where the fee hits the maximum"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

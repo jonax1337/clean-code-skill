@@ -1,0 +1,101 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "condition": "sickn33",
+  "rep": 1,
+  "checks": [
+    {
+      "name": "finds_the_sql_injection",
+      "description": "The review reports the f-string SQL built from the `q` parameter in search_users as an SQL injection.",
+      "passed": true,
+      "evidence": "# review: pr 482 (user search, paged user list, bulk deactivation with audit log) method: applied `pr/482.diff` to a scratch copy of the repo (not the working tree), ran `python -m pytest -q` (28 passed, matching the pr description), and ran targeted probes against the patched code. line numbers ref"
+    },
+    {
+      "name": "finds_the_wrong_page_count",
+      "description": "The review reports that the number of pages in the list handler is computed with a floor division and so drops the last partial page (a bug the PR's tests do not cover).",
+      "passed": true,
+      "evidence": "icates it, so the audit trail records whatever name the caller sends. - a `keyerror('actor')` also escapes as an unhandled exception when the parameter is missing (probe confirmed). `deactivate_user` returns error responses for bad input; this handler does not. - fix: take the actor from the authent"
+    },
+    {
+      "name": "finds_the_swallowed_audit_error",
+      "description": "The review reports that audit.record swallows the database error, so audit entries can be lost silently.",
+      "passed": true,
+      "evidence": "ltered. - this contradicts the readme rule that \"all queries go through `sqlite3` with `?` placeholders\" (`readme.md`, last section). - fix: bind the term, e.g. `where name like ? or email like ?` with `(f\"%{term}%\", f\"%{term}%\", per_page, offset)`. escape `%` and `_` in the term too (`like ... esca"
+    },
+    {
+      "name": "findings_cite_file_and_line",
+      "description": "Each of the three real findings names a Python file and a line in the passage that reports it, as the prompt asked (either the line in the patched file or in the diff is accepted).",
+      "passed": true,
+      "evidence": "all cited"
+    },
+    {
+      "name": "decoy_not_reported_as_bug",
+      "description": "deactivate_users (f-string with only generated `?` placeholders, values bound, rollback then re-raise) is not reported as an injection or a swallowed exception; calling it fine or contrasting it with the real injection is allowed.",
+      "passed": true,
+      "evidence": "decoy not accused"
+    },
+    {
+      "name": "injection_before_style_remarks",
+      "description": "The SQL injection is reported before any remark about the planted nits (unused import, TODO, docstring, magic number, vague names), because the prompt asked for the most important findings first.",
+      "passed": true,
+      "evidence": "injection at 370, first nit at 4592"
+    },
+    {
+      "name": "does_not_approve",
+      "description": "The review ends with a clear do-not-merge verdict (request changes, blocking, do not merge) and does not approve the PR, since it contains an injection hole.",
+      "passed": true,
+      "evidence": "blocking wording: blocker; approving wording: None"
+    },
+    {
+      "name": "only_review_added",
+      "description": "The review is the only change: no source or test file was edited (applying the patch to try it and reverting it is fine) and no scratch files are left behind.",
+      "passed": true,
+      "evidence": "changed: ['REVIEW.md']"
+    },
+    {
+      "name": "pr_not_left_applied",
+      "description": "Hidden tests confirm the code is still the state before PR 482: the PR was neither merged nor left applied in the working tree.",
+      "passed": true,
+      "evidence": "...                                                                      [100%]\n3 passed in 0.05s"
+    },
+    {
+      "name": "test_suite_passes",
+      "description": "The repository's own test suite passes.",
+      "passed": true,
+      "evidence": ".............                                                            [100%]\n13 passed in 0.07s"
+    },
+    {
+      "name": "clean_diff",
+      "description": "The code files have no debug output, commented-out code or narrating comments left in them (the review itself is prose and not checked).",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "looked_at_the_diff",
+      "description": "Instead of ran_after_last_edit (a review has no tests to rerun): the agent opened pr/482.diff, the thing it was asked to review, with a tool call.",
+      "passed": true,
+      "evidence": "tool calls touching 482.diff: ['Bash', 'Bash', 'Write']"
+    }
+  ],
+  "metrics": {
+    "files": [],
+    "before": {
+      "functions": 0,
+      "nloc": 0,
+      "max_nloc": 0,
+      "max_ccn": 0,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 0,
+      "nloc": 0,
+      "max_nloc": 0,
+      "max_ccn": 0,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
+}

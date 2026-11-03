@@ -1,0 +1,520 @@
+diff --git a/README.md b/README.md
+index 709c8de..5d5b8d8 100644
+--- a/README.md
++++ b/README.md
+@@ -1,35 +1,41 @@
+-# shipsync
+-
+-Nightly job that books carrier shipments for the day's orders and schedules one pickup for them.
+-
+-    SHIPSYNC_API_KEY=... python -m shipsync.cli orders.json
+-
+-`orders.json` is a list of `{"reference": "A-1001", "address": {"name": ..., "street": ..., "city": ...,
+-"postal_code": ..., "country": ...}}`.
+-
+-## Layout
+-
+-- `shipsync/transport.py`: the thin HTTP layer (`Transport.send(Request) -> Response`). `UrllibTransport` is the
+-  real one; tests use a fake.
+-- `shipsync/client.py`: `ShippingClient`, one method per carrier endpoint.
+-- `shipsync/sync.py`: the job itself.
+-- `shipsync/cli.py`: command line entry point.
+-
+-## Carrier API
+-
+-All calls need `Authorization: Bearer <api key>`. Responses of 400 and above become `ApiError`.
+-
+-| Call | Notes |
+-| --- | --- |
+-| `GET /shipments/{id}` | One shipment. |
+-| `GET /shipments?status=open` | All shipments with that status. |
+-| `POST /shipments` | Creates a shipment for an order. Every call creates a new shipment, unless the request carries an `Idempotency-Key` header: a repeated key returns the shipment created by the first request instead of creating another one. |
+-| `POST /pickups` | Books a courier pickup for a list of shipments. Every call books a new pickup, and the carrier ignores `Idempotency-Key` here. |
+-| `GET /shipments/{id}/label` | `202` while the label is still being rendered, `200` with the label URL when it is ready. |
+-
+-## Tests
+-
+-    python -m pytest
+-
+-The tests use `tests/fakes.py`, a scripted fake transport, and pass a recording `sleep` to the client, so nothing
+-touches the network or waits.
++# shipsync
++
++Nightly job that books carrier shipments for the day's orders and schedules one pickup for them.
++
++    SHIPSYNC_API_KEY=... python -m shipsync.cli orders.json
++
++`orders.json` is a list of `{"reference": "A-1001", "address": {"name": ..., "street": ..., "city": ...,
++"postal_code": ..., "country": ...}}`.
++
++## Layout
++
++- `shipsync/transport.py`: the thin HTTP layer (`Transport.send(Request) -> Response`). `UrllibTransport` is the
++  real one; tests use a fake.
++- `shipsync/client.py`: `ShippingClient`, one method per carrier endpoint.
++- `shipsync/sync.py`: the job itself.
++- `shipsync/cli.py`: command line entry point.
++
++## Carrier API
++
++All calls need `Authorization: Bearer <api key>`. Responses of 400 and above become `ApiError`.
++
++| Call | Notes |
++| --- | --- |
++| `GET /shipments/{id}` | One shipment. |
++| `GET /shipments?status=open` | All shipments with that status. |
++| `POST /shipments` | Creates a shipment for an order. Every call creates a new shipment, unless the request carries an `Idempotency-Key` header: a repeated key returns the shipment created by the first request instead of creating another one. |
++| `POST /pickups` | Books a courier pickup for a list of shipments. Every call books a new pickup, and the carrier ignores `Idempotency-Key` here. |
++| `GET /shipments/{id}/label` | `202` while the label is still being rendered, `200` with the label URL when it is ready. |
++
++## Retries
++
++Timeouts, connection failures and `502`/`503`/`504` are retried up to 5 attempts with 5, 10, 20, 40 s backoff
++(about 75 s). Only requests that are safe to repeat are retried: `GET`s and `POST /shipments` with an
++`Idempotency-Key`. `POST /pickups` is sent once, because a repeat after a timeout could book a second pickup.
++
++## Tests
++
++    python -m pytest
++
++The tests use `tests/fakes.py`, a scripted fake transport, and pass a recording `sleep` to the client, so nothing
++touches the network or waits.
+diff --git a/shipsync/client.py b/shipsync/client.py
+index 3400bb4..9d51467 100644
+--- a/shipsync/client.py
++++ b/shipsync/client.py
+@@ -1,75 +1,103 @@
+-import json
+-import time
+-from collections.abc import Callable
+-from datetime import date
+-from typing import Any
+-
+-from shipsync.errors import ApiError, LabelNotReady
+-from shipsync.models import Address, Shipment
+-from shipsync.transport import Request, Response, Transport
+-
+-DEFAULT_BASE_URL = "https://api.carrier.example/v2"
+-LABEL_POLL_ATTEMPTS = 5
+-LABEL_POLL_INTERVAL_S = 2.0
+-
+-
+-class ShippingClient:
+-    def __init__(
+-        self,
+-        transport: Transport,
+-        api_key: str,
+-        base_url: str = DEFAULT_BASE_URL,
+-        *,
+-        sleep: Callable[[float], None] = time.sleep,
+-    ) -> None:
+-        self._transport = transport
+-        self._api_key = api_key
+-        self._base_url = base_url
+-        self._sleep = sleep
+-
+-    def get_shipment(self, shipment_id: str) -> Shipment:
+-        response = self._request("GET", f"/shipments/{shipment_id}")
+-        return Shipment.from_payload(response.json())
+-
+-    def list_shipments(self, status: str) -> list[Shipment]:
+-        response = self._request("GET", f"/shipments?status={status}")
+-        return [Shipment.from_payload(item) for item in response.json()["shipments"]]
+-
+-    def create_shipment(
+-        self, order_ref: str, address: Address, idempotency_key: str | None = None
+-    ) -> Shipment:
+-        headers = {"Idempotency-Key": idempotency_key} if idempotency_key else {}
+-        payload = {"order_ref": order_ref, "address": address.to_payload()}
+-        response = self._request("POST", "/shipments", payload, headers)
+-        return Shipment.from_payload(response.json())
+-
+-    def request_pickup(self, pickup_date: date, shipment_ids: list[str]) -> str:
+-        payload = {"date": pickup_date.isoformat(), "shipment_ids": shipment_ids}
+-        response = self._request("POST", "/pickups", payload)
+-        return response.json()["id"]
+-
+-    def wait_for_label(self, shipment_id: str) -> str:
+-        for _ in range(LABEL_POLL_ATTEMPTS):
+-            response = self._request("GET", f"/shipments/{shipment_id}/label")
+-            if response.status == 200:
+-                return response.json()["url"]
+-            self._sleep(LABEL_POLL_INTERVAL_S)
+-        raise LabelNotReady(shipment_id)
+-
+-    def _request(
+-        self,
+-        method: str,
+-        path: str,
+-        payload: dict[str, Any] | None = None,
+-        headers: dict[str, str] | None = None,
+-    ) -> Response:
+-        request = Request(
+-            method,
+-            self._base_url + path,
+-            {"Authorization": f"Bearer {self._api_key}", **(headers or {})},
+-            json.dumps(payload).encode() if payload is not None else None,
+-        )
+-        response = self._transport.send(request)
+-        if response.status >= 400:
+-            raise ApiError(response.status, response.body.decode(errors="replace"))
+-        return response
++import json
++import time
++from collections.abc import Callable
++from datetime import date
++from typing import Any
++
++from shipsync.errors import ApiError, LabelNotReady, TransportError
++from shipsync.models import Address, Shipment
++from shipsync.transport import Request, Response, Transport
++
++DEFAULT_BASE_URL = "https://api.carrier.example/v2"
++LABEL_POLL_ATTEMPTS = 5
++LABEL_POLL_INTERVAL_S = 2.0
++# Backoff 5 + 10 + 20 + 40 s = 75 s of waiting, enough to outlast a carrier outage of about a minute.
++RETRY_ATTEMPTS = 5
++RETRY_BASE_DELAY_S = 5.0
++RETRYABLE_STATUSES = frozenset({502, 503, 504})
++
++
++class ShippingClient:
++    def __init__(
++        self,
++        transport: Transport,
++        api_key: str,
++        base_url: str = DEFAULT_BASE_URL,
++        *,
++        sleep: Callable[[float], None] = time.sleep,
++    ) -> None:
++        self._transport = transport
++        self._api_key = api_key
++        self._base_url = base_url
++        self._sleep = sleep
++
++    def get_shipment(self, shipment_id: str) -> Shipment:
++        response = self._request("GET", f"/shipments/{shipment_id}")
++        return Shipment.from_payload(response.json())
++
++    def list_shipments(self, status: str) -> list[Shipment]:
++        response = self._request("GET", f"/shipments?status={status}")
++        return [Shipment.from_payload(item) for item in response.json()["shipments"]]
++
++    def create_shipment(
++        self, order_ref: str, address: Address, idempotency_key: str | None = None
++    ) -> Shipment:
++        headers = {"Idempotency-Key": idempotency_key} if idempotency_key else {}
++        payload = {"order_ref": order_ref, "address": address.to_payload()}
++        response = self._request("POST", "/shipments", payload, headers)
++        return Shipment.from_payload(response.json())
++
++    def request_pickup(self, pickup_date: date, shipment_ids: list[str]) -> str:
++        payload = {"date": pickup_date.isoformat(), "shipment_ids": shipment_ids}
++        response = self._request("POST", "/pickups", payload)
++        return response.json()["id"]
++
++    def wait_for_label(self, shipment_id: str) -> str:
++        for _ in range(LABEL_POLL_ATTEMPTS):
++            response = self._request("GET", f"/shipments/{shipment_id}/label")
++            if response.status == 200:
++                return response.json()["url"]
++            self._sleep(LABEL_POLL_INTERVAL_S)
++        raise LabelNotReady(shipment_id)
++
++    def _request(
++        self,
++        method: str,
++        path: str,
++        payload: dict[str, Any] | None = None,
++        headers: dict[str, str] | None = None,
++    ) -> Response:
++        request = Request(
++            method,
++            self._base_url + path,
++            {"Authorization": f"Bearer {self._api_key}", **(headers or {})},
++            json.dumps(payload).encode() if payload is not None else None,
++        )
++        response = self._send_with_retries(request)
++        if response.status >= 400:
++            raise ApiError(response.status, response.body.decode(errors="replace"))
++        return response
++
++    def _send_with_retries(self, request: Request) -> Response:
++        """Retry timeouts, connection failures and gateway errors, but only for requests that are safe to repeat.
++
++        A request that timed out may still have been processed, so repeating a POST without an
++        Idempotency-Key (the pickup booking) could book twice. Those are sent exactly once.
++        """
++        attempts = RETRY_ATTEMPTS if _is_safe_to_repeat(request) else 1
++        for attempt in range(1, attempts + 1):
++            is_last_attempt = attempt == attempts
++            try:
++                response = self._transport.send(request)
++            except TransportError:
++                if is_last_attempt:
++                    raise
++            else:
++                if response.status not in RETRYABLE_STATUSES or is_last_attempt:
++                    return response
++            self._sleep(RETRY_BASE_DELAY_S * 2 ** (attempt - 1))
++        raise AssertionError("unreachable: the last attempt returns or raises")
++
++
++def _is_safe_to_repeat(request: Request) -> bool:
++    return request.method == "GET" or "Idempotency-Key" in request.headers
+diff --git a/tests/test_client.py b/tests/test_client.py
+index b76f3ee..19d856c 100644
+--- a/tests/test_client.py
++++ b/tests/test_client.py
+@@ -1,91 +1,160 @@
+-import json
+-from datetime import date
+-
+-import pytest
+-
+-from shipsync.client import LABEL_POLL_ATTEMPTS, LABEL_POLL_INTERVAL_S
+-from shipsync.errors import ApiError, LabelNotReady
+-from shipsync.models import Address
+-from tests.fakes import FakeTransport, reply, shipment_payload
+-
+-ADDRESS = Address("Ada Lovelace", "1 Analytical Way", "London", "N1 9GU", "GB")
+-
+-
+-def test_get_shipment_parses_the_payload(make_client):
+-    transport = FakeTransport(reply(200, shipment_payload("sh-7", "A-7", "in_transit")))
+-
+-    shipment = make_client(transport).get_shipment("sh-7")
+-
+-    assert (shipment.id, shipment.order_ref, shipment.status) == ("sh-7", "A-7", "in_transit")
+-    assert transport.requests[0].url.endswith("/shipments/sh-7")
+-
+-
+-def test_every_request_carries_the_api_key(make_client):
+-    transport = FakeTransport(reply(200, shipment_payload()))
+-
+-    make_client(transport).get_shipment("sh-1")
+-
+-    assert transport.requests[0].headers["Authorization"] == "Bearer test-key"
+-
+-
+-def test_list_shipments_filters_by_status(make_client):
+-    transport = FakeTransport(reply(200, {"shipments": [shipment_payload("sh-1"), shipment_payload("sh-2")]}))
+-
+-    shipments = make_client(transport).list_shipments("open")
+-
+-    assert [shipment.id for shipment in shipments] == ["sh-1", "sh-2"]
+-    assert transport.requests[0].url.endswith("/shipments?status=open")
+-
+-
+-def test_create_shipment_sends_the_idempotency_key(make_client):
+-    transport = FakeTransport(reply(201, shipment_payload()))
+-
+-    make_client(transport).create_shipment("A-1001", ADDRESS, idempotency_key="order-A-1001")
+-
+-    request = transport.requests[0]
+-    assert request.headers["Idempotency-Key"] == "order-A-1001"
+-    assert json.loads(request.body)["order_ref"] == "A-1001"
+-
+-
+-def test_create_shipment_without_a_key_sends_no_key_header(make_client):
+-    transport = FakeTransport(reply(201, shipment_payload()))
+-
+-    make_client(transport).create_shipment("A-1001", ADDRESS)
+-
+-    assert "Idempotency-Key" not in transport.requests[0].headers
+-
+-
+-def test_request_pickup_returns_the_pickup_id(make_client):
+-    transport = FakeTransport(reply(201, {"id": "pk-3"}))
+-
+-    pickup_id = make_client(transport).request_pickup(date(2026, 3, 2), ["sh-1", "sh-2"])
+-
+-    assert pickup_id == "pk-3"
+-    assert json.loads(transport.requests[0].body) == {"date": "2026-03-02", "shipment_ids": ["sh-1", "sh-2"]}
+-
+-
+-def test_wait_for_label_polls_until_the_label_is_ready(make_client, sleeps):
+-    transport = FakeTransport(reply(202), reply(202), reply(200, {"url": "https://labels.example/sh-1.pdf"}))
+-
+-    url = make_client(transport).wait_for_label("sh-1")
+-
+-    assert url == "https://labels.example/sh-1.pdf"
+-    assert sleeps == [LABEL_POLL_INTERVAL_S, LABEL_POLL_INTERVAL_S]
+-
+-
+-def test_wait_for_label_gives_up_when_the_label_never_arrives(make_client):
+-    transport = FakeTransport(reply(202))
+-
+-    with pytest.raises(LabelNotReady):
+-        make_client(transport).wait_for_label("sh-1")
+-
+-    assert len(transport.requests) == LABEL_POLL_ATTEMPTS
+-
+-
+-def test_error_status_raises_api_error_with_the_status(make_client):
+-    transport = FakeTransport(reply(404, {"error": "no such shipment"}))
+-
+-    with pytest.raises(ApiError) as raised:
+-        make_client(transport).get_shipment("sh-404")
+-
+-    assert raised.value.status == 404
++import json
++from datetime import date
++
++import pytest
++
++from shipsync.client import LABEL_POLL_ATTEMPTS, LABEL_POLL_INTERVAL_S, RETRY_ATTEMPTS
++from shipsync.errors import ApiError, ConnectionFailed, LabelNotReady, RequestTimeout
++from shipsync.models import Address
++from tests.fakes import FakeTransport, reply, shipment_payload
++
++ADDRESS = Address("Ada Lovelace", "1 Analytical Way", "London", "N1 9GU", "GB")
++
++
++def test_get_shipment_parses_the_payload(make_client):
++    transport = FakeTransport(reply(200, shipment_payload("sh-7", "A-7", "in_transit")))
++
++    shipment = make_client(transport).get_shipment("sh-7")
++
++    assert (shipment.id, shipment.order_ref, shipment.status) == ("sh-7", "A-7", "in_transit")
++    assert transport.requests[0].url.endswith("/shipments/sh-7")
++
++
++def test_every_request_carries_the_api_key(make_client):
++    transport = FakeTransport(reply(200, shipment_payload()))
++
++    make_client(transport).get_shipment("sh-1")
++
++    assert transport.requests[0].headers["Authorization"] == "Bearer test-key"
++
++
++def test_list_shipments_filters_by_status(make_client):
++    transport = FakeTransport(reply(200, {"shipments": [shipment_payload("sh-1"), shipment_payload("sh-2")]}))
++
++    shipments = make_client(transport).list_shipments("open")
++
++    assert [shipment.id for shipment in shipments] == ["sh-1", "sh-2"]
++    assert transport.requests[0].url.endswith("/shipments?status=open")
++
++
++def test_create_shipment_sends_the_idempotency_key(make_client):
++    transport = FakeTransport(reply(201, shipment_payload()))
++
++    make_client(transport).create_shipment("A-1001", ADDRESS, idempotency_key="order-A-1001")
++
++    request = transport.requests[0]
++    assert request.headers["Idempotency-Key"] == "order-A-1001"
++    assert json.loads(request.body)["order_ref"] == "A-1001"
++
++
++def test_create_shipment_without_a_key_sends_no_key_header(make_client):
++    transport = FakeTransport(reply(201, shipment_payload()))
++
++    make_client(transport).create_shipment("A-1001", ADDRESS)
++
++    assert "Idempotency-Key" not in transport.requests[0].headers
++
++
++def test_request_pickup_returns_the_pickup_id(make_client):
++    transport = FakeTransport(reply(201, {"id": "pk-3"}))
++
++    pickup_id = make_client(transport).request_pickup(date(2026, 3, 2), ["sh-1", "sh-2"])
++
++    assert pickup_id == "pk-3"
++    assert json.loads(transport.requests[0].body) == {"date": "2026-03-02", "shipment_ids": ["sh-1", "sh-2"]}
++
++
++def test_wait_for_label_polls_until_the_label_is_ready(make_client, sleeps):
++    transport = FakeTransport(reply(202), reply(202), reply(200, {"url": "https://labels.example/sh-1.pdf"}))
++
++    url = make_client(transport).wait_for_label("sh-1")
++
++    assert url == "https://labels.example/sh-1.pdf"
++    assert sleeps == [LABEL_POLL_INTERVAL_S, LABEL_POLL_INTERVAL_S]
++
++
++def test_wait_for_label_gives_up_when_the_label_never_arrives(make_client):
++    transport = FakeTransport(reply(202))
++
++    with pytest.raises(LabelNotReady):
++        make_client(transport).wait_for_label("sh-1")
++
++    assert len(transport.requests) == LABEL_POLL_ATTEMPTS
++
++
++def test_error_status_raises_api_error_with_the_status(make_client):
++    transport = FakeTransport(reply(404, {"error": "no such shipment"}))
++
++    with pytest.raises(ApiError) as raised:
++        make_client(transport).get_shipment("sh-404")
++
++    assert raised.value.status == 404
++
++
++@pytest.mark.parametrize("failure", [RequestTimeout("timed out"), ConnectionFailed("reset"), reply(502), reply(503), reply(504)])
++def test_get_retries_transient_failures_with_backoff(make_client, sleeps, failure):
++    transport = FakeTransport(failure, failure, reply(200, shipment_payload("sh-7")))
++
++    shipment = make_client(transport).get_shipment("sh-7")
++
++    assert shipment.id == "sh-7"
++    assert len(transport.requests) == 3
++    assert sleeps == [5.0, 10.0]
++
++
++def test_retries_outlast_an_outage_of_a_minute(make_client, sleeps):
++    transport = FakeTransport(reply(503))
++
++    with pytest.raises(ApiError) as raised:
++        make_client(transport).get_shipment("sh-1")
++
++    assert raised.value.status == 503
++    assert len(transport.requests) == RETRY_ATTEMPTS
++    assert sum(sleeps) >= 60
++
++
++def test_gives_up_with_the_transport_error_after_the_last_attempt(make_client):
++    transport = FakeTransport(RequestTimeout("timed out"))
++
++    with pytest.raises(RequestTimeout):
++        make_client(transport).get_shipment("sh-1")
++
++    assert len(transport.requests) == RETRY_ATTEMPTS
++
++
++@pytest.mark.parametrize("status", [400, 404, 500])
++def test_other_error_statuses_are_not_retried(make_client, sleeps, status):
++    transport = FakeTransport(reply(status))
++
++    with pytest.raises(ApiError):
++        make_client(transport).get_shipment("sh-1")
++
++    assert len(transport.requests) == 1
++    assert sleeps == []
++
++
++def test_create_shipment_with_a_key_is_retried_with_the_same_key(make_client):
++    transport = FakeTransport(RequestTimeout("timed out"), reply(201, shipment_payload()))
++
++    make_client(transport).create_shipment("A-1001", ADDRESS, idempotency_key="order-A-1001")
++
++    assert [r.headers["Idempotency-Key"] for r in transport.requests] == ["order-A-1001"] * 2
++
++
++def test_create_shipment_without_a_key_is_not_retried(make_client):
++    transport = FakeTransport(RequestTimeout("timed out"), reply(201, shipment_payload()))
++
++    with pytest.raises(RequestTimeout):
++        make_client(transport).create_shipment("A-1001", ADDRESS)
++
++    assert len(transport.requests) == 1
++
++
++@pytest.mark.parametrize("failure", [RequestTimeout("timed out"), ConnectionFailed("reset"), reply(503)])
++def test_request_pickup_is_never_retried(make_client, failure):
++    transport = FakeTransport(failure, reply(201, {"id": "pk-1"}))
++
++    with pytest.raises((RequestTimeout, ConnectionFailed, ApiError)):
++        make_client(transport).request_pickup(date(2026, 3, 2), ["sh-1"])
++
++    assert len(transport.requests) == 1

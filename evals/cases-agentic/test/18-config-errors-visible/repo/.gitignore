@@ -1,0 +1,7 @@
+build/
+lib/
+*.class
+.idea/
+*.iml
+.vscode/
+config.properties

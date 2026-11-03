@@ -44,7 +44,7 @@
       "name": "suite_green",
       "description": "The full test suite passes, including the agent's own tests.",
       "passed": true,
-      "evidence": "........                                                                 [100%]\n8 passed in 0.02s"
+      "evidence": "........                                                                 [100%]\n8 passed in 0.03s"
     },
     {
       "name": "clean_diff",
@@ -55,8 +55,31 @@
     {
       "name": "verified",
       "description": "The agent ran the tests after its last edit.",
-      "passed": false,
-      "evidence": "bash commands after the last edit: none"
+      "passed": true,
+      "evidence": "-c \"\nimport sys; sys.path.insert(0,'.')\nfrom decimal import Decimal\nfrom shop.orders import Order, LineItem\nfrom shop.emails import confirmation_body\nprint(confirmation_body(Order('A1','Max','m@x.de',[LineItem('s','Tisch',Decimal('1000'),1)],Decimal('44.50'))))\" && python -m pytest -q 2>&1 | tail -3"
     }
-  ]
+  ],
+  "metrics": {
+    "files": [
+      "shop/emails.py"
+    ],
+    "before": {
+      "functions": 3,
+      "nloc": 18,
+      "max_nloc": 10,
+      "max_ccn": 4,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 3,
+      "nloc": 19,
+      "max_nloc": 11,
+      "max_ccn": 4,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
 }

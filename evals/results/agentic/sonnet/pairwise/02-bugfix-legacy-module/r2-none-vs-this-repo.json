@@ -1,0 +1,83 @@
+{
+  "case": "02-bugfix-legacy-module",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "84cd5d1b088aec94",
+    "this-repo": "90e6f1b5571117b6"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes correctly fix the December month-13 overflow and the matching Q4 bug in quarter_range, and behavior for other months is unchanged. B adds regression tests at both the period and report level, including the boundary dates of 30 November, 31 December and 1 January, and reports that the full suite passes. A adds no tests and admits it never ran monthly_report or the test suite. B's small helper also removes the repeated rollover logic without overreaching.",
+        "a_issues": [
+          "No regression tests for December or Q4, so the bug could return unnoticed",
+          "Not verified through monthly_report or the existing test suite",
+          "The rollover check is written twice, once in each range function"
+        ],
+        "b_issues": [
+          "The _first_of_month helper only handles month 13, an implicit assumption that is noted only in its docstring"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes correctly fix the December rollover in month_range and the same Q4 bug in quarter_range, and neither changes behavior for other months. A puts the rollover in one small helper and adds regression tests at both the range level and the report level, including the 31 December and 1 January boundaries. A also ran the full test suite. B has the right fix but adds no tests and ran only ad-hoc checks, not monthly_report or the suite.",
+        "a_issues": [
+          "_first_of_month handles only month 13, which is fine for current callers but narrow as a general helper"
+        ],
+        "b_issues": [
+          "No regression tests for December or Q4, so the bug could quietly return",
+          "Rollover logic is duplicated in month_range and quarter_range instead of shared",
+          "Verification was limited to calling the range functions by hand; the test suite and monthly_report were not run"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

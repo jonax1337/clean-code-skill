@@ -1,0 +1,103 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "condition": "sickn33",
+  "rep": 1,
+  "checks": [
+    {
+      "name": "token_stream_unchanged",
+      "description": "For about 20 groups of edge cases (blanks, empty values, escapes, unterminated quotes and timestamps, stray quotes, empty keys, non-ASCII text) the tokens and the error with its byte position are exactly what the original produced, and nothing follows an error.",
+      "passed": true,
+      "evidence": "exit 0, 21 tests passed\ntest tokens_quoted_values_keep_their_escapes_as_written ... ok\ntest tokens_timestamp_errors ... ok\ntest tokens_timestamp_forms ... ok\ntest tokens_typical_line ... ok\ntest tokens_unterminated_quotes ... ok\ntest tokens_words ... ok\n\ntest result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Locking 1 package to highest compatible version\n   Compiling logscan v0.4.2 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-8abc20dq\\repo)\n   Compiling logscan-hidden v0.0.0 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-8abc20dq\\repo\\.hidden)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.99s\n     Running tests\\tokens.rs (.hidden\\target\\debug\\deps\\tokens-0abbba2c1240e244.exe)"
+    },
+    {
+      "name": "public_api_unchanged",
+      "description": "A test crate that uses `tokenize`, `Tokens`, `Token`, `LexError`, `Stats` and `unescape` as before (signatures, variants, derives, `Clone` iterator, tokens outliving the iterator) still compiles and passes.",
+      "passed": true,
+      "evidence": "exit 0, 9 tests passed\ntest api_functions_keep_their_signatures ... ok\ntest api_errors_are_described ... ok\ntest api_stats_counts_stay_the_same ... ok\ntest api_tokens_can_be_built_directly ... ok\ntest api_tokens_outlive_the_iterator ... ok\ntest api_types_keep_their_traits ... ok\ntest api_unescape_still_resolves_escapes ... ok\ntest api_variants_and_payloads_are_unchanged ... ok\n\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling logscan-hidden v0.0.0 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-8abc20dq\\repo\\.hidden)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.28s\n     Running tests\\api.rs (.hidden\\target\\debug\\deps\\api-4a031560d5d034b9.exe)"
+    },
+    {
+      "name": "tokenizing_does_not_allocate",
+      "description": "With a counting global allocator, tokenizing 4000 valid and 2000 malformed lines performs zero heap allocations.",
+      "passed": true,
+      "evidence": "exit 0, 1 tests passed\nrunning 1 test\ntest alloc_tokenizing_never_allocates ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling logscan-hidden v0.0.0 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-8abc20dq\\repo\\.hidden)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.28s\n     Running tests\\alloc.rs (.hidden\\target\\debug\\deps\\alloc-134f68534b699dbc.exe)"
+    },
+    {
+      "name": "no_allocating_code_in_tokenizer",
+      "description": "The tokenizer's code (every source file except main, lib, stats, escape and error; unit tests excluded) has no `to_string`, `String`, `format!`, `vec!`, `Vec`, `collect`, `Box`, `Cow` or similar. The README says the tokenizer borrows from the line and does not allocate, and the prompt says it must not get slower.",
+      "passed": true,
+      "evidence": "no allocating constructs in the tokenizer"
+    },
+    {
+      "name": "functions_are_short",
+      "description": "The longest function in the sources is at most 60 lines and shorter than the longest one before. The request is to break up one huge function, and the fixture's `next` is more than twice that long.",
+      "passed": true,
+      "evidence": "longest function now: src/token.rs::scan_quoted (24 lines); before: src/token.rs::next (134 lines)"
+    },
+    {
+      "name": "blank_test_not_repeated",
+      "description": "The test for a space or tab appears on at most 3 code lines of the tokenizer. The fixture writes it out six times, and the prompt asks for code that is easier to maintain.",
+      "passed": true,
+      "evidence": "1 lines test for a space or tab (limit 3)\n  src/token.rs: byte == b' ' || byte == b'\\t'"
+    },
+    {
+      "name": "only_expected_files",
+      "description": "Only Rust sources, tests and the README changed; Cargo.toml and Cargo.lock were left alone, so no dependency was added.",
+      "passed": true,
+      "evidence": "changed: ['src/token.rs', 'tests/equivalence.rs', 'tests/support/reference.rs']"
+    },
+    {
+      "name": "suite_passes",
+      "description": "The project's own test suite passes.",
+      "passed": true,
+      "evidence": "running 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling logscan v0.4.2 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-8abc20dq\\repo)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.05s\n     Running unittests src\\lib.rs (target\\debug\\deps\\logscan-62955453cb260ce5.exe)\n     Running unittests src\\main.rs (target\\debug\\deps\\logscan-3ecb744096419cc1.exe)\n     Running tests\\equivalence.rs (target\\debug\\deps\\equivalence-f2819cac2807a1ae.exe)\n     Running tests\\stats.rs (target\\debug\\deps\\stats-3e16e8f40968b558.exe)\n     Running tests\\tokens.rs (target\\debug\\deps\\tokens-fdedcc803317f7cc.exe)\n   Doc-tests logscan"
+    },
+    {
+      "name": "existing_tests_kept",
+      "description": "Every test of the fixture is still there; none was deleted or renamed to make things pass.",
+      "passed": true,
+      "evidence": "all 11 tests are still present"
+    },
+    {
+      "name": "clippy_clean",
+      "description": "`cargo clippy --all-targets -- -D warnings` reports nothing (the fixture is clean), and no lint was silenced with an `allow` attribute.",
+      "passed": true,
+      "evidence": "clippy exit 0; allow attributes: no matching added lines\nChecking logscan v0.4.2 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-8abc20dq\\repo)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.29s"
+    },
+    {
+      "name": "clean_diff",
+      "description": "The diff has no `dbg!`, new print macros in files that did not print before, commented-out code or narrating comments.",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "tests_run_after_edit",
+      "description": "The agent ran `cargo test` successfully after its last edit.",
+      "passed": true,
+      "evidence": "cd C:/Users/Jonas/AppData/Local/Temp/cc-agentic-7bbkq3fx/repo && rm -r examples && cargo test --release 2>&1 | grep -E \"test result|FAIL|warning|error\"; cargo clippy --all-targets 2>&1 | tail -3; cargo fmt --check -- src/token.rs 2>&1 | head -5; git status --short"
+    }
+  ],
+  "metrics": {
+    "files": [
+      "src/token.rs"
+    ],
+    "before": {
+      "functions": 2,
+      "nloc": 6,
+      "max_nloc": 3,
+      "max_ccn": 1,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 12,
+      "nloc": 99,
+      "max_nloc": 20,
+      "max_ccn": 7,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
+}
