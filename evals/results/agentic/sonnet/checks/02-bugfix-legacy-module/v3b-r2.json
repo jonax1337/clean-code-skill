@@ -1,0 +1,62 @@
+{
+  "case": "02-bugfix-legacy-module",
+  "split": "dev",
+  "condition": "v3b",
+  "rep": 2,
+  "checks": [
+    {
+      "name": "hidden_behavior",
+      "description": "December works at the root: `month_range` returns the first day of the next month for all 12 months, and the December report includes Dec 31 but not Jan 1 (hidden tests).",
+      "passed": true,
+      "evidence": "..                                                                       [100%]\n2 passed in 0.02s"
+    },
+    {
+      "name": "regression_test",
+      "description": "A new regression test runs and fails on the original code.",
+      "passed": true,
+      "evidence": "['tests/test_periods.py::test_month_range_rolls_over_year_end', 'tests/test_periods.py::test_quarter_range_rolls_over_year_end'] on the original code: exit 1\n    def quarter_range(year, quarter):\n        \"\"\"Return (first day of the quarter, first day of the next quarter) for quarter 1-4.\"\"\"\n        start = datetime.date(year, 3 * quarter - 2, 1)\n>       end = datetime.date(year, 3 * quarter + 1, 1)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       ValueError: month must be in 1..12\n\nreports\\periods.py:16: ValueError\n=========================== short test summary info ===========================\nFAILED tests/test_periods.py::test_month_range_rolls_over_year_end - ValueErr...\nFAILED tests/test_periods.py::test_quarter_range_rolls_over_year_end - ValueE...\n2 failed in 0.06s"
+    },
+    {
+      "name": "sibling_bug",
+      "description": "The same crash in `quarter_range` for Q4 is fixed or reported to the user (bugs cluster, T6).",
+      "passed": true,
+      "evidence": "[pass] q4_fixed: .                                                                        [100%]\n1 passed in 0.01s\n[pass] q4_reported: **Same bug in Q4:** `quarter_range` had the same flaw, so `quarterly_report(rows, 2026, 4)` would have crashed the same way. The shared helper fixes it too."
+    },
+    {
+      "name": "scope_files",
+      "description": "Only `reports/periods.py` and test files are changed; the messy `reports/sales.py` is left alone.",
+      "passed": true,
+      "evidence": "changed: ['reports/periods.py', 'tests/test_periods.py']"
+    },
+    {
+      "name": "no_drive_by_edits",
+      "description": "`week_range` is untouched.",
+      "passed": true,
+      "evidence": "unchanged in reports/periods.py: ['week_range']"
+    },
+    {
+      "name": "existing_tests_untouched",
+      "description": "Existing tests are not changed or loosened.",
+      "passed": true,
+      "evidence": "[pass] tests/test_periods.py: unchanged in tests/test_periods.py: ['test_month_range_is_half_open', 'test_quarter_range_is_half_open', 'test_week_range_starts_on_monday']\n[pass] tests/test_sales.py: unchanged in tests/test_sales.py: ['test_monthly_report_counts_only_the_month', 'test_quarterly_report_counts_only_the_quarter']"
+    },
+    {
+      "name": "suite_green",
+      "description": "The full test suite passes, including the agent's own tests.",
+      "passed": true,
+      "evidence": ".......                                                                  [100%]\n7 passed in 0.02s"
+    },
+    {
+      "name": "clean_diff",
+      "description": "No debug output, commented-out code or comments that narrate the edit.",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "verified",
+      "description": "The agent ran the tests after its last edit.",
+      "passed": true,
+      "evidence": "python -m pytest -q 2>&1 | tail -15"
+    }
+  ]
+}

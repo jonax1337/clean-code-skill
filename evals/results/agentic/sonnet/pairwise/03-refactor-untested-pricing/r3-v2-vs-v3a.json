@@ -1,0 +1,62 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "f1f7e1f9371070be",
+    "v3a": "c7a8c666aeca7767"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior: `coupon === \"SAVE10\"` is equivalent to the original nested check, and a missing category still gets the 0.95 rate. B also replaces `any` with a `Priceable` type that fits every caller, including `checkout.ts`'s optional category and `FeedRow` passed as a variable. B adds focused tests that pin the edge cases and reports running them against the original code. A's change is fine but leaves `getPrice` with no direct test coverage, and its report describes callers inaccurately.",
+        "a_issues": [
+          "No tests added for `getPrice` edge cases (books rate, coupon floor, rounding), even though the task stresses not breaking anything and the report admits these are only checked by reading.",
+          "The report justifies keeping `any` by citing callers that pass 'DB rows', but no such callers exist. Every caller's shape fits a simple `{price, category?}` type.",
+          "The verification claim is soft: it believes typecheck is clean from npm output rather than confirming it."
+        ],
+        "b_issues": [
+          "Exporting a new `Priceable` interface and adding an explicit return type goes slightly beyond pure readability cleanup, though it is low-risk and type-compatible with all callers.",
+          "The single-line nested ternaries in `getPrice` are dense and arguably less readable than two short `if` steps."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior: the coupon and category checks, the clamp, and the rounding all match the original. A also swaps `any` for a `Priceable` type that fits every caller (Product, the `mixed` literal in cart, checkout's optional category, FeedRow), so the change type-checks and makes the function easier to read. A adds focused tests for books pricing, the coupon clamp, discount order, ignored coupons and rounding, and reports running them against the original code. B adds no tests, checked edge cases only by reading the code, and keeps `any`, partly on a mistaken premise that callers pass DB rows.",
+        "a_issues": [
+          "Exporting the new `Priceable` interface widens the public surface slightly beyond what the cleanup needed",
+          "The single-line nested ternaries in `getPrice` are a bit dense"
+        ],
+        "b_issues": [
+          "Adds no tests for `getPrice`, so its edge cases (books rate, SAVE10 clamp, rounding) are unprotected",
+          "Leaves `p: any`, the main readability and safety problem, partly justified by caller shapes such as 'DB rows' that don't exist in the repo",
+          "`memberFactor(category: string)` declares a non-optional string but receives `undefined` from FeedRow and from checkout lines without a category, which `any` hides",
+          "Verification of behavior preservation is by reading only"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "8de37b2040828210",
+    "v3a": "0a18ab462eff2f40"
+  },
+  "score": 1.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs remove the flag, its field, the render path, the docs and the obsolete tests in the same way, and both add the same CHANGELOG entry. B adds a useful test that `--compact` is now rejected. However, B also changes the `-h, --help` usage line and drops a space, so the help column is now misaligned with every other option. That is an unrequested, user-visible regression. A's change is a clean, faithful removal, so I would rather merge it, though B's test and more precise report narrow the gap.",
+        "a_issues": [
+          "Adds no test confirming that `-c`/`--compact` now return `UnknownOption`, which is the new behavior.",
+          "The report's test count is muddled: it mentions only the integration drop (14 to 11) as matching six deleted tests, without giving the unit-test before/after.",
+          "Leaves a stray blank line before the closing brace of the render tests module."
+        ],
+        "b_issues": [
+          "Changes the `-h, --help` usage line from 15 spaces to 14 before the description, so it no longer lines up with the other options. This is an unrequested cosmetic regression in the help output.",
+          "Leaves a stray blank line before the closing brace of the render tests module.",
+          "The new rejection test covers only `--compact`, not `-c`."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs remove the same code, docs and tests, and their CHANGELOG entries are identical. A adds a useful test that `--compact` is rejected as an unknown option. But A also breaks the help text: the `-h, --help` line loses a space and no longer lines up with the other options. That is a user-visible regression, and A's report doesn't mention it. B makes exactly the requested removal with no side effects and reports test counts accurately, so I'd rather merge it, though B could have added A's rejection test.",
+        "a_issues": [
+          "Changed the `-h, --help` line in USAGE (one space fewer), so it no longer lines up with the other options; the report doesn't mention it.",
+          "Leaves a trailing blank line before the closing brace of the render tests module."
+        ],
+        "b_issues": [
+          "No test checks that `--compact`/`-c` is now rejected.",
+          "Leaves a trailing blank line before the closing brace of the render tests module."
+        ]
+      }
+    }
+  ]
+}

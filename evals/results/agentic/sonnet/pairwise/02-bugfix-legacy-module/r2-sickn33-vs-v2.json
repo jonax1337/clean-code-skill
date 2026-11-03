@@ -1,0 +1,55 @@
+{
+  "case": "02-bugfix-legacy-module",
+  "rep": 2,
+  "pair": [
+    "sickn33",
+    "v2"
+  ],
+  "judge_model": "opus",
+  "score": 0.0,
+  "orders": [
+    {
+      "A": "sickn33",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes correctly fix the December crash and the matching Q4 crash in quarter_range with a small helper. B also adds regression tests for December and Q4 that protect the fix, and its report accurately states what was run. A's helper is a little cleaner, but it ships without any regression test.",
+        "a_issues": [
+          "No regression test for December or Q4; nothing stops the bug from returning",
+          "Verification was ad hoc calls to the range functions rather than the test suite"
+        ],
+        "b_issues": [
+          "The _first_of_month helper special-cases month 13, so it still accepts an out-of-range month value; a 'month after' helper like A's is slightly clearer"
+        ]
+      }
+    },
+    {
+      "A": "v2",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes correctly fix the December end-of-range rollover and the identical Q4 bug in quarter_range, so behavior is equivalent. A adds regression tests for December and Q4 that protect the fix. A's report is accurate: 5 existing tests plus 2 new ones make 7, and it says it did not run the user's original call. B checked the boundaries by hand but left no test behind, so the fix could regress without anyone noticing.",
+        "a_issues": [
+          "Helper only special-cases month 13, which is narrow but sufficient for the valid inputs both callers produce"
+        ],
+        "b_issues": [
+          "No regression test added for December or Q4, so the fix is unprotected",
+          "Helper lacks a docstring explaining its rollover contract"
+        ]
+      }
+    }
+  ],
+  "contradictory": false,
+  "fingerprints": {
+    "sickn33": "7f224456a4be4afc",
+    "v2": "04b17380795e3c44"
+  }
+}

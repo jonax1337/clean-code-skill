@@ -1,0 +1,4 @@
+# Agentic eval data is compared byte for byte: stored patches are applied to the fixtures (CRs included) and the
+# judge cache hashes the stored diffs. Git must not convert their line endings.
+evals/cases-agentic/** -text
+evals/results/agentic/** -text

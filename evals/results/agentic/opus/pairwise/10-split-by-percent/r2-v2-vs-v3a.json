@@ -1,0 +1,60 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "9a050a277763b03c",
+    "v3a": "30e04a3dc1822bb3"
+  },
+  "score": 0.5,
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two changes are nearly identical: a required mutually exclusive group, a shared duplicate check, `allocate` reused with percentage weights, a check that the total is 100, a README row, and accurate reports. A's `parse_percentage` is a bit more robust: it strips whitespace, so `alice =50` doesn't become a separate person named 'alice ', and it limits percents to ASCII digits. B uses `isdecimal()`, which accepts non-ASCII digits that `int()` converts. A's 1-cent test also pins down where the leftover cent goes. B's extra checks, an upper bound of 100 and asserting exit code 2, are small pluses, but the upper bound only duplicates the total-of-100 check.",
+        "a_issues": [
+          "The test that combines `--with` and `--percent` only expects SystemExit and does not check exit code 2.",
+          "Individual percents above 100 are only caught by the total check, so the error does not point at the bad entry."
+        ],
+        "b_issues": [
+          "`parse_percent` does not strip whitespace, so `alice =50` is stored under the name 'alice ', a different person from 'alice'.",
+          "`isdecimal()` accepts non-ASCII digits such as Arabic-Indic numerals, which `int()` then parses.",
+          "The `> WHOLE` check in `parse_percent` duplicates the total-of-100 check."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two changes are nearly identical: both use a mutually exclusive argparse group, add a split_by_percent built on the existing allocate, factor out the duplicate-name check, update the README, and give accurate test counts in their reports. A has slightly stronger tests: its combined-flags CLI test asserts exit code 2, and it covers more malformed inputs, including values above 100. B's whitespace stripping is a small usability plus, but it is not enough to outweigh A's tighter test coverage.",
+        "a_issues": [
+          "parse_percent rejects values above 100 per entry, which the sum check already covers; harmless but redundant",
+          "Does not strip whitespace around the name or the number, so 'alice = 50' is rejected"
+        ],
+        "b_issues": [
+          "test_with_and_percent_cannot_be_combined only checks that SystemExit is raised, not that the exit code is 2",
+          "The 50/50 split of 1 cent is the only rounding test; there is no non-trivial remainder case such as 1001 cents with 50/30/20"
+        ]
+      }
+    }
+  ]
+}

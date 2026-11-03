@@ -1,0 +1,55 @@
+{
+  "case": "02-bugfix-legacy-module",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "04b17380795e3c44",
+    "v3a": "4a0a33beae2d57b6"
+  },
+  "score": 0.5,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both changes fix the December crash and the identical Q4 crash with the same private helper, and add the same two regression tests. A's helper checks `month == 13` exactly. B's checks `month > 12` and subtracts 12, which behaves identically for every input the callers can produce. Both reports accurately describe the cause, the fix, and the tests, and both say real data was not exercised. I would be equally happy to merge either.",
+        "a_issues": [
+          "Helper only handles month 13 exactly; that is fine for the current callers but slightly less general"
+        ],
+        "b_issues": [
+          "Helper docstring says 'month 13 rolls over' while the code handles any month > 12, a small mismatch"
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both changes add the same `_first_of_month` helper, use it in both `month_range` and `quarter_range` to fix December and Q4, and add the same two regression tests. A uses `month > 12` and B uses `month == 13`. Every reachable call (months 1\u201312, quarters 1\u20134) produces at most month 13, so the two behave identically. Both reports are accurate and say the real `monthly_report` call was not run, so I would be equally happy to merge either.",
+        "a_issues": [
+          "`month > 12` with `month - 12` looks more general than the docstring's 'month 13' description, but the extra generality is never reachable."
+        ],
+        "b_issues": [
+          "None significant. `month == 13` handles exactly the reachable overflow case."
+        ]
+      }
+    }
+  ]
+}

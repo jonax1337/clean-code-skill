@@ -1,0 +1,62 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "6e1d274f3e912c0f",
+    "v3a": "3b3e726f770e11a9"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep production behavior: B's change from `reserved` to `order.items` in the decline path is equivalent, because every item is reserved by then, and its later `tax_rate` lookup is a pure dict read. For a live checkout path, B adds 12 characterization tests that it ran against the original code first. They pin the VIP/coupon stacking, the free-shipping boundary, per-line half-up rounding, rollback after a partial reservation, side-effect ordering and swallowing of notifier failures, and their arithmetic checks out. A relies on 9 tests it admits leave key branches uncovered, so a future edit to this fragile pricing logic would have no protection.",
+        "a_issues": [
+          "No tests were added, even though A notes the existing tests leave the VIP+coupon, out-of-stock rollback, shipping threshold and rounding paths uncovered. That is weak protection for a production refactor.",
+          "`_reserve_stock` and `_release_stock` use bare `list` instead of `list[Item]`.",
+          "`_charge` takes six parameters, including `reserved`, which threads rollback state through the call chain."
+        ],
+        "b_issues": [
+          "The decline path now releases `order.items` instead of the list it actually reserved. This is equivalent today, but the contract is less explicit and depends on `_reserve_stock` having reserved everything.",
+          "`_total_cents` iterates the items twice and moves the `tax_rate` lookup after coupon validation. There is no observable effect, but it is a small reordering that a strict reviewer has to reason about.",
+          "`test_declined_payment_does_not_redeem_the_coupon` reaches into the remaining-use count by redeeming manually, which is a bit roundabout."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior: A's moving the pure tax computation after coupon validation, and its releasing `order.items` (which equals `reserved` on that path), are both equivalent to the original. The deciding difference is protection for a live system. A added 12 characterization tests, which I checked by hand and which are arithmetically correct. They cover the branches the existing suite misses, including VIP, the shipping threshold, rounding, rollback, coupon redemption and notifier failure, and A ran them against the original code first. B relies on 9 tests that don't touch those paths; its report is honest about that, but it leaves the refactor unprotected.",
+        "a_issues": [
+          "`_charge_or_release` releases `order.items` instead of an explicit reserved list. This is equivalent, but the invariant it relies on is implicit.",
+          "Tax is now computed after the coupon check instead of before. This is harmless because the computation is pure, but it is a small reordering the report doesn't call out."
+        ],
+        "b_issues": [
+          "No tests added, although the existing suite leaves VIP, the shipping boundary, rounding, rollback and notifier-failure paths uncovered for a production refactor.",
+          "Uses bare `list` annotations instead of `list[Item]`.",
+          "`_charge` takes six parameters, which hurts readability somewhat."
+        ]
+      }
+    }
+  ]
+}

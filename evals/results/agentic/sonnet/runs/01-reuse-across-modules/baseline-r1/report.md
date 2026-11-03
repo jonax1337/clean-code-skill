@@ -1,0 +1,3 @@
+The confirmation email now has a line like `Gesamtbetrag: 1.234,50 EUR` right after the item list, before the blank line and the closing text. I haven't run the tests or sent a sample email.
+
+The amount comes from the existing `gross_total(order)` in `shop/orders.py`. That figure is net plus per-line VAT plus shipping. It's formatted with the shop's `format_eur` from `shop/money.py`, which is the German-style formatting your invoices use. The change is in `shop/emails.py`.

@@ -1,0 +1,62 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "f1f7e1f9371070be",
+    "v3b": "a303ca39ed5dfb5d"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior. B also replaces `p: any` with a `Priceable` type that all four callers satisfy. `checkout.ts`'s `string | undefined` category fits the optional field, and `feeds/export.ts` passes a variable, so no excess-property error occurs. Most importantly, B adds direct tests that pin down the existing behavior before the refactor: member rates, the coupon floor, empty or unknown coupons, ordering and rounding. That matters for a function used across the codebase, whereas A relies on two cart tests and reading the code.",
+        "a_issues": [
+          "Adds no tests for `getPrice` even though the task stresses not breaking callers; books pricing, the coupon clamp and rounding are verified only by reading the code.",
+          "Keeps `p: any`, so the cleanup stops short of the biggest readability and safety issue.",
+          "The report hedges on whether `tsc` is clean ('I believe it's clean')."
+        ],
+        "b_issues": [
+          "Switching to `1 - discount` adds a small arithmetic indirection; it is equivalent for 0.1 and 0.05, but the literal factors would have been simpler.",
+          "Typing the parameter is slightly beyond a pure readability cleanup, though it was checked against every caller."
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors keep behaviour identical: in JS, `1 - 0.1` equals `0.9` and `1 - 0.05` equals `0.95` exactly, and `Math.max` matches the old clamp. Every caller (Product, the cart object literal, checkout's optional category, FeedRow) satisfies A's `Priceable` type, so A removes `any` without breaking any call site. A also adds direct tests, run against the original first, that pin down discounts, coupon handling, ordering and rounding. B leaves `getPrice` with no direct test coverage and keeps the untyped `any` parameter.",
+        "a_issues": [
+          "Adding the `Priceable` type slightly widens the scope beyond a readability pass, though it is low-risk and type-checks against all callers.",
+          "Equivalence for arbitrary inputs was argued by reasoning rather than checked by a property-style comparison against the old function (the report says this openly)."
+        ],
+        "b_issues": [
+          "No tests were added for `getPrice`. Books pricing, the coupon floor and rounding are checked only by reading the code, so nothing protects the refactor.",
+          "`p: any` is kept and there is still no return type, which leaves the main readability and type-safety problem in place. The report's worry that tightening the type would break callers is unfounded, since all callers pass `price` and an optional string `category`.",
+          "`memberFactor(category: string)` declares a non-optional string, but it can receive `undefined` (for example from checkout's optional category), so the helper's type is misleading.",
+          "The coupon code `\"SAVE10\"` stays a magic string while the other literals were extracted, so the cleanup is inconsistent."
+        ]
+      }
+    }
+  ]
+}

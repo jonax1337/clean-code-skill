@@ -1,0 +1,59 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "baa5e89eb589f86e",
+    "v3a": "752b94c9171d6f4a"
+  },
+  "score": 0.5,
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes use the same correct fix: a Map from normalized email to the first index, seeded from the existing list and extended as contacts are appended. Both preserve the merge-into-first-occurrence and intra-upload merge behaviour. B's regression test asserts both ids and the merged field across the whole result, so it pins order and identity more firmly than A's tags-only check. B's report is also more transparent, giving a before/after timing and saying how it was measured. A's code is marginally leaner because it normalizes once per incoming contact, but the difference is small.",
+        "a_issues": [
+          "The regression test checks only tags on the two entries; it does not assert ids, length or order of the result.",
+          "The report gives a timing without a baseline and does not say how it was measured."
+        ],
+        "b_issues": [
+          "Normalizes the incoming email twice when a contact is appended: once for the lookup and again inside rememberFirstIndex.",
+          "The rememberFirstIndex helper re-checks `has` on the append path, where the email is already known to be absent; this adds slight indirection for little gain."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both replace the linear findIndex with a Map from normalized email to its first index. Both keep the rules that the first existing duplicate receives the merge and that duplicates within one upload merge with each other, and both add a regression test for the case. B is a bit tighter: it normalizes each incoming email once and reuses it for both the lookup and the insert. A normalizes again inside its helper and spreads a small piece of logic across a separate function. B also states the invariant that keeps the index map valid: mergeContact never changes the email.",
+        "a_issues": [
+          "Normalizes each newly appended incoming email twice: once for the lookup and again inside rememberFirstIndex.",
+          "The extra helper with a has/set guard adds indirection for logic that is only needed in the pre-population loop."
+        ],
+        "b_issues": [
+          "Uses a brace-less single-line `if`, which is inconsistent with the brace style used elsewhere in the repository.",
+          "The report gives only the new timing, not a before/after comparison."
+        ]
+      }
+    }
+  ]
+}

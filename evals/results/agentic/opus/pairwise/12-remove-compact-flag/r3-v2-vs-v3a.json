@@ -1,0 +1,54 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "opus",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "e9e054b461adabdd",
+    "v3a": "05ff319286b8b525"
+  },
+  "score": 0.75,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "The two diffs are byte-for-byte identical. Both remove the flag, its help line, the `Options.compact` field, the compact render path and helpers, and the obsolete tests, and both add a regression test that `-c` and `--compact` now return `UnknownOption`. Both reports are accurate. A also notes that the public `Options` struct loses a field, which breaks library callers. B notes that `cargo fmt --check` already failed before the change. Either one is fine to merge.",
+        "a_issues": [],
+        "b_issues": [
+          "The report does not say that removing the public `Options.compact` field breaks library callers that build or read the struct."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two diffs are byte-for-byte identical. Both remove the flag, its field, the render path, and its helpers and tests, and both add a regression test that `--compact`/`-c` now return `UnknownOption`. The test counts in both reports (13 unit, 12 integration) are correct. B's report is a bit more useful for the release: it says that `Options` is a public struct that lost a field, which breaks downstream library code. A's report doesn't mention that, though its rustfmt note is accurate.",
+        "a_issues": [
+          "Report doesn't mention that removing a field from the public `Options` struct breaks library users who build it with a struct literal or read `.compact`.",
+          "Report spends space on an existing `cargo fmt` problem that has nothing to do with the task."
+        ],
+        "b_issues": [
+          "No code problems beyond what both share. Both leave the version at 0.9.0, which is reasonable."
+        ]
+      }
+    }
+  ]
+}

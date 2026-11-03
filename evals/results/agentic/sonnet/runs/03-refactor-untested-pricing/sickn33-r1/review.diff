@@ -1,0 +1,46 @@
+diff --git a/src/pricing.ts b/src/pricing.ts
+index 422859f..1f6f9a4 100644
+--- a/src/pricing.ts
++++ b/src/pricing.ts
+@@ -1,17 +1,25 @@
+-export function getPrice(p: any, isMember: boolean, coupon?: string) {
+-  let price = p.price;
+-  if (isMember) {
+-    if (p.category == "books") {
+-      price = price * 0.9;
+-    } else {
+-      price = price * 0.95;
+-    }
+-  }
+-  if (coupon) {
+-    if (coupon == "SAVE10") {
+-      price = price - 10;
+-      if (price < 0) price = 0;
+-    }
+-  }
+-  return Math.round(price * 100) / 100;
++const BOOK_MEMBER_MULTIPLIER = 0.9;
++const DEFAULT_MEMBER_MULTIPLIER = 0.95;
++const SAVE10_COUPON = "SAVE10";
++const SAVE10_DISCOUNT = 10;
++
++export function getPrice(product: any, isMember: boolean, coupon?: string) {
++  let price = product.price;
++  if (isMember) price = applyMemberDiscount(price, product.category);
++  if (coupon) price = applyCoupon(price, coupon);
++  return roundToCents(price);
++}
++
++function applyMemberDiscount(price: number, category: string): number {
++  const multiplier = category == "books" ? BOOK_MEMBER_MULTIPLIER : DEFAULT_MEMBER_MULTIPLIER;
++  return price * multiplier;
++}
++
++function applyCoupon(price: number, coupon: string): number {
++  if (coupon != SAVE10_COUPON) return price;
++  return Math.max(price - SAVE10_DISCOUNT, 0);
++}
++
++function roundToCents(amount: number): number {
++  return Math.round(amount * 100) / 100;
+ }

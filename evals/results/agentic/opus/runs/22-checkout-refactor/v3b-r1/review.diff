@@ -1,0 +1,278 @@
+diff --git a/shop/checkout.py b/shop/checkout.py
+index 5e06454..5be21c8 100644
+--- a/shop/checkout.py
++++ b/shop/checkout.py
+@@ -1,17 +1,17 @@
+ """Order checkout: prices an order, reserves stock, charges the customer and sends the receipt."""
+ 
+ import logging
+ from decimal import ROUND_HALF_UP, Decimal
+ 
+ from shop.coupons import CouponBook
+ from shop.errors import OrderRejected, OutOfStock, PaymentDeclined
+ from shop.inventory import Inventory
+-from shop.models import Customer, Order
++from shop.models import Customer, Item, Order
+ from shop.payments import PaymentGateway, ReceiptNotifier
+ from shop.pricing import tax_rate
+ 
+ logger = logging.getLogger(__name__)
+ 
+ SHIPPING_CENTS = 490
+ FREE_SHIPPING_FROM_CENTS = 5000
+ VIP_DISCOUNT_PERCENT = 5
+@@ -21,74 +21,109 @@ def process_order(
+     order: Order,
+     customer: Customer,
+     inventory: Inventory,
+     gateway: PaymentGateway,
+     notifier: ReceiptNotifier,
+     coupons: CouponBook,
+ ) -> str:
+     """Checks out the order and returns the receipt id of the payment."""
++    _validate_items(order)
++    total = _total_cents(order, customer, coupons)
++    _reserve_stock(order, inventory)
++    receipt_id = _charge(order, customer, inventory, gateway, total)
++    _complete(order, inventory, coupons, total)
++    _send_receipt(order, customer, notifier, receipt_id)
++    return receipt_id
++
++
++def _validate_items(order: Order) -> None:
+     if not order.items:
+         raise OrderRejected("order has no items")
+     for item in order.items:
+         if item.quantity <= 0:
+             raise OrderRejected(f"invalid quantity for {item.sku}")
+ 
++
++def _total_cents(order: Order, customer: Customer, coupons: CouponBook) -> int:
++    subtotal = sum(item.unit_price_cents * item.quantity for item in order.items)
++    discount = _discount_cents(subtotal, order, customer, coupons)
++    discounted = subtotal - discount
++    return discounted + _tax_cents(order.items, customer.country) + _shipping_cents(discounted)
++
++
++def _tax_cents(items: list[Item], country: str) -> int:
+     # Tax is rounded per line, as the accounting export expects, and is charged on the undiscounted line price.
+-    rate = tax_rate(customer.country)
+-    subtotal = 0
+-    tax = 0
+-    for item in order.items:
+-        line_cents = item.unit_price_cents * item.quantity
+-        subtotal += line_cents
+-        tax += int((Decimal(line_cents) * rate).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
++    rate = tax_rate(country)
++    return sum(
++        int((Decimal(item.unit_price_cents * item.quantity) * rate).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
++        for item in items
++    )
+ 
++
++def _discount_cents(subtotal: int, order: Order, customer: Customer, coupons: CouponBook) -> int:
++    """Applies the coupon first, then the VIP discount on what remains."""
+     discount = 0
+     if order.coupon is not None:
+         percent = coupons.discount_percent(order.coupon)
+         if percent is None:
+             raise OrderRejected(f"invalid coupon: {order.coupon}")
+         discount += subtotal * percent // 100
+     if customer.vip:
+         discount += (subtotal - discount) * VIP_DISCOUNT_PERCENT // 100
+-    shipping = 0 if subtotal - discount >= FREE_SHIPPING_FROM_CENTS else SHIPPING_CENTS
+-    total = subtotal - discount + tax + shipping
++    return discount
++
+ 
+-    reserved = []
++def _shipping_cents(discounted_subtotal: int) -> int:
++    return 0 if discounted_subtotal >= FREE_SHIPPING_FROM_CENTS else SHIPPING_CENTS
++
++
++def _reserve_stock(order: Order, inventory: Inventory) -> None:
++    """Reserves every item, or none: a shortage releases what was already reserved."""
++    reserved: list[Item] = []
+     try:
+         for item in order.items:
+             inventory.reserve(item.sku, item.quantity)
+             reserved.append(item)
+     except OutOfStock as error:
+-        for item in reserved:
+-            inventory.release(item.sku, item.quantity)
++        _release(reserved, inventory)
+         order.status = "rejected"
+         raise OrderRejected(f"out of stock: {error.sku}") from error
+ 
++
++def _charge(order: Order, customer: Customer, inventory: Inventory, gateway: PaymentGateway, total: int) -> str:
+     try:
+-        receipt_id = gateway.charge(customer.email, total)
++        return gateway.charge(customer.email, total)
+     except PaymentDeclined as error:
+-        for item in reserved:
+-            inventory.release(item.sku, item.quantity)
++        _release(order.items, inventory)
+         order.status = "payment_failed"
+         raise OrderRejected(f"payment declined: {error}") from error
+ 
++
++def _release(items: list[Item], inventory: Inventory) -> None:
++    for item in items:
++        inventory.release(item.sku, item.quantity)
++
++
++def _complete(order: Order, inventory: Inventory, coupons: CouponBook, total: int) -> None:
+     for item in order.items:
+         inventory.commit(item.sku, item.quantity)
+     if order.coupon is not None:
+         coupons.redeem(order.coupon)
+     order.status = "paid"
+     order.total_cents = total
+     logger.info("order %s paid: %s cents", order.id, total)
+ 
++
++def _send_receipt(order: Order, customer: Customer, notifier: ReceiptNotifier, receipt_id: str) -> None:
++    """Best effort: the customer has already been charged, so a failed receipt must not fail the order."""
+     try:
+         notifier.send_receipt(customer.email, order.id, receipt_id)
+     except Exception:
+         logger.warning("receipt for order %s could not be sent", order.id, exc_info=True)
+-    return receipt_id
+ 
+ 
+ def refund_order(order: Order, customer: Customer, inventory: Inventory, gateway: PaymentGateway) -> None:
+     """Refunds a paid order in full and puts its items back into stock."""
+     if order.status != "paid":
+         raise OrderRejected(f"order {order.id} is not paid")
+     gateway.refund(customer.email, order.total_cents)
+     for item in order.items:
+diff --git a/tests/test_checkout.py b/tests/test_checkout.py
+index a473028..f58e44c 100644
+--- a/tests/test_checkout.py
++++ b/tests/test_checkout.py
+@@ -70,8 +70,124 @@ def test_refund_puts_the_items_back(inventory, gateway, notifier, coupons):
+     assert gateway.refunds == [("ada@example.com", 2870)]
+     assert order.status == "refunded"
+     assert inventory.available("pen") == 10
+ 
+ 
+ def test_unpaid_order_cannot_be_refunded(inventory, gateway):
+     with pytest.raises(OrderRejected, match="not paid"):
+         refund_order(make_order(Item("pen", 1, 100)), CUSTOMER, inventory, gateway)
++
++
++class FailingNotifier:
++    def send_receipt(self, email: str, order_id: int, receipt_id: str) -> None:
++        raise ConnectionError("mail server down")
++
++
++def test_invalid_quantity_is_rejected_before_anything_happens(inventory, gateway, notifier, coupons):
++    order = make_order(Item("pen", 1, 1000), Item("ink", 0, 500))
++
++    with pytest.raises(OrderRejected, match="invalid quantity for ink"):
++        process_order(order, CUSTOMER, inventory, gateway, notifier, coupons)
++
++    assert order.status == "new"
++    assert inventory.log == []
++
++
++def test_invalid_coupon_is_rejected_before_stock_is_reserved(inventory, gateway, notifier, coupons):
++    order = make_order(Item("pen", 1, 1000), coupon="BOGUS")
++
++    with pytest.raises(OrderRejected, match="invalid coupon: BOGUS"):
++        process_order(order, CUSTOMER, inventory, gateway, notifier, coupons)
++
++    assert order.status == "new"
++    assert inventory.log == []
++    assert gateway.charges == []
++
++
++def test_vip_discount_applies_after_coupon_and_earns_free_shipping(inventory, gateway, notifier, coupons):
++    vip = Customer(email="vip@example.com", vip=True)
++    order = make_order(Item("pen", 10, 1000), coupon="SPRING10")
++
++    process_order(order, vip, inventory, gateway, notifier, coupons)
++
++    # 10000 - 1000 coupon - 5% of 9000 (450) = 8550, free shipping, + 1900 tax on the undiscounted price
++    assert order.total_cents == 8550 + 1900
++
++
++def test_shipping_is_free_from_exactly_the_threshold(inventory, gateway, notifier, coupons):
++    at_threshold = make_order(Item("pen", 5, 1000))
++    below_threshold = make_order(Item("pen", 1, 4999))
++
++    process_order(at_threshold, CUSTOMER, inventory, gateway, notifier, coupons)
++    process_order(below_threshold, CUSTOMER, inventory, gateway, notifier, coupons)
++
++    assert at_threshold.total_cents == 5000 + 950
++    assert below_threshold.total_cents == 4999 + 950 + 490
++
++
++def test_tax_is_rounded_half_up_per_line(inventory, gateway, notifier, coupons):
++    order = make_order(Item("pen", 1, 3), Item("ink", 1, 3))
++
++    process_order(order, CUSTOMER, inventory, gateway, notifier, coupons)
++
++    # 0.57 rounds to 1 on each line; rounding the 1.14 sum would give 1
++    assert order.total_cents == 6 + 2 + 490
++
++
++def test_tax_rate_follows_the_customer_country(inventory, gateway, notifier, coupons):
++    order = make_order(Item("pen", 1, 1000))
++
++    process_order(order, Customer(email="fr@example.com", country="FR"), inventory, gateway, notifier, coupons)
++
++    assert order.total_cents == 1000 + 200 + 490
++
++
++def test_successful_order_reserves_then_commits_and_redeems_the_coupon(inventory, gateway, notifier, coupons):
++    order = make_order(Item("pen", 1, 1000), Item("ink", 2, 500), coupon="SPRING10")
++
++    process_order(order, CUSTOMER, inventory, gateway, notifier, coupons)
++
++    assert inventory.log == [
++        ("reserve", "pen", 1),
++        ("reserve", "ink", 2),
++        ("commit", "pen", 1),
++        ("commit", "ink", 2),
++    ]
++    coupons.redeem("SPRING10")
++    assert coupons.discount_percent("SPRING10") is None
++
++
++def test_out_of_stock_releases_items_reserved_so_far(inventory, gateway, notifier, coupons):
++    order = make_order(Item("pen", 2, 1000), Item("ink", 4, 500), coupon="SPRING10")
++
++    with pytest.raises(OrderRejected):
++        process_order(order, CUSTOMER, inventory, gateway, notifier, coupons)
++
++    assert inventory.log == [("reserve", "pen", 2), ("release", "pen", 2)]
++    assert coupons.discount_percent("SPRING10") == 10
++    assert notifier.sent == []
++
++
++def test_declined_payment_releases_every_item_and_keeps_the_coupon(inventory, notifier, coupons):
++    order = make_order(Item("pen", 1, 1000), Item("ink", 2, 500), coupon="SPRING10")
++
++    with pytest.raises(OrderRejected, match="payment declined: card declined"):
++        process_order(order, CUSTOMER, inventory, FakeGateway(decline=True), notifier, coupons)
++
++    assert inventory.log == [
++        ("reserve", "pen", 1),
++        ("reserve", "ink", 2),
++        ("release", "pen", 1),
++        ("release", "ink", 2),
++    ]
++    assert order.total_cents == 0
++    coupons.redeem("SPRING10")
++    assert coupons.discount_percent("SPRING10") == 10
++
++
++def test_failed_receipt_does_not_fail_the_paid_order(inventory, gateway, coupons, caplog):
++    order = make_order(Item("pen", 1, 1000))
++
++    receipt_id = process_order(order, CUSTOMER, inventory, gateway, FailingNotifier(), coupons)
++
++    assert (receipt_id, order.status) == ("rcpt-1", "paid")
++    assert "receipt for order 7 could not be sent" in caplog.text

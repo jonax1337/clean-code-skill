@@ -1,0 +1,58 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "v2",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "945cc70fb8cc9849",
+    "v3b": "a89f86a1dcc71908"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs make the same correct change to `src/import.ts`: a Map from normalized email to index replaces the quadratic `findIndex`. They keep the first entry when existing emails repeat, register appended contacts so duplicates within an upload still merge, and preserve output order. B also adds a test for the duplicate-in-existing tie-break, which is the most fragile behavior the rewrite could have silently changed. B's report backs the speedup with a timing on synthetic data and an accurate test count (8 existing + 1 new = 9). A did not time anything and leaves the tie-break unprotected by tests.",
+        "a_issues": [
+          "No test protects the first-entry-wins behavior for duplicate emails already in `existing`, though the report calls it preserved.",
+          "The performance fix was not measured, so there is no evidence it solves the reported minutes-long import."
+        ],
+        "b_issues": [
+          "The 25 ms figure comes from a deleted throwaway script with no baseline measurement, so it cannot be reproduced from the PR."
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs have the same implementation: a Map from normalized email to index, first-entry-wins, with appended contacts registered so duplicates within the upload still merge. Both preserve the original behavior and fix the quadratic cost. A adds a regression test pinning the subtle first-duplicate-wins semantics that a Map rewrite could easily break, plus a short comment explaining why. A also reports a measured timing on realistic synthetic data and is candid about its limits, while B leaves the change unprotected by new tests and unmeasured.",
+        "a_issues": [
+          "The 25 ms figure comes from a deleted throwaway script and cannot be reproduced from the PR.",
+          "There is no before/after comparison and no committed benchmark."
+        ],
+        "b_issues": [
+          "No test covers the first-entry-wins behavior for duplicate emails in `existing`, which the Map rewrite must deliberately preserve.",
+          "No timing was done on the 30k-into-50k scenario the task describes, so the speedup is only argued, not verified."
+        ]
+      }
+    }
+  ]
+}

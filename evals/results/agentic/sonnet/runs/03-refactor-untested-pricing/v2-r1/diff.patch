@@ -1,0 +1,39 @@
+diff --git a/src/pricing.ts b/src/pricing.ts
+index 422859f..98a28cc 100644
+--- a/src/pricing.ts
++++ b/src/pricing.ts
+@@ -1,17 +1,23 @@
++const BOOKS_MEMBER_FACTOR = 0.9;
++const DEFAULT_MEMBER_FACTOR = 0.95;
++const SAVE10_COUPON = "SAVE10";
++const SAVE10_DISCOUNT = 10;
++
+ export function getPrice(p: any, isMember: boolean, coupon?: string) {
+   let price = p.price;
+   if (isMember) {
+-    if (p.category == "books") {
+-      price = price * 0.9;
+-    } else {
+-      price = price * 0.95;
+-    }
++    price *= memberFactor(p.category);
+   }
+-  if (coupon) {
+-    if (coupon == "SAVE10") {
+-      price = price - 10;
+-      if (price < 0) price = 0;
+-    }
++  if (coupon === SAVE10_COUPON) {
++    price = Math.max(price - SAVE10_DISCOUNT, 0);
+   }
+-  return Math.round(price * 100) / 100;
++  return roundToCents(price);
++}
++
++function memberFactor(category: string): number {
++  return category === "books" ? BOOKS_MEMBER_FACTOR : DEFAULT_MEMBER_FACTOR;
++}
++
++function roundToCents(amount: number): number {
++  return Math.round(amount * 100) / 100;
+ }

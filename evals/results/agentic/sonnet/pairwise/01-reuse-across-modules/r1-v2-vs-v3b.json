@@ -1,0 +1,51 @@
+{
+  "case": "01-reuse-across-modules",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "v2",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "108cf8e430fd3803",
+    "v3b": "bc32e54dc37060d1"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both diffs make the identical, correct change to `shop/emails.py`, reusing `gross_total` and `format_eur` and placing the line right after the item list. B also adds a test that pins the line's position and value with shipping included: 30.00 + 2.10 VAT + 4.90 = 37,00 EUR, which is correct. B's reported '9 passed' matches 8 existing tests plus the new one. A is accurate about not adding a test, but leaves the new behavior unprotected.",
+        "a_issues": [
+          "No test covers the new Gesamtbetrag line, its position after the items, or its formatting."
+        ],
+        "b_issues": []
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both diffs make the identical, correct change to `shop/emails.py`, reusing `gross_total` and `format_eur`. A also adds a test confirming the line sits directly after the items. Its expected value checks out: 30,00 net + 2,10 VAT at 7% + 4,90 shipping = 37,00 EUR. B is honest that it added no test, but that leaves the new behavior unprotected.",
+        "a_issues": [],
+        "b_issues": [
+          "No test covers the new Gesamtbetrag line, so its placement and formatting are unprotected against regressions."
+        ]
+      }
+    }
+  ]
+}

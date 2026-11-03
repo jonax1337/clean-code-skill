@@ -1,0 +1,57 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "v2",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "2f8923e0d192019d",
+    "v3b": "91ecfd9da0efe5db"
+  },
+  "score": 1.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The production code, README and CHANGELOG changes are effectively identical and correct in both PRs: the flag, the field, the render path, its helpers and the usage line are all removed, and both flags now fall through to UnknownOption. A reports running the full suite, and its counts are right (14 unit, 12 integration). B admits it never saw the unit-test results, so its verification is incomplete. B's integration test asserts the exact error variant but covers only `--compact`. A covers both flags, though more loosely.",
+        "a_issues": [
+          "Integration test only asserts `is_err()` rather than the specific UnknownOption error"
+        ],
+        "b_issues": [
+          "Did not confirm the unit tests pass; only saw the integration-test tail of `cargo test` output",
+          "Integration test checks only `--compact`, not `-c`, even though the report says tests cover both flags (only the unit test does)"
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs make identical code, README and CHANGELOG changes, and both correctly remove the flag, its render path and its helpers. A's integration test asserts the exact `UnknownOption` error, while B's uses `is_err` but covers both `-c` and `--compact`. The unit tests in both pin the exact error for both spellings, so neither loses coverage. B is ahead only on verification: it confirms the full suite passed (14 unit and 12 integration tests, which matches the expected counts), whereas A admits it never saw the unit-test results.",
+        "a_issues": [
+          "Did not confirm that the unit tests passed; the report says only the tail of the `cargo test` output was seen.",
+          "The integration test covers only `--compact`, not `-c`."
+        ],
+        "b_issues": [
+          "The integration test asserts only `is_err()` rather than the specific `UnknownOption` error, which makes it weaker than A's."
+        ]
+      }
+    }
+  ]
+}

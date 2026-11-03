@@ -1,0 +1,59 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "1bfe302cc8c55bc0",
+    "v3a": "7dc3654edcf1f26f"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two diffs are byte-for-byte identical and correct: the unit table now gives milliseconds, the `* 1000` multiplications are removed, `validate.ts` bounds are rescaled, and the two places that need seconds (`http.ts`, `report.ts`) divide by 1000. The only difference is the report. B notes that `parseDuration` is exported from `src/index.ts`, so this is a breaking change for outside users of the package, and it states that no new tests were added and that callers outside the repo weren't checked. A's report is accurate but leaves out the breaking-change caveat.",
+        "a_issues": [
+          "No tests were added for the paths that now divide by 1000 (`rateLimitHeaders`, `describeSettings`) or for the minimum-TTL check in `validateTtl`, so the unit conversions in those files are unprotected.",
+          "The report does not mention that `parseDuration` is part of the public API (exported from `src/index.ts`), so external callers will see a breaking unit change."
+        ],
+        "b_issues": [
+          "No tests were added for the paths that now divide by 1000 (`rateLimitHeaders`, `describeSettings`) or for the minimum-TTL check in `validateTtl`, so the unit conversions in those files are unprotected. The report does acknowledge that no tests were added."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two diffs are identical and correct: parseDuration returns milliseconds, the `* 1000` multipliers are removed, the seconds-based outputs in http.ts and report.ts divide by 1000, and the validate.ts bounds are converted to milliseconds. The only difference is in the reports. A's report also says that parseDuration is exported from src/index.ts, so the unit change breaks outside callers of the package. It also says plainly that no new tests were added. B's report is accurate but leaves out both points.",
+        "a_issues": [
+          "No tests were added for the converted callers whose behavior must stay the same, such as rateLimitHeaders and describeSettings, or for the validateTtl minimum bound.",
+          "The change to an exported public function's unit is a breaking change. It is mentioned in the report but not handled any further, for example with a version note."
+        ],
+        "b_issues": [
+          "No tests were added for rateLimitHeaders, describeSettings or the validateTtl minimum bound, which are the places where a unit mistake would go unnoticed.",
+          "The report does not mention that parseDuration is part of the public exports, so its unit change breaks external callers.",
+          "The report does not say that no new tests were added."
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+[project]
+name = "hourlog"
+version = "0.2.1"
+description = "A tiny time log with CSV import and per-project totals"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

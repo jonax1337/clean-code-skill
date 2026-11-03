@@ -1,0 +1,59 @@
+{
+  "case": "02-bugfix-legacy-module",
+  "rep": 2,
+  "pair": [
+    "baseline",
+    "v2"
+  ],
+  "judge_model": "opus",
+  "score": 0.0,
+  "orders": [
+    {
+      "A": "baseline",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both diffs correctly fix the December rollover in month_range and the matching Q4 bug in quarter_range, and both reports are honest about what was verified. B also adds regression tests for December and Q4 that protect the fix. B's small shared helper keeps the two call sites consistent, and its report states what was run and what was not. A is correct but ships with no tests and was never run, so the fix has no protection against regressions.",
+        "a_issues": [
+          "No regression tests for December or Q4, so the fix is unprotected.",
+          "The change was never run or verified, though the report says so honestly.",
+          "The rollover logic is duplicated as two separate inline conditionals."
+        ],
+        "b_issues": [
+          "The _first_of_month helper only handles month 13, which makes it narrowly special-cased rather than a general rollover.",
+          "It did not reproduce the original monthly_report(rows, 2026, 12) call, though the report says so honestly."
+        ]
+      }
+    },
+    {
+      "A": "v2",
+      "B": "baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes fix month_range for December and quarter_range for Q4 correctly. A also adds regression tests for both edge cases, and its report accurately states that the tests pass and that the original call was not run on real rows. B adds no tests and was not run at all. Its report says so honestly, but nothing in B guards against a regression.",
+        "a_issues": [
+          "The _first_of_month helper only handles month 13. That is enough for current callers but is a slightly narrow abstraction.",
+          "There is no sales-level test for monthly_report in December."
+        ],
+        "b_issues": [
+          "No regression tests were added for December or Q4.",
+          "The change was never run, so it is unverified.",
+          "The duplicated inline conditionals are slightly less readable than a shared helper."
+        ]
+      }
+    }
+  ],
+  "contradictory": false,
+  "fingerprints": {
+    "baseline": "b112c89578ba2122",
+    "v2": "04b17380795e3c44"
+  }
+}

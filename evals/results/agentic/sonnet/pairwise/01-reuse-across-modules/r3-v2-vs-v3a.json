@@ -1,0 +1,53 @@
+{
+  "case": "01-reuse-across-modules",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "1fe1476a3917a75e",
+    "v3a": "323d9f2cf67154d6"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "The production change is identical in both: it reuses `gross_total` and `format_eur` and places the line right after the items, as asked. B also adds a test whose expected value is correct (1000.00 + 19% VAT 190.00 + 4.50 shipping = 1.194,50 EUR). That test checks both the formatting and that the line sits directly after the items, before the blank line. A ships the change without a test, and its report wrongly says no existing tests cover the email body.",
+        "a_issues": [
+          "No test protects the new Gesamtbetrag line, its position or its formatting.",
+          "The report says no existing tests cover the email body, but `test_body_greets_customer_and_lists_items` does."
+        ],
+        "b_issues": []
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both make the same correct change to `shop/emails.py`: they reuse `gross_total` and `format_eur` and put the new line right after the item list. A also adds a test that pins both the amount (1000 net + 190 VAT + 4.50 shipping = 1.194,50 EUR) and the exact position before the blank line. B adds no test. B's report also wrongly says no existing test covers the email body, when `test_body_greets_customer_and_lists_items` does.",
+        "a_issues": [],
+        "b_issues": [
+          "No test protects the new Gesamtbetrag line or where it appears.",
+          "The report wrongly claims no existing test covers the email body; `test_body_greets_customer_and_lists_items` exercises `confirmation_body`."
+        ]
+      }
+    }
+  ]
+}

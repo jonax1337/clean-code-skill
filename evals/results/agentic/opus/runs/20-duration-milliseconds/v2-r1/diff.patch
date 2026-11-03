@@ -1,0 +1,187 @@
+diff --git a/src/cache.ts b/src/cache.ts
+index 93b5eac..490d595 100644
+--- a/src/cache.ts
++++ b/src/cache.ts
+@@ -9,17 +9,17 @@ export class TtlCache<V> {
+   private readonly entries = new Map<string, Entry<V>>();
+   private readonly defaultTtl: string;
+ 
+   constructor(defaultTtl: string) {
+     this.defaultTtl = defaultTtl;
+   }
+ 
+   set(key: string, value: V, ttl: string = this.defaultTtl, now: number = Date.now()): void {
+-    this.entries.set(key, { value, expiresAt: now + parseDuration(ttl) * 1000 });
++    this.entries.set(key, { value, expiresAt: now + parseDuration(ttl) });
+   }
+ 
+   get(key: string, now: number = Date.now()): V | undefined {
+     const entry = this.entries.get(key);
+     if (entry === undefined) {
+       return undefined;
+     }
+     if (entry.expiresAt <= now) {
+diff --git a/src/duration.ts b/src/duration.ts
+index b5c27f1..7b81b00 100644
+--- a/src/duration.ts
++++ b/src/duration.ts
+@@ -1,10 +1,17 @@
+-const SECONDS_PER_UNIT: Record<string, number> = { s: 1, m: 60, h: 3600, d: 86400 };
++export const MS_PER_SECOND = 1000;
+ 
+-/** Parses a duration such as "30s", "5m", "2h" or "1d" and returns its length in seconds. */
++const MS_PER_UNIT: Record<string, number> = {
++  s: MS_PER_SECOND,
++  m: 60 * MS_PER_SECOND,
++  h: 3600 * MS_PER_SECOND,
++  d: 86400 * MS_PER_SECOND,
++};
++
++/** Parses a duration such as "30s", "5m", "2h" or "1d" and returns its length in milliseconds. */
+ export function parseDuration(text: string): number {
+   const match = /^(\d+)([smhd])$/.exec(text.trim());
+   if (match === null) {
+     throw new Error(`Invalid duration: "${text}"`);
+   }
+-  return Number(match[1]) * SECONDS_PER_UNIT[match[2]];
++  return Number(match[1]) * MS_PER_UNIT[match[2]];
+ }
+diff --git a/src/http.ts b/src/http.ts
+index da666dd..d58f904 100644
+--- a/src/http.ts
++++ b/src/http.ts
+@@ -1,6 +1,6 @@
+-import { parseDuration } from "./duration.ts";
++import { MS_PER_SECOND, parseDuration } from "./duration.ts";
+ 
+ /** Response headers for a rate-limited request; `Retry-After` is specified in whole seconds. */
+ export function rateLimitHeaders(wait: string): Record<string, string> {
+-  return { "Retry-After": String(parseDuration(wait)) };
++  return { "Retry-After": String(parseDuration(wait) / MS_PER_SECOND) };
+ }
+diff --git a/src/report.ts b/src/report.ts
+index 9d54319..aa611fc 100644
+--- a/src/report.ts
++++ b/src/report.ts
+@@ -1,10 +1,10 @@
+-import { parseDuration } from "./duration.ts";
++import { MS_PER_SECOND, parseDuration } from "./duration.ts";
+ 
+ export interface Settings {
+   timeout: string;
+   ttl: string;
+ }
+ 
+ export function describeSettings(settings: Settings): string {
+-  return `timeout ${parseDuration(settings.timeout)}s, ttl ${parseDuration(settings.ttl)}s`;
++  return `timeout ${parseDuration(settings.timeout) / MS_PER_SECOND}s, ttl ${parseDuration(settings.ttl) / MS_PER_SECOND}s`;
+ }
+diff --git a/src/retry.ts b/src/retry.ts
+index b23d24c..96ab899 100644
+--- a/src/retry.ts
++++ b/src/retry.ts
+@@ -6,17 +6,17 @@ export interface RetryOptions {
+ }
+ 
+ export type Sleep = (ms: number) => Promise<void>;
+ 
+ const defaultSleep: Sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+ 
+ /** Delay before retry number `attempt` (counting from 0): the base delay doubles with every attempt. */
+ export function backoffDelayMs(base: string, attempt: number): number {
+-  return parseDuration(base) * 1000 * 2 ** attempt;
++  return parseDuration(base) * 2 ** attempt;
+ }
+ 
+ export async function withRetry<T>(
+   task: () => Promise<T>,
+   options: RetryOptions,
+   sleep: Sleep = defaultSleep,
+ ): Promise<T> {
+   let lastError: unknown;
+diff --git a/src/scheduler.ts b/src/scheduler.ts
+index 19e6f9a..5468a9b 100644
+--- a/src/scheduler.ts
++++ b/src/scheduler.ts
+@@ -3,14 +3,14 @@ import { parseDuration } from "./duration.ts";
+ export interface Job {
+   name: string;
+   every: string;
+   lastRun: number;
+ }
+ 
+ /** Timestamp (ms since epoch) at which the job is due again. */
+ export function nextRun(job: Job): number {
+-  return job.lastRun + parseDuration(job.every) * 1000;
++  return job.lastRun + parseDuration(job.every);
+ }
+ 
+ export function dueJobs(jobs: Job[], now: number): Job[] {
+   return jobs.filter((job) => nextRun(job) <= now);
+ }
+diff --git a/src/validate.ts b/src/validate.ts
+index 04b15b3..2d31a90 100644
+--- a/src/validate.ts
++++ b/src/validate.ts
+@@ -1,21 +1,23 @@
+ import { parseDuration } from "./duration.ts";
+ 
+-const MIN_TTL_SECONDS = 5;
+-const MAX_TTL_SECONDS = 24 * 60 * 60;
++const MIN_TTL = "5s";
++const MAX_TTL = "1d";
++const MIN_TTL_MS = parseDuration(MIN_TTL);
++const MAX_TTL_MS = parseDuration(MAX_TTL);
+ 
+ /** Returns an error message for an unusable cache TTL, or null when the TTL is fine. */
+ export function validateTtl(ttl: string): string | null {
+-  let seconds: number;
++  let ms: number;
+   try {
+-    seconds = parseDuration(ttl);
++    ms = parseDuration(ttl);
+   } catch {
+     return `ttl "${ttl}" is not a duration`;
+   }
+-  if (seconds < MIN_TTL_SECONDS) {
+-    return `ttl "${ttl}" is below the minimum of 5s`;
++  if (ms < MIN_TTL_MS) {
++    return `ttl "${ttl}" is below the minimum of ${MIN_TTL}`;
+   }
+-  if (seconds > MAX_TTL_SECONDS) {
+-    return `ttl "${ttl}" exceeds the maximum of 1d`;
++  if (ms > MAX_TTL_MS) {
++    return `ttl "${ttl}" exceeds the maximum of ${MAX_TTL}`;
+   }
+   return null;
+ }
+diff --git a/test/duration.test.ts b/test/duration.test.ts
+index 0d47b7a..ce45d67 100644
+--- a/test/duration.test.ts
++++ b/test/duration.test.ts
+@@ -1,20 +1,20 @@
+ import assert from "node:assert/strict";
+ import { test } from "node:test";
+ import { parseDuration } from "../src/duration.ts";
+ 
+ test("parses each unit", () => {
+-  assert.equal(parseDuration("30s"), 30);
+-  assert.equal(parseDuration("5m"), 300);
+-  assert.equal(parseDuration("2h"), 7200);
+-  assert.equal(parseDuration("1d"), 86400);
++  assert.equal(parseDuration("30s"), 30_000);
++  assert.equal(parseDuration("5m"), 300_000);
++  assert.equal(parseDuration("2h"), 7_200_000);
++  assert.equal(parseDuration("1d"), 86_400_000);
+ });
+ 
+ test("ignores surrounding whitespace", () => {
+-  assert.equal(parseDuration(" 10s "), 10);
++  assert.equal(parseDuration(" 10s "), 10_000);
+ });
+ 
+ test("rejects text that is not a duration", () => {
+   assert.throws(() => parseDuration("soon"), /Invalid duration/);
+   assert.throws(() => parseDuration("10"), /Invalid duration/);
+   assert.throws(() => parseDuration("1.5h"), /Invalid duration/);
+ });

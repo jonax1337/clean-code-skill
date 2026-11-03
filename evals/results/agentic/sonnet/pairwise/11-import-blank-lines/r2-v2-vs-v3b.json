@@ -1,0 +1,56 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "v2",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "abf3273493d07292",
+    "v3b": "7cd8b481748176fd"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the identical fix: they skip blank and whitespace-only lines in `parse_entries` and keep the original line numbering. Both reports are accurate and honest about what was verified. B's test also covers a whitespace-only line ending in `\\r\\n`, which is a likely case for a CSV exported from a spreadsheet on Windows. A's test does not cover whitespace-only lines at all, even though A's report says they are handled.",
+        "a_issues": [
+          "The new test never covers a whitespace-only or `\\r\\n` blank line, though the report says whitespace-only lines are skipped."
+        ],
+        "b_issues": [
+          "The success-path assertion has only one entry, so it does not check a blank line between two valid entries.",
+          "The last paragraph of the report about unchanged missing-field handling is unnecessary."
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make the same correct, minimal code change: blank lines are skipped and line numbering is kept, which fixes the reported error. A's test also covers a whitespace-only line with CRLF (`\"  \\r\\n\"`), which exercises the `strip()` behaviour the fix relies on, and its error case comes after several skipped lines. B's test covers a blank line between two valid entries and a trailing blank line. B's report says whitespace-only lines are handled, but its test never checks that case.",
+        "a_issues": [
+          "Test only yields a single valid entry, so it doesn't show entries on both sides of a blank line being kept"
+        ],
+        "b_issues": [
+          "Test doesn't cover whitespace-only lines, although the report highlights that behaviour"
+        ]
+      }
+    }
+  ]
+}

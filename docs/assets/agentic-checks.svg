@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="276" viewBox="0 0 760 276" role="img" aria-labelledby="t">
+<style>text{font-family:system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif} .bg{fill:#fcfcfb} .ink{fill:#0b0b0b} .ink2{fill:#52514e} .muted{fill:#898781} .grid{stroke:#e1e0d9} .bar{fill:#c3c2b7} .accent{fill:#2a78d6} .axis{stroke:#c3c2b7} .bar-strong{fill:#898781} .on-accent{fill:#ffffff} .on-bar{fill:#0b0b0b} .on-bar-strong{fill:#0b0b0b} @media (prefers-color-scheme: dark){.bg{fill:#1a1a19} .ink{fill:#f0efec} .ink2{fill:#c3c2b7} .muted{fill:#898781} .grid{stroke:#2c2c2a} .bar{fill:#52514e} .accent{fill:#3987e5} .axis{stroke:#383835} .bar-strong{fill:#898781} .on-accent{fill:#ffffff} .on-bar{fill:#ffffff} .on-bar-strong{fill:#0b0b0b}}</style>
+<title id="t">Share of deterministic checks passed per skill condition, dev tasks and held-out tasks</title>
+<rect class="bg" width="760" height="276" rx="8"/>
+<text class="ink" x="24" y="32" font-size="16" font-weight="600">Deterministic checks passed</text>
+<text class="ink2" x="24" y="50" font-size="12">Claude Sonnet 5.5 as the coding agent, 3 runs per task and condition</text>
+<text class="ink" x="24.0" y="84.0" font-size="13" font-weight="600">Dev tasks (3)</text>
+<text class="muted" x="24.0" y="100.0" font-size="11">used while writing v3</text>
+<line class="axis" x1="96.0" y1="114" x2="96.0" y2="242" stroke-width="1"/>
+<text class="muted" x="96.0" y="256.0" font-size="11" text-anchor="middle">0%</text>
+<line class="grid" x1="210.0" y1="114" x2="210.0" y2="242" stroke-width="1"/>
+<text class="muted" x="210.0" y="256.0" font-size="11" text-anchor="middle">50%</text>
+<line class="grid" x1="324.0" y1="114" x2="324.0" y2="242" stroke-width="1"/>
+<text class="muted" x="324.0" y="256.0" font-size="11" text-anchor="middle">100%</text>
+<text class="ink" x="86.0" y="134.0" font-size="12" text-anchor="end">No skill</text>
+<g><title>No skill, dev tasks: 70% of checks passed</title>
+<path class="bar" d="M96.0,120.0 H252.4 A4,4 0 0 1 256.4,124.0 V136.0 A4,4 0 0 1 252.4,140.0 H96.0 Z"/>
+</g>
+<text class="ink" x="262.4" y="134.0" font-size="12">70%</text>
+<text class="ink" x="86.0" y="166.0" font-size="12" text-anchor="end">sickn33</text>
+<g><title>sickn33, dev tasks: 73% of checks passed</title>
+<path class="bar" d="M96.0,152.0 H258.1 A4,4 0 0 1 262.1,156.0 V168.0 A4,4 0 0 1 258.1,172.0 H96.0 Z"/>
+</g>
+<text class="ink" x="268.1" y="166.0" font-size="12">73%</text>
+<text class="ink" x="86.0" y="198.0" font-size="12" text-anchor="end">v2</text>
+<g><title>v2, dev tasks: 89% of checks passed</title>
+<path class="bar" d="M96.0,184.0 H294.7 A4,4 0 0 1 298.7,188.0 V200.0 A4,4 0 0 1 294.7,204.0 H96.0 Z"/>
+</g>
+<text class="ink" x="304.7" y="198.0" font-size="12">89%</text>
+<text class="ink" x="86.0" y="230.0" font-size="12" font-weight="600" text-anchor="end">v3</text>
+<g><title>v3, dev tasks: 100% of checks passed</title>
+<path class="accent" d="M96.0,216.0 H320.0 A4,4 0 0 1 324.0,220.0 V232.0 A4,4 0 0 1 320.0,236.0 H96.0 Z"/>
+</g>
+<text class="ink" x="330.0" y="230.0" font-size="12" font-weight="600">100%</text>
+<text class="ink" x="392.0" y="84.0" font-size="13" font-weight="600">Held-out tasks (6)</text>
+<text class="muted" x="392.0" y="100.0" font-size="11">written without the skill</text>
+<line class="axis" x1="464.0" y1="114" x2="464.0" y2="242" stroke-width="1"/>
+<text class="muted" x="464.0" y="256.0" font-size="11" text-anchor="middle">0%</text>
+<line class="grid" x1="578.0" y1="114" x2="578.0" y2="242" stroke-width="1"/>
+<text class="muted" x="578.0" y="256.0" font-size="11" text-anchor="middle">50%</text>
+<line class="grid" x1="692.0" y1="114" x2="692.0" y2="242" stroke-width="1"/>
+<text class="muted" x="692.0" y="256.0" font-size="11" text-anchor="middle">100%</text>
+<text class="ink" x="454.0" y="134.0" font-size="12" text-anchor="end">No skill</text>
+<g><title>No skill, held-out tasks: 97% of checks passed</title>
+<path class="bar" d="M464.0,120.0 H681.6 A4,4 0 0 1 685.6,124.0 V136.0 A4,4 0 0 1 681.6,140.0 H464.0 Z"/>
+</g>
+<text class="ink" x="691.6" y="134.0" font-size="12">97%</text>
+<text class="ink" x="454.0" y="166.0" font-size="12" text-anchor="end">sickn33</text>
+<text class="muted" x="470.0" y="166.0" font-size="11">not run</text>
+<text class="ink" x="454.0" y="198.0" font-size="12" text-anchor="end">v2</text>
+<g><title>v2, held-out tasks: 100% of checks passed</title>
+<path class="bar" d="M464.0,184.0 H688.0 A4,4 0 0 1 692.0,188.0 V200.0 A4,4 0 0 1 688.0,204.0 H464.0 Z"/>
+</g>
+<text class="ink" x="698.0" y="198.0" font-size="12">100%</text>
+<text class="ink" x="454.0" y="230.0" font-size="12" font-weight="600" text-anchor="end">v3</text>
+<g><title>v3, held-out tasks: 100% of checks passed</title>
+<path class="accent" d="M464.0,216.0 H688.0 A4,4 0 0 1 692.0,220.0 V232.0 A4,4 0 0 1 688.0,236.0 H464.0 Z"/>
+</g>
+<text class="ink" x="698.0" y="230.0" font-size="12" font-weight="600">100%</text>
+</svg>

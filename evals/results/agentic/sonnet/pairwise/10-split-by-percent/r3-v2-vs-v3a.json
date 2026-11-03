@@ -1,0 +1,60 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "445be3813a71756d",
+    "v3a": "7b137fb9c1f423e2"
+  },
+  "score": 1.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes are correct. Both use a required mutually exclusive group, reuse `allocate`, factor out the duplicate-name check, update the README and report accurately. A parses `NAME=PCT` in the CLI layer as an argparse type, so `split_by_percent` takes structured `(name, percent)` pairs and stays a pure splitting function next to `split_equally`. B puts string parsing inside `splitting.py` and raises `MoneyError` for what is really a format problem. A also covers malformed input end to end through the CLI.",
+        "a_issues": [
+          "Malformed `--percent` values exit through argparse with a usage message rather than the tool's own `error:` path. This is defensible, but the user sees two different error styles for `add`."
+        ],
+        "b_issues": [
+          "`split_by_percent` takes raw `NAME=PCT` strings, which mixes CLI input parsing into the splitting module and makes its API less symmetric with `split_equally`.",
+          "A format problem is reported as `MoneyError`, which is documented for amounts or splits that cannot be represented in whole cents.",
+          "There is no CLI-level test for malformed `--percent` values; they are tested only at the unit level."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes are close to identical: a mutually exclusive group for --with and --percent, a shared duplicate check, the existing `allocate` reused for rounding, matching README rows, and accurate reports whose test counts check out. B parses NAME=PCT into typed tuples at the CLI boundary through an argparse `type`, so `split_by_percent` takes structured data. A puts string parsing inside the splitting module and raises MoneyError for what is really an input-format problem. That cleaner separation, plus CLI-level tests for malformed input, gives B a small edge.",
+        "a_issues": [
+          "`split_by_percent` takes raw \"NAME=PCT\" strings, so CLI input parsing leaks into the splitting module's API.",
+          "Malformed percent entries raise MoneyError, a slight misuse of the money-error type for a format problem.",
+          "Malformed input is tested only at the splitting level, with no CLI test for it."
+        ],
+        "b_issues": [
+          "Malformed values produce argparse's usage-style error rather than the app's usual `error: ...` line, so error formatting differs from the total and duplicate errors.",
+          "`_parse_percent` sits in cli.py and has no direct unit test; it is covered only through the CLI tests."
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "opus",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "e59227bda332466d",
+    "v3a": "e53ab666e0591cc8"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same code fix: skip lines that are empty after stripping whitespace, while still counting them in line numbers. The difference is in the tests and reports. B adds unit tests that check both that blank lines are skipped and that later error messages keep the real line numbers. A claims line numbers are preserved but has no test that protects it. B's report also points out a remaining weakness, the confusing unpack message for lines with the wrong number of fields, without changing it unasked.",
+        "a_issues": [
+          "No test checks that blank lines still count towards line numbers in error messages, although the report presents this as a guarantee.",
+          "The CLI test checks only the imported count, not that the stored entries are correct (for example via report output).",
+          "README not updated to mention that blank lines are skipped."
+        ],
+        "b_issues": [
+          "README not updated to mention that blank lines are skipped."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs make the same code change: blank or whitespace-only lines are skipped and line numbering is kept, which fixes the reported failure. A's tests also cover the line-number invariant that both reports claim, so a regression to error messages that name the wrong line would be caught. B's single CLI test checks the end-to-end trailing-blank-line case but leaves the line-numbering claim untested. Both reports state the test counts correctly, and A also flags the still-unclear message for lines with the wrong number of fields without changing it.",
+        "a_issues": [
+          "No end-to-end CLI test with a real file ending in a blank line, though the parser-level tests cover the same logic."
+        ],
+        "b_issues": [
+          "Its report says skipped blank lines still count toward line numbers in errors, but no test checks this.",
+          "The new test does not check what is stored afterwards, for example with the report command."
+        ]
+      }
+    }
+  ]
+}

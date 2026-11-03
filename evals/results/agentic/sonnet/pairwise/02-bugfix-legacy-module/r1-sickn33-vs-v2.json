@@ -1,0 +1,55 @@
+{
+  "case": "02-bugfix-legacy-module",
+  "rep": 1,
+  "pair": [
+    "sickn33",
+    "v2"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "sickn33": "a6f3756ed42fa4a5",
+    "v2": "6b662ae9c548af7f"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "sickn33",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes make the same correct fix: a `_first_of_month` helper that rolls month 13 into January of the next year, applied to both `month_range` and the matching Q4 bug in `quarter_range`. For valid inputs the code behaves the same (month + 1 and 3*quarter + 1 never go above 13). B also adds regression tests for December and Q4 that lock in the fix, and its claim that 7 tests pass matches 5 existing tests plus 2 new ones. A leaves the fix with no test coverage.",
+        "a_issues": [
+          "No regression test for December or Q4, so the year-rollover fix is unprotected.",
+          "Verification was only ad-hoc checks in Python, not committed to the suite."
+        ],
+        "b_issues": [
+          "The `month == 13` check is slightly narrower than needed, though it covers every reachable input."
+        ]
+      }
+    },
+    {
+      "A": "v2",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes fix the December crash and the same Q4 bug in `quarter_range` through an equivalent `_first_of_month` helper. For the only month values that can reach the helper (up to 13), both versions give the same, correct result. A adds regression tests for December and Q4 that guard the year rollover. B checked the fix only by hand and left no test, so the bug could come back unnoticed.",
+        "a_issues": [
+          "The helper handles only month 13. That covers every current caller but is slightly less general."
+        ],
+        "b_issues": [
+          "No regression test was added. Verification was ad hoc, so nothing in the suite protects the fix.",
+          "The helper's docstring describes only month 13, but the code handles any month above 12, so the two don't quite match."
+        ]
+      }
+    }
+  ]
+}

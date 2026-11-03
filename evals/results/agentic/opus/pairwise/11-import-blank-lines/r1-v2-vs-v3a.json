@@ -1,0 +1,55 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "0ea1fbc1e3fed810",
+    "v3a": "1748fc661b5b527b"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix: blank and whitespace-only lines are skipped while line numbering is kept, so error messages still name the right line in the file. Both add equivalent tests covering skipping and line numbers, and both reports are accurate (18 existing tests plus 2 new gives 20). B also records the new behaviour in the importer's module docstring, a small but useful addition. Neither updates the README's CSV import section, which now leaves blank lines undocumented.",
+        "a_issues": [
+          "The new behaviour of skipping blank lines is not documented in the module docstring or the README."
+        ],
+        "b_issues": [
+          "The README's CSV import section is not updated to mention that blank lines are skipped."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make the same correct fix: skip whitespace-only lines in `parse_entries` before parsing, while `enumerate` keeps counting them so error messages still name the right file line. Both add equivalent tests for skipped blank lines and for line numbers after a skipped line, and both reports are accurate (18 existing tests plus 2 new makes 20). A also adds \"Blank lines are skipped.\" to the importer's module docstring, which documents the new behavior where the format is described. That makes A slightly better, though neither updates the README's CSV section.",
+        "a_issues": [
+          "README's CSV import section is not updated to mention that blank lines are skipped."
+        ],
+        "b_issues": [
+          "Neither the module docstring nor the README mentions that blank lines are now skipped, so the documented format no longer fully matches the behavior."
+        ]
+      }
+    }
+  ]
+}

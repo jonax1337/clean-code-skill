@@ -1,0 +1,62 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "opus",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "82909930b19a8786",
+    "v3a": "6bb216bc7c1e8f24"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors use nearly the same structure and preserve behavior, including messages, statuses, side-effect order and the shared release helper, and both reports are accurate. B keeps the original pricing order (tax, then discount), and its pure helpers take plain values rather than whole objects. B's characterization tests are a bit stronger: exact inventory logs on the paid and declined paths, a half-up rounding case, both 0 and -1 quantities, and a discounted-below-threshold shipping case. A's report is slightly more candid about the `reserved`\u2192`order.items` swap, but that does not outweigh B's tighter safety net.",
+        "a_issues": [
+          "`_total_cents` now computes the discount before the tax. This is harmless because tax computation has no side effects or failure modes, but it departs from the original order without comment.",
+          "`_discount_cents` takes the whole `order` and `customer` objects when it only needs the coupon and vip flag.",
+          "The declined-payment coupon test redeems once and re-checks. This is an indirect way to show the coupon was untouched and is somewhat confusing to read.",
+          "The paid-order test only checks the last two log entries and does not check the full reserve/commit sequence."
+        ],
+        "b_issues": [
+          "The report says call order is exactly as before but does not mention that the decline path now releases `order.items` instead of the `reserved` list. The two are equivalent at that point, but the change is not called out.",
+          "The shipping test runs two orders against the same inventory and coupon fixtures, which couples the two cases."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors are nearly identical and both preserve behavior. The tax/discount reordering is side-effect-free, and releasing `order.items` after a declined charge is equivalent to releasing `reserved` at that point. A's added tests pin the behavior a bit more tightly: they assert the full `inventory.log` on both failure paths and the success path, cover both sides of the free-shipping threshold including a discount pushing an order below it, and parametrize zero and negative quantities. B's shipping test claims to cover 'after discounts' but only checks the undiscounted threshold, and several of its assertions are weaker (`log[-2:]`, no release check on decline).",
+        "a_issues": [
+          "Report says the order of every inventory call is exactly as before without mentioning that `_charge` now releases `order.items` rather than the `reserved` list (equivalent in practice, but not called out).",
+          "Report claims all 11 new tests were run against the original first; reasonable, but unverifiable from the diff."
+        ],
+        "b_issues": [
+          "`test_shipping_is_free_from_the_threshold_after_discounts` never exercises a discount, so the 'after discounts' rule is not actually pinned.",
+          "`test_paid_order_commits_stock_and_redeems_the_coupon` only checks `log[-2:]`, and `test_declined_payment_does_not_redeem_the_coupon` does not verify the stock is released, giving weaker protection of side-effect order.",
+          "`_discount_cents` takes the whole `Order` and `Customer` instead of just the coupon and VIP flag, a slightly looser helper interface."
+        ]
+      }
+    }
+  ]
+}

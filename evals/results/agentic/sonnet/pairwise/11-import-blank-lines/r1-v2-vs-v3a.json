@@ -1,0 +1,61 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "50d2d63131943357",
+    "v3a": "3c0900872c8a0952"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix: `parse_entries` skips lines that are empty or whitespace-only, while `enumerate` keeps counting them so error line numbers stay accurate. B's test is stronger. It covers whitespace-only and CRLF blank lines, and it checks that an error after a blank line still reports the right line number. A's report claims that line-number behavior but its test never exercises it. Both reports are accurate and honestly say they didn't run the accountant's file.",
+        "a_issues": [
+          "Report says line numbers in errors are unchanged, but no test checks this, so a regression in line counting would go unnoticed.",
+          "The CLI test only covers bare `\\n` blank lines, not whitespace-only or `\\r\\n` blank lines.",
+          "README's CSV import section isn't updated to mention that blank lines are ignored."
+        ],
+        "b_issues": [
+          "One test function checks two separate behaviors (skipping and line numbering), which is slightly less focused than two tests.",
+          "README's CSV import section isn't updated to mention that blank lines are ignored."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs make the identical code change: skip empty or whitespace-only lines in `parse_entries` while `enumerate` keeps counting them. They differ only in tests. A's test covers blank lines in the middle and at the end, whitespace-only lines with CRLF, and the line number reported after a skipped blank line. B's CLI test only checks blank lines and the import count, so the line-number claim in B's report has no test behind it. B's end-to-end check is closer to the user's real scenario, but A's tests better protect the behavior both reports promise.",
+        "a_issues": [
+          "The new test puts two separate behaviors (skipping and line numbering) into one test function.",
+          "No CLI-level test that an import with a trailing blank line succeeds and stores the entries."
+        ],
+        "b_issues": [
+          "No test that line numbers in errors stay correct after skipped blank lines, although the report claims this.",
+          "No coverage of whitespace-only lines or CRLF blank lines, even though the fix handles them.",
+          "The test checks only the import count message, not that the stored entries are correct (e.g. via report)."
+        ]
+      }
+    }
+  ]
+}

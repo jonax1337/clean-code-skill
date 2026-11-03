@@ -1,0 +1,37 @@
+diff --git a/src/pricing.ts b/src/pricing.ts
+index 422859f..b4827fd 100644
+--- a/src/pricing.ts
++++ b/src/pricing.ts
+@@ -1,17 +1,21 @@
++const MEMBER_DISCOUNT_BOOKS = 0.9;
++const MEMBER_DISCOUNT_DEFAULT = 0.95;
++const SAVE10_AMOUNT = 10;
++
++function roundToCents(value: number): number {
++  return Math.round(value * 100) / 100;
++}
++
+ export function getPrice(p: any, isMember: boolean, coupon?: string) {
+   let price = p.price;
++
+   if (isMember) {
+-    if (p.category == "books") {
+-      price = price * 0.9;
+-    } else {
+-      price = price * 0.95;
+-    }
++    price *= p.category == "books" ? MEMBER_DISCOUNT_BOOKS : MEMBER_DISCOUNT_DEFAULT;
+   }
+-  if (coupon) {
+-    if (coupon == "SAVE10") {
+-      price = price - 10;
+-      if (price < 0) price = 0;
+-    }
++
++  if (coupon == "SAVE10") {
++    price = Math.max(price - SAVE10_AMOUNT, 0);
+   }
+-  return Math.round(price * 100) / 100;
++
++  return roundToCents(price);
+ }

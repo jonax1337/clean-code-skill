@@ -1,0 +1,58 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "v3a",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v3a": "0964eb4ed12b10bc",
+    "v3b": "523196768dd4b333"
+  },
+  "score": 0.5,
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "v3a",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors are essentially the same and preserve behavior: the same named constants, the same `Priced` type with an optional string `category`, the same order of member discount, then coupon, then rounding, and characterization tests written before the change. A's `roundToCents` helper makes `getPrice` read as three named steps, and its report is accurate throughout. B's tests are slightly broader (empty and lowercase coupons, a floating-point rounding edge case). However, B's report says 'all five callers', which doesn't match the four caller files or six call sites. The difference is small, and I would be comfortable merging either.",
+        "a_issues": [
+          "Tests don't cover empty-string or case-variant coupons, which the original `if (coupon)` path could handle differently on a future edit"
+        ],
+        "b_issues": [
+          "Report says 'all five callers' still compile, but there are four caller files and six call sites, so the count is inaccurate",
+          "The `1.005 -> 1` rounding test pins a floating-point quirk as expected behavior, which could get in the way of a deliberate future fix to the rounding"
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors behave the same as the original, including the optional category for feed rows, the empty-coupon case and the order of discount then coupon, and both type-check against every caller. A's tests are a bit more protective: they check empty and lowercase coupons, which guard the switch from `if (coupon) { if (coupon == ...) }` to a strict `===`. They also pin the floating-point rounding edge case. B's extra `roundToCents` helper is a nice touch, but it doesn't outweigh A's stronger tests.",
+        "a_issues": [
+          "The report says 'all five callers', but there are four calling files and six call sites, so the count is inaccurate.",
+          "The 1.005 rounding assertion pins a floating-point quirk, which is slightly opaque without a comment."
+        ],
+        "b_issues": [
+          "The tests skip the empty-string and case-sensitivity coupon cases, which are where the rewritten coupon check could most plausibly drift.",
+          "Several behaviors are folded into single tests, so a failure is less specific."
+        ]
+      }
+    }
+  ]
+}

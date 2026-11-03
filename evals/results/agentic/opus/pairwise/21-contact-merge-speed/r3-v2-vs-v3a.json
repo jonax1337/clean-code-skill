@@ -1,0 +1,59 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "opus",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "1ba1944a38bde65e",
+    "v3a": "4b4d47a015c373b4"
+  },
+  "score": 0.5,
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes use the same fix: a Map from normalized email to the first index, updated as new contacts are appended. Both keep the original order and first-match behavior, and both add a test for duplicates already in the book. B also updates the docstring to say merges go to the first matching entry, and its test checks ids and phones, which is easier to read than A's tag-based check. B's report measures the old code (81.5 s) as well as the new and notes that other parts of the import were not examined. A's report is also accurate and points out that a merge never changes the stored email, but its `set(..., result.length)` before `push` is the only place it reads better than B.",
+        "a_issues": [
+          "Docstring not updated to say a known email is merged into the first matching entry.",
+          "The test identifies the merged entry by its tags ([[\"new\"], []]) rather than its id, which is less direct.",
+          "The report gives no measured time for the old code, only \"minutes\"."
+        ],
+        "b_issues": [
+          "`indexByEmail.set(email, result.push(contact) - 1)` relies on push's return value and is a bit less readable than setting the index and pushing in separate statements."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes are functionally the same: an email-to-first-index Map is built once, and new entries are added to it as they are appended. Both preserve the old findIndex behavior and both add a test for duplicates already in the book. B records the new index with `result.length` before `push`, which reads more plainly than A's `result.push(contact) - 1`, and adds a comment explaining why only the first index is kept. B's report also notes the invariant that keeps the map valid: `mergeContact` always keeps the stored entry's email.",
+        "a_issues": [
+          "`indexByEmail.set(email, result.push(contact) - 1)` packs the push and the index into one expression and is harder to read than doing them separately.",
+          "No inline comment explains why only the first index per email is stored; the updated doc comment only partly covers this."
+        ],
+        "b_issues": [
+          "The doc comment still says 'merged into that entry' and does not say the first matching entry gets the merge; this is only in an inline comment.",
+          "The report says 'down from minutes' without stating a measured baseline for the old code."
+        ]
+      }
+    }
+  ]
+}

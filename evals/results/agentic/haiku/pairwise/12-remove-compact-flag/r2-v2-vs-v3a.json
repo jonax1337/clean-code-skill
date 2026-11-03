@@ -1,0 +1,57 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "56fcaa765106b83f",
+    "v3a": "4d42121f5b1b669d"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes remove the same code: the help line, the `Options.compact` field, the parser arm, `render_compact` and `trim_cells`. Both also update the README and CHANGELOG identically. B additionally replaces the deleted integration tests with `removed_compact_flag_is_rejected`, which pins the new behavior: the flag now fails as an unknown option. B's edit in `render.rs` is also tidier, while A leaves a stray blank line before the closing brace of the test module. Both reports are accurate, and B usefully notes that `cargo fmt` was already failing on the untouched code.",
+        "a_issues": [
+          "No test checks that `--compact`/`-c` is now rejected, so the removal is not protected against regression.",
+          "Leaves a stray blank line before the closing `}` of the `render.rs` test module, which rustfmt would flag."
+        ],
+        "b_issues": [
+          "The new regression test covers only `--compact`, not the `-c` short form."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes remove the flag the same way across the parser, renderer, help text, README and CHANGELOG, so the code is effectively identical. A replaces the compact integration tests with `removed_compact_flag_is_rejected`, which pins the new behavior (`--compact` \u2192 `UnknownOption`) so the flag can't quietly come back. B only deletes the tests and leaves a stray blank line before the closing brace of the render test module. A's report is also more thorough: it notes the exit code and the `cargo fmt` failures that already exist on HEAD.",
+        "a_issues": [
+          "Only the long form `--compact` is pinned by the new test; `-c` rejection is not asserted"
+        ],
+        "b_issues": [
+          "No test asserts that `--compact`/`-c` are now rejected, so the removal is unprotected",
+          "Leaves a trailing blank line before `}` in the render.rs test module (rustfmt nit)"
+        ]
+      }
+    }
+  ]
+}

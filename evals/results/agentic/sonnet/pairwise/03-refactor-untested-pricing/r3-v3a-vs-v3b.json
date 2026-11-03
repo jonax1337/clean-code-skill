@@ -1,0 +1,60 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "v3a",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v3a": "c7a8c666aeca7767",
+    "v3b": "a303ca39ed5dfb5d"
+  },
+  "score": 1.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v3a",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors keep the signature call-compatible with all four callers and add direct tests that were checked against the original `getPrice`. A is a literal translation that keeps the 0.9/0.95 multipliers, so behavior preservation is obvious. B recomputes the multipliers as `1 - discount`, which happens to be exact for these constants but is a needless arithmetic change that reviewers must reason about, and B admits it only reasoned about it rather than comparing outputs. B's if-based body reads slightly better, but A's lower-risk translation edges it out.",
+        "a_issues": [
+          "Exports a new `Priceable` interface, slightly widening the module's public API beyond what was asked",
+          "The coupon ternary is a long one-liner, a little dense compared with simple if-statements",
+          "Tests were written after the refactor, though they were then run against the original"
+        ],
+        "b_issues": [
+          "Changes the arithmetic from fixed multipliers to `1 - discount`; it is exact for 0.1 and 0.05 but adds float-reasoning risk and makes future constant changes subtler",
+          "Equivalence of the new arithmetic was only reasoned about and spot-tested, not compared against the old function",
+          "The second rounding test (0.333 \u2192 0.33) adds little coverage"
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors keep behavior, type-check against all four callers, and add direct tests that were also run against the original `getPrice`. B keeps the original multipliers 0.9 and 0.95 as named rates. A recasts them as `1 - discount`; that is exact in IEEE doubles but is an arithmetic change a reviewer has to reason through for no real gain. B's reports and test counts are accurate, and its extra edge cases are comparable to A's, so B is marginally the safer merge.",
+        "a_issues": [
+          "Changes the arithmetic form from literal 0.9/0.95 multipliers to `1 - rate`. It is equivalent here, but a reviewer has to confirm the floating-point results by reasoning rather than by reading."
+        ],
+        "b_issues": [
+          "Exports `Priceable`, which no caller needs, slightly widening the public surface.",
+          "The single-line ternary for `finalPrice` is long and somewhat dense to read."
+        ]
+      }
+    }
+  ]
+}

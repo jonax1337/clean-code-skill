@@ -1,0 +1,85 @@
+diff --git a/src/pricing.ts b/src/pricing.ts
+index 422859f..dcd7782 100644
+--- a/src/pricing.ts
++++ b/src/pricing.ts
+@@ -1,17 +1,28 @@
+-export function getPrice(p: any, isMember: boolean, coupon?: string) {
+-  let price = p.price;
++const BOOK_MEMBER_DISCOUNT = 0.1;
++const DEFAULT_MEMBER_DISCOUNT = 0.05;
++const SAVE10_COUPON = "SAVE10";
++const SAVE10_AMOUNT = 10;
++
++interface Priceable {
++  price: number;
++  category?: string;
++}
++
++function memberDiscount(category: string | undefined): number {
++  return category === "books" ? BOOK_MEMBER_DISCOUNT : DEFAULT_MEMBER_DISCOUNT;
++}
++
++function roundToCents(amount: number): number {
++  return Math.round(amount * 100) / 100;
++}
++
++export function getPrice(product: Priceable, isMember: boolean, coupon?: string): number {
++  let price = product.price;
+   if (isMember) {
+-    if (p.category == "books") {
+-      price = price * 0.9;
+-    } else {
+-      price = price * 0.95;
+-    }
++    price *= 1 - memberDiscount(product.category);
+   }
+-  if (coupon) {
+-    if (coupon == "SAVE10") {
+-      price = price - 10;
+-      if (price < 0) price = 0;
+-    }
++  if (coupon === SAVE10_COUPON) {
++    price = Math.max(price - SAVE10_AMOUNT, 0);
+   }
+-  return Math.round(price * 100) / 100;
++  return roundToCents(price);
+ }
+diff --git a/test/pricing.test.ts b/test/pricing.test.ts
+new file mode 100644
+index 0000000..6a01fe2
+--- /dev/null
++++ b/test/pricing.test.ts
+@@ -0,0 +1,33 @@
++import assert from "node:assert/strict";
++import { test } from "node:test";
++
++import { getPrice } from "../src/pricing.ts";
++
++test("non-members pay the list price", () => {
++  assert.equal(getPrice({ price: 20, category: "games" }, false), 20);
++});
++
++test("members get 10% off books and 5% off everything else", () => {
++  assert.equal(getPrice({ price: 40, category: "books" }, true), 36);
++  assert.equal(getPrice({ price: 20, category: "games" }, true), 19);
++  assert.equal(getPrice({ price: 20 }, true), 19);
++});
++
++test("SAVE10 takes 10 off, floored at zero", () => {
++  assert.equal(getPrice({ price: 25 }, false, "SAVE10"), 15);
++  assert.equal(getPrice({ price: 4 }, false, "SAVE10"), 0);
++});
++
++test("unknown or empty coupons are ignored", () => {
++  assert.equal(getPrice({ price: 25 }, false, "OTHER"), 25);
++  assert.equal(getPrice({ price: 25 }, false, ""), 25);
++});
++
++test("member discount applies before the coupon", () => {
++  assert.equal(getPrice({ price: 40, category: "books" }, true, "SAVE10"), 26);
++});
++
++test("result is rounded to cents", () => {
++  assert.equal(getPrice({ price: 9.99 }, true), 9.49);
++  assert.equal(getPrice({ price: 0.333 }, false), 0.33);
++});

@@ -1,0 +1,57 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "v2",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "d2731aab4b11273b",
+    "v3b": "c3997c9cef7f67a4"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both PRs make the same Map-based change to `mergeContacts`, which keeps first-match and within-upload merge behavior. B also adds a correct regression test for first-match merging when the existing list has duplicate emails. It adds a scale test at the reported 30k-into-50k size whose arithmetic (25k merges, 5k appends, 55k total) is right, and it reports a measured timing. A's report is honest but leaves the speedup unmeasured and the subtle first-occurrence behavior untested.",
+        "a_issues": [
+          "No test covers the first-occurrence behavior that the new map has to keep when the existing list has duplicate emails.",
+          "The speedup was never measured, and no test protects against a regression back to quadratic time."
+        ],
+        "b_issues": [
+          "The wall-clock timing assertion could be flaky on slow CI, though the 2s limit is loose and the report flags this."
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "The two `src/import.ts` changes are effectively identical: both use a Map that keeps the first match, add new entries to the map as they are appended, and keep behavior the same. A also adds a correct test for the subtle first-match case with duplicate existing emails. Its 30k-into-50k performance test is also correct (25k merged plus 5k new gives 55k), and A measured the speedup. B leaves the optimization unprotected by any new test and its speedup unmeasured, though it says so honestly.",
+        "a_issues": [
+          "The wall-clock timing test could be flaky on slow CI, though the 2s limit is loose and the report flags the risk."
+        ],
+        "b_issues": [
+          "No test covers the first-match behavior with duplicate existing emails, which is the behavior most at risk in this rewrite.",
+          "The speedup was never measured or verified against the 30k/50k scenario the task describes."
+        ]
+      }
+    }
+  ]
+}

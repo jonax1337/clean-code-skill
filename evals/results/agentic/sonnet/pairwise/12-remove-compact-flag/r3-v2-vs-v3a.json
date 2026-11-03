@@ -1,0 +1,56 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "07d3c05a29f0f686",
+    "v3a": "27a76127532a5b4b"
+  },
+  "score": 1.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two diffs are identical in production code and docs: both remove the field, the parse branch, the help line, the render path, the helpers and the README row, and both add a changelog entry. A also replaces the old compact tests with ones checking that `--compact` and `-c` now fail with `UnknownOption`, so the removal is protected against regression. B deletes the tests and adds nothing, though its report says so. Both reports give accurate test counts (A: 14 unit and 12 integration; B: 11 integration).",
+        "a_issues": [
+          "The integration test checks only `--compact`, not `-c`, but the unit test covers both, so this is minor."
+        ],
+        "b_issues": [
+          "No test checks that `-c` and `--compact` are now rejected, so nothing guards the removal against regression.",
+          "Removing tests without replacing them weakens the suite, even though the report states it."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production code and docs changes in A and B are identical. Both cleanly remove the flag, field, render path, helpers, help line, README row, and add a CHANGELOG entry. B also turns the removed compact tests into regression tests at both the unit and integration level, asserting that `--compact` and `-c` now return `UnknownOption`. This guards the intended behaviour change, while A deletes the tests and says it added no test for the rejection. Both reports are accurate, including B's 14 unit and 12 integration test counts.",
+        "a_issues": [
+          "No test checks that `--compact`/`-c` are now rejected. The behaviour change is left unprotected, as A's report itself notes."
+        ],
+        "b_issues": [
+          "Minor: the integration test checks only `--compact`, while `-c` is covered only in the unit tests."
+        ]
+      }
+    }
+  ]
+}

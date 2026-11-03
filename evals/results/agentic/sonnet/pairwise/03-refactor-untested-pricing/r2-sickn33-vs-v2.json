@@ -1,0 +1,49 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "rep": 2,
+  "pair": [
+    "sickn33",
+    "v2"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "sickn33": "6b4a3e799944868b",
+    "v2": "c9d88c5f62c261a1"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "sickn33",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors keep the same behavior for every real caller. The `-10`/clamp and NaN handling match the original, and neither touches `p: any` or the callers. B ran the existing tests and `tsc --noEmit`, and its report notes the small `==` to `===` change and the untested callers. A's report says nothing was run. B's version is also a little tighter, with no dead `return price` branch, and it names the coupon string as a constant.",
+        "a_issues": [
+          "Did not run the existing tests or the type-check, so the 'don't break anything' requirement is unverified.",
+          "`applyCoupon` adds an extra branch for unknown coupons that does nothing, which makes it slightly more code than needed."
+        ],
+        "b_issues": [
+          "Switches `==` to `===`, a tiny semantic change beyond a pure cleanup; it is harmless for all current string-typed callers and is disclosed.",
+          "No new tests for `getPrice` itself (e.g. the SAVE10 clamp or non-member paths), even though the report acknowledges the coverage gaps."
+        ]
+      }
+    },
+    {
+      "A": "v2",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors keep `getPrice`'s behavior for every existing caller, keep the signature, and are similarly readable. A ran the existing tests and the type-check, says so, and correctly flags that its `==` to `===` change only matters for non-primitive strings. A also notes which callers have no test coverage. B's refactor is equally sound, but it ran no tests or type-check, so its claims about unchanged behavior are unverified."
+      }
+    }
+  ]
+}

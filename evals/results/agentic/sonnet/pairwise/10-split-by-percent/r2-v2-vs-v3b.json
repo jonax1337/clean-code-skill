@@ -1,0 +1,66 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "v2",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "1ebaaf921aca7f07",
+    "v3b": "487eb20ae4fb2aa7"
+  },
+  "score": 0.5,
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes are correct and nearly the same: a mutually exclusive required group, a shared duplicate-name helper, splitting through `allocate`, and matching tests and README updates. A is a bit tighter. Its parser rejects non-ASCII digits and zero, it has no unreachable validation, and its combined-flags test also checks that the exit code is 2. B separates parsing from splitting more cleanly, but its negative-percent check can never trigger from the CLI. B also adds a one-off constant and an extra branch without much benefit.",
+        "a_issues": [
+          "Rejecting `alice=0` is stricter than the task's \"whole numbers\" wording, though the report says so and invites a change.",
+          "`split_by_percent` takes raw `NAME=PCT` strings, so text parsing is mixed into the splitting module.",
+          "The error message says \"a whole number from 1 to 100\", but values over 100 pass the per-entry check and fail only at the sum check."
+        ],
+        "b_issues": [
+          "The negative-percentage check in `split_by_percent` can't be reached from the CLI, because `_parse_percent` already rejects `-5`.",
+          "`isdecimal()` accepts non-ASCII Unicode digits; harmless but looser than intended.",
+          "The combined-flags test doesn't assert exit code 2.",
+          "A 0% entry is accepted and stored as a 0 share. This is reasonable, but it puts zero-share people into the file."
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs are nearly identical in structure: a mutually exclusive `--with`/`--percent` group, reuse of `allocate`, a shared duplicate-name helper, and matching README rows and tests. A keeps parsing of `NAME=PCT` in the CLI layer and gives `split_by_percent` typed `(name, pct)` pairs, which separates the two concerns cleanly. A also follows the task literally by accepting any whole number, including 0. B mixes string parsing into the splitting module and adds an unrequested ban on 0%, although it discloses that choice.",
+        "a_issues": [
+          "`isdecimal()` accepts non-ASCII Unicode digits (harmless because `int()` parses them, but looser than intended)",
+          "The negative-percentage check in `split_by_percent` can't be reached from the CLI because the parser already rejects '-'",
+          "Names are not stripped of whitespace, so 'alice =50' is stored as the name 'alice '",
+          "The combined-flags test doesn't assert exit code 2"
+        ],
+        "b_issues": [
+          "Rejects 0% even though the task only asks for whole numbers adding up to 100; this extra restriction wasn't requested",
+          "`split_by_percent` takes raw 'NAME=PCT' strings, which mixes CLI parsing into the domain function",
+          "`rpartition` makes 'a=b=50' parse as the name 'a=b', a surprising result",
+          "No CLI-level test for malformed specs; only unit tests cover them"
+        ]
+      }
+    }
+  ]
+}

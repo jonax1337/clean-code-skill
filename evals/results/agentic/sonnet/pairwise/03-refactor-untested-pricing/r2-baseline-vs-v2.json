@@ -1,0 +1,57 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "rep": 2,
+  "pair": [
+    "baseline",
+    "v2"
+  ],
+  "judge_model": "opus",
+  "score": 0.0,
+  "orders": [
+    {
+      "A": "baseline",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors keep the signature, the discount order and the rounding, and both produce the same results for every caller in the repo. B ran the existing tests and `tsc`, and it disclosed its one semantic change: `==` became `===`, which no current caller can trigger because category and coupon are always strings or undefined. A did not run the tests or the type checker, which matters when the task warns that `getPrice` is used across the codebase. B's two small helpers add a little structure, but they read well and stay within scope.",
+        "a_issues": [
+          "Did not run the existing tests or the type checker, even though the task stresses not breaking callers that are spread across the codebase."
+        ],
+        "b_issues": [
+          "Changed `==` to `===`, a minor semantic change that could matter for untyped `any` inputs (disclosed in the report).",
+          "The `memberFactor` and `roundToCents` helpers add slight indirection for a very small function."
+        ]
+      }
+    },
+    {
+      "A": "v2",
+      "B": "baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors keep `getPrice`'s behavior for every caller: same discount order, same clamp at zero, same rounding, and unknown coupons are still ignored. A is a bit more thorough, switching to `===` and extracting the `roundToCents` and `memberFactor` helpers, and it reports running the tests and `tsc`. B ran nothing, though it says so honestly. A's report has one small error: it says the tests cover checkout totals, but only `cart.test.ts` exists.",
+        "a_issues": [
+          "The report wrongly says the existing tests cover checkout totals; only the cart is tested.",
+          "Neither change adds tests for `getPrice` or for the untested callers (`checkout.ts`, `priceList.ts`, `feeds/export.ts`)."
+        ],
+        "b_issues": [
+          "Neither the tests nor the type checker were run; correctness rests only on reading the code.",
+          "It keeps loose `==` comparisons and leaves `\"SAVE10\"` as a magic string while naming the other constants.",
+          "No tests were added to protect the refactor."
+        ]
+      }
+    }
+  ],
+  "contradictory": false,
+  "fingerprints": {
+    "baseline": "27c68a39b7cc93de",
+    "v2": "c9d88c5f62c261a1"
+  }
+}

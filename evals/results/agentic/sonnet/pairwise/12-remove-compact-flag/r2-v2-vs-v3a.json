@@ -1,0 +1,55 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "2f8923e0d192019d",
+    "v3a": "6250cb6f5bd84f9d"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two diffs are identical except for the replacement integration test. Both remove the field, the parse arm, the help line, the render path and its helpers, the README row, and add a CHANGELOG entry. B's integration test asserts the exact `UnknownOption(\"--compact\")` error. A's only checks `is_err()`, which would also pass if the flag failed for some other reason. Both reports are accurate, including the 14/12 test counts, and the unit test in both already pins `-c` precisely.",
+        "a_issues": [
+          "Integration test uses a loose `is_err()` check instead of asserting the specific `UnknownOption` error."
+        ],
+        "b_issues": [
+          "Integration test only covers `--compact`, not `-c`. `-c` is covered only by the unit test, and the report's wording slightly blurs this."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two diffs are identical in code, docs and changelog, and both remove the flag cleanly with consistent test counts. They differ only in the integration test. A asserts the exact `UnknownOption(\"--compact\")` error, while B only checks `is_err()` for both spellings. The unit test in both already pins `-c` precisely, so A's stricter integration assertion protects the behavior slightly better.",
+        "a_issues": [
+          "Integration test only covers `--compact`, not `-c` (the unit test does cover `-c`)."
+        ],
+        "b_issues": [
+          "Integration test uses `is_err()`, so it would still pass if the flag failed with some other error, such as a missing value, instead of the unknown-option error the report claims."
+        ]
+      }
+    }
+  ]
+}

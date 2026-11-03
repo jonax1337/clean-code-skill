@@ -1,0 +1,37 @@
+diff --git a/src/import.ts b/src/import.ts
+index cf2fee5..bb453c5 100644
+--- a/src/import.ts
++++ b/src/import.ts
+@@ -3,18 +3,30 @@ import { normalizeEmail } from "./normalize.ts";
+ import type { Contact } from "./types.ts";
+ 
+ /**
+  * Adds the incoming contacts to the existing ones. A contact whose email is already present
+  * is merged into that entry; everything else is appended in the order it arrives.
+  */
+ export function mergeContacts(existing: Contact[], incoming: Contact[]): Contact[] {
+   const result = [...existing];
++  const indexByEmail = new Map<string, number>();
++  result.forEach((entry, index) => rememberFirstIndex(indexByEmail, entry, index));
++
+   for (const contact of incoming) {
+-    const index = result.findIndex((entry) => normalizeEmail(entry.email) === normalizeEmail(contact.email));
+-    if (index === -1) {
++    const index = indexByEmail.get(normalizeEmail(contact.email));
++    if (index === undefined) {
++      rememberFirstIndex(indexByEmail, contact, result.length);
+       result.push(contact);
+     } else {
+       result[index] = mergeContact(result[index], contact);
+     }
+   }
+   return result;
+ }
++
++/** Duplicates already in the list resolve to their first entry, as a front-to-back search would. */
++function rememberFirstIndex(indexByEmail: Map<string, number>, contact: Contact, index: number): void {
++  const email = normalizeEmail(contact.email);
++  if (!indexByEmail.has(email)) {
++    indexByEmail.set(email, index);
++  }
++}

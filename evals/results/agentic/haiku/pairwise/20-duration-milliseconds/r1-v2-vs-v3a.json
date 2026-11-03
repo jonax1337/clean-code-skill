@@ -1,0 +1,60 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "0aa7ab582eb3929e",
+    "v3a": "810ceeec3815ad7b"
+  },
+  "score": 0.5,
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two diffs are behaviorally identical. Both make parseDuration return integer milliseconds, drop the `* 1000` in cache, scheduler and retry, divide by 1000 in http and report so the output stays in whole seconds, and convert the validate bounds to ms. The code choices are equally readable: A keeps the seconds table and multiplies by MS_PER_SECOND, while B rewrites the table in ms. B edges ahead on its report, which says plainly that validateTtl's min bound, rateLimitHeaders and describeSettings have no test coverage and were checked only by reading. A states that those outputs are unchanged without noting this.",
+        "a_issues": [
+          "Report says Retry-After and describeSettings output are unchanged without noting that no test covers them.",
+          "No tests added for the seconds-producing callers (rateLimitHeaders, describeSettings) or for the minimum-TTL path in validateTtl, though these are exactly where the unit change could regress."
+        ],
+        "b_issues": [
+          "No tests added for rateLimitHeaders, describeSettings or the minimum-TTL path, although the report discloses this.",
+          "Bare `/ 1_000` literals in http.ts and report.ts instead of a shared constant (minor)."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs are functionally equivalent and correct: parseDuration returns ms, the ms callers drop their `* 1000`, and the seconds callers (http, report) divide by 1000, so their output is unchanged. B keeps the readable seconds table plus an explicit ms factor, and writes its validate bounds as `5 * 1000` and `24 * 60 * 60 * 1000`, which are easier to check than A's bare literals. A's report wrongly says nothing in the suite covers `validateTtl`, although `test/validate.test.ts` exercises it. B's report is accurate.",
+        "a_issues": [
+          "Report falsely says no test covers `validateTtl`; `test/validate.test.ts` does.",
+          "The MAX_TTL constant is a bare literal, `86_400_000`, which is harder to check than the original `24 * 60 * 60`.",
+          "No tests added for `rateLimitHeaders` or `describeSettings`, the paths whose conversion direction changed."
+        ],
+        "b_issues": [
+          "No tests added for `rateLimitHeaders` or `describeSettings`, the paths whose conversion direction changed.",
+          "Divides by a literal 1000 in http.ts and report.ts instead of reusing a shared constant (minor; the report acknowledges it)."
+        ]
+      }
+    }
+  ]
+}

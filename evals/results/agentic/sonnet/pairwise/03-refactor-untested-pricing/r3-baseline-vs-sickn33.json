@@ -1,0 +1,60 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "rep": 3,
+  "pair": [
+    "baseline",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "score": 0.5,
+  "orders": [
+    {
+      "A": "baseline",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors preserve behavior exactly: same signature, same `==` comparisons, an equivalent coupon guard and an equivalent clamp, including for NaN prices. A gets the readability gain with a smaller, flatter diff that stays in one function. B splits a 15-line function into three helpers and an extra constant, which is defensible but more structure than this small function needs. Neither ran the existing tests or the type checker, and both reports say so honestly.",
+        "a_issues": [
+          "Did not run the existing test suite or `tsc`, though the report says so",
+          "Leaves `p: any` (reasonable given the callers, and stated in the report)"
+        ],
+        "b_issues": [
+          "Did not run tests or the type check, and did not look for the existing `test/` suite",
+          "Adds three helper functions and an extra constant for a very small function, so the diff is larger than the readability goal requires",
+          "`applyMemberDiscount(category: string)` declares `string`, but callers can pass an undefined category (`checkout.ts`). This only type-checks because `p` is `any`."
+        ]
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors behave exactly like the original. B dropping the truthy `coupon` check is safe because \"SAVE10\" is truthy, and both `Math.max` clamps match the old logic, including for NaN. A's constant names describe what the values are (`*_DISCOUNT_FACTOR`, plus a named coupon code). B's `MEMBER_DISCOUNT_BOOKS = 0.9` reads like a 90% discount when it is really a 10% discount, which hurts readability in a cleanup meant to improve it. B is leaner, but A's small helpers stay readable, so A is slightly preferable.",
+        "a_issues": [
+          "Splitting a short function into three private helpers is somewhat more structure than the change needed.",
+          "No tests or typecheck were run, even though `test/cart.test.ts` exists. The report admits it didn't look for a test suite.",
+          "`applyMemberDiscount` types `category` as `string`, but callers such as `feeds/export.ts` pass rows with no category (undefined). This compiles only because `p` is `any`."
+        ],
+        "b_issues": [
+          "The constants `MEMBER_DISCOUNT_BOOKS = 0.9` and `MEMBER_DISCOUNT_DEFAULT = 0.95` hold price multipliers, not discounts, so the names mislead.",
+          "The coupon code \"SAVE10\" is still an inline literal while its amount is a named constant, which is inconsistent.",
+          "No tests or typecheck were run, even though `test/cart.test.ts` exists."
+        ]
+      }
+    }
+  ],
+  "contradictory": true,
+  "fingerprints": {
+    "baseline": "e0341f3f46f988f4",
+    "sickn33": "d3fe54078a9cfa79"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "f61c6f06f58fbd4b",
+    "v3a": "0a9c0bf767072611"
+  },
+  "score": 0.25,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both diffs make the same code change: skip empty or whitespace-only lines while keeping the original line numbering. Both add the same two tests and report the result accurately. B's trailing \"\\n\" models the accountant's file more realistically than A's \"\" (which file iteration never yields). A's report adds a correct but out-of-scope warning about a UTF-8 BOM. Neither difference is enough to prefer one PR over the other.",
+        "a_issues": [
+          "The blank-line test ends with an empty string, which iterating a file never produces; the real case is a trailing \"\\n\"",
+          "The report includes a speculative BOM caveat beyond the task (it is accurate, though)"
+        ],
+        "b_issues": [
+          "No CLI-level test that a file with a trailing blank line imports correctly (A lacks one too)"
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two production changes are identical and correct: blank and whitespace-only lines are skipped, and line numbers still count every line. A's blank-line test ends with a trailing \"\\n\" element, which is exactly the reported case of an empty last line read from a file. B's test ends with \"\", which file iteration never yields. Both reports are accurate, including the test count of 20. B adds a speculative BOM caveat that is plausible but beyond the task.",
+        "a_issues": [
+          "Report is terse but adequate; no real defects."
+        ],
+        "b_issues": [
+          "The test's trailing \"\" element is not something iterating a file ever produces, so it does not directly model the reported trailing empty line.",
+          "The report adds an unrequested speculative note about a UTF-8 BOM."
+        ]
+      }
+    }
+  ]
+}

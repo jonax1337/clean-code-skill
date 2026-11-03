@@ -1,0 +1,66 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "v2",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "cee52a68e154c985",
+    "v3b": "f7490e90a57ab8c2"
+  },
+  "score": 1.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes add a correct mutually exclusive `--with`/`--percent` group and reuse `allocate`. A routes every percent validation failure through the existing `TabtallyError` path, so users always get the usual `error: \u2026` message with exit 2. A also pulls the duplicate-name check into one helper instead of copying it. B sends malformed percents through argparse but bad totals and duplicate names through `TabtallyError`, so similar mistakes are reported in two different styles. B also copies the duplicate check, and its report wrongly says a 0% share is rejected, when `\"0\".isdigit()` is true and zero is accepted.",
+        "a_issues": [
+          "`test_with_and_percent_cannot_be_combined` takes a `capsys` argument it never uses and does not check the exit code.",
+          "No CLI test covers a malformed `NAME=PCT` value.",
+          "The report's note about CRLF line endings has nothing to do with the task."
+        ],
+        "b_issues": [
+          "The report wrongly says a percentage of 0 is rejected. `parse_percent` accepts `alice=0`.",
+          "Malformed percents are argparse usage errors, while a bad total or a duplicate name prints `error: \u2026`, so similar input mistakes are reported in two different styles.",
+          "The duplicate-name check from `split_equally` is copied instead of shared.",
+          "`parse_percent` calls `strip()` on `number` twice; this is minor."
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both diffs implement `--percent` correctly. Each uses a required mutually exclusive group, checks whole numbers, a total of 100 and duplicate names, and reuses `allocate` so no cents are lost. A's report wrongly says a percentage of 0 is rejected: `parse_percent` accepts \"0\" because `\"0\".isdigit()` is true, and `allocate` allows zero weights, so `alice=100 --percent bob=0` is saved. B's report matches its code, and B moves the duplicate-name check into a shared helper instead of copying it, though B's CLI tests are a bit weaker than A's.",
+        "a_issues": [
+          "The report wrongly says a percentage of 0 is rejected; `parse_percent` and `allocate` both accept zero, so the report misleads the developer about verified behavior.",
+          "Malformed `NAME=PCT` values go through an argparse `type=` wrapper, so they produce an argparse usage message instead of the tool's usual `error: ...` path. Other `--percent` errors use the normal path, so the two kinds of error behave differently.",
+          "The duplicate-name check is copied from `split_equally` instead of shared.",
+          "Adds a `PERCENT_TOTAL` constant and an extra wrapper function, which add a little indirection for small benefit."
+        ],
+        "b_issues": [
+          "`test_with_and_percent_cannot_be_combined` takes an unused `capsys` argument and doesn't check the exit code.",
+          "There is no CLI test that a malformed `--percent` value is reported and nothing is saved.",
+          "Zero percentages are silently accepted, and neither the report nor the tests mention it.",
+          "Names and numbers are not stripped of whitespace (`alice= 50` is rejected). This is a minor usability point, not a bug."
+        ]
+      }
+    }
+  ]
+}

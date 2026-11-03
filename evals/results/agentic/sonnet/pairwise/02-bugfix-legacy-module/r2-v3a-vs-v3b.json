@@ -1,0 +1,57 @@
+{
+  "case": "02-bugfix-legacy-module",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "v3a",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v3a": "4a0a33beae2d57b6",
+    "v3b": "3ff983bc6dddd49f"
+  },
+  "score": 0.25,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v3a",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both changes fix the December crash and the matching Q4 crash in quarter_range, preserve the half-open ranges, and add the same two regression tests. A's `_first_of_month` helper is simpler and the smaller diff; B's divmod-based `_months_range` is more general but slightly harder to read. Neither has a real defect, both reports are accurate about what was verified, and I would be equally happy to merge either.",
+        "a_issues": [
+          "`_first_of_month` handles only a single rollover past month 12, which is enough for its current callers but would not work for a general month offset"
+        ],
+        "b_issues": [
+          "The divmod arithmetic in `_months_range` takes more thought to read than a direct month-13 check, for no benefit to the current callers"
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both fix the December crash and the identical Q4 bug, and both add the same two year-end regression tests. A's divmod-based helper works for any month offset and puts the range arithmetic in one place. B's `_first_of_month` handles only month 13, which is correct for its current callers but would quietly break if reused for larger offsets. Both reports are accurate and say plainly what was and wasn't checked.",
+        "a_issues": [
+          "Rewrites both range functions around a new helper, which is a slightly larger change than the bug strictly needs",
+          "New tests were not run against the old code to confirm they fail"
+        ],
+        "b_issues": [
+          "`_first_of_month` handles only one year of rollover (month 13 to 24) and gives wrong results or crashes for larger values, so the helper is fragile if reused",
+          "Start-of-range construction is still duplicated in each function, so the date logic is not fully consolidated"
+        ]
+      }
+    }
+  ]
+}

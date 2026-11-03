@@ -14,7 +14,7 @@ import string
 import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from harness import CONDITIONS, GRADES_DIR, RUNS_DIR, Case, ask_claude, load_cases
+from harness import CONDITIONS, GRADES_DIR, RUNS_DIR, Case, ask_claude, extract_json, load_cases
 
 JUDGE_SYSTEM_PROMPT = (
     "You are a strict senior code reviewer grading answers from coding assistants. You only output JSON."
@@ -59,7 +59,7 @@ def _grade(case: Case, rep: int, model: str) -> None:
         for letter, condition in blind_map.items()
     }
     reply = ask_claude(_judge_prompt(case, replies), JUDGE_SYSTEM_PROMPT, model, effort="high")
-    verdicts = _parse_json(reply.text)
+    verdicts = extract_json(reply.text)
     results = {blind_map[letter]: _with_assertion_texts(case, verdicts[letter]) for letter in blind_map}
     GRADES_DIR.mkdir(parents=True, exist_ok=True)
     grade = {
@@ -102,13 +102,6 @@ score from 1 to 10 for how much you would want this answer in your codebase.
 
 Return only this JSON, with one entry per answer id:
 {{"A": {{"assertions": [{{"n": 1, "passed": true, "evidence": "short quote or reason"}}], "quality": 7}}}}"""
-
-
-def _parse_json(text: str) -> dict:
-    start, end = text.find("{"), text.rfind("}")
-    if start == -1 or end == -1:
-        raise ValueError(f"Judge reply contains no JSON: {text[:200]}")
-    return json.loads(text[start : end + 1])
 
 
 def _with_assertion_texts(case: Case, verdict: dict) -> dict:

@@ -1,0 +1,62 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "8219e7321ffedad8",
+    "v3b": "8031dc91dafce511"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs make the same correct behavioral change: the `* 1000` is removed in cache, retry and scheduler, and http, report and validate are adapted so their outputs are unchanged. B defines one shared `MS_PER_SECOND` in duration.ts and uses it consistently. A mixes a bare `/ 1000` in report.ts with a local constant in http.ts, and its own report admits the inconsistency. B's report also flags that `parseDuration` is part of the public API and outside callers will silently get values 1000x too large, and it states plainly that no caller tests were added.",
+        "a_issues": [
+          "Inconsistent seconds conversion: a bare `/ 1000` in report.ts but a local `MS_PER_SECOND` constant in http.ts.",
+          "The report does not mention the breaking change for external users of the exported `parseDuration`.",
+          "No tests added for http.ts, report.ts or validate.ts, the callers whose conversion changed."
+        ],
+        "b_issues": [
+          "Adds a new public export (`MS_PER_SECOND`) to duration.ts, slightly widening the module surface.",
+          "No tests added for http.ts, report.ts or validate.ts, the callers whose conversion changed.",
+          "The local variable name `ms` in validate.ts is less descriptive than `ttlMs`."
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes behave the same: the unit table is in milliseconds, the `* 1000` multiplications are removed, and the seconds-based outputs (`Retry-After` and the report text) are preserved by dividing by 1000. A defines one shared `MS_PER_SECOND` constant and uses it in every caller that needs seconds. B mixes a file-local constant in `http.ts` with bare `1000` literals in `report.ts` and `validate.ts`, an inconsistency it admits to. A's report is also more useful: it warns that external consumers of the exported `parseDuration` will silently get values 1000 times larger, and it says plainly that the seconds-based callers have no tests.",
+        "a_issues": [
+          "Adds a new export, `MS_PER_SECOND`, to `duration.ts`, a small expansion of scope.",
+          "No tests were added for `http.ts`, `report.ts` or `validate.ts`, the callers whose conversion could regress (though the report says so)."
+        ],
+        "b_issues": [
+          "The seconds conversion is inconsistent: `http.ts` uses a local `MS_PER_SECOND` constant while `report.ts` and `validate.ts` use bare `1000` literals.",
+          "No tests were added for the seconds-based callers (`http.ts`, `report.ts`) or for `validate.ts`, and the report does not mention this gap.",
+          "The report does not warn that the public `parseDuration` export changes units for external consumers."
+        ]
+      }
+    }
+  ]
+}

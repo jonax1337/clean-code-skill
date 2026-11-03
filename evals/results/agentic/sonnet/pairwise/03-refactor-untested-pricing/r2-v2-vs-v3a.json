@@ -1,0 +1,62 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "c9d88c5f62c261a1",
+    "v3a": "9d8940f5207d8f09"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior: same member factors, same SAVE10 clamp, same rounding, and switching to === is harmless for the typed callers. B also replaces `p: any` with a minimal `Priced` type that every caller in the repo satisfies, including the `feeds/export.ts` rows that have no category. B adds direct tests for `getPrice`, covering ordering, the zero floor, unknown coupons and rounding, and says it ran them against the original code. A changes nothing beyond the function body and leaves `getPrice` without direct tests, even though A itself notes that two of its four callers are untested.",
+        "a_issues": [
+          "Leaves `getPrice` without direct tests, although the task stresses not breaking a function that is used everywhere; only the cart totals are covered.",
+          "Keeps `p: any` and has no return type, so the cleanup does not reach the main readability and safety weakness.",
+          "The `roundToCents` helper is local to this file, so the same rounding is still duplicated in `cart.ts`; this is minor."
+        ],
+        "b_issues": [
+          "Adding the parameter type goes slightly beyond a pure readability cleanup, but it is small and type-checks against every caller.",
+          "Leaves the \"SAVE10\" string inline while naming the other constants, which is a minor inconsistency."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors keep the original behavior. A replaces `p: any` with a minimal `Priced` type that every caller satisfies, including FeedRow without a category and the cart's `\"mixed\"` literal. A also adds direct tests for `getPrice` covering both discounts, the coupon floor, unknown coupons, ordering and rounding, and reports running them against the original code. B is a reasonable cleanup but keeps `any`, adds no tests for a function the task says is used everywhere, and its report misdescribes the existing test coverage.",
+        "a_issues": [
+          "Adds a test file the task didn't strictly ask for. It is defensible scope, since it is the only direct protection for `getPrice`.",
+          "`Priced.category` is typed as `string` rather than `Category`. This is needed for the checkout and cart callers, but it is loose."
+        ],
+        "b_issues": [
+          "Leaves `p: any` and an implicit return type, so the main readability and safety problem stays.",
+          "No tests added. `getPrice` is only covered indirectly through two cart tests, so the refactor of a widely used function has little protection.",
+          "The report says the existing tests cover cart and checkout totals, but there is no checkout test.",
+          "The report speculates that typing could break `feeds/export.ts` without checking. A minimal type with an optional category would not."
+        ]
+      }
+    }
+  ]
+}

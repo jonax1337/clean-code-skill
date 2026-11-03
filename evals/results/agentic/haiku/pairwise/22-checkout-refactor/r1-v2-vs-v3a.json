@@ -1,0 +1,61 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "1f0a30104f4c497e",
+    "v3a": "eff02e055d97eaaa"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors keep behavior the same: the side-effect order, error messages, status values and rounding all match the original. A's `_charge_customer` passes the actual reserved list, while B releases `order.items`; these are equivalent only because reservation either fully succeeds or raises. B adds nine characterization tests whose expected values I checked by hand (VIP-after-coupon, per-line rounding 63+63 vs 127, free-shipping threshold, partial-reservation release, coupon not redeemed on decline). These tests stay in the repo and protect this and future refactors of a production path. A's 20,000-order differential check is not committed, so its assurance cannot be re-run by the reviewer, although A's note about non-PaymentDeclined exceptions leaking reservations is a useful observation.",
+        "a_issues": [
+          "No tests added, so the existing suite leaves VIP, per-line rounding, free shipping, invalid coupon/quantity, partial release and failing notifier untested; the differential check is not reproducible.",
+          "Subtotal and tax are computed in two separate passes and the line price is recomputed in `_tax_cents`, which duplicates logic slightly."
+        ],
+        "b_issues": [
+          "`_charge` releases `order.items` instead of the actually reserved items. This is correct only by the invariant that reservation fully succeeded; it is a small loss of robustness compared with passing `reserved` through.",
+          "Does not flag the existing issue that a non-PaymentDeclined gateway exception leaves stock reserved and status 'new'.",
+          "Free-shipping threshold logic stays inline in `_order_total` instead of being named; minor."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior: pricing, side-effect order, error messages, statuses and logging all match the original. A also adds nine characterization tests that pin down the edge cases most at risk in a refactor, such as VIP after coupon, the free-shipping boundary, per-line tax rounding, rejection before reservation, partial-reservation release and notifier failure. They were checked against the original code. B's 20,000-order differential check is strong evidence, but it isn't in the PR, so it protects nothing going forward, and B leaves the thin existing suite as the only guard.",
+        "a_issues": [
+          "`_charge` releases `order.items` rather than the items actually reserved. This is equivalent today only because reservation is all-or-nothing, so the release now quietly depends on that invariant.",
+          "`_order_total` hides the fact that the coupon validity check happens during pricing, before reservation. This is slightly less obvious than before."
+        ],
+        "b_issues": [
+          "Adds no tests. The differential check that backs the 'same behavior' claim isn't checked in, so future edits to these helpers are protected only by the 9 existing happy-path tests.",
+          "By its own report, the random check covered the paid path less than the rejection paths.",
+          "Splitting subtotal and tax into two passes over the items is a minor restructure beyond simple extraction. It is harmless but repeats the line-total computation."
+        ]
+      }
+    }
+  ]
+}

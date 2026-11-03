@@ -17,12 +17,37 @@ Der Skill selbst ist auf Englisch, damit er in jedem Agent und für jedes Team f
 </p>
 
 1. **Eine Vorrangregel.** Korrektheit zuerst, dann Projektkonventionen und Sprachidiome, dann Becks Regeln, dann die Heuristiken. Jede gebogene Regel braucht eine einzeilige Begründung.
-2. **Scope-Disziplin und typische Agent-Fehler.** Vor dem Schreiben suchen, Diff auf die Aufgabe begrenzen, keine spekulativen Abstraktionen, keine verschluckten Fehler, keine Kommentare, die die Änderung nacherzählen, kein ungeprüftes „Tests grün“.
+2. **Scope-Disziplin und typische Agent-Fehler.** Vor dem Schreiben suchen, Diff auf die Aufgabe begrenzen, keine spekulativen Abstraktionen, keine verschluckten Fehler, keine Kommentare, die die Änderung nacherzählen, kein ungeprüftes „Tests grün“. Ist die Aufgabe ein Aufräumen, gehört die ganze Einheit dazu.
 3. **Ausdrückliche Ausnahmen.** Hot Paths, generierter Code, Wegwerf-Skripte, Konsistenz mit Legacy-Code, tiefe Module.
+4. **Geprüfte Arbeit, ehrlich berichtet.** Ungetesteten Code vor dem Refactoring mit Charakterisierungstests festhalten, jeden Fix mit einem Test absichern, Typechecker und Tests entscheiden lassen, was sicher ist, und am Ende nur berichten, was geprüft wurde.
 
 ## Ergebnisse
 
-Acht realistische Coding-Aufgaben in Python, TypeScript, Java, Go, Kotlin, C# und JavaScript, je dreimal unter vier Bedingungen: ohne Skill, mit sickn33/clean-code (dem Clean-Code-Skill mit den meisten Installationen auf skills.sh, Stand November 2026), mit der ersten Version dieses Skills und mit der aktuellen. Claude Sonnet 5.5 schreibt den Code, Claude Opus 5.5 bewertet unter vertauschten Bezeichnungen.
+Zwei Benchmarks. Der agentische ist der wichtigere: Der Agent arbeitet mit echten Werkzeugen in einem echten Repository, und sechs der neun Aufgaben blieben bei der Entwicklung des Skills unter Verschluss.
+
+### Agentischer Benchmark: echte Repositories, zurückgehaltene Aufgaben
+
+Der Agent bekommt eine frische Kopie eines kleinen Repositories in Python, TypeScript oder Rust und die üblichen Werkzeuge von Claude Code: lesen, suchen, editieren, Shell. Deterministische Checks bewerten, was er getan hat: versteckte Tests, geänderte Dateien, ob sein Regressionstest auf dem alten Code fehlschlägt, ob er nach dem letzten Edit die Tests ausgeführt hat. Danach liest ein blinder Bewerter (Claude Opus 5.5) zwei Pull Requests zur selben Aufgabe, in beiden Reihenfolgen, und sagt, welchen er lieber mergen würde.
+
+Drei Aufgaben dienten der Entwicklung von v3. Die anderen sechs haben separate Agents geschrieben, die den Skill nie gesehen haben, und dort musste v3 gegen v2 bestehen.
+
+<p align="center">
+  <img src="docs/assets/agentic-preference.svg" alt="Blinder Bewerter auf sechs zurückgehaltenen Aufgaben, v3 gegen v2: Sonnet 12 Siege, 4 Unentschieden, 2 Niederlagen, Präferenz 78 %; Opus 9, 6, 3, 68 %; Haiku 10, 2, 6, 62 % mit einem Intervall, das 50 % einschließt" width="760">
+</p>
+
+- **Auf den zurückgehaltenen Aufgaben bevorzugt der Bewerter v3 gegenüber v2**, mit Sonnet und Opus mit Intervallen oberhalb von 50 %. Mit Haiku zeigt die Richtung genauso, das Intervall schließt 50 % aber ein; das ist ein Trend, kein Ergebnis.
+- **Der Produktionscode ist oft gleich, die Tests nicht.** Laut den Begründungen des Bewerters gewinnt v3 vor allem durch seine Tests (Verhalten vor dem Refactoring festgehalten, Regressionstests mit Randfällen) und strengere Typen, nicht durch längere Berichte.
+- **Die Checks trennen auf den zurückgehaltenen Aufgaben nicht mehr.** Dort bestehen alle Bedingungen 97–100 %, also entscheidet der Bewerter. Auf den Dev-Aufgaben trennten sie noch: Ohne Skill hat der Agent nach dem letzten Edit nie die Tests ausgeführt und für den Bugfix keinen Regressionstest geschrieben; v2 behebt beides, v3 hält ungetesteten Code zusätzlich mit Charakterisierungstests fest, bevor er ihn umbaut.
+
+<p align="center">
+  <img src="docs/assets/agentic-checks.svg" alt="Erfüllte Checks mit Sonnet. Dev-Aufgaben: ohne Skill 70 %, sickn33 73 %, v2 89 %, v3 100 %. Zurückgehaltene Aufgaben: ohne Skill 97 %, v2 100 %, v3 100 %" width="760">
+</p>
+
+Neun Aufgaben mit je drei Läufen sind wenig, und die Intervalle beschreiben diese Aufgaben, nicht Aufgaben im Allgemeinen. Der Skill wurde an den System-Prompt angehängt statt automatisch geladen; ob er von selbst greift, ist nicht getestet. Die erste Bewertung der zurückgehaltenen Läufe hatte Fehlalarme (Windows-Zeilenenden, ein gewolltes `print` in einem CLI, Rust-Unit-Tests), die v3 knapp hinter v2 zeigten. Sie wurden für alle Bedingungen behoben und alle Läufe neu bewertet, bevor diese Zahlen entstanden.
+
+### Single-Turn-Suite (mit v2 gemessen)
+
+Acht realistische Coding-Aufgaben in Python, TypeScript, Java, Go, Kotlin, C# und JavaScript, je eine Antwort ohne Werkzeuge, je dreimal unter vier Bedingungen: ohne Skill, mit sickn33/clean-code (dem Clean-Code-Skill mit den meisten Installationen auf skills.sh, Stand November 2026), mit der ersten Version dieses Skills und mit v2. Claude Sonnet 5.5 schreibt den Code, Claude Opus 5.5 bewertet unter vertauschten Bezeichnungen. v3 behält alle Regeln von v2 und ergänzt die oben genannten; auf dieser Suite ist v3 noch nicht gelaufen.
 
 <p align="center">
   <img src="docs/assets/results-quality.svg" alt="Qualitätsurteil: ohne Skill 7,5, sickn33 7,5, v1 6,2, v2 8,4" width="49%">

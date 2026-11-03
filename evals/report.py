@@ -13,31 +13,11 @@ from dataclasses import dataclass
 from html import escape
 from statistics import mean
 
-from harness import CONDITIONS, GRADES_DIR, REPO_DIR, RESULTS_DIR, RUNS_DIR, load_cases
+from charts import ASSETS_DIR, chart_frame, short_label
+from harness import CONDITIONS, GRADES_DIR, RESULTS_DIR, RUNS_DIR, load_cases
 
-ASSETS_DIR = REPO_DIR / "docs" / "assets"
 HIGHLIGHTED_CONDITION = "v2"
-
-LIGHT = {
-    "surface": "#fcfcfb",
-    "ink": "#0b0b0b",
-    "ink2": "#52514e",
-    "muted": "#898781",
-    "grid": "#e1e0d9",
-    "bar": "#c3c2b7",
-    "accent": "#2a78d6",
-}
-DARK = {
-    "surface": "#1a1a19",
-    "ink": "#f0efec",
-    "ink2": "#c3c2b7",
-    "muted": "#898781",
-    "grid": "#2c2c2a",
-    "bar": "#52514e",
-    "accent": "#3987e5",
-}
 SEQUENTIAL_BLUE = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95"]
-FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
 
 
 @dataclass
@@ -52,7 +32,7 @@ class ConditionStats:
 
 
 def main() -> None:
-    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]  # stdout is a TextIOWrapper here
     stats = _collect_stats()
     _write_summary(stats)
     ASSETS_DIR.mkdir(parents=True, exist_ok=True)
@@ -148,21 +128,6 @@ def _judge_model() -> str:
     return json.loads(next(GRADES_DIR.glob("*.json")).read_text(encoding="utf-8"))["judge_model"]
 
 
-def _theme_style() -> str:
-    def rules(palette: dict[str, str]) -> str:
-        return (
-            f".bg{{fill:{palette['surface']}}} .ink{{fill:{palette['ink']}}} "
-            f".ink2{{fill:{palette['ink2']}}} .muted{{fill:{palette['muted']}}} "
-            f".grid{{stroke:{palette['grid']}}} .bar{{fill:{palette['bar']}}} "
-            f".accent{{fill:{palette['accent']}}}"
-        )
-
-    return (
-        f"<style>text{{font-family:{FONT}}} {rules(LIGHT)} "
-        f"@media (prefers-color-scheme: dark){{{rules(DARK)}}}</style>"
-    )
-
-
 @dataclass(frozen=True)
 class BarMetric:
     title: str
@@ -180,17 +145,13 @@ def _bar_chart(stats: list[ConditionStats], metric: BarMetric) -> str:
     width, label_width, bar_height, gap, top = 720, 190, 30, 14, 64
     plot_width = width - label_width - 90
     height = top + len(stats) * (bar_height + gap) + 36
-    parts = [
-        (
-            f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
-            f'viewBox="0 0 {width} {height}" role="img" aria-labelledby="t">'
-        ),
-        _theme_style(),
-        f'<title id="t">{escape(metric.title)} per skill condition</title>',
-        f'<rect class="bg" width="{width}" height="{height}" rx="8"/>',
-        f'<text class="ink" x="24" y="32" font-size="16" font-weight="600">{escape(metric.title)}</text>',
-        f'<text class="ink2" x="24" y="50" font-size="12">{_run_description()}</text>',
-    ]
+    parts = chart_frame(
+        width,
+        height,
+        title=f"{metric.title} per skill condition",
+        heading=metric.title,
+        subheading=_run_description(),
+    )
     for tick in metric.ticks:
         x = label_width + tick / metric.maximum * plot_width
         parts.append(
@@ -232,23 +193,19 @@ def _case_heatmap(stats: list[ConditionStats]) -> str:
     label_width, cell_width, cell_height, top = 330, 96, 34, 92
     width = label_width + cell_width * len(stats) + 24
     height = top + cell_height * len(case_ids) + 24
-    parts = [
-        (
-            f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
-            f'viewBox="0 0 {width} {height}" role="img" aria-labelledby="t">'
-        ),
-        _theme_style(),
-        '<title id="t">Share of assertions passed per eval case and skill condition</title>',
-        f'<rect class="bg" width="{width}" height="{height}" rx="8"/>',
-        '<text class="ink" x="24" y="32" font-size="16" font-weight="600">Assertions passed by case</text>',
-        '<text class="ink2" x="24" y="50" font-size="12">Darker is better</text>',
-    ]
+    parts = chart_frame(
+        width,
+        height,
+        title="Share of assertions passed per eval case and skill condition",
+        heading="Assertions passed by case",
+        subheading="Darker is better",
+    )
     for column, stat in enumerate(stats):
         x = label_width + column * cell_width + cell_width / 2
         weight = "600" if stat.name == HIGHLIGHTED_CONDITION else "400"
         parts.append(
             f'<text class="ink" x="{x:.1f}" y="{top - 12}" font-size="12" font-weight="{weight}" '
-            f'text-anchor="middle">{escape(_short_label(stat.label))}</text>'
+            f'text-anchor="middle">{escape(short_label(stat.label))}</text>'
         )
     for row, case_id in enumerate(case_ids):
         y = top + row * cell_height
@@ -273,10 +230,6 @@ def _case_heatmap(stats: list[ConditionStats]) -> str:
             ]
     parts.append("</svg>")
     return "\n".join(parts)
-
-
-def _short_label(label: str) -> str:
-    return label.replace("This repo, ", "").replace("/clean-code", "")
 
 
 if __name__ == "__main__":

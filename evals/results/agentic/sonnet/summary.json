@@ -1,0 +1,483 @@
+{
+  "conditions": {
+    "baseline": {
+      "runs": 9,
+      "checks_passed": 0.7037037037037037,
+      "checks_passed_ci": [
+        0.7037037037037037,
+        0.7037037037037037
+      ],
+      "runs_all_passed": 0,
+      "cost_usd": 0.040804155555555555,
+      "turns": 5.777777777777778,
+      "duration_s": 13.956666666666665,
+      "runs_reading_skill_files": 0
+    },
+    "sickn33": {
+      "runs": 9,
+      "checks_passed": 0.7283950617283951,
+      "checks_passed_ci": [
+        0.7037037037037037,
+        0.7407407407407407
+      ],
+      "runs_all_passed": 0,
+      "cost_usd": 0.05046233333333333,
+      "turns": 6.444444444444445,
+      "duration_s": 15.410555555555554,
+      "runs_reading_skill_files": 0,
+      "delta_vs_reference": 0.024691358024691357,
+      "delta_vs_reference_ci": [
+        0.0,
+        0.03703703703703698
+      ]
+    },
+    "v2": {
+      "runs": 9,
+      "checks_passed": 0.8888888888888888,
+      "checks_passed_ci": [
+        0.8641975308641975,
+        0.9135802469135802
+      ],
+      "runs_all_passed": 4,
+      "cost_usd": 0.06328653333333333,
+      "turns": 8.222222222222221,
+      "duration_s": 19.017444444444447,
+      "runs_reading_skill_files": 0,
+      "delta_vs_reference": 0.18518518518518512,
+      "delta_vs_reference_ci": [
+        0.16049382716049376,
+        0.20987654320987648
+      ]
+    }
+  },
+  "checks": {
+    "01-reuse-across-modules": {
+      "hidden_behavior": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "reuses_helpers": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "no_reimplemented_money_logic": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "scope_files": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "no_drive_by_edits": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "test_added": {
+        "baseline": [
+          0,
+          3
+        ],
+        "sickn33": [
+          0,
+          3
+        ],
+        "v2": [
+          1,
+          3
+        ]
+      },
+      "suite_green": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "clean_diff": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "verified": {
+        "baseline": [
+          0,
+          3
+        ],
+        "sickn33": [
+          0,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      }
+    },
+    "02-bugfix-legacy-module": {
+      "hidden_behavior": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "regression_test": {
+        "baseline": [
+          0,
+          3
+        ],
+        "sickn33": [
+          0,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "sibling_bug": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "scope_files": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "no_drive_by_edits": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "existing_tests_untouched": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "suite_green": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "clean_diff": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "verified": {
+        "baseline": [
+          0,
+          3
+        ],
+        "sickn33": [
+          0,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      }
+    },
+    "03-refactor-untested-pricing": {
+      "hidden_behavior": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "callers_compatible": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "any_replaced": {
+        "baseline": [
+          0,
+          3
+        ],
+        "sickn33": [
+          0,
+          3
+        ],
+        "v2": [
+          0,
+          3
+        ]
+      },
+      "magic_numbers_named": {
+        "baseline": [
+          0,
+          3
+        ],
+        "sickn33": [
+          2,
+          3
+        ],
+        "v2": [
+          2,
+          3
+        ]
+      },
+      "characterization_tests": {
+        "baseline": [
+          0,
+          3
+        ],
+        "sickn33": [
+          0,
+          3
+        ],
+        "v2": [
+          0,
+          3
+        ]
+      },
+      "no_over_engineering": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "suite_green": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "clean_diff": {
+        "baseline": [
+          3,
+          3
+        ],
+        "sickn33": [
+          3,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      },
+      "verified": {
+        "baseline": [
+          0,
+          3
+        ],
+        "sickn33": [
+          0,
+          3
+        ],
+        "v2": [
+          3,
+          3
+        ]
+      }
+    }
+  },
+  "pairwise": {
+    "baseline vs sickn33": {
+      "first": "baseline",
+      "second": "sickn33",
+      "units": 9,
+      "first_score": 0.3888888888888889,
+      "first_score_ci": [
+        0.3333333333333333,
+        0.5
+      ],
+      "first_wins": 1,
+      "ties": 5,
+      "second_wins": 3,
+      "contradictory": 0.2222222222222222
+    },
+    "baseline vs v2": {
+      "first": "baseline",
+      "second": "v2",
+      "units": 9,
+      "first_score": 0.1388888888888889,
+      "first_score_ci": [
+        0.0,
+        0.3333333333333333
+      ],
+      "first_wins": 1,
+      "ties": 0,
+      "second_wins": 8,
+      "contradictory": 0
+    },
+    "sickn33 vs v2": {
+      "first": "sickn33",
+      "second": "v2",
+      "units": 9,
+      "first_score": 0.1388888888888889,
+      "first_score_ci": [
+        0.0,
+        0.3333333333333333
+      ],
+      "first_wins": 1,
+      "ties": 0,
+      "second_wins": 8,
+      "contradictory": 0
+    }
+  }
+}

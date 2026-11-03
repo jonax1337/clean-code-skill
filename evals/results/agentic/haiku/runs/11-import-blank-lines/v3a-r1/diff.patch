@@ -1,0 +1,51 @@
+diff --git a/hourlog/importer.py b/hourlog/importer.py
+index f8fac60..16e6a29 100644
+--- a/hourlog/importer.py
++++ b/hourlog/importer.py
+@@ -8,16 +8,18 @@ from hourlog.entries import Entry
+ 
+ class ImportFormatError(ValueError):
+     """A line of the import file cannot be read; the message names the line."""
+ 
+ 
+ def parse_entries(lines: Iterable[str]) -> list[Entry]:
+     entries = []
+     for number, line in enumerate(lines, start=1):
++        if not line.strip():
++            continue
+         try:
+             entries.append(_parse_line(line))
+         except ValueError as error:
+             raise ImportFormatError(f"line {number}: {error}") from error
+     return entries
+ 
+ 
+ def _parse_line(line: str) -> Entry:
+diff --git a/tests/test_importer.py b/tests/test_importer.py
+index 99dcb15..ec1777c 100644
+--- a/tests/test_importer.py
++++ b/tests/test_importer.py
+@@ -17,16 +17,23 @@ def test_parses_one_entry_per_line():
+ def test_accepts_windows_line_endings_and_spaces_around_fields():
+     assert parse_entries(["2025-03-03 , Acme ,90\r\n"]) == [Entry(date(2025, 3, 3), "Acme", 90)]
+ 
+ 
+ def test_the_last_line_needs_no_newline():
+     assert parse_entries(["2025-03-03,Acme,90"]) == [Entry(date(2025, 3, 3), "Acme", 90)]
+ 
+ 
++def test_blank_lines_are_skipped_and_line_numbers_still_count_them():
++    lines = ["2025-03-03,Acme,90\n", "\n", "   \r\n", "03/04/2025,Acme,45\n"]
++    with pytest.raises(ImportFormatError, match=r"line 4\b"):
++        parse_entries(lines)
++    assert parse_entries(["2025-03-03,Acme,90\n", "\n"]) == [Entry(date(2025, 3, 3), "Acme", 90)]
++
++
+ def test_no_lines_give_no_entries():
+     assert parse_entries([]) == []
+ 
+ 
+ def test_bad_date_names_the_line():
+     with pytest.raises(ImportFormatError, match=r"line 2\b"):
+         parse_entries(["2025-03-03,Acme,90\n", "03/04/2025,Acme,45\n"])
+ 

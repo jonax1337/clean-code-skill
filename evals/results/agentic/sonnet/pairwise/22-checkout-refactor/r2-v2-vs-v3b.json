@@ -1,0 +1,61 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "v2",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "e69ca9e33c96f19e",
+    "v3b": "42d11e9787b6aa36"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior. B's `_charge` releases `order.items` instead of the tracked reserved list, but by that point every item has been reserved, so the effect is identical. B first added characterization tests for the branches the suite missed: VIP and coupon stacking, shipping thresholds, per-line rounding, rollback order and a failing receipt. This matters for a production refactor, and A only flagged the gap without closing it. B's decomposition, with `_order_total` grouping the pricing, also keeps the original call order, including `tax_rate`, and its report accurately notes the existing charge-then-commit risk.",
+        "a_issues": [
+          "Added no tests, although it noticed the suite does not cover VIP and coupon stacking, shipping thresholds or tax rounding.",
+          "Computes the subtotal and tax in two separate passes and moves the `tax_rate` call later; this is harmless but a needless deviation in a no-behavior-change refactor.",
+          "Uses untyped `list` for the reserved items, and the pricing steps stay spread out in `process_order` instead of being grouped."
+        ],
+        "b_issues": [
+          "`_charge` releases `order.items` rather than the reserved list; this is equivalent today but quietly depends on every item having been reserved.",
+          "Some new tests assert exact `inventory.log` sequences, which ties them closely to the current implementation."
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior: in each, the order of side effects, the exception messages and the statuses match the original. A also adds 15 characterization tests, checked against the original code, covering the branches the existing tests missed: VIP stacking, shipping thresholds, per-line rounding, rollback order, coupon not redeemed on decline, and a failing receipt. For a function that is live in production and that nobody wants to touch, those tests are what make the refactor safe to merge. B only names these gaps in its report and adds nothing to protect the change.",
+        "a_issues": [
+          "`_charge` releases `order.items` instead of the reserved list. This is equivalent because every item is reserved by then, but it relies on an unstated invariant.",
+          "The test file grows a lot, and the 'before it is refactored' comment will be stale once this is merged."
+        ],
+        "b_issues": [
+          "No tests were added, although the report itself says VIP stacking, shipping thresholds and tax rounding are untested and that a mistake there would go unnoticed.",
+          "Subtotal and tax now take two passes over the items, and `tax_rate` is called at a different point. The results are equal, but this is a change a pure refactor did not need.",
+          "The `reserved` parameters are typed as bare `list` instead of `list[Item]`, and the `_charge` signature has six parameters, which hurts readability."
+        ]
+      }
+    }
+  ]
+}

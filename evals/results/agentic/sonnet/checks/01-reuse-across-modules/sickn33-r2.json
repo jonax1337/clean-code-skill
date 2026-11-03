@@ -1,0 +1,62 @@
+{
+  "case": "01-reuse-across-modules",
+  "split": "dev",
+  "condition": "sickn33",
+  "rep": 2,
+  "checks": [
+    {
+      "name": "hidden_behavior",
+      "description": "The email shows the gross total with per-line VAT rounding, shipping and German formatting, right after the item list, and the rest of the email is unchanged (hidden tests).",
+      "passed": true,
+      "evidence": "...                                                                      [100%]\n3 passed in 0.02s"
+    },
+    {
+      "name": "reuses_helpers",
+      "description": "The new line uses the shop's existing `format_eur` and `gross_total`.",
+      "passed": true,
+      "evidence": "shop/emails.py calls ['format_eur', 'gross_total']"
+    },
+    {
+      "name": "no_reimplemented_money_logic",
+      "description": "No money formatting, rounding or VAT logic is reimplemented in the shop code.",
+      "passed": true,
+      "evidence": "no matching added lines"
+    },
+    {
+      "name": "scope_files",
+      "description": "Only `shop/emails.py` and test files are changed.",
+      "passed": true,
+      "evidence": "changed: ['shop/emails.py']"
+    },
+    {
+      "name": "no_drive_by_edits",
+      "description": "The legacy code around the change is left alone: `subject` and `is_sendable` are untouched and at most two existing lines of `shop/emails.py` change.",
+      "passed": true,
+      "evidence": "[pass] untouched: unchanged in shop/emails.py: ['subject', 'is_sendable']\n[pass] small: 1 existing lines of shop/emails.py changed or removed\n  from shop.orders import Order"
+    },
+    {
+      "name": "test_added",
+      "description": "A test for the new total line is added.",
+      "passed": false,
+      "evidence": "no added test line mentions 'Gesamtbetrag'"
+    },
+    {
+      "name": "suite_green",
+      "description": "The full test suite passes, including the agent's own tests.",
+      "passed": true,
+      "evidence": "........                                                                 [100%]\n8 passed in 0.02s"
+    },
+    {
+      "name": "clean_diff",
+      "description": "No debug output, commented-out code or comments that narrate the edit.",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "verified",
+      "description": "The agent ran the tests after its last edit.",
+      "passed": false,
+      "evidence": "bash commands after the last edit: none"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "4d72b71c58c35046",
+    "v3a": "41c48f38b53c65ed"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The code fix is identical in both: skip lines that are empty or only whitespace, and keep counting them so error line numbers stay correct. B's unit test protects the subtle part of the change, that a malformed row after a blank line is still reported at its real line number. A's report states that same behavior but no test locks it in. A's CLI test does cover whitespace-only and trailing blank lines end to end, which B does not, but the line-numbering check is the more important regression guard.",
+        "a_issues": [
+          "No test checks that line numbers in errors still count skipped blank lines, although the report promises this.",
+          "The test only checks the printed count and does not confirm which entries were stored."
+        ],
+        "b_issues": [
+          "The test does not cover a whitespace-only line, only empty `\\n` lines.",
+          "One test function holds two separate scenarios, and the first only checks `len` rather than the parsed entries."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The code fixes are identical and correct: blank and whitespace-only lines are skipped inside the enumerate loop, so line numbers stay accurate. A's unit test also checks that a later error still reports the real line number, a behavior both reports promise and an easy one to break, for example by filtering lines before enumerating. B's CLI test adds a whitespace-only line and an end-to-end check but leaves the line-number claim untested. Both reports are accurate, including the count of 19 tests.",
+        "a_issues": [
+          "The test does not cover a whitespace-only line, only empty lines.",
+          "The happy-path assertion checks only the number of entries returned, not their contents."
+        ],
+        "b_issues": [
+          "No test covers the claim that error line numbers still count skipped blank lines.",
+          "The test runs only through the CLI and does not check the stored report output."
+        ]
+      }
+    }
+  ]
+}

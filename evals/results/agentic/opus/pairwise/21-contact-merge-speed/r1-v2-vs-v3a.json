@@ -1,0 +1,56 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "7587b3ab772062e1",
+    "v3a": "97b81a67c164d82e"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two changes to `src/import.ts` are functionally identical: both build a normalized-email-to-index Map, keep the first index per email, and add appended contacts to the map. This preserves order, merging of duplicates within one upload, and the first-match behavior of `findIndex`. B also adds a regression test for the subtle case of duplicate emails already in the stored book, and confirmed it passes against the original code. Without that test, a future refactor (for example, a plain `map.set` that keeps the last index) could silently change which entry receives the merge.",
+        "a_issues": [
+          "No test protects the deliberately preserved behavior that the first of several existing duplicate emails receives the merge, so a later refactor could change it without any test failing."
+        ],
+        "b_issues": [
+          "The test name and helper are fine, but the test checks only id and phone. It would not catch tags being merged into the wrong entry, though phone is enough to show which entry was targeted."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make the same `src/import.ts` change: a Map from normalized email to its first index, which preserves the old `findIndex` behavior, the output order, and merging of duplicates within one upload. A also adds a test confirming that when stored entries share an email, the first one receives the merge, and reports checking it against the original code first. That test protects the one subtle behavior a reviewer would worry about in this refactor. B's report explains the same invariants well, including that `mergeContact` keeps the current email so a stored key never changes, but it adds no test.",
+        "a_issues": [
+          "No test or benchmark guards the performance gain itself; acceptable for this repository's test setup."
+        ],
+        "b_issues": [
+          "No test covers the duplicate-existing-email case that the Map's first-index logic exists to preserve, so a future change could silently break it.",
+          "No test or benchmark guards the performance gain."
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "ca10f245a5bc6d7b",
+    "v3a": "4a9998570573465e"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs are correct, reuse `allocate`, factor out the duplicate check the same way, and use a required mutually exclusive group. B parses `NAME=PCT` in a plain function that raises `MoneyError`, so every bad input gets the same `error: ...` line, and that function has its own unit tests. B also tests the case where neither `--with` nor `--percent` is given. A's argparse `type=` approach is idiomatic but gives two styles of error message, which A's report admits, and it leaves the 'neither' case untested.",
+        "a_issues": [
+          "A malformed `--percent` value gets argparse's usage message while other validation errors get the `error: ...` line, so error output is inconsistent.",
+          "No test that `add` fails when neither `--with` nor `--percent` is given; this replaces the old `required=True` on `--with`.",
+          "Names are not stripped, so `--percent ' alice'=50` keeps the leading space in the name."
+        ],
+        "b_issues": [
+          "The 1..100 per-entry check partly duplicates the sum-to-100 check; it is harmless but redundant.",
+          "`re` `\\d` also matches non-ASCII Unicode digits; `int()` accepts them, so this is minor.",
+          "Putting CLI-input parsing in `splitting.py` mixes concerns a little."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes are nearly identical in structure. Each uses a mutually exclusive required group, reuses `allocate`, factors out the duplicate check, adds a README row and rejects 0%. A puts parsing in `splitting.py` as a unit-tested `parse_percent` and raises `MoneyError`, so every bad `--percent` input gets the same `error: ...` message as the rest of the tool. A also strips whitespace around the name and the percentage. B's argparse type function is idiomatic, but bad-input errors are reported in two different styles, and a name like `alice ` keeps its trailing space when written `alice =50`.",
+        "a_issues": [
+          "`\\d+` also matches non-ASCII Unicode digits; harmless here because `int()` accepts them, but slightly looser than intended",
+          "The per-value 1..100 range check is partly redundant with the sum-to-100 check"
+        ],
+        "b_issues": [
+          "`_percent_share` does not strip whitespace, so `alice =50` is stored under the name `alice ` with a trailing space",
+          "Malformed `--percent` values give argparse usage output while other validation errors give `error: ...` lines, so error output is inconsistent",
+          "The parser lives in cli.py and is tested only through SystemExit, not as a unit",
+          "No test for giving neither `--with` nor `--percent`"
+        ]
+      }
+    }
+  ]
+}

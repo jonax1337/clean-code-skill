@@ -1,0 +1,62 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "condition": "v2",
+  "rep": 3,
+  "checks": [
+    {
+      "name": "blank_lines_skipped",
+      "description": "Blank lines are skipped wherever they are in the file: empty, whitespace-only and Windows line endings, at the start, in the middle and at the end.",
+      "passed": true,
+      "evidence": ".........                                                                [100%]\n9 passed, 8 deselected in 0.04s"
+    },
+    {
+      "name": "malformed_lines_still_rejected",
+      "description": "Rows that are really malformed (missing or extra fields, bad date, bad or negative minutes, empty project) still fail the import, and the error names the line's position in the file even after blank lines.",
+      "passed": true,
+      "evidence": "........                                                                 [100%]\n8 passed, 9 deselected in 0.03s"
+    },
+    {
+      "name": "no_catch_all_handler",
+      "description": "No bare `except:` or `except Exception` was added to the package.",
+      "passed": true,
+      "evidence": "no matching added lines"
+    },
+    {
+      "name": "only_expected_files",
+      "description": "Only the importer and the tests changed.",
+      "passed": true,
+      "evidence": "changed: ['hourlog/importer.py', 'tests/test_cli.py']"
+    },
+    {
+      "name": "existing_tests_untouched",
+      "description": "No line of the existing tests was changed or removed.",
+      "passed": true,
+      "evidence": "[pass] : 0 existing lines of tests/test_cli.py changed or removed\n[pass] : 0 existing lines of tests/test_importer.py changed or removed\n[pass] : 0 existing lines of tests/test_report.py changed or removed\n[pass] : 0 existing lines of tests/test_store.py changed or removed"
+    },
+    {
+      "name": "regression_test_added",
+      "description": "The agent added at least one test that fails on the original code, so the bug cannot return unnoticed.",
+      "passed": true,
+      "evidence": "['tests/test_cli.py::test_import_skips_blank_lines'] on the original code: exit 1\n\n    def test_import_skips_blank_lines(run, tmp_path):\n        csv_file = tmp_path / \"export.csv\"\n        csv_file.write_text(\"2025-03-03,Acme,90\\n\\n2025-03-04,Acme,30\\r\\n\\r\\n  \\n\", encoding=\"utf-8\")\n        code, out, _ = run(\"import\", str(csv_file))\n>       assert code == 0\nE       assert 1 == 0\n\ntests\\test_cli.py:35: AssertionError\n=========================== short test summary info ===========================\nFAILED tests/test_cli.py::test_import_skips_blank_lines - assert 1 == 0\n1 failed in 0.08s"
+    },
+    {
+      "name": "suite_passes",
+      "description": "The project's own test suite passes.",
+      "passed": true,
+      "evidence": "...................                                                      [100%]\n19 passed in 0.06s"
+    },
+    {
+      "name": "clean_diff",
+      "description": "The diff has no debug output, commented-out code or narrating comments.",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "tests_run_after_edit",
+      "description": "The agent ran the tests successfully after its last edit.",
+      "passed": true,
+      "evidence": "cd \"C:/Users/Jonas/AppData/Local/Temp/cc-agentic-q8oljccv/repo\" && git stash push -q hourlog/importer.py && python -m pytest -q 2>&1 | tail -2; git stash pop -q && git diff --stat"
+    }
+  ]
+}

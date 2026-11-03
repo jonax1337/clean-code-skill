@@ -1,0 +1,58 @@
+{
+  "case": "02-bugfix-legacy-module",
+  "rep": 3,
+  "pair": [
+    "sickn33",
+    "v2"
+  ],
+  "judge_model": "opus",
+  "score": 0.0,
+  "orders": [
+    {
+      "A": "sickn33",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes fix the December month-end rollover and the Q4 quarter-end rollover correctly, and both keep the existing half-open semantics. B also adds regression tests for December and Q4, so the bug is guarded against in future, and its report of 7 passing tests matches the suite size. A's fix is minimal and its report is honest that nothing was run, but it adds no tests and leaves the change unverified.",
+        "a_issues": [
+          "No regression tests added for December or Q4 rollover",
+          "Did not run the test suite or monthly_report itself, so the fix is unverified"
+        ],
+        "b_issues": [
+          "Also routes the start date through the helper, which changes slightly more code than needed",
+          "Helper is defined after the functions that use it, which is valid but reads slightly out of order"
+        ]
+      }
+    },
+    {
+      "A": "v2",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes fix the December crash and the matching Q4 crash with a small rollover helper, so they behave the same for valid input. A adds regression tests for December and Q4 and reports a passing suite. B adds no tests and, as its report honestly says, ran no tests. Against that, A also routes the start date through the rollover helper. Out-of-range input such as month 13 or quarter 5 now silently becomes next year instead of raising, while B keeps that validation. A's tests still outweigh this.",
+        "a_issues": [
+          "Building the start date with `_first_of_month` means `month_range(2026, 13)` and `quarter_range(2026, 5)` silently return next-year ranges instead of raising ValueError. That is a quiet loss of input validation.",
+          "No test runs `monthly_report` or `quarterly_report` for December or Q4 end to end."
+        ],
+        "b_issues": [
+          "No regression tests were added, so nothing protects the December and Q4 fix.",
+          "The report says no test suite was run. Verification was limited to calling the date-range functions directly.",
+          "The helper only handles month 13 to 24. That is enough for current callers but less general than modular arithmetic."
+        ]
+      }
+    }
+  ],
+  "contradictory": false,
+  "fingerprints": {
+    "sickn33": "61a6e5a98d48a9c2",
+    "v2": "0f57d63f06063e99"
+  }
+}

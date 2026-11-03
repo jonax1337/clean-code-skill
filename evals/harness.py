@@ -49,6 +49,7 @@ class Condition:
     name: str
     label: str
     skill_source: str | None
+    references: str | None = None  # folder with the skill's reference files, relative to the repo
 
     def skill_text(self) -> str | None:
         if self.skill_source is None:
@@ -57,6 +58,9 @@ class Condition:
             return _fetch_cached(self.skill_source)
         return (REPO_DIR / self.skill_source).read_text(encoding="utf-8")
 
+    def references_dir(self) -> Path | None:
+        return REPO_DIR / self.references if self.references else None
+
     def system_prompt(self) -> str:
         skill = self.skill_text()
         if skill is None:
@@ -64,12 +68,24 @@ class Condition:
         return f"{BASE_SYSTEM_PROMPT}\n\n{SKILL_PREAMBLE}\n\n<skill>\n{skill}\n</skill>\n\n{SKILL_FOOTER}"
 
 
+SKILL_REFERENCES = "skills/clean-code/references"
+
 CONDITIONS = [
     Condition("baseline", "No skill", None),
     Condition("sickn33", "sickn33/clean-code", SICKN33_URL),
     Condition("v1", "This repo, v1", "evals/skills/v1.md"),
-    Condition("v2", "This repo, v2", "skills/clean-code/SKILL.md"),
+    Condition("v2", "This repo, v2", "evals/skills/v2.md", SKILL_REFERENCES),
 ]
+
+# Versions measured only on the agentic track, so the published single-turn results stay as they are. v3a was
+# released as 3.0.0 (`skills/clean-code/SKILL.md` is v3a with the version number bumped); v3b is the shorter
+# alternative. Every version is a frozen copy, so changing the skill never changes what a past result measured.
+# All of them share the current skill's reference files, so their links resolve.
+CANDIDATE_CONDITIONS = [
+    Condition("v3a", "This repo, v3", "evals/skills/v3a.md", SKILL_REFERENCES),
+    Condition("v3b", "v3b: lean", "evals/skills/v3b.md", SKILL_REFERENCES),
+]
+ALL_CONDITIONS = CONDITIONS + CANDIDATE_CONDITIONS
 
 
 def load_cases() -> list[Case]:
@@ -79,12 +95,12 @@ def load_cases() -> list[Case]:
 def _parse_case(path: Path) -> Case:
     text = path.read_text(encoding="utf-8")
     title = text.splitlines()[0].removeprefix("# ").strip()
-    prompt = _section(text, "Prompt")
-    assertions = re.findall(r"^\d+\.\s+(.+)$", _section(text, "Assertions"), flags=re.MULTILINE)
+    prompt = markdown_section(text, "Prompt")
+    assertions = re.findall(r"^\d+\.\s+(.+)$", markdown_section(text, "Assertions"), flags=re.MULTILINE)
     return Case(case_id=path.stem, title=title, prompt=prompt, assertions=assertions)
 
 
-def _section(text: str, heading: str) -> str:
+def markdown_section(text: str, heading: str) -> str:
     match = re.search(rf"^## {heading}\n(.*?)(?=^## |\Z)", text, flags=re.MULTILINE | re.DOTALL)
     if match is None:
         raise ValueError(f"Case is missing the '## {heading}' section")
@@ -139,22 +155,32 @@ def ask_claude(prompt: str, system_prompt: str, model: str, effort: str | None =
     )
 
 
+def extract_json(text: str) -> dict:
+    """The first JSON object in a model reply, ignoring prose before and after it."""
+    start = text.find("{")
+    if start == -1:
+        raise ValueError(f"Reply contains no JSON: {text[:200]}")
+    value, _ = json.JSONDecoder().raw_decode(text, start)
+    return value
+
+
+def write_text_atomic(path: Path, text: str) -> None:
+    """Write via a temporary file, so an interrupted run never leaves a truncated file that looks finished."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    partial = path.with_name(f"{path.name}.partial")
+    partial.write_text(text, encoding="utf-8", newline="\n")
+    os.replace(partial, path)
+
+
 def _claude_command(model: str, effort: str | None, system_file: Path) -> list[str]:
-    executable = shutil.which("claude")
-    if executable is None:
-        raise RuntimeError("The `claude` CLI is not on PATH")
     command = [
-        executable,
+        claude_executable(),
         "-p",
         "--model",
         model,
         "--tools",
         "",
-        "--setting-sources",
-        "project",
-        "--disable-slash-commands",
-        "--strict-mcp-config",
-        "--no-session-persistence",
+        *ISOLATION_FLAGS,
         "--output-format",
         "json",
         "--system-prompt-file",
@@ -163,3 +189,20 @@ def _claude_command(model: str, effort: str | None, system_file: Path) -> list[s
     if effort:
         command += ["--effort", effort]
     return command
+
+
+# Keep the user's own settings, hooks, plugins, skills, MCP servers and sessions out of every eval run.
+ISOLATION_FLAGS = [
+    "--setting-sources",
+    "project",
+    "--disable-slash-commands",
+    "--strict-mcp-config",
+    "--no-session-persistence",
+]
+
+
+def claude_executable() -> str:
+    executable = shutil.which("claude")
+    if executable is None:
+        raise RuntimeError("The `claude` CLI is not on PATH")
+    return executable

@@ -1,0 +1,62 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 2,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "67ced7e36885ad64",
+    "v3a": "178dd4df33c62175"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes are correct, use the same mutually exclusive argparse group, reuse `allocate`, and have accurate reports. B puts `NAME=PCT` parsing and the duplicate check in `splitting.py` and shares one duplicate-name helper between `split_equally` and `split_by_percent`. A keeps parsing in the CLI and writes a second duplicate check, so its `split_by_percent` cannot catch duplicates itself. A's tests are a bit stronger at the CLI level (malformed input, duplicates, leftover-cent rounding), but B covers the same cases with unit tests on `parse_percent` and `split_by_percent`.",
+        "a_issues": [
+          "Parsing and duplicate checking for `--percent` live in `cli.py`, separate from the duplicate check `split_equally` already has in `splitting.py`.",
+          "`split_by_percent` takes a dict, so it cannot detect duplicate names; that check only exists in the CLI path.",
+          "`str.isdecimal()` accepts non-ASCII Unicode digits, and names are not whitespace-stripped (minor)."
+        ],
+        "b_issues": [
+          "No test for leftover-cent rounding where percentages do not divide the amount exactly (1000 split 34/33/33 is exact).",
+          "No CLI-level test for malformed `--percent` input or duplicate names; these are covered only by unit tests.",
+          "Small refactor of `split_equally` into a shared helper, slightly beyond the strict scope though it preserves behavior."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both are correct and nearly identical in behavior. Both use a required mutually exclusive group, reuse `allocate`, reject totals other than 100, and update the README, and both reports are accurate. A keeps all the percent logic in `splitting.py` (`parse_percent`, `split_by_percent`) and pulls the duplicate check into a helper that both split functions share. B puts the parsing and the duplicate rule in `cli.py` and leaves the old duplicate code in place. B's CLI tests are a bit more thorough, but A's structure fits the codebase slightly better.",
+        "a_issues": [
+          "Malformed `--percent` input and duplicate names are only tested at the unit level, not through the CLI",
+          "The mutually-exclusive and missing-option CLI tests check only the exit code, not the error message"
+        ],
+        "b_issues": [
+          "Parsing and duplicate checking for `--percent` live in `cli.py` instead of next to `split_equally`'s matching rule in `splitting.py`, so the duplicate rule exists in two places",
+          "No whitespace stripping, so `bob = 50` produces a name with a trailing space",
+          "`str.isdecimal()` accepts non-ASCII digits, which is looser than the stated 'whole number' rule (harmless but imprecise)"
+        ]
+      }
+    }
+  ]
+}

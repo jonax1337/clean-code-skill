@@ -1,5 +1,7 @@
 __pycache__/
 *.pyc
+.pytest_cache/
+*.partial
 evals/.cache/
 .venv/
 .ruff_cache/

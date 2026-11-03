@@ -1,0 +1,59 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "rep": 1,
+  "pair": [
+    "sickn33",
+    "v2"
+  ],
+  "judge_model": "opus",
+  "score": 0.0,
+  "orders": [
+    {
+      "A": "sickn33",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors behave the same as the original for every caller: member factor first, then the SAVE10 clamp at zero, then rounding to cents. B's switch from `==` to `===` makes no difference for the string or undefined categories and coupons that actually flow in. B reports running the existing tests and `tsc`, discloses the `===` change, and notes that `getPrice` itself has no direct test coverage. A says it never looked for a test setup, so its change is unverified despite an obvious `npm test` in package.json.",
+        "a_issues": [
+          "Ran neither the existing tests nor the typecheck, and didn't look for a test setup even though package.json defines `test` and `typecheck` scripts.",
+          "Doesn't mention that `getPrice` has no direct tests, for example of the books rate or the zero clamp, so the claimed behavior preservation isn't protected.",
+          "Kept the loose `==`/`!=` comparisons, which leaves the readability cleanup half done."
+        ],
+        "b_issues": [
+          "Changed `==` to `===` as part of a pure cleanup. This is harmless for the current callers but is a small semantic change, though it is disclosed.",
+          "Added no direct tests for `getPrice`, although it acknowledges the gap."
+        ]
+      }
+    },
+    {
+      "A": "v2",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors keep behavior: the arithmetic order, rounding and zero clamp are the same. A's switch from `==` to `===` makes no difference for the string or undefined categories and coupons every caller passes. A ran the tests and the type-check and reports this accurately. B ran nothing and did not even look for a test setup, though it says so honestly. The code is roughly equally readable either way, so A's verified result is the stronger one to merge.",
+        "a_issues": [
+          "No direct unit tests were added for `getPrice` (books rate, zero clamp, unknown coupon), though the report notes this gap.",
+          "Changes `==` to `===`, a small deliberate semantic change in a 'don't break anything' refactor. It is harmless for current callers and disclosed."
+        ],
+        "b_issues": [
+          "Did not run the existing tests or the type-check, so the refactor is unverified even though a `node --test` and `tsc` setup exists.",
+          "No tests added to protect a widely used function.",
+          "Renaming `p` to `product` and splitting into three helpers is slightly more churn than needed, though readable."
+        ]
+      }
+    }
+  ],
+  "contradictory": false,
+  "fingerprints": {
+    "sickn33": "3bbbd5cdd4904b12",
+    "v2": "7c55d7e9d7734931"
+  }
+}

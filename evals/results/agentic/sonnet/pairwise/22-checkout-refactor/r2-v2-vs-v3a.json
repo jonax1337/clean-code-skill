@@ -1,0 +1,62 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "e69ca9e33c96f19e",
+    "v3a": "c83f7564f91ea574"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior: the call order, error messages, statuses and side effects match the original, and the existing tests pass. B also adds 11 characterization tests and says it ran them against the original code. I checked their expected values by hand and they are correct. They cover the risky gaps that A itself names (VIP plus coupon stacking, the free-shipping threshold, per-line half-up tax rounding, release and commit ordering, coupon not redeemed on failure) but leaves untested. B's decomposition also reads slightly better, with total computation grouped in `_order_total` and narrower helper arguments.",
+        "a_issues": [
+          "Adds no tests even though it says VIP/coupon stacking, shipping thresholds and tax rounding are untested and are where mistakes would go unnoticed.",
+          "Threads a `reserved` list through `_charge` with a bare `list` type hint, which is less clear than needed.",
+          "Leaves the subtotal, discount and shipping arithmetic spread inline in `process_order` rather than in one pricing helper."
+        ],
+        "b_issues": [
+          "`_charge` releases `order.items` instead of the reserved list. This is equivalent today because all items are reserved before the charge, but it quietly relies on that invariant.",
+          "The characterization test file duplicates the `make_order`/`CUSTOMER` helpers from `test_checkout.py`.",
+          "Some new tests overlap with existing ones, for example the coupon redemption check."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors behave the same as the original: side-effect order, error messages, statuses and coupon timing are all preserved. A also added 11 characterization tests, run against the original code first, covering the risky spots: VIP and coupon stacking, the free-shipping threshold after discount, per-line half-up rounding, partial-reservation release and no coupon redemption on failure. B names those same gaps in its report but leaves the code in production unprotected. A's helpers are also a bit cleaner, for example `_discount_cents` takes primitives and `_order_total` groups the pricing.",
+        "a_issues": [
+          "`_charge` releases `order.items` instead of the list actually reserved. This is equivalent today because all items were reserved, but it relies on that fact implicitly.",
+          "The new test file duplicates `CUSTOMER` and `make_order` from `test_checkout.py` instead of sharing them."
+        ],
+        "b_issues": [
+          "No tests were added for a refactor of production checkout code, even though the report admits that VIP and coupon stacking, shipping thresholds and rounding are untested.",
+          "`_charge` takes six parameters and the `reserved: list` annotation is untyped (it should be `list[Item]`), which hurts readability a little.",
+          "Pricing is still split across `process_order`, with the total assembled inline, instead of being encapsulated in one helper."
+        ]
+      }
+    }
+  ]
+}

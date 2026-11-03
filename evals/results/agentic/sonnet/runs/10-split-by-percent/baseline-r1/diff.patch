@@ -1,0 +1,179 @@
+diff --git a/README.md b/README.md
+index 1cf4aa4..eff03ae 100644
+--- a/README.md
++++ b/README.md
+@@ -12,17 +12,17 @@ carol -10.00
+ ```
+ 
+ ## Commands
+ 
+ All commands accept `--file PATH` before the command name (default `tabtally.json`).
+ 
+ | Command | What it does |
+ | --- | --- |
+-| `add --paid-by NAME --amount AMOUNT --description TEXT --with NAME ...` | Record an expense that the named people share equally. Repeat `--with` for each person. |
++| `add --paid-by NAME --amount AMOUNT --description TEXT --with NAME ...` | Record an expense that the named people share equally. Repeat `--with` for each person. Or use `--percent NAME=PCT` (whole numbers totalling 100, repeated per person) instead of `--with`. |
+ | `list` | Print every recorded expense. |
+ | `balances` | Print what each person is owed (positive) or owes (negative). |
+ 
+ Amounts are written like `12.50`, with at most two decimals. Internally every amount is a whole number of cents, so shares always add up to the amount that was paid.
+ 
+ ## Development
+ 
+ ```console
+diff --git a/tabtally/cli.py b/tabtally/cli.py
+index 4ac2c51..e45ce22 100644
+--- a/tabtally/cli.py
++++ b/tabtally/cli.py
+@@ -1,42 +1,48 @@
+ """Command line interface: add, list and balances."""
+ 
+ import argparse
+ import sys
+ from pathlib import Path
+ 
+ from tabtally import store
+ from tabtally.balances import net_balances
+-from tabtally.errors import TabtallyError
++from tabtally.errors import MoneyError, TabtallyError
+ from tabtally.models import Expense
+ from tabtally.money import format_cents, parse_amount
+-from tabtally.splitting import split_equally
++from tabtally.splitting import parse_percent, split_by_percent, split_equally
+ 
+ DEFAULT_FILE = "tabtally.json"
+ USAGE_ERROR = 2
+ 
+ 
+ def build_parser() -> argparse.ArgumentParser:
+     parser = argparse.ArgumentParser(prog="tabtally", description="Track shared expenses.")
+     parser.add_argument("--file", type=Path, default=Path(DEFAULT_FILE), help="expense file")
+     commands = parser.add_subparsers(dest="command", required=True)
+ 
+     add = commands.add_parser("add", help="record an expense")
+     add.add_argument("--paid-by", required=True, metavar="NAME")
+     add.add_argument("--amount", required=True, help="for example 12.50")
+     add.add_argument("--description", required=True)
+-    add.add_argument(
++    who = add.add_mutually_exclusive_group(required=True)
++    who.add_argument(
+         "--with",
+         dest="people",
+         action="append",
+-        required=True,
+         metavar="NAME",
+         help="a person sharing the expense equally; repeat for each person",
+     )
++    who.add_argument(
++        "--percent",
++        action="append",
++        metavar="NAME=PCT",
++        help="a person's whole-number percentage share; repeat for each person, must total 100",
++    )
+     add.set_defaults(handler=_add)
+ 
+     commands.add_parser("list", help="print all expenses").set_defaults(handler=_list)
+     commands.add_parser("balances", help="print who owes whom").set_defaults(handler=_balances)
+     return parser
+ 
+ 
+ def main(argv: list[str] | None = None) -> int:
+@@ -45,17 +51,26 @@ def main(argv: list[str] | None = None) -> int:
+         return args.handler(args)
+     except TabtallyError as error:
+         print(f"error: {error}", file=sys.stderr)
+         return USAGE_ERROR
+ 
+ 
+ def _add(args: argparse.Namespace) -> int:
+     cents = parse_amount(args.amount)
+-    shares = split_equally(cents, args.people)
++    if args.percent:
++        percents: dict[str, int] = {}
++        for item in args.percent:
++            name, pct = parse_percent(item)
++            if name in percents:
++                raise MoneyError(f"listed more than once: {name}")
++            percents[name] = pct
++        shares = split_by_percent(cents, percents)
++    else:
++        shares = split_equally(cents, args.people)
+     expenses = store.load(args.file)
+     expense = Expense(store.next_id(expenses), args.paid_by, args.description, cents, shares)
+     store.save(args.file, [*expenses, expense])
+     print(f"added #{expense.id}: {format_cents(cents)} for {args.description}")
+     return 0
+ 
+ 
+ def _list(args: argparse.Namespace) -> int:
+diff --git a/tabtally/splitting.py b/tabtally/splitting.py
+index f5739ee..e41c5fe 100644
+--- a/tabtally/splitting.py
++++ b/tabtally/splitting.py
+@@ -1,11 +1,32 @@
+ """Decide how much of an expense each person owes."""
+ 
+ from tabtally.errors import MoneyError
+ from tabtally.money import allocate
+ 
+ 
++def split_by_percent(cents: int, percents: dict[str, int]) -> dict[str, int]:
++    if not percents:
++        raise MoneyError("no percentages given")
++    if any(pct < 0 for pct in percents.values()):
++        raise MoneyError("percentages must not be negative")
++    total = sum(percents.values())
++    if total != 100:
++        raise MoneyError(f"percentages must add up to 100, got {total}")
++    names = list(percents)
++    return dict(zip(names, allocate(cents, [percents[name] for name in names])))
++
++
++def parse_percent(text: str) -> tuple[str, int]:
++    """Parse NAME=PCT where PCT is a whole number."""
++    name, sep, value = text.partition("=")
++    name, value = name.strip(), value.strip()
++    if not sep or not name or not value.isascii() or not value.isdigit():
++        raise MoneyError(f"expected NAME=PCT with a whole number, got {text!r}")
++    return name, int(value)
++
++
+ def split_equally(cents: int, people: list[str]) -> dict[str, int]:
+     duplicates = sorted({name for name in people if people.count(name) > 1})
+     if duplicates:
+         raise MoneyError(f"listed more than once: {', '.join(duplicates)}")
+     return dict(zip(people, allocate(cents, [1] * len(people))))
+diff --git a/tests/test_cli.py b/tests/test_cli.py
+index 935c29c..cb690c1 100644
+--- a/tests/test_cli.py
++++ b/tests/test_cli.py
+@@ -56,8 +56,29 @@ def test_bad_amount_is_reported_and_nothing_is_saved(run):
+ 
+ def test_person_listed_twice_is_rejected(run):
+     code, _, err = run(
+         "add", "--paid-by", "alice", "--amount", "9", "--description", "x", "--with", "bob", "--with", "bob"
+     )
+     assert code == 2
+     assert "bob" in err
+     assert run("list")[1] == ""
++
++
++def test_add_records_a_percent_split(run):
++    code, out, _ = run(
++        "add", "--paid-by", "alice", "--amount", "10.00", "--description", "Taxi",
++        "--percent", "alice=50", "--percent", "bob=30", "--percent", "carol=20",
++    )  # fmt: skip
++    assert code == 0
++    assert out == "added #1: 10.00 for Taxi\n"
++    _, out, _ = run("balances")
++    assert out == "alice 5.00\nbob -3.00\ncarol -2.00\n"
++
++
++@pytest.mark.parametrize("pcts", [["a=50", "b=40"], ["a=50", "b=x"], ["a=50", "a=50"], ["a=50.5", "b=49.5"]])
++def test_percent_split_rejects_bad_input(run, pcts):
++    argv = ["add", "--paid-by", "a", "--amount", "9", "--description", "x"]
++    for p in pcts:
++        argv += ["--percent", p]
++    code, _, err = run(*argv)
++    assert code == 2
++    assert err.startswith("error:")

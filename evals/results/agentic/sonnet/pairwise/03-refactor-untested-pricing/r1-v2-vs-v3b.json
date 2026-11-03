@@ -1,0 +1,62 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "v2",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "7c55d7e9d7734931",
+    "v3b": "523196768dd4b333"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep the runtime behavior of `getPrice` for every existing caller. B splits the logic into two clearly named steps, replaces `any` with a `Priced` type that every caller satisfies, and adds direct tests covering the books rate, the zero clamp, coupon handling, ordering and rounding. Those tests protect a refactor of a function used across the codebase, which is what 'don't break anything' asks for. A is a correct but more minimal cleanup with no tests, and its stated reason for keeping `any` is wrong.",
+        "a_issues": [
+          "Keeps `p: any`, so the main readability and safety problem in the signature remains.",
+          "Adds no tests for `getPrice`, even though the existing tests only cover the cart path and the task stresses not breaking callers.",
+          "The report claims a typed parameter could break `feeds/export.ts`, but `{ price: number; category?: string }` accepts `FeedRow` fine, so this justification is wrong."
+        ],
+        "b_issues": [
+          "Changing the parameter type goes slightly beyond a pure readability cleanup, though it is verified against all callers.",
+          "The report's count of 'all five callers' is loosely stated; there are four source modules calling `getPrice`."
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors keep the same behavior: member discount, then the SAVE10 coupon floored at zero, then cent rounding. A also replaces `any` with a `Priced` type that every caller still satisfies, including `FeedRow`, `OrderLine`'s optional category and cart's \"mixed\" literal. A adds characterization tests that cover the edge cases the user's \"don't break anything\" warning calls for, and says it ran them against the original code. B leaves `getPrice` untested, keeps `any`, and its reason for skipping the typing (that it would break the feed export) is not correct.",
+        "a_issues": [
+          "Typing the parameter goes a little beyond the asked cleanup, though it is safe and typechecked",
+          "The 1.005 rounding test pins a floating-point quirk that may be brittle in intent"
+        ],
+        "b_issues": [
+          "Adds no tests for `getPrice`, even though the user stressed not breaking anything and the existing tests only cover the cart",
+          "Keeps `p: any`, so the refactor gives callers no type safety",
+          "The report wrongly claims a typed parameter could break the feed export; a `FeedRow` variable is assignable to `{ price: number; category?: string }`",
+          "`memberFactor(category: string)` is called with a value that may be undefined, and `any` hides that mismatch"
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "5d1bfae7f3fbba18",
+    "v3a": "048e5a84838eb6f1"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs share the same `split_by_percent` and duplicate-check refactor, reuse `allocate`, add the same mutually exclusive group, and update the README; both reports give correct test counts. They differ in where `--percent` values are validated. A uses an argparse type, which fails with a usage message. B raises MoneyError in the handler, so the error goes through the existing `error:` / exit 2 path the other add errors already use. B's tests are also somewhat stronger: they assert the exact 34/33/33 rounding result, cover duplicate names through the CLI, and check that malformed input saves nothing.",
+        "a_issues": [
+          "`test_split_by_percent_keeps_every_cent` only checks the sum, not the actual cent distribution.",
+          "No CLI-level test for a duplicate name with `--percent`.",
+          "Malformed percent errors come from argparse with usage output rather than the project's `error:` path, which is a minor inconsistency (reasonable, and disclosed in the report)."
+        ],
+        "b_issues": [
+          "The `--percent` help text does not explicitly say the percentages must add up to 100 (it says 'share of 100').",
+          "Malformed values are only detected after `--amount` parsing, so a bad amount error masks a bad percent (harmless)."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs share the same `split_by_percent` and duplicate-check refactor, reuse `allocate`, use a required mutually exclusive `--with`/`--percent` group, and update the README the same way. A routes malformed `--percent` values through the existing `TabtallyError` path (exit 2 with an `error:` line), so every add error is reported the same way. B uses an argparse `type=`, which is idiomatic and also fine. The tie-breaker is tests: A pins exact cent results for an uneven percentage split, covers the `+50` case, and checks that a malformed value leaves nothing saved. B's keeps-every-cent test only checks the total.",
+        "a_issues": [
+          "Percent-string parsing lives in cli.py as a hand-rolled helper rather than an argparse `type=`, so a malformed value prints an `error:` line instead of the argparse usage message.",
+          "The report says the tests were written before the implementation, which a reviewer cannot verify from the diff."
+        ],
+        "b_issues": [
+          "`test_split_by_percent_keeps_every_cent` checks only the sum, not the actual cent distribution.",
+          "Malformed `--percent` values exit through argparse with a usage message, while sum and duplicate errors use the `error:` path, so the same option reports errors in two styles (disclosed in the report).",
+          "Adds an `re` import for a check that string methods could do."
+        ]
+      }
+    }
+  ]
+}

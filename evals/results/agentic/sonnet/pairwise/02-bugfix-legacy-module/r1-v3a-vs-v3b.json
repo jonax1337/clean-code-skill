@@ -1,0 +1,58 @@
+{
+  "case": "02-bugfix-legacy-module",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "v3a",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v3a": "de3eb4359b41e454",
+    "v3b": "074d3b1bc05a5588"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v3a",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes are correct. Each fixes the December crash and the Q4 crash in `quarter_range`, and each adds the same regression tests. B's explicit `_first_of_month_after` helper with a `month == 12` branch reads more plainly than A's `year + month // 12, month % 12 + 1` arithmetic. A's arithmetic is correct for months 1-12 but takes a moment to check. A reuses `month_range` inside `quarter_range`, which is a neat touch. B's report is also a bit more candid: it says the new tests cover only the range functions, not `monthly_report` itself.",
+        "a_issues": [
+          "The modular arithmetic `year + month // 12, month % 12 + 1` is terse and harder to verify at a glance than an explicit December branch.",
+          "`quarter_range` calls `month_range` only to discard its start value, which is a slightly indirect way to get the end date."
+        ],
+        "b_issues": [
+          "Adds a new private helper where a direct fix inside `month_range` that `quarter_range` reuses would have been enough."
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both fixes are correct for months 1-12 and Q1-Q4, and both patch the same Q4 bug in quarter_range and add the same regression tests. A's explicit `month == 12` branch is easier to read and check than B's modular expression `year + month // 12, month % 12 + 1`, which needs a moment of arithmetic to confirm. B's reuse of month_range inside quarter_range is a little more economical. A's report is also more precise: it says that monthly_report itself was never called.",
+        "a_issues": [
+          "Adds a private helper where an inline expression would have been enough, though it is shared and clear.",
+          "Never calls monthly_report(rows, 2026, 12) itself; this is acknowledged in the report."
+        ],
+        "b_issues": [
+          "The modular arithmetic for the end date is less immediately readable than an explicit December branch.",
+          "The report does not mention that the end-to-end monthly_report December call was never exercised."
+        ]
+      }
+    }
+  ]
+}

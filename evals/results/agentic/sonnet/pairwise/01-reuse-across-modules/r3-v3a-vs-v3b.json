@@ -1,0 +1,55 @@
+{
+  "case": "01-reuse-across-modules",
+  "split": "dev",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "v3a",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v3a": "323d9f2cf67154d6",
+    "v3b": "4a2554e9388a6fe2"
+  },
+  "score": 1.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v3a",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make the identical, correct production change: they reuse `gross_total` and `format_eur` and insert the line right after the items. The difference is in the tests. A's test also asserts the trailing blank line (`...EUR\\n\\n`), so it protects both the placement and the layout that was kept. B's test only checks the line itself, even though B's report highlights that the blank line is preserved. Both reports are accurate, and the expected value 1.194,50 EUR is correct in both.",
+        "a_issues": [
+          "The test relies on the default `vat_class` without saying so, which slightly hides that it exercises 19% VAT."
+        ],
+        "b_issues": [
+          "The test does not verify the blank line after the total, although the report stresses it as preserved behavior."
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production changes are identical. Both reuse gross_total and format_eur, place the line right after the items, and keep the blank line. B's test is a little stronger: it also asserts the trailing blank line, so it protects the layout its report describes. Both reports are accurate. A's report is more detailed, but it claims the blank line is preserved without a test that checks it.",
+        "a_issues": [
+          "The new test does not assert that the blank line after the Gesamtbetrag line is preserved, although the report highlights that behavior."
+        ],
+        "b_issues": [
+          "The test relies on the default VAT class instead of stating 'standard', so the 19% assumption behind 1.194,50 is less obvious to a reader."
+        ]
+      }
+    }
+  ]
+}

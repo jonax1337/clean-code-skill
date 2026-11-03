@@ -1,0 +1,60 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "rep": 1,
+  "pair": [
+    "baseline",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "score": 0.5,
+  "orders": [
+    {
+      "A": "baseline",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors behave the same as the original for all inputs. Both keep the signature and loose comparisons, so no caller breaks. A is the tighter, more direct cleanup. B's helper split is also readable, but it adds a `category: string` annotation that misstates reality, since checkout passes an optional category and feed rows have none. Neither ran the existing `npm test` or the typecheck, and both say so honestly. B also says it never looked for a test setup, even though `test/cart.test.ts` exists.",
+        "a_issues": [
+          "Did not run the existing test suite or typecheck despite the 'don't break anything' requirement",
+          "Leaves `p: any` and an untyped return; acceptable but a missed small improvement"
+        ],
+        "b_issues": [
+          "Did not run tests or typecheck, and did not look for the existing test setup in `test/`",
+          "`applyMemberDiscount(category: string)` misstates the type: category can be undefined (checkout's optional field, feed rows with no category)",
+          "Splitting into three helpers is slightly more indirection than this small function needs"
+        ]
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors keep the original behavior: the member multipliers, the SAVE10 subtraction with a floor at 0, the order of steps and the rounding are all the same. Both leave the signature and the `any` type alone so callers don't break. A reads a little more cleanly because it names the coupon code and gives each pricing step its own helper, while B leaves the `\"SAVE10\"` literal inline. Neither change was verified. Both reports say so honestly, although the repo has `npm test` and `tsc` scripts and existing cart tests that cover this function.",
+        "a_issues": [
+          "Did not run the existing `node --test` cart tests or the type-check, though both scripts are in package.json; the report also says it never looked for them",
+          "No test added for the refactored pricing logic (member and non-member, books and other categories, coupon floor)",
+          "The `applyMemberDiscount` parameter is typed `category: string` but receives an `any` value that can be undefined (feed rows), so the type is a bit misleading"
+        ],
+        "b_issues": [
+          "Did not run the existing tests or the type-check, though both scripts are in the repo",
+          "No test added for the refactored logic",
+          "Leaves the `\"SAVE10\"` coupon code as a magic string while naming the other constants, which is inconsistent"
+        ]
+      }
+    }
+  ],
+  "contradictory": true,
+  "fingerprints": {
+    "baseline": "a1f806e4783e2d15",
+    "sickn33": "3bbbd5cdd4904b12"
+  }
+}

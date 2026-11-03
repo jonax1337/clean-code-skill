@@ -1,0 +1,23 @@
+diff --git a/hourlog/importer.py b/hourlog/importer.py
+index f8fac60..16e6a29 100644
+--- a/hourlog/importer.py
++++ b/hourlog/importer.py
+@@ -8,16 +8,18 @@ from hourlog.entries import Entry
+ 
+ class ImportFormatError(ValueError):
+     """A line of the import file cannot be read; the message names the line."""
+ 
+ 
+ def parse_entries(lines: Iterable[str]) -> list[Entry]:
+     entries = []
+     for number, line in enumerate(lines, start=1):
++        if not line.strip():
++            continue
+         try:
+             entries.append(_parse_line(line))
+         except ValueError as error:
+             raise ImportFormatError(f"line {number}: {error}") from error
+     return entries
+ 
+ 
+ def _parse_line(line: str) -> Entry:

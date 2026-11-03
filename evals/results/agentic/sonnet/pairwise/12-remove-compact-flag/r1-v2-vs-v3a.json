@@ -1,0 +1,56 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "275495890b2a545b",
+    "v3a": "71a10e5a0497ca7e"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs remove `--compact` the same way across code, help text, README, CHANGELOG and tests, and both reports give accurate test counts (A: 13 unit / 11 integration; B: 14 unit / 11 integration). B also replaces the old parse test with one asserting that `--compact` and `-c` now return `UnknownOption`. That protects the intended behavior change, so B is slightly better to merge.",
+        "a_issues": [
+          "No test checks that `--compact` / `-c` are now rejected, so the removal is not protected against regression."
+        ],
+        "b_issues": [
+          "The report says the version must be bumped to 1.0, which is a slight assumption about release plans the user did not state.",
+          "Clippy and the formatter were not run, though the report says so honestly."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs are essentially identical and correct. They remove the flag, the field, the warning, the help line, the render helpers, the tests and the README row, and they add a CHANGELOG entry. A also adds a unit test asserting that `--compact` and `-c` now return `UnknownOption`, which guards the removal against regression. Both reports give accurate test counts (A 14/11, B 13/11) and are honest about the version not being bumped.",
+        "a_issues": [
+          "Didn't run clippy or a formatter (stated openly in the report)."
+        ],
+        "b_issues": [
+          "No test asserts that `--compact` and `-c` are now rejected, so the removal is not covered against regression."
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "opus",
+  "rep": 2,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "50e3e7ac71ebdbfb",
+    "v3a": "0d7a79a8eabdeb7c"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The code changes are identical, and so are the two new tests apart from naming and whitespace. Both are correct: blank and whitespace-only lines are skipped, and line numbers still count them. Both reports are accurate about what changed and what was verified. B's report adds a useful, correctly scoped note that lines with the wrong number of fields still get the unclear unpack message, without widening the change. That tips it slightly.",
+        "a_issues": [
+          "Report does not flag that wrong-field-count lines still produce the cryptic 'not enough values to unpack' message.",
+          "README's CSV import section is not updated to say blank lines are ignored."
+        ],
+        "b_issues": [
+          "README's CSV import section is not updated to say blank lines are ignored."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct two-line fix: blank or whitespace-only lines are skipped, and line numbering is preserved. Both add equivalent tests that would have failed before the fix. A's report adds an accurate follow-up note: rows with the wrong number of fields still produce the unclear 'unpack' message. A flags this without widening the scope of the change, which gives it a slight edge. Otherwise the two PRs are effectively interchangeable.",
+        "a_issues": [
+          "Did not verify against the accountant's actual CSV (disclosed in the report)."
+        ],
+        "b_issues": [
+          "Did not verify against the accountant's actual CSV (disclosed in the report).",
+          "The report does not mention that wrong-field-count rows still give the unclear 'unpack' error."
+        ]
+      }
+    }
+  ]
+}

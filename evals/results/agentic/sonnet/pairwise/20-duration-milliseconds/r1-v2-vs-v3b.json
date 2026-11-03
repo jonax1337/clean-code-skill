@@ -1,0 +1,59 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "v2",
+    "v3b"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "41d662c0a64d95b6",
+    "v3b": "1cd58d8e5b657623"
+  },
+  "score": 0.5,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3b",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both diffs are functionally identical and correct. Each drops the `* 1000` in the cache, retry and scheduler code, divides by 1000 for the seconds outputs in `http.ts` and `report.ts`, rescales the validate limits and updates the duration tests. Retry-After stays an integer because `parseDuration` always returns whole multiples of 1000. B differs only cosmetically: it uses a `MS_PER_SECOND` constant defined separately in two files, which it discloses, and names the variable `ttlMs` instead of `ms`. Neither change is meaningfully better than the other.",
+        "a_issues": [
+          "No tests added for the `rateLimitHeaders` or `describeSettings` conversions back to seconds, so a mistake there would go uncaught.",
+          "Variable name `ms` in `validate.ts` is slightly less descriptive."
+        ],
+        "b_issues": [
+          "`MS_PER_SECOND` is defined separately in `http.ts` and `report.ts`, which adds a little duplication for no real gain over a literal 1000.",
+          "No tests added for the `rateLimitHeaders` or `describeSettings` conversions back to seconds, so a mistake there would go uncaught."
+        ]
+      }
+    },
+    {
+      "A": "v3b",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both diffs are functionally identical: they convert the unit table to milliseconds, drop the `* 1000` in cache/retry/scheduler, divide by 1000 for the second-based outputs in http/report, and rescale the TTL limits in validate. The only differences are cosmetic: A uses a duplicated local `MS_PER_SECOND` constant and names the variable `ttlMs`, while B uses a literal `/ 1000` and names it `ms`. Both reports are accurate and both flag the change to the public `parseDuration` export.",
+        "a_issues": [
+          "`MS_PER_SECOND` is defined separately in http.ts and report.ts instead of once (acknowledged in the report)",
+          "No tests added for `rateLimitHeaders` or `describeSettings` to show their second-based output is unchanged"
+        ],
+        "b_issues": [
+          "Uses the bare literal `1000` for the conversion in http.ts and report.ts (minor)",
+          "No tests added for `rateLimitHeaders` or `describeSettings` to show their second-based output is unchanged"
+        ]
+      }
+    }
+  ]
+}

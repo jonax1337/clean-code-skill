@@ -1,0 +1,61 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "672bc96959f97d04",
+    "v3a": "7b1a057b6e06ce9a"
+  },
+  "score": 1.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The code changes are nearly identical and both correct: the flag, the field, the help text, the render path and its helpers are all removed, and the docs and changelog are updated. A's integration test checks both `--compact` and `-c` through the public `run` entry point. A's report also points out that removing the public `Options::compact` field breaks library users, which is useful for a release. B's report claims 14 unit and 12 integration tests pass 'the same as before the change', but before the change there were 16 unit and 14 integration tests, so that verification claim is wrong.",
+        "a_issues": [
+          "Drops the unit-level test in cli.rs rather than replacing it, so rejection of `-c`/`--compact` is only tested through the integration test (minor).",
+          "Changelog entry does not mention the removed public `Options::compact` field, though the report raises this."
+        ],
+        "b_issues": [
+          "Report says the test counts (14 unit, 12 integration) are 'the same as before the change'. Before the change there were 16 unit and 14 integration tests, so this is inaccurate.",
+          "Integration test only checks `--compact` and not `-c` (the unit test covers both).",
+          "Neither the report nor the changelog mentions that removing the public `Options::compact` field breaks the library API."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "The code changes are effectively the same: both remove the flag, the field, the render path, the helpers, the docs entries and the help text, and both add tests that the flag is now rejected. The difference is the reports. A says the test counts (14 unit, 12 integration) are 'the same as before the change', which is false: the repository had 16 unit and 14 integration tests. B's report is accurate, and it also points out that removing `Options::compact` breaks the public library API, which a reviewer should know.",
+        "a_issues": [
+          "The report claims the test counts are the same as before, but six tests were removed or replaced (16\u219214 unit, 14\u219212 integration). This misstates what was verified.",
+          "The integration test only checks `--compact`; `-c` is covered only by the unit test.",
+          "Does not mention that removing the public `Options::compact` field breaks library users."
+        ],
+        "b_issues": [
+          "The changelog entry does not mention that the public `Options::compact` field was removed, though the report notes this gap.",
+          "No unit-level rejection test in cli.rs; coverage of both spellings depends on the single integration test."
+        ]
+      }
+    }
+  ]
+}

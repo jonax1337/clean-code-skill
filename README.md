@@ -5,7 +5,7 @@
 <p align="center">
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-2a78d6"></a>
   <a href="https://agentskills.io"><img alt="Agent Skills format" src="https://img.shields.io/badge/format-Agent%20Skills-52514e"></a>
-  <a href="evals/README.md"><img alt="Evals: 8 tasks, blind-graded" src="https://img.shields.io/badge/evals-8%20tasks%2C%20blind--graded-52514e"></a>
+  <a href="evals/README.md"><img alt="Evals: 17 tasks, blind-graded" src="https://img.shields.io/badge/evals-17%20tasks%2C%20blind--graded-52514e"></a>
   <a href="README.de.md"><img alt="Deutsch" src="https://img.shields.io/badge/lang-Deutsch-52514e"></a>
 </p>
 
@@ -20,21 +20,55 @@ An agent that applies the book literally makes predictable mistakes. In the eval
 - the first version of this skill replaced idiomatic Kotlin `String?` with an exception in all three runs, because "don't return null";
 - with a book-summary skill loaded, the agent moved bit tests on a per-packet hot path into helper methods, because "functions should be small";
 - with book-based skills loaded, a two-line bugfix grew into a refactoring of code the bug did not touch;
-- without any skill, the agent added a `currency` parameter nobody asked for in all three runs.
+- without any skill, the agent added a `currency` parameter nobody asked for in all three runs;
+- with v2 of this skill, an agent asked to refactor untested TypeScript left its `any` types in place and wrote no tests to pin the old behavior first, in all three runs.
 
-This skill addresses these with three additions on top of the book:
+This skill addresses these with four additions on top of the book:
 
 <p align="center">
   <img src="docs/assets/precedence.svg" alt="Precedence: 1 correct and verified, 2 the codebase and the language, 3 Beck's four rules, 4 heuristics C1–T9" width="760">
 </p>
 
 1. **A precedence order.** Correctness first, then the codebase's conventions and the language's idioms, then Beck's rules, then the heuristics. Every bent rule needs a one-line reason.
-2. **Scope discipline and agent failure modes.** Search before writing, keep the diff to the task, no speculative abstractions, no swallowed errors, no narrating comments, no unverified "tests pass".
+2. **Scope discipline and agent failure modes.** Search before writing, keep the diff to the task, no speculative abstractions, no swallowed errors, no narrating comments, no unverified "tests pass". When the task *is* a cleanup, the whole unit is in scope.
 3. **Explicit exceptions.** Hot paths, generated code, throwaway scripts, legacy consistency, deep modules.
+4. **Verified work, reported accurately.** Pin untested code with characterization tests before refactoring it, cover every fix with a test, let the type checker and the tests decide what is safe, and end with a report that claims only what was checked.
 
 ## Results
 
-Eight realistic coding tasks across Python, TypeScript, Java, Go, Kotlin, C# and JavaScript. Each ran three times under four conditions: no skill, [sickn33/clean-code](https://github.com/sickn33/agentic-awesome-skills/tree/main/skills/clean-code) (the clean-code skill with the most installs on skills.sh as of November 2026), the first version of this skill, and the current one. Claude Sonnet 5.5 wrote the code; Claude Opus 5.5 graded all four answers to each task under shuffled labels.
+Two benchmarks. The agentic one is the main evidence: the agent works in a real repository with real tools, and six of its nine tasks were held out while the skill was written.
+
+### Agentic track: real repositories, held-out tasks
+
+The coding agent gets a fresh copy of a small repository in Python, TypeScript or Rust and the tools Claude Code normally has: read, search, edit and a shell. Deterministic checks grade what it did: hidden tests, which files changed, whether its regression test fails on the old code, whether it ran the tests after its last edit. A blind judge (Claude Opus 5.5) then reads two pull requests for the same task, once in each order, and says which one it would rather merge.
+
+Three tasks were used while writing v3. The other six were written by separate agents that never saw the skill, and v3 had to beat v2 on those.
+
+<p align="center">
+  <img src="docs/assets/agentic-preference.svg" alt="Blind judge on six held-out tasks, v3 against v2: Sonnet 12 wins, 4 ties, 2 losses, preference 78%; Opus 9, 6, 3, 68%; Haiku 10, 2, 6, 62% with an interval that includes 50%" width="760">
+</p>
+
+| Coding agent | v3 wins / ties / v2 wins | Preference for v3 [95% CI] | Checks passed: no skill / v2 / v3 | Avg. cost per run with v3 |
+|---|---|---|---|---|
+| Claude Sonnet 5.5 | 12 / 4 / 2 | 78% [67–89%] | 97% / 100% / 100% | $0.10 |
+| Claude Opus 5.5 | 9 / 6 / 3 | 68% [58–79%] | 98% / 98% / 99% | $0.25 |
+| Claude Haiku 5.5 | 10 / 2 / 6 | 62% [49–76%] | 98% / 97% / 97% | $0.009 |
+
+What the numbers say:
+
+- **On held-out tasks the judge prefers v3 over v2** with Sonnet and Opus, and both intervals stay above 50%. With Haiku the direction is the same, but the interval includes 50%, so that one is a trend, not a result.
+- **The production code is often the same; the tests are not.** In the judge's stated reasons, v3's pull requests win mostly on their tests (behavior pinned before a refactor, regression tests with edge cases) and on tighter types, not on longer reports.
+- **The checks no longer separate the skills on held-out tasks.** Every condition passes 97–100% of them there, so the judge decides. On the dev tasks they still did: without a skill the agent never ran the tests after its last edit and added no regression test for the bugfix; v2 fixed both, and v3 also pinned untested code with characterization tests before refactoring it.
+
+<p align="center">
+  <img src="docs/assets/agentic-checks.svg" alt="Checks passed with Sonnet. Dev tasks: no skill 70%, sickn33 73%, v2 89%, v3 100%. Held-out tasks: no skill 97%, v2 100%, v3 100%" width="760">
+</p>
+
+Nine tasks with three runs per cell are a small sample, and the intervals describe these tasks, not tasks in general. The skill was appended to the system prompt rather than triggered, so whether it loads on its own is not tested. The first grading of the held-out runs had false alarms (Windows line endings, a CLI's intended `print`, Rust unit tests) that put v3 slightly behind v2; they were fixed for every condition and all runs regraded before these numbers. Transcripts, diffs, checks with evidence and every verdict with its reasons are under [`evals/results/agentic/`](evals/results/agentic).
+
+### Single-turn suite (measured with v2)
+
+The first benchmark asks for one reply without tools. Eight realistic coding tasks across Python, TypeScript, Java, Go, Kotlin, C# and JavaScript, each run three times under four conditions: no skill, [sickn33/clean-code](https://github.com/sickn33/agentic-awesome-skills/tree/main/skills/clean-code) (the clean-code skill with the most installs on skills.sh as of November 2026), the first version of this skill, and v2. Claude Sonnet 5.5 wrote the code; Claude Opus 5.5 graded all four answers to each task under shuffled labels. v3 keeps every rule of v2 and adds the ones above; it has not been rerun on this suite.
 
 <p align="center">
   <img src="docs/assets/results-quality.svg" alt="Judge quality score: no skill 7.5, sickn33 7.5, v1 6.2, v2 8.4" width="49%">
@@ -58,7 +92,7 @@ What the numbers say:
   <img src="docs/assets/results-by-case.svg" alt="Assertions passed per case and condition" width="760">
 </p>
 
-Treat these as a sanity check, not a leaderboard: eight cases, an LLM judge that can partly tell skill-guided answers apart (they cite heuristic codes), and cases written alongside v2. Every reply and every verdict with its evidence is committed under [`evals/results/`](evals/results), and [`evals/README.md`](evals/README.md) explains the method and how to rerun it.
+Treat these as a sanity check, not a leaderboard: eight cases, an LLM judge that can partly tell skill-guided answers apart (they cite heuristic codes), and cases written alongside v2. Every reply and every verdict with its evidence is committed under [`evals/results/`](evals/results), and [`evals/README.md`](evals/README.md) explains both benchmarks and how to rerun them.
 
 ## Install
 
@@ -106,10 +140,11 @@ Before writing, changing or reviewing code, load the clean-code skill and follow
 ```mermaid
 flowchart LR
     A[Read the surrounding code<br/>find existing helpers] --> B[Smallest change<br/>that solves the task]
-    B --> C[Test first<br/>where tests exist]
+    B --> C[Test first, or pin untested<br/>code with characterization tests]
     C --> D[Refactor in small steps<br/>tests stay green]
     D --> E[Final checklist<br/>against own diff]
-    E -->|bent a rule| F[Say why in one line]
+    E --> F[Report: what changed,<br/>commands run, real results]
+    E -->|bent a rule| G[Say why in one line]
 ```
 
 ```text
@@ -140,7 +175,7 @@ Pick by what you need: a reference to look things up, a per-chapter checker, or 
 
 ## Contributing
 
-Issues and pull requests are welcome, especially new eval cases. A good case is a realistic task where a naive reading of the book produces a worse result. Add it to [`evals/cases/`](evals/cases), rerun the evals, and include the summary in the pull request.
+Issues and pull requests are welcome, especially new eval cases. A good case is a realistic task where a naive reading of the book produces a worse result. Add it to [`evals/cases/`](evals/cases) for a single reply, or to [`evals/cases-agentic/`](evals/cases-agentic) as a small repository with hidden tests, checks and a reference solution that `selftest_agentic.py` accepts. Rerun the evals and include the summary in the pull request.
 
 ## Credits
 

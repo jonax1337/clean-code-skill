@@ -1,0 +1,7 @@
+[package]
+name = "tabulate"
+version = "0.9.0"
+edition = "2021"
+description = "Align delimited text from stdin into a plain-text table"
+
+[dependencies]

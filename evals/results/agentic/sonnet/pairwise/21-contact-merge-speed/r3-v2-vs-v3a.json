@@ -1,0 +1,59 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 3,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "2ab6fa4621f1cccb",
+    "v3a": "5c4e81155dbd7dfc"
+  },
+  "score": 0.5,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "The two diffs are byte-for-byte identical. Each replaces the quadratic findIndex scan with a Map from normalized email to index, built in one pass. The change keeps first-occurrence semantics for existing duplicates, merging of duplicates within the upload, and output order; merged entries keep the current email, so the map keys stay valid. Both reports are accurate and say the speedup was not measured, so I would be equally happy to merge either.",
+        "a_issues": [
+          "No benchmark or regression test showing the speedup on large inputs",
+          "No new test pinning the first-occurrence behavior for duplicates already in the stored list"
+        ],
+        "b_issues": [
+          "No benchmark or regression test showing the speedup on large inputs",
+          "No new test pinning the first-occurrence behavior for duplicates already in the stored list"
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "The two diffs are byte-for-byte identical. Each replaces the per-contact linear scan with a Map from normalized email to result index. It keeps first-occurrence-wins for existing duplicates, merges duplicates within the upload, and preserves output order. Both reports are accurate and say plainly that no timing was measured. A explains why no test was added, and B notes that csv.ts and pipeline.ts were left alone; neither difference matters for merging.",
+        "a_issues": [
+          "No test or benchmark guards the linear-time behavior or the duplicates-already-in-the-stored-book case.",
+          "Speedup not measured."
+        ],
+        "b_issues": [
+          "No test or benchmark guards the linear-time behavior or the duplicates-already-in-the-stored-book case.",
+          "Speedup not measured."
+        ]
+      }
+    }
+  ]
+}

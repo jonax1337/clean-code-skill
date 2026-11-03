@@ -1,0 +1,58 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "v2",
+    "v3a"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "v2": "6f09c022224be061",
+    "v3a": "4da0b8bc10522298"
+  },
+  "score": 0.0,
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "v2",
+      "B": "v3a",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct one-line fix: blank or whitespace-only lines are skipped, and `enumerate` still counts every physical line. B's test also pins down the property both reports emphasise, that an error after blank lines still names the right physical line (line 4). A's test only checks that blanks are dropped from the result, so its line-number claim is untested. Both reports are honest about what was verified.",
+        "a_issues": [
+          "The test does not check that line numbers still count skipped blank lines, although the report highlights that behaviour.",
+          "The README's CSV import section is not updated to say blank lines are ignored."
+        ],
+        "b_issues": [
+          "One test function combines two separate scenarios (error line numbering and trailing-blank success), which is slightly less readable.",
+          "The README's CSV import section is not updated to say blank lines are ignored."
+        ]
+      }
+    },
+    {
+      "A": "v3a",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct one-line fix in `parse_entries`: skip blank and whitespace-only lines while still counting them for line numbers. Both reports say line numbers stay right after blank lines. Only A's test checks this, by expecting a bad line after two blank lines to be reported as line 4. A's test also covers a trailing blank line, which is the reported case, so it protects both the fix and the line-number claim.",
+        "a_issues": [
+          "One test function holds two separate scenarios (line numbering and trailing-blank skipping), which is slightly less focused."
+        ],
+        "b_issues": [
+          "The report says line numbers still count skipped lines, but no test checks this; a later change could reset numbering without failing the suite.",
+          "The report argues the test would fail on the old code instead of showing it; the argument is plausible but untested."
+        ]
+      }
+    }
+  ]
+}

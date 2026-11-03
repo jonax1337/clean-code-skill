@@ -1,0 +1,60 @@
+{
+  "case": "02-bugfix-legacy-module",
+  "rep": 3,
+  "pair": [
+    "baseline",
+    "sickn33"
+  ],
+  "judge_model": "opus",
+  "score": 0.0,
+  "orders": [
+    {
+      "A": "baseline",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs correctly fix the December crash and the same Q4 bug in quarter_range, and neither changes behavior for other months. B puts the rollover in one small helper instead of repeating the conditional twice, which is a bit more readable. B's report also says it checked the December, Q4 and January ranges directly, while A ran nothing. Neither adds a regression test, so the difference is small.",
+        "a_issues": [
+          "No regression test added for December or Q4",
+          "Did not run or verify the fix at all",
+          "The rollover conditional is repeated in two long inline lines"
+        ],
+        "b_issues": [
+          "No regression test added for December or Q4",
+          "Did not run monthly_report or the test suite; only checked the ranges by hand",
+          "The helper adds a little more code than strictly needed"
+        ]
+      }
+    },
+    {
+      "A": "sickn33",
+      "B": "baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes fix the December and Q4 rollover correctly, and neither touches behavior for the other months. A puts the rollover logic in one small, well-named helper that both functions use, so the fix lives in one place. B repeats the special case inline in two long conditional lines. A's report also says it checked the December, Q4 and January ranges directly, while B did no checking at all.",
+        "a_issues": [
+          "Adds no regression test for December or Q4, even though the existing tests make that easy.",
+          "The helper only handles month 13. That is enough here, but its docstring implies a general rollover."
+        ],
+        "b_issues": [
+          "Adds no regression test for December or Q4.",
+          "Nothing was checked: B ran neither the ranges nor the tests.",
+          "The special case is duplicated inline in long ternary lines, which is a little harder to read than a shared helper."
+        ]
+      }
+    }
+  ],
+  "contradictory": false,
+  "fingerprints": {
+    "baseline": "7cefac2bf5a514e1",
+    "sickn33": "61a6e5a98d48a9c2"
+  }
+}

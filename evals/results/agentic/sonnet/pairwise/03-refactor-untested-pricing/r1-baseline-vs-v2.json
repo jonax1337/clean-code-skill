@@ -1,0 +1,61 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "rep": 1,
+  "pair": [
+    "baseline",
+    "v2"
+  ],
+  "judge_model": "opus",
+  "score": 0.0,
+  "orders": [
+    {
+      "A": "baseline",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors keep the signature and the behavior: the member factor, the SAVE10 clamp and the cent rounding all work as before. B's `==` to `===` switch is safe for every caller in the repo (string, undefined or a missing category, and a string or undefined coupon), and B discloses it. B also reports running the tests and `tsc`, and the existing cart tests would pass against either version. A's report is honest, but A did no verification for a function the task warns is used everywhere.",
+        "a_issues": [
+          "Did not run the existing tests or the type checker, although the task stresses not breaking callers",
+          "Keeps loose `==` comparisons, which is a minor readability loss in a change whose purpose is cleanup",
+          "No tests added for `getPrice` directly (books rate, zero clamp), and the gap is not flagged"
+        ],
+        "b_issues": [
+          "Report says the clamp is `Math.max(price - 10, 0)`, but the code uses `SAVE10_DISCOUNT`, a small inaccuracy",
+          "Changes `==` to `===`, a small semantic change beyond a pure readability cleanup (disclosed and harmless here)",
+          "No direct `getPrice` tests added, though the gap is called out"
+        ]
+      }
+    },
+    {
+      "A": "v2",
+      "B": "baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors give the same results for every real caller, including the `\"mixed\"` category in cart, the undefined category in checkout and feed rows, and the empty or undefined coupon. A ran the tests and the type checker and reports both passing, and it names the coupon code as a constant. B's report says plainly that nothing was run. A's `===` switch is a small semantic change, but A disclosed it, and it is harmless given how the callers use `getPrice`.",
+        "a_issues": [
+          "Switching `==` to `===` is a semantic change in a pure cleanup, though it is disclosed and has no effect on any current caller.",
+          "`memberFactor(category: string)` declares a string, but callers like checkout and feeds pass an undefined category. This only type-checks because `p` is `any`.",
+          "No direct tests were added for `getPrice`, such as the books rate or the zero clamp, even though the existing tests cover only the cart."
+        ],
+        "b_issues": [
+          "Neither the tests nor the type checker were run, so the claim that nothing breaks is unverified (the report admits this).",
+          "The `\"SAVE10\"` literal is left inline while its amount gets a named constant, which is a slightly inconsistent cleanup.",
+          "No direct tests were added for `getPrice`."
+        ]
+      }
+    }
+  ],
+  "contradictory": false,
+  "fingerprints": {
+    "baseline": "a1f806e4783e2d15",
+    "v2": "7c55d7e9d7734931"
+  }
+}

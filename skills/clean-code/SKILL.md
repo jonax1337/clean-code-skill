@@ -3,7 +3,7 @@ name: clean-code
 description: "Clean Code practices after Robert C. Martin (Beck's four rules of simple design, the C1–T9 smell catalog), adapted for coding agents: language idioms and project conventions win over dogma, edits stay in scope, and agent-typical failure modes are checked before finishing. Use this skill whenever you write, change, refactor, fix, or review code in any language — features, bugfixes, refactorings, PR reviews — even if the user never says \"clean code\". Also use it for /clean-code [path]."
 license: MIT
 metadata:
-  version: "2.0.0"
+  version: "3.0.0"
 ---
 
 # Clean Code for coding agents
@@ -31,6 +31,8 @@ Why this order: the book's rules are means to readable, changeable code. When a 
 An agent's most expensive mistake is not an ugly function. It is a diff that does more than was asked. Reviewers then have to separate the change they wanted from the changes they did not.
 
 - **Solve the task that was asked.** Clean the code you touch (the Boy Scout Rule applies to the lines in your diff and their immediate neighbors). Name larger problems elsewhere in your reply instead of fixing them.
+- **When the task is to clean up or refactor a unit, the whole unit is the task.** Improve it fully, types included, instead of deferring parts of it to "a follow-up". Scope discipline protects the code *outside* the unit you were asked to change, not the unit itself.
+- **Let the toolchain decide what is safe.** When a type checker, compiler or test suite can verify a change (replacing an `any`, tightening a type, renaming a private symbol), make the change and run the tool. Do not skip an improvement because it *might* break callers; find out. Back out only what the tool shows to be wrong.
 - **Search before you write.** Look for an existing helper, type, constant or pattern before adding one. A second `formatCurrency` is duplication (G5) even if yours is nicer.
 - **Keep public signatures stable** unless the task is to change them. If a refactoring has to change one, say so and list the callers.
 - **No speculative generality.** No interfaces with one implementation, no options nobody passes, no plugin systems for one plugin. Add the abstraction when the second case arrives.
@@ -93,6 +95,7 @@ Agent-specific: never write comments that narrate your edit (`// changed to use 
 - Test boundaries (T5) and look around every bug you fix (T6) — bugs cluster.
 - Where the project has tests: a bugfix gets a regression test that fails without the fix. Test-first is the default for new behavior. Do not write tests that only assert the implementation's current internals.
 - Never disable, skip or loosen a failing test to get green (G4). Find out why it fails.
+- **Refactoring code that has no tests: pin its behavior first.** Write characterization tests that capture what the code does now, odd edge cases included, and run them against the original. Then refactor and run them again. They are part of the refactoring, not extra scope, so keep them in the diff.
 
 ## 10. Classes and systems (ch. 10–11)
 
@@ -138,10 +141,12 @@ Check your own diff for these before you report done. They are the mistakes revi
 2. **Write:** test first where the project has tests. Make it work, then make it clean while the tests stay green.
 3. **Refactor** in small steps with behavior preserved. Run the tests after each meaningful step.
 4. **Finish** with the checklist below, against your own diff.
+5. **Report** back as described below.
 
 ### Final checklist
 
 - [ ] Tests, type check and linter ran and pass. I ran them; I am not assuming.
+- [ ] Where the project has tests, the new behavior or the fixed bug is covered by a test I added.
 - [ ] The diff contains only what the task needs. Larger issues are mentioned, not fixed.
 - [ ] No duplication with existing code (G5). Existing helpers are reused.
 - [ ] Names reveal intent and match the codebase's vocabulary (N1–N7, G11).
@@ -151,6 +156,15 @@ Check your own diff for these before you report done. They are the mistakes revi
 - [ ] No dead code, commented-out code, debug output or narrating comments (F4, G9, G12, C1–C5).
 - [ ] Every new element earns its place (Beck rule 4).
 - [ ] Where I bent a rule (hot path, convention, idiom), I said why.
+
+### Reporting back
+
+The final message is part of the deliverable: the reviewer decides from it what to check. Keep it short and accurate.
+
+- What changed and why, in a few lines.
+- Which commands you ran and their actual results ("pytest: 9 passed"). Say plainly what you did not run.
+- Claims about the code only where you checked them. "No test covers X" needs every relevant test read; otherwise write "I did not find a test for X", or leave it out.
+- What you deliberately left alone, and why.
 
 ## 15. Reviews
 

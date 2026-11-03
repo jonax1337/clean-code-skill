@@ -1,0 +1,58 @@
+{
+  "case": "03-refactor-untested-pricing",
+  "rep": 3,
+  "pair": [
+    "sickn33",
+    "v2"
+  ],
+  "judge_model": "opus",
+  "score": 0.0,
+  "orders": [
+    {
+      "A": "sickn33",
+      "B": "v2",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors give the same results for every realistic input and are about equally readable: named constants, flattened conditionals and a `roundToCents` helper. B actually ran the test suite and the type-check and was candid about what those don't cover. A ran nothing and didn't look for tests, even though the task stresses not breaking callers. A's stricter preservation of `==` is a marginal advantage, but it doesn't outweigh B's verification.",
+        "a_issues": [
+          "Ran no tests or type-check despite the 'don't break anything' requirement; `npm test` and `tsc` were readily available.",
+          "Didn't look for the existing test suite or add tests for books pricing or the coupon clamp."
+        ],
+        "b_issues": [
+          "Changing `==` to `===` on `p.category`, where `p` is `any`, is a small semantic change. The report still says behavior is 'unchanged' without qualifying it.",
+          "Added no tests for the uncovered paths (books discount, SAVE10 clamp at zero), though it flagged the gap."
+        ]
+      }
+    },
+    {
+      "A": "v2",
+      "B": "sickn33",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors produce the same results for every realistic input, and both keep the signature unchanged, so no caller needs edits. A is a little tighter: one helper for the member factor, no wrapper for the coupon step. A also actually ran the tests and the type-check and said honestly which edge cases it checked only by reading. B's code is equally sound, but B ran nothing, so its claim of 'same arithmetic' rests only on reading the code.",
+        "a_issues": [
+          "Changed `==` to `===` while saying behavior is unchanged; for `category` and `coupon` inputs this differs only in theoretical coercion cases.",
+          "The existing tests do not cover books pricing or the coupon clamp, and no test was added for them."
+        ],
+        "b_issues": [
+          "Ran no tests or type-check, so the refactor is unverified even though a test suite and a typecheck script exist.",
+          "Kept loose `==`/`!=` comparisons, which leaves part of the readability cleanup undone.",
+          "The `applyCoupon` wrapper and a separate constant for the coupon string add a little more indirection than this small function needs."
+        ]
+      }
+    }
+  ],
+  "contradictory": false,
+  "fingerprints": {
+    "sickn33": "d3fe54078a9cfa79",
+    "v2": "f1f7e1f9371070be"
+  }
+}
