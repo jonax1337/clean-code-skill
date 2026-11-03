@@ -1,9 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="308" viewBox="0 0 760 308" role="img" aria-labelledby="t">
-<style>text{font-family:system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif} .bg{fill:#fcfcfb} .ink{fill:#0b0b0b} .ink2{fill:#52514e} .muted{fill:#898781} .grid{stroke:#e1e0d9} .bar{fill:#c3c2b7} .accent{fill:#2a78d6} .axis{stroke:#c3c2b7} .bar-strong{fill:#898781} .on-accent{fill:#ffffff} .on-bar{fill:#0b0b0b} .on-bar-strong{fill:#0b0b0b} @media (prefers-color-scheme: dark){.bg{fill:#1a1a19} .ink{fill:#f0efec} .ink2{fill:#c3c2b7} .muted{fill:#898781} .grid{stroke:#2c2c2a} .bar{fill:#52514e} .accent{fill:#3987e5} .axis{stroke:#383835} .bar-strong{fill:#898781} .on-accent{fill:#ffffff} .on-bar{fill:#ffffff} .on-bar-strong{fill:#0b0b0b}}</style>
+<style>text{font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif} .mono{font-family:ui-monospace, 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace} .bg{fill:#f6f8f7} .frame{stroke:#e2e8e5} .ink{fill:#0b1215} .ink2{fill:#47554f} .muted{fill:#6f7d77} .grid{stroke:#e2e8e5} .bar{fill:#cfd7d3} .accent{fill:#08805f} .axis{stroke:#c3ccc8} .ref{stroke:#47554f} .bar-strong{fill:#74817c} .on-accent{fill:#ffffff} .on-bar{fill:#0b1215} .on-bar-strong{fill:#ffffff} .seq-0{fill:#e3f5ed} .on-seq-0{fill:#0b1215} .seq-1{fill:#c2e9d8} .on-seq-1{fill:#0b1215} .seq-2{fill:#8fd6b9} .on-seq-2{fill:#0b1215} .seq-3{fill:#4fbb92} .on-seq-3{fill:#0b1215} .seq-4{fill:#12906a} .on-seq-4{fill:#ffffff} .seq-5{fill:#0a7253} .on-seq-5{fill:#ffffff} @media (prefers-color-scheme: dark){.bg{fill:#0f1614} .frame{stroke:#1f2a26} .ink{fill:#edf3f0} .ink2{fill:#b4c1bb} .muted{fill:#83918b} .grid{stroke:#1f2a26} .bar{fill:#34403c} .accent{fill:#34d399} .axis{stroke:#3a4642} .ref{stroke:#b4c1bb} .bar-strong{fill:#64716c} .on-accent{fill:#04140e} .on-bar{fill:#edf3f0} .on-bar-strong{fill:#ffffff} .seq-0{fill:#15302a} .on-seq-0{fill:#edf3f0} .seq-1{fill:#1a4739} .on-seq-1{fill:#edf3f0} .seq-2{fill:#1f634e} .on-seq-2{fill:#edf3f0} .seq-3{fill:#238866} .on-seq-3{fill:#edf3f0} .seq-4{fill:#2db27f} .on-seq-4{fill:#04140e} .seq-5{fill:#56dba3} .on-seq-5{fill:#04140e}}</style>
 <title id="t">Share of deterministic checks passed per skill condition, dev tasks and held-out tasks</title>
-<rect class="bg" width="760" height="308" rx="8"/>
-<text class="ink" x="24" y="32" font-size="16" font-weight="600">Deterministic checks passed</text>
-<text class="ink2" x="24" y="50" font-size="12">Claude Sonnet 5.5 as the coding agent</text>
+<rect class="bg frame" x="0.5" y="0.5" width="759" height="307" rx="12" stroke-width="1"/>
+<text class="ink" x="24" y="34" font-size="17" font-weight="700">Deterministic checks passed</text>
+<text class="ink2" x="24" y="54" font-size="12.5">Claude Sonnet 5.5 as the coding agent</text>
+<circle class="accent" cx="661.0" cy="30" r="3.5"/>
+<text class="muted mono" x="736" y="34" font-size="11" text-anchor="end">clean-code</text>
 <text class="ink" x="24.0" y="84.0" font-size="13" font-weight="600">Dev tasks (7)</text>
 <text class="muted" x="24.0" y="100.0" font-size="11">used while developing the skill, 3 runs per task</text>
 <line class="axis" x1="140.0" y1="114" x2="140.0" y2="274" stroke-width="1"/>
@@ -17,11 +19,12 @@
 <path class="bar" d="M140.0,120.0 H287.1 A4,4 0 0 1 291.1,124.0 V136.0 A4,4 0 0 1 287.1,140.0 H140.0 Z"/>
 </g>
 <text class="ink" x="297.1" y="134.0" font-size="12">82%</text>
-<text class="ink" x="130.0" y="166.0" font-size="12" font-weight="600" text-anchor="end">This repo</text>
-<g><title>This repo, dev tasks: 100% of checks passed</title>
+<rect class="accent" x="16.0" y="147" width="352.0" height="30" rx="6" opacity="0.08"/>
+<text class="ink" x="130.0" y="166.0" font-size="12" font-weight="700" text-anchor="end">This skill</text>
+<g><title>This skill, dev tasks: 100% of checks passed</title>
 <path class="accent" d="M140.0,152.0 H319.3 A4,4 0 0 1 323.3,156.0 V168.0 A4,4 0 0 1 319.3,172.0 H140.0 Z"/>
 </g>
-<text class="ink" x="329.3" y="166.0" font-size="12" font-weight="600">100%</text>
+<text class="ink" x="329.3" y="166.0" font-size="12" font-weight="700">100%</text>
 <text class="ink" x="130.0" y="198.0" font-size="12" text-anchor="end">unclebob/ub-mode</text>
 <g><title>unclebob/ub-mode, dev tasks: 95% of checks passed</title>
 <path class="bar" d="M140.0,184.0 H311.1 A4,4 0 0 1 315.1,188.0 V200.0 A4,4 0 0 1 311.1,204.0 H140.0 Z"/>
@@ -50,11 +53,12 @@
 <path class="bar" d="M508.0,120.0 H681.2 A4,4 0 0 1 685.2,124.0 V136.0 A4,4 0 0 1 681.2,140.0 H508.0 Z"/>
 </g>
 <text class="ink" x="691.2" y="134.0" font-size="12">96%</text>
-<text class="ink" x="498.0" y="166.0" font-size="12" font-weight="600" text-anchor="end">This repo</text>
-<g><title>This repo, held-out tasks: 98% of checks passed</title>
+<rect class="accent" x="384.0" y="147" width="352.0" height="30" rx="6" opacity="0.08"/>
+<text class="ink" x="498.0" y="166.0" font-size="12" font-weight="700" text-anchor="end">This skill</text>
+<g><title>This skill, held-out tasks: 98% of checks passed</title>
 <path class="accent" d="M508.0,152.0 H685.1 A4,4 0 0 1 689.1,156.0 V168.0 A4,4 0 0 1 685.1,172.0 H508.0 Z"/>
 </g>
-<text class="ink" x="695.1" y="166.0" font-size="12" font-weight="600">98%</text>
+<text class="ink" x="695.1" y="166.0" font-size="12" font-weight="700">98%</text>
 <text class="ink" x="498.0" y="198.0" font-size="12" text-anchor="end">unclebob/ub-mode</text>
 <g><title>unclebob/ub-mode, held-out tasks: 97% of checks passed</title>
 <path class="bar" d="M508.0,184.0 H681.6 A4,4 0 0 1 685.6,188.0 V200.0 A4,4 0 0 1 681.6,204.0 H508.0 Z"/>

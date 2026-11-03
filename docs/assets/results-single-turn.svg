@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="302" viewBox="0 0 760 302" role="img" aria-labelledby="t">
+<style>text{font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif} .mono{font-family:ui-monospace, 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace} .bg{fill:#f6f8f7} .frame{stroke:#e2e8e5} .ink{fill:#0b1215} .ink2{fill:#47554f} .muted{fill:#6f7d77} .grid{stroke:#e2e8e5} .bar{fill:#cfd7d3} .accent{fill:#08805f} .axis{stroke:#c3ccc8} .ref{stroke:#47554f} .bar-strong{fill:#74817c} .on-accent{fill:#ffffff} .on-bar{fill:#0b1215} .on-bar-strong{fill:#ffffff} .seq-0{fill:#e3f5ed} .on-seq-0{fill:#0b1215} .seq-1{fill:#c2e9d8} .on-seq-1{fill:#0b1215} .seq-2{fill:#8fd6b9} .on-seq-2{fill:#0b1215} .seq-3{fill:#4fbb92} .on-seq-3{fill:#0b1215} .seq-4{fill:#12906a} .on-seq-4{fill:#ffffff} .seq-5{fill:#0a7253} .on-seq-5{fill:#ffffff} @media (prefers-color-scheme: dark){.bg{fill:#0f1614} .frame{stroke:#1f2a26} .ink{fill:#edf3f0} .ink2{fill:#b4c1bb} .muted{fill:#83918b} .grid{stroke:#1f2a26} .bar{fill:#34403c} .accent{fill:#34d399} .axis{stroke:#3a4642} .ref{stroke:#b4c1bb} .bar-strong{fill:#64716c} .on-accent{fill:#04140e} .on-bar{fill:#edf3f0} .on-bar-strong{fill:#ffffff} .seq-0{fill:#15302a} .on-seq-0{fill:#edf3f0} .seq-1{fill:#1a4739} .on-seq-1{fill:#edf3f0} .seq-2{fill:#1f634e} .on-seq-2{fill:#edf3f0} .seq-3{fill:#238866} .on-seq-3{fill:#edf3f0} .seq-4{fill:#2db27f} .on-seq-4{fill:#04140e} .seq-5{fill:#56dba3} .on-seq-5{fill:#04140e}}</style>
+<title id="t">Judge quality score and assertions passed per skill condition, single-turn suite</title>
+<rect class="bg frame" x="0.5" y="0.5" width="759" height="301" rx="12" stroke-width="1"/>
+<text class="ink" x="24" y="34" font-size="17" font-weight="700">Single-turn suite</text>
+<text class="ink2" x="24" y="54" font-size="12.5">8 coding tasks, 3 runs each, graded blind</text>
+<circle class="accent" cx="661.0" cy="30" r="3.5"/>
+<text class="muted mono" x="736" y="34" font-size="11" text-anchor="end">clean-code</text>
+<text class="ink" x="208" y="115.0" font-size="13" font-weight="400" text-anchor="end">No skill</text>
+<rect class="accent" x="12" y="128" width="736" height="34" rx="6" opacity="0.08"/>
+<text class="ink" x="208" y="149.0" font-size="13" font-weight="700" text-anchor="end">This skill</text>
+<text class="ink" x="208" y="183.0" font-size="13" font-weight="400" text-anchor="end">unclebob/ub-mode</text>
+<text class="ink" x="208" y="217.0" font-size="13" font-weight="400" text-anchor="end">sickn33</text>
+<text class="ink" x="208" y="251.0" font-size="13" font-weight="400" text-anchor="end">ertugrul-dmr (3 of 8 tasks)</text>
+<text class="ink" x="220.0" y="78" font-size="13" font-weight="600">Judge quality score (1–10)</text>
+<line class="axis" x1="220.0" y1="92" x2="220.0" y2="264" stroke-width="1"/>
+<text class="muted" x="220.0" y="280" font-size="11" text-anchor="middle">0</text>
+<line class="grid" x1="323.0" y1="92" x2="323.0" y2="264" stroke-width="1"/>
+<text class="muted" x="323.0" y="280" font-size="11" text-anchor="middle">5</text>
+<line class="grid" x1="426.0" y1="92" x2="426.0" y2="264" stroke-width="1"/>
+<text class="muted" x="426.0" y="280" font-size="11" text-anchor="middle">10</text>
+<g><title>No skill: Judge quality score (1–10) 7.6</title>
+<rect class="bar" x="220.0" y="100" width="156.2" height="22" rx="4"/>
+</g>
+<text class="ink" x="384.2" y="115.0" font-size="13" font-weight="400">7.6</text>
+<g><title>This skill: Judge quality score (1–10) 8.5</title>
+<rect class="accent" x="220.0" y="134" width="176.0" height="22" rx="4"/>
+</g>
+<text class="ink" x="404.0" y="149.0" font-size="13" font-weight="700">8.5</text>
+<g><title>unclebob/ub-mode: Judge quality score (1–10) 6.5</title>
+<rect class="bar" x="220.0" y="168" width="134.8" height="22" rx="4"/>
+</g>
+<text class="ink" x="362.8" y="183.0" font-size="13" font-weight="400">6.5</text>
+<g><title>sickn33: Judge quality score (1–10) 7.2</title>
+<rect class="bar" x="220.0" y="202" width="149.3" height="22" rx="4"/>
+</g>
+<text class="ink" x="377.4" y="217.0" font-size="13" font-weight="400">7.2</text>
+<g><title>ertugrul-dmr (3 of 8 tasks): Judge quality score (1–10) 6.7</title>
+<rect class="bar" x="220.0" y="236" width="137.3" height="22" rx="4"/>
+</g>
+<text class="ink" x="365.3" y="251.0" font-size="13" font-weight="400">6.7</text>
+<text class="ink" x="506.0" y="78" font-size="13" font-weight="600">Assertions passed</text>
+<line class="axis" x1="506.0" y1="92" x2="506.0" y2="264" stroke-width="1"/>
+<text class="muted" x="506.0" y="280" font-size="11" text-anchor="middle">0%</text>
+<line class="grid" x1="609.0" y1="92" x2="609.0" y2="264" stroke-width="1"/>
+<text class="muted" x="609.0" y="280" font-size="11" text-anchor="middle">50%</text>
+<line class="grid" x1="712.0" y1="92" x2="712.0" y2="264" stroke-width="1"/>
+<text class="muted" x="712.0" y="280" font-size="11" text-anchor="middle">100%</text>
+<g><title>No skill: Assertions passed 93.3%</title>
+<rect class="bar" x="506.0" y="100" width="192.3" height="22" rx="4"/>
+</g>
+<text class="ink" x="706.3" y="115.0" font-size="13" font-weight="400">93.3%</text>
+<g><title>This skill: Assertions passed 99.2%</title>
+<rect class="accent" x="506.0" y="134" width="204.3" height="22" rx="4"/>
+</g>
+<text class="ink" x="718.3" y="149.0" font-size="13" font-weight="700">99.2%</text>
+<g><title>unclebob/ub-mode: Assertions passed 95.0%</title>
+<rect class="bar" x="506.0" y="168" width="195.7" height="22" rx="4"/>
+</g>
+<text class="ink" x="709.7" y="183.0" font-size="13" font-weight="400">95.0%</text>
+<g><title>sickn33: Assertions passed 92.5%</title>
+<rect class="bar" x="506.0" y="202" width="190.6" height="22" rx="4"/>
+</g>
+<text class="ink" x="704.5" y="217.0" font-size="13" font-weight="400">92.5%</text>
+<g><title>ertugrul-dmr (3 of 8 tasks): Assertions passed 88.9%</title>
+<rect class="bar" x="506.0" y="236" width="183.1" height="22" rx="4"/>
+</g>
+<text class="ink" x="697.1" y="251.0" font-size="13" font-weight="400">88.9%</text>
+</svg>

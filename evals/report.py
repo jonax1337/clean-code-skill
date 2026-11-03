@@ -13,12 +13,11 @@ from dataclasses import dataclass
 from html import escape
 from statistics import mean
 
-from charts import ASSETS_DIR, chart_frame, short_label
+from charts import ASSETS_DIR, SEQUENTIAL_STEPS, chart_frame, row_highlight, short_label
 from harness import ALL_CONDITIONS, GRADES_DIR, RESULTS_DIR, RUNS_DIR, THIS_REPO, load_cases
 
 HIGHLIGHTED_CONDITION = THIS_REPO
 NOT_RUN = "n/a"
-SEQUENTIAL_BLUE = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95"]
 
 
 @dataclass
@@ -44,8 +43,7 @@ def main() -> None:
     stats = _collect_stats()
     _write_summary(stats)
     ASSETS_DIR.mkdir(parents=True, exist_ok=True)
-    (ASSETS_DIR / "results-pass-rate.svg").write_text(_bar_chart(stats, PASS_RATE), encoding="utf-8")
-    (ASSETS_DIR / "results-quality.svg").write_text(_bar_chart(stats, QUALITY), encoding="utf-8")
+    (ASSETS_DIR / "results-single-turn.svg").write_text(_metrics_chart(stats), encoding="utf-8")
     (ASSETS_DIR / "results-by-case.svg").write_text(_case_heatmap(stats), encoding="utf-8")
     print((RESULTS_DIR / "summary.md").read_text(encoding="utf-8"))
 
@@ -154,56 +152,89 @@ class BarMetric:
     maximum: float
     ticks: tuple[float, ...]
     format: str
+    tick_format: str
 
 
-PASS_RATE = BarMetric("Assertions passed", lambda s: s.pass_rate, 1, (0, 0.25, 0.5, 0.75, 1), "{:.1%}")
-QUALITY = BarMetric("Judge quality score (1–10)", lambda s: s.quality, 10, (0, 2.5, 5, 7.5, 10), "{:.1f}")
+PASS_RATE = BarMetric("Assertions passed", lambda s: s.pass_rate, 1, (0, 0.5, 1), "{:.1%}", "{:.0%}")
+QUALITY = BarMetric("Judge quality score (1–10)", lambda s: s.quality, 10, (0, 5, 10), "{:.1f}", "{:.0f}")
+METRIC_BAR_HEIGHT, METRIC_ROW_PITCH = 22, 34
 
 
-def _bar_chart(stats: list[ConditionStats], metric: BarMetric) -> str:
-    width, label_width, bar_height, gap, top = 720, 210, 30, 14, 64
-    plot_width = width - label_width - 90
-    height = top + len(stats) * (bar_height + gap) + 36
+def _metrics_chart(stats: list[ConditionStats], metrics: tuple[BarMetric, ...] = (QUALITY, PASS_RATE)) -> str:
+    """One panel per metric, side by side, sharing the condition labels on the left."""
+    width, label_width, panel_gap, value_room, top = 760, 196, 32, 48, 100
+    panel_width = (width - 24 - label_width - panel_gap * (len(metrics) - 1)) / len(metrics)
+    rows_bottom = top + len(stats) * METRIC_ROW_PITCH - (METRIC_ROW_PITCH - METRIC_BAR_HEIGHT)
+    height = rows_bottom + 44
     parts = chart_frame(
         width,
         height,
-        title=f"{metric.title} per skill condition",
-        heading=metric.title,
+        title="Judge quality score and assertions passed per skill condition, single-turn suite",
+        heading="Single-turn suite",
         subheading=_run_description(),
     )
-    for tick in metric.ticks:
-        x = label_width + tick / metric.maximum * plot_width
-        parts.append(
-            f'<line class="grid" x1="{x:.1f}" y1="{top - 6}" x2="{x:.1f}" '
-            f'y2="{height - 30}" stroke-width="1"/>'
-        )
-        parts.append(
-            f'<text class="muted" x="{x:.1f}" y="{height - 14}" font-size="11" '
-            f'text-anchor="middle">{metric.format.format(tick)}</text>'
-        )
     for index, stat in enumerate(stats):
-        y = top + index * (bar_height + gap)
+        y = top + index * METRIC_ROW_PITCH
+        if stat.name == HIGHLIGHTED_CONDITION:
+            parts.append(row_highlight(12, y - 6, width - 24, METRIC_BAR_HEIGHT + 12))
+        parts.append(
+            f'<text class="ink" x="{24 + label_width - 12}" y="{y + METRIC_BAR_HEIGHT / 2 + 4:.1f}" '
+            f'font-size="13" font-weight="{_weight(stat)}" text-anchor="end">'
+            f"{escape(short_label(stat.chart_label))}</text>"
+        )
+    for index, metric in enumerate(metrics):
+        x = 24 + label_width + index * (panel_width + panel_gap)
+        parts += _metric_panel(x, top, panel_width - value_room, rows_bottom, stats, metric)
+    parts.append("</svg>")
+    return "\n".join(parts)
+
+
+def _metric_panel(
+    x: float,
+    top: float,
+    plot_width: float,
+    rows_bottom: float,
+    stats: list[ConditionStats],
+    metric: BarMetric,
+) -> list[str]:
+    elements = [
+        f'<text class="ink" x="{x}" y="{top - 22}" font-size="13" font-weight="600">{escape(metric.title)}</text>'
+    ]
+    for tick in metric.ticks:
+        tick_x = x + tick / metric.maximum * plot_width
+        elements += [
+            (
+                f'<line class="{"axis" if tick == 0 else "grid"}" x1="{tick_x:.1f}" y1="{top - 8}" '
+                f'x2="{tick_x:.1f}" y2="{rows_bottom + 6}" stroke-width="1"/>'
+            ),
+            (
+                f'<text class="muted" x="{tick_x:.1f}" y="{rows_bottom + 22}" font-size="11" '
+                f'text-anchor="middle">{metric.tick_format.format(tick)}</text>'
+            ),
+        ]
+    for index, stat in enumerate(stats):
+        y = top + index * METRIC_ROW_PITCH
         value = metric.value(stat)
         bar_width = max(value / metric.maximum * plot_width, 4)
         bar_class = "accent" if stat.name == HIGHLIGHTED_CONDITION else "bar"
-        weight = "600" if stat.name == HIGHLIGHTED_CONDITION else "400"
-        parts += [
+        formatted = metric.format.format(value)
+        elements += [
+            f"<g><title>{escape(short_label(stat.chart_label))}: {escape(metric.title)} {formatted}</title>",
             (
-                f'<text class="ink" x="{label_width - 12}" y="{y + bar_height / 2 + 4:.1f}" '
-                f'font-size="13" font-weight="{weight}" text-anchor="end">{escape(short_label(stat.chart_label))}</text>'
+                f'<rect class="{bar_class}" x="{x}" y="{y}" width="{bar_width:.1f}" '
+                f'height="{METRIC_BAR_HEIGHT}" rx="4"/>'
             ),
+            "</g>",
             (
-                f'<rect class="{bar_class}" x="{label_width}" y="{y}" width="{bar_width:.1f}" '
-                f'height="{bar_height}" rx="4"/>'
-            ),
-            (
-                f'<text class="ink" x="{label_width + bar_width + 8:.1f}" '
-                f'y="{y + bar_height / 2 + 4:.1f}" font-size="13" font-weight="{weight}">'
-                f"{metric.format.format(value)}</text>"
+                f'<text class="ink" x="{x + bar_width + 8:.1f}" y="{y + METRIC_BAR_HEIGHT / 2 + 4:.1f}" '
+                f'font-size="13" font-weight="{_weight(stat)}">{formatted}</text>'
             ),
         ]
-    parts.append("</svg>")
-    return "\n".join(parts)
+    return elements
+
+
+def _weight(stat: ConditionStats) -> str:
+    return "700" if stat.name == HIGHLIGHTED_CONDITION else "400"
 
 
 def _case_heatmap(stats: list[ConditionStats]) -> str:
@@ -217,7 +248,7 @@ def _case_heatmap(stats: list[ConditionStats]) -> str:
         height,
         title="Share of assertions passed per eval case and skill condition",
         heading="Assertions passed by case",
-        subheading="Darker is better",
+        subheading="Stronger color means more assertions passed",
     )
     for column, stat in enumerate(stats):
         x = label_width + column * cell_width + cell_width / 2
@@ -241,16 +272,15 @@ def _case_heatmap(stats: list[ConditionStats]) -> str:
                 )
                 continue
             value = stat.per_case[case_id]
-            fill = SEQUENTIAL_BLUE[min(int(value * len(SEQUENTIAL_BLUE)), len(SEQUENTIAL_BLUE) - 1)]
-            text_fill = "#ffffff" if value >= 4 / len(SEQUENTIAL_BLUE) else "#0b0b0b"
+            step = min(int(value * SEQUENTIAL_STEPS), SEQUENTIAL_STEPS - 1)
             parts += [
                 (
-                    f'<rect x="{x + 1}" y="{y + 1}" width="{cell_width - 2}" height="{cell_height - 2}" '
-                    f'rx="4" fill="{fill}"/>'
+                    f'<rect class="seq-{step}" x="{x + 1}" y="{y + 1}" width="{cell_width - 2}" '
+                    f'height="{cell_height - 2}" rx="4"/>'
                 ),
                 (
-                    f'<text x="{x + cell_width / 2:.1f}" y="{y + cell_height / 2 + 4:.1f}" '
-                    f'font-size="12" text-anchor="middle" fill="{text_fill}">{value:.0%}</text>'
+                    f'<text class="on-seq-{step}" x="{x + cell_width / 2:.1f}" y="{y + cell_height / 2 + 4:.1f}" '
+                    f'font-size="12" text-anchor="middle">{value:.0%}</text>'
                 ),
             ]
     parts.append("</svg>")

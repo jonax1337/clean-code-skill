@@ -1,6 +1,25 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#2a78d6"/>
-  <path d="M206 150 C166 150 160 170 160 200 L160 230 C160 248 150 256 132 256 C150 256 160 264 160 282 L160 312 C160 342 166 362 206 362" fill="none" stroke="#ffffff" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M306 150 C346 150 352 170 352 200 L352 230 C352 248 362 256 380 256 C362 256 352 264 352 282 L352 312 C352 342 346 362 306 362" fill="none" stroke="#ffffff" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M226 258 L250 282 L292 228" fill="none" stroke="#ffffff" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">clean-code</title>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#14251f"/>
+      <stop offset="1" stop-color="#070d0b"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.54" r="0.42">
+      <stop offset="0" stop-color="#34d399" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#34d399" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="check" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#10b981"/>
+      <stop offset="1" stop-color="#6ee7b7"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#tile)"/>
+  <rect width="512" height="512" rx="116" fill="url(#glow)"/>
+  <rect x="3" y="3" width="506" height="506" rx="113" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="6"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M204 146 C168 146 160 164 160 196 L160 226 C160 245 150 256 130 256 C150 256 160 267 160 286 L160 316 C160 348 168 366 204 366" stroke="#e8f1ed" stroke-width="30"/>
+    <path d="M308 146 C344 146 352 164 352 196 L352 226 C352 245 362 256 382 256 C362 256 352 267 352 286 L352 316 C352 348 344 366 308 366" stroke="#e8f1ed" stroke-width="30"/>
+    <path d="M212 262 L244 294 L302 222" stroke="url(#check)" stroke-width="34"/>
+  </g>
 </svg>

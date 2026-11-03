@@ -10,6 +10,10 @@ Die meisten Clean-Code-Skills geben das Buch wieder. Dieser sagt dem Agent zusä
 
 Der Skill selbst ist auf Englisch, damit er in jedem Agent und für jedes Team funktioniert. Der Agent antwortet trotzdem in deiner Sprache.
 
+<p align="center">
+  <img src="docs/assets/highlights.svg" alt="Ergebnisse auf einen Blick, 13 zurückgehaltene Aufgaben, blinder paarweiser Bewerter: gegenüber ohne Skill in 94 % der Urteile bevorzugt mit Claude Sonnet 5.5 und in 71 % mit Claude Opus 5.5; lädt sich auf 11 von 13 Aufgaben selbst, die anderen Clean-Code-Skills in 1 von 33 Läufen; mit Claude Haiku 5.5 war kein Effekt messbar" width="880">
+</p>
+
 ## Was er anders macht
 
 <p align="center">
@@ -70,8 +74,7 @@ Dieser Skill hat sich bei jeder Aufgabe selbst geladen außer beim PR-Review, be
 Acht realistische Coding-Aufgaben in Python, TypeScript, Java, Go, Kotlin, C# und JavaScript, je eine Antwort ohne Werkzeuge, je dreimal pro Bedingung. Claude Sonnet 5.5 schreibt den Code, Claude Opus 5.5 bewertet alle Antworten einer Aufgabe gemeinsam unter vertauschten Bezeichnungen.
 
 <p align="center">
-  <img src="docs/assets/results-quality.svg" alt="Qualitätsurteil: ohne Skill 7,6, dieser Skill 8,5, ub-mode 6,5, sickn33 7,2, ertugrul-dmr 6,7 auf 3 von 8 Aufgaben" width="49%">
-  <img src="docs/assets/results-pass-rate.svg" alt="Erfüllte Kriterien: ohne Skill 93,3 %, dieser Skill 99,2 %, ub-mode 95,0 %, sickn33 92,5 %, ertugrul-dmr 88,9 % auf 3 von 8 Aufgaben" width="49%">
+  <img src="docs/assets/results-single-turn.svg" alt="Single-Turn-Suite. Qualitätsurteil: ohne Skill 7,6, dieser Skill 8,5, ub-mode 6,5, sickn33 7,2, ertugrul-dmr 6,7 auf 3 von 8 Aufgaben. Erfüllte Kriterien: ohne Skill 93,3 %, dieser Skill 99,2 %, ub-mode 95,0 %, sickn33 92,5 %, ertugrul-dmr 88,9 % auf 3 von 8 Aufgaben" width="760">
 </p>
 
 - **Ein starkes Modell kann das schon gut.** Ohne Skill erfüllt Sonnet 93,3 % der Kriterien. Ein Clean-Code-Skill kann wenig gewinnen und einiges verschlechtern.

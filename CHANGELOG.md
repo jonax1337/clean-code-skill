@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+Docs:
+
+- New visual identity: an ink-and-mint palette, a reworked icon (also the plugin icon), banner, precedence diagram, a results-at-a-glance card and a workflow diagram in place of the Mermaid flowchart. Every graphic has its own light and dark theme.
+- The eval charts share the new theme from `charts.py`: the preference chart lists Sonnet, Opus and Haiku in the order of the README tables and marks 50%, the condition under test is labelled "This skill" and highlighted, the heatmap ramp has its own dark-mode steps, and `report.py` draws quality score and assertions passed as one two-panel chart (`results-single-turn.svg`) instead of two half-width ones.
+
 ## 4.0.0 — 2026-11-03
 
 Skill:

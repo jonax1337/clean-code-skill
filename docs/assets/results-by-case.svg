@@ -1,95 +1,97 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="834" height="388" viewBox="0 0 834 388" role="img" aria-labelledby="t">
-<style>text{font-family:system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif} .bg{fill:#fcfcfb} .ink{fill:#0b0b0b} .ink2{fill:#52514e} .muted{fill:#898781} .grid{stroke:#e1e0d9} .bar{fill:#c3c2b7} .accent{fill:#2a78d6} .axis{stroke:#c3c2b7} .bar-strong{fill:#898781} .on-accent{fill:#ffffff} .on-bar{fill:#0b0b0b} .on-bar-strong{fill:#0b0b0b} @media (prefers-color-scheme: dark){.bg{fill:#1a1a19} .ink{fill:#f0efec} .ink2{fill:#c3c2b7} .muted{fill:#898781} .grid{stroke:#2c2c2a} .bar{fill:#52514e} .accent{fill:#3987e5} .axis{stroke:#383835} .bar-strong{fill:#898781} .on-accent{fill:#ffffff} .on-bar{fill:#ffffff} .on-bar-strong{fill:#0b0b0b}}</style>
+<style>text{font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif} .mono{font-family:ui-monospace, 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace} .bg{fill:#f6f8f7} .frame{stroke:#e2e8e5} .ink{fill:#0b1215} .ink2{fill:#47554f} .muted{fill:#6f7d77} .grid{stroke:#e2e8e5} .bar{fill:#cfd7d3} .accent{fill:#08805f} .axis{stroke:#c3ccc8} .ref{stroke:#47554f} .bar-strong{fill:#74817c} .on-accent{fill:#ffffff} .on-bar{fill:#0b1215} .on-bar-strong{fill:#ffffff} .seq-0{fill:#e3f5ed} .on-seq-0{fill:#0b1215} .seq-1{fill:#c2e9d8} .on-seq-1{fill:#0b1215} .seq-2{fill:#8fd6b9} .on-seq-2{fill:#0b1215} .seq-3{fill:#4fbb92} .on-seq-3{fill:#0b1215} .seq-4{fill:#12906a} .on-seq-4{fill:#ffffff} .seq-5{fill:#0a7253} .on-seq-5{fill:#ffffff} @media (prefers-color-scheme: dark){.bg{fill:#0f1614} .frame{stroke:#1f2a26} .ink{fill:#edf3f0} .ink2{fill:#b4c1bb} .muted{fill:#83918b} .grid{stroke:#1f2a26} .bar{fill:#34403c} .accent{fill:#34d399} .axis{stroke:#3a4642} .ref{stroke:#b4c1bb} .bar-strong{fill:#64716c} .on-accent{fill:#04140e} .on-bar{fill:#edf3f0} .on-bar-strong{fill:#ffffff} .seq-0{fill:#15302a} .on-seq-0{fill:#edf3f0} .seq-1{fill:#1a4739} .on-seq-1{fill:#edf3f0} .seq-2{fill:#1f634e} .on-seq-2{fill:#edf3f0} .seq-3{fill:#238866} .on-seq-3{fill:#edf3f0} .seq-4{fill:#2db27f} .on-seq-4{fill:#04140e} .seq-5{fill:#56dba3} .on-seq-5{fill:#04140e}}</style>
 <title id="t">Share of assertions passed per eval case and skill condition</title>
-<rect class="bg" width="834" height="388" rx="8"/>
-<text class="ink" x="24" y="32" font-size="16" font-weight="600">Assertions passed by case</text>
-<text class="ink2" x="24" y="50" font-size="12">Darker is better</text>
+<rect class="bg frame" x="0.5" y="0.5" width="833" height="387" rx="12" stroke-width="1"/>
+<text class="ink" x="24" y="34" font-size="17" font-weight="700">Assertions passed by case</text>
+<text class="ink2" x="24" y="54" font-size="12.5">Stronger color means more assertions passed</text>
+<circle class="accent" cx="735.0" cy="30" r="3.5"/>
+<text class="muted mono" x="810" y="34" font-size="11" text-anchor="end">clean-code</text>
 <text class="ink" x="378.0" y="80" font-size="12" font-weight="400" text-anchor="middle">No skill</text>
-<text class="ink" x="474.0" y="80" font-size="12" font-weight="600" text-anchor="middle">This repo</text>
+<text class="ink" x="474.0" y="80" font-size="12" font-weight="600" text-anchor="middle">This skill</text>
 <text class="ink" x="570.0" y="80" font-size="12" font-weight="400" text-anchor="middle">unclebob/ub-mode</text>
 <text class="ink" x="666.0" y="80" font-size="12" font-weight="400" text-anchor="middle">sickn33</text>
 <text class="ink" x="762.0" y="80" font-size="12" font-weight="400" text-anchor="middle">ertugrul-dmr</text>
 <text class="ink" x="24" y="113.0" font-size="13">Reuse existing helper (Python)</text>
-<rect x="331" y="93" width="94" height="32" rx="4" fill="#256abf"/>
-<text x="378.0" y="113.0" font-size="12" text-anchor="middle" fill="#ffffff">80%</text>
-<rect x="427" y="93" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="474.0" y="113.0" font-size="12" text-anchor="middle" fill="#ffffff">93%</text>
-<rect x="523" y="93" width="94" height="32" rx="4" fill="#256abf"/>
-<text x="570.0" y="113.0" font-size="12" text-anchor="middle" fill="#ffffff">80%</text>
-<rect x="619" y="93" width="94" height="32" rx="4" fill="#256abf"/>
-<text x="666.0" y="113.0" font-size="12" text-anchor="middle" fill="#ffffff">80%</text>
-<rect x="715" y="93" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="762.0" y="113.0" font-size="12" text-anchor="middle" fill="#ffffff">87%</text>
+<rect class="seq-4" x="331" y="93" width="94" height="32" rx="4"/>
+<text class="on-seq-4" x="378.0" y="113.0" font-size="12" text-anchor="middle">80%</text>
+<rect class="seq-5" x="427" y="93" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="474.0" y="113.0" font-size="12" text-anchor="middle">93%</text>
+<rect class="seq-4" x="523" y="93" width="94" height="32" rx="4"/>
+<text class="on-seq-4" x="570.0" y="113.0" font-size="12" text-anchor="middle">80%</text>
+<rect class="seq-4" x="619" y="93" width="94" height="32" rx="4"/>
+<text class="on-seq-4" x="666.0" y="113.0" font-size="12" text-anchor="middle">80%</text>
+<rect class="seq-5" x="715" y="93" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="762.0" y="113.0" font-size="12" text-anchor="middle">87%</text>
 <text class="ink" x="24" y="147.0" font-size="13">Refactor a function with many callers (TypeScript)</text>
-<rect x="331" y="127" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="378.0" y="147.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="427" y="127" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="474.0" y="147.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="523" y="127" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="570.0" y="147.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="619" y="127" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="666.0" y="147.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="715" y="127" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="762.0" y="147.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect class="seq-5" x="331" y="127" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="378.0" y="147.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="427" y="127" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="474.0" y="147.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="523" y="127" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="570.0" y="147.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="619" y="127" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="666.0" y="147.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="715" y="127" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="762.0" y="147.0" font-size="12" text-anchor="middle">100%</text>
 <text class="ink" x="24" y="181.0" font-size="13">Clean up hot-path code (Java)</text>
-<rect x="331" y="161" width="94" height="32" rx="4" fill="#256abf"/>
-<text x="378.0" y="181.0" font-size="12" text-anchor="middle" fill="#ffffff">80%</text>
-<rect x="427" y="161" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="474.0" y="181.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="523" y="161" width="94" height="32" rx="4" fill="#256abf"/>
-<text x="570.0" y="181.0" font-size="12" text-anchor="middle" fill="#ffffff">80%</text>
-<rect x="619" y="161" width="94" height="32" rx="4" fill="#3987e5"/>
-<text x="666.0" y="181.0" font-size="12" text-anchor="middle" fill="#0b0b0b">60%</text>
+<rect class="seq-4" x="331" y="161" width="94" height="32" rx="4"/>
+<text class="on-seq-4" x="378.0" y="181.0" font-size="12" text-anchor="middle">80%</text>
+<rect class="seq-5" x="427" y="161" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="474.0" y="181.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-4" x="523" y="161" width="94" height="32" rx="4"/>
+<text class="on-seq-4" x="570.0" y="181.0" font-size="12" text-anchor="middle">80%</text>
+<rect class="seq-3" x="619" y="161" width="94" height="32" rx="4"/>
+<text class="on-seq-3" x="666.0" y="181.0" font-size="12" text-anchor="middle">60%</text>
 <text class="muted" x="762.0" y="181.0" font-size="12" text-anchor="middle">n/a</text>
 <text class="ink" x="24" y="215.0" font-size="13">Error handling in Go</text>
-<rect x="331" y="195" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="378.0" y="215.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="427" y="195" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="474.0" y="215.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="523" y="195" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="570.0" y="215.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="619" y="195" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="666.0" y="215.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect class="seq-5" x="331" y="195" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="378.0" y="215.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="427" y="195" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="474.0" y="215.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="523" y="195" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="570.0" y="215.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="619" y="195" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="666.0" y="215.0" font-size="12" text-anchor="middle">100%</text>
 <text class="muted" x="762.0" y="215.0" font-size="12" text-anchor="middle">n/a</text>
 <text class="ink" x="24" y="249.0" font-size="13">Nullability in Kotlin</text>
-<rect x="331" y="229" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="378.0" y="249.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="427" y="229" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="474.0" y="249.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="523" y="229" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="570.0" y="249.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="619" y="229" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="666.0" y="249.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect class="seq-5" x="331" y="229" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="378.0" y="249.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="427" y="229" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="474.0" y="249.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="523" y="229" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="570.0" y="249.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="619" y="229" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="666.0" y="249.0" font-size="12" text-anchor="middle">100%</text>
 <text class="muted" x="762.0" y="249.0" font-size="12" text-anchor="middle">n/a</text>
 <text class="ink" x="24" y="283.0" font-size="13">Review a pull request (Python)</text>
-<rect x="331" y="263" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="378.0" y="283.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="427" y="263" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="474.0" y="283.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="523" y="263" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="570.0" y="283.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="619" y="263" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="666.0" y="283.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="715" y="263" width="94" height="32" rx="4" fill="#256abf"/>
-<text x="762.0" y="283.0" font-size="12" text-anchor="middle" fill="#ffffff">80%</text>
+<rect class="seq-5" x="331" y="263" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="378.0" y="283.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="427" y="263" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="474.0" y="283.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="523" y="263" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="570.0" y="283.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="619" y="263" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="666.0" y="283.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-4" x="715" y="263" width="94" height="32" rx="4"/>
+<text class="on-seq-4" x="762.0" y="283.0" font-size="12" text-anchor="middle">80%</text>
 <text class="ink" x="24" y="317.0" font-size="13">Follow codebase conventions (C#)</text>
-<rect x="331" y="297" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="378.0" y="317.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="427" y="297" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="474.0" y="317.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="523" y="297" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="570.0" y="317.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="619" y="297" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="666.0" y="317.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect class="seq-5" x="331" y="297" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="378.0" y="317.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="427" y="297" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="474.0" y="317.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="523" y="297" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="570.0" y="317.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="619" y="297" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="666.0" y="317.0" font-size="12" text-anchor="middle">100%</text>
 <text class="muted" x="762.0" y="317.0" font-size="12" text-anchor="middle">n/a</text>
 <text class="ink" x="24" y="351.0" font-size="13">Minimal bugfix with regression test (JavaScript)</text>
-<rect x="331" y="331" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="378.0" y="351.0" font-size="12" text-anchor="middle" fill="#ffffff">87%</text>
-<rect x="427" y="331" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="474.0" y="351.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="523" y="331" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="570.0" y="351.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
-<rect x="619" y="331" width="94" height="32" rx="4" fill="#184f95"/>
-<text x="666.0" y="351.0" font-size="12" text-anchor="middle" fill="#ffffff">100%</text>
+<rect class="seq-5" x="331" y="331" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="378.0" y="351.0" font-size="12" text-anchor="middle">87%</text>
+<rect class="seq-5" x="427" y="331" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="474.0" y="351.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="523" y="331" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="570.0" y="351.0" font-size="12" text-anchor="middle">100%</text>
+<rect class="seq-5" x="619" y="331" width="94" height="32" rx="4"/>
+<text class="on-seq-5" x="666.0" y="351.0" font-size="12" text-anchor="middle">100%</text>
 <text class="muted" x="762.0" y="351.0" font-size="12" text-anchor="middle">n/a</text>
 </svg>

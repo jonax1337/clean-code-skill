@@ -20,7 +20,7 @@ from pathlib import Path
 from statistics import mean
 
 from agentic import AGENTIC_RESULTS_DIR, SPLITS, coder_models, load_agentic_cases, results_dir
-from charts import ASSETS_DIR, chart_frame, short_label
+from charts import ASSETS_DIR, chart_frame, row_highlight, short_label
 from harness import ALL_CONDITIONS, CONDITIONS, NO_SKILL, THIS_REPO, write_text_atomic
 
 LABELS = {condition.name: condition.label for condition in ALL_CONDITIONS}
@@ -35,6 +35,7 @@ TRIGGER_MODES = {
     "installed": "Installed, nothing mentions it (the agent decides whether to load the skill)",
     "instructed": "Installed, with the CLAUDE.md line that asks the agent to load it",
 }
+CHART_MODEL_ORDER = ("sonnet", "opus", "haiku")  # the order of the README tables
 CHECKS_CHART_MODEL = "sonnet"
 CHECKS_CHART_CONDITIONS = [condition.name for condition in CONDITIONS]
 SPLIT_PANELS = {
@@ -447,8 +448,8 @@ def _preference_chart(preferences: list[Preference], case_count: int) -> str:
         ("alternative preferred", "bar-strong"),
     ]
     width, bar_x, bar_width, bar_height, row_pitch, group_pitch, top = 760, 196, 310, 24, 38, 30, 100
-    value_x = bar_x + bar_width + 28
-    models = list(dict.fromkeys(row.model for row in preferences))
+    value_x, parity_x = bar_x + bar_width + 28, bar_x + bar_width / 2
+    models = sorted(dict.fromkeys(row.model for row in preferences), key=_chart_rank)
     height = top + len(preferences) * row_pitch + len(models) * group_pitch + 24
     parts = chart_frame(
         width,
@@ -462,9 +463,13 @@ def _preference_chart(preferences: list[Preference], case_count: int) -> str:
     y = top
     for model in models:
         model_name = _model_name(model)
-        parts.append(_text(24, y + 16, model_name, "ink", 13, weight="600"))
+        parts += [
+            _text(24, y + 16, model_name, "ink", 14, weight="700"),
+            _text(parity_x, y + 22, "50%", "muted", 10, anchor="middle"),
+        ]
         y += group_pitch
         rows = [row for row in preferences if row.model == model]
+        group_top = y
         most_comparisons = max(row.comparisons for row in rows)
         for row in rows:
             opponent = short_label(LABELS[row.opponent])
@@ -481,10 +486,15 @@ def _preference_chart(preferences: list[Preference], case_count: int) -> str:
             parts += [
                 _text(36, y + bar_height / 2 + 4, f"vs {opponent}", "ink2", 12),
                 *_segmented_bar(bar_x, y, bar_width, bar_height, segments, f"{model_name} vs {opponent}"),
-                _text(value_x, y + 11, f"{row.score:.0%}", "ink", 14, weight="600"),
-                _text(value_x + 44, y + 11, interval, "muted", 11),
+                _text(value_x, y + 12, f"{row.score:.0%}", "ink", 16, weight="700"),
+                _text(value_x + 50, y + 11, interval, "muted", 11),
             ]
             y += row_pitch
+        # Where a tie block's middle sits, the preference sits: right of this line, this skill is ahead.
+        parts.append(
+            f'<line class="ref" x1="{parity_x}" y1="{group_top - 4}" x2="{parity_x}" '
+            f'y2="{y - row_pitch + bar_height + 4}" stroke-width="1.25" stroke-dasharray="3 3" opacity="0.7"/>'
+        )
     footer = (
         f"Preference: share of all verdicts, both orders, that went to {this_repo}, a tie counting half. "
         "Interval: bootstrap over the runs of each task."
@@ -571,7 +581,9 @@ def _checks_panel(x: float, top: float, width: float, split: str, stats: dict) -
         ]
     for row, name in enumerate(CHECKS_CHART_CONDITIONS):
         y = rows_top + row * row_pitch
-        label, weight = short_label(LABELS[name]), "600" if name == THIS_REPO else None
+        label, weight = short_label(LABELS[name]), "700" if name == THIS_REPO else None
+        if name == THIS_REPO:
+            elements.append(row_highlight(x - 8, y - 5, width + 8, bar_height + 10))
         elements.append(
             _text(bar_x - 10, y + bar_height / 2 + 4, label, "ink", 12, weight=weight, anchor="end")
         )
@@ -621,6 +633,11 @@ def _text(
 def _text_width(text: str, size: int) -> float:
     """Rough rendered width of `text` in the system sans; enough to space legend entries."""
     return len(text) * size * 0.56
+
+
+def _chart_rank(model: str) -> int:
+    """Position of a coder model in the charts; models not listed come last."""
+    return CHART_MODEL_ORDER.index(model) if model in CHART_MODEL_ORDER else len(CHART_MODEL_ORDER)
 
 
 def _model_name(model: str) -> str:

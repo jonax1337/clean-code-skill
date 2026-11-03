@@ -3,15 +3,19 @@
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-2a78d6"></a>
-  <a href="https://agentskills.io"><img alt="Agent Skills format" src="https://img.shields.io/badge/format-Agent%20Skills-52514e"></a>
-  <a href="evals/README.md"><img alt="Evals: 28 tasks, blind-graded" src="https://img.shields.io/badge/evals-28%20tasks%2C%20blind--graded-52514e"></a>
-  <a href="README.de.md"><img alt="Deutsch" src="https://img.shields.io/badge/lang-Deutsch-52514e"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-08805f?labelColor=0b1215"></a>
+  <a href="https://agentskills.io"><img alt="Agent Skills format" src="https://img.shields.io/badge/format-Agent%20Skills-08805f?labelColor=0b1215"></a>
+  <a href="evals/README.md"><img alt="Evals: 28 tasks, blind-graded" src="https://img.shields.io/badge/evals-28%20tasks%2C%20blind--graded-08805f?labelColor=0b1215"></a>
+  <a href="README.de.md"><img alt="Deutsch" src="https://img.shields.io/badge/lang-Deutsch-47554f?labelColor=0b1215"></a>
 </p>
 
 An [Agent Skill](https://agentskills.io) that teaches coding agents *Clean Code* (Robert C. Martin), including Beck's four rules of simple design and the full C1–T9 smell catalog, and adapts it to how agents actually fail.
 
 Most clean-code skills restate the book. This one also tells the agent **when the book loses**: when the language has a different idiom, when the codebase has a convention, when the code is a hot path, or when "cleaning up" means touching code nobody asked about.
+
+<p align="center">
+  <img src="docs/assets/highlights.svg" alt="Results at a glance, 13 held-out tasks, blind pairwise judge: preferred over no skill in 94% of verdicts with Claude Sonnet 5.5 and 71% with Claude Opus 5.5; loaded on its own on 11 of 13 tasks, the other clean-code skills in 1 of 33 runs; with Claude Haiku 5.5 the effect was not measurable" width="880">
+</p>
 
 ## Why another clean-code skill
 
@@ -97,8 +101,7 @@ Thirteen tasks with two runs per cell are a small sample, and the intervals desc
 The second benchmark asks for one reply without tools. Eight realistic coding tasks across Python, TypeScript, Java, Go, Kotlin, C# and JavaScript, each run three times per condition. Claude Sonnet 5.5 wrote the code; Claude Opus 5.5 graded all answers to each task at once under shuffled labels.
 
 <p align="center">
-  <img src="docs/assets/results-quality.svg" alt="Judge quality score: no skill 7.6, this skill 8.5, ub-mode 6.5, sickn33 7.2, ertugrul-dmr 6.7 on 3 of 8 tasks" width="49%">
-  <img src="docs/assets/results-pass-rate.svg" alt="Assertions passed: no skill 93.3%, this skill 99.2%, ub-mode 95.0%, sickn33 92.5%, ertugrul-dmr 88.9% on 3 of 8 tasks" width="49%">
+  <img src="docs/assets/results-single-turn.svg" alt="Single-turn suite. Judge quality score: no skill 7.6, this skill 8.5, ub-mode 6.5, sickn33 7.2, ertugrul-dmr 6.7 on 3 of 8 tasks. Assertions passed: no skill 93.3%, this skill 99.2%, ub-mode 95.0%, sickn33 92.5%, ertugrul-dmr 88.9% on 3 of 8 tasks" width="760">
 </p>
 
 | Condition | Assertions passed | Judge quality (1–10) | Avg. cost per task |
@@ -164,15 +167,9 @@ Before writing, changing or reviewing code, load the clean-code skill and follow
 
 ## How it works
 
-```mermaid
-flowchart LR
-    A[Read the surrounding code<br/>find existing helpers] --> B[Smallest change<br/>that solves the task]
-    B --> C[Test first, or pin untested<br/>code with characterization tests]
-    C --> D[Refactor in small steps<br/>tests stay green]
-    D --> E[Final checklist<br/>against own diff]
-    E --> F[Report: what changed,<br/>commands run, real results]
-    E -->|bent a rule| G[Say why in one line]
-```
+<p align="center">
+  <img src="docs/assets/workflow.svg" alt="Six steps: read the surrounding code and find existing helpers; the smallest change that solves the task; test first, or pin untested code with characterization tests; refactor in small steps, tests stay green; final checklist against the own diff; report what changed, the commands run and their real results. A bent rule gets a one-line reason" width="880">
+</p>
 
 ```text
 skills/clean-code/

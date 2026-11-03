@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="248" viewBox="0 0 880 248" role="img" aria-labelledby="title desc">
+  <title id="title">Results at a glance</title>
+  <desc id="desc">On 13 held-out tasks a blind pairwise judge preferred the pull requests written with this skill over those written without a skill in 94% of verdicts with Claude Sonnet 5.5 and 71% with Claude Opus 5.5. Installed and never mentioned, the skill loaded on its own on 11 of 13 tasks; the other clean-code skills did so in 1 of 33 runs. With Claude Haiku 5.5 the effect was not measurable.</desc>
+  <style>
+    text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace; }
+    .bg { fill: #f6f8f7; } .frame { stroke: #e2e8e5; } .divider { stroke: #e2e8e5; }
+    .ink { fill: #0b1215; } .ink2 { fill: #47554f; } .muted { fill: #6f7d77; }
+    .accent { fill: #08805f; } .track { fill: #dde4e1; }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0f1614; } .frame { stroke: #1f2a26; } .divider { stroke: #1f2a26; }
+      .ink { fill: #edf3f0; } .ink2 { fill: #b4c1bb; } .muted { fill: #83918b; }
+      .accent { fill: #34d399; } .track { fill: #24302c; }
+    }
+  </style>
+
+  <rect class="bg frame" x="0.5" y="0.5" width="879" height="247" rx="12" stroke-width="1"/>
+  <text class="muted mono" x="32" y="38" font-size="11" letter-spacing="1.5">13 HELD-OUT TASKS · BLIND PAIRWISE JUDGE · REAL REPOSITORIES</text>
+  <circle class="accent" cx="773" cy="34" r="3.5"/>
+  <text class="muted mono" x="848" y="38" font-size="11" text-anchor="end">clean-code</text>
+
+  <line class="divider" x1="301" y1="66" x2="301" y2="196" stroke-width="1"/>
+  <line class="divider" x1="585" y1="66" x2="585" y2="196" stroke-width="1"/>
+
+  <g>
+    <title>Claude Sonnet 5.5: this skill preferred over no skill in 94% of verdicts (24 wins, 1 tie, 1 loss)</title>
+    <text class="ink" x="32" y="122" font-size="58" font-weight="800" letter-spacing="-2">94<tspan font-size="34" dx="2">%</tspan></text>
+    <text class="ink" x="32" y="150" font-size="15" font-weight="600">preferred over no skill</text>
+    <text class="muted" x="32" y="171" font-size="13">with Claude Sonnet 5.5</text>
+    <rect class="track" x="32" y="186" width="236" height="6" rx="3"/>
+    <rect class="accent" x="32" y="186" width="222" height="6" rx="3"/>
+  </g>
+
+  <g>
+    <title>Claude Opus 5.5: this skill preferred over no skill in 71% of verdicts (18 wins, 1 tie, 7 losses)</title>
+    <text class="ink" x="324" y="122" font-size="58" font-weight="800" letter-spacing="-2">71<tspan font-size="34" dx="2">%</tspan></text>
+    <text class="ink" x="324" y="150" font-size="15" font-weight="600">preferred over no skill</text>
+    <text class="muted" x="324" y="171" font-size="13">with Claude Opus 5.5</text>
+    <rect class="track" x="324" y="186" width="236" height="6" rx="3"/>
+    <rect class="accent" x="324" y="186" width="168" height="6" rx="3"/>
+  </g>
+
+  <g>
+    <title>Installed and never mentioned, the skill loaded on its own on 11 of 13 held-out tasks; the other clean-code skills in 1 of 33 runs</title>
+    <text class="ink" x="608" y="122" font-size="58" font-weight="800" letter-spacing="-2">11<tspan class="muted" font-size="34" dx="4">/ 13</tspan></text>
+    <text class="ink" x="608" y="150" font-size="15" font-weight="600">tasks where it loaded on its own</text>
+    <text class="muted" x="608" y="171" font-size="13">other clean-code skills: 1 of 33 runs</text>
+    <rect class="track" x="608" y="186" width="236" height="6" rx="3"/>
+    <rect class="accent" x="608" y="186" width="200" height="6" rx="3"/>
+  </g>
+
+  <text class="muted" x="32" y="226" font-size="12">Tasks written by agents that never saw the skill. Preference: share of verdicts, a tie counting half. With Haiku 5.5 the effect was not measurable.</text>
+</svg>

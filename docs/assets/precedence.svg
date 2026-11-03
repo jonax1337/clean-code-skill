@@ -1,49 +1,57 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="880" height="330" viewBox="0 0 880 330" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="352" viewBox="0 0 880 352" role="img" aria-labelledby="title desc">
   <title id="title">Precedence of rules</title>
   <desc id="desc">When rules conflict, the higher layer wins: 1 correct and verified, 2 the codebase and the language, 3 Beck's four rules of simple design, 4 the heuristics C1 to T9.</desc>
   <style>
-    text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-    .bg { fill: #fcfcfb; }
-    .ink { fill: #0b0b0b; }
-    .ink2 { fill: #52514e; }
-    .muted { fill: #898781; }
-    .l1 { fill: #184f95; }
-    .l2 { fill: #256abf; }
-    .l3 { fill: #6da7ec; }
-    .l4 { fill: #b7d3f6; }
-    .on-dark { fill: #ffffff; }
-    .on-light { fill: #0b0b0b; }
+    text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .mono { font-family: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace; }
+    .bg { fill: #f6f8f7; } .frame { stroke: #e2e8e5; }
+    .ink { fill: #0b1215; } .ink2 { fill: #47554f; } .muted { fill: #6f7d77; } .accent { fill: #08805f; }
+    .arrow { stroke: #9aa7a1; } .arrowhead { fill: #9aa7a1; }
+    .l1 { fill: #0a7253; } .l2 { fill: #12906a; } .l3 { fill: #8fd6b9; } .l4 { fill: #c2e9d8; }
+    .on-l1, .on-l2 { fill: #ffffff; } .on-l3, .on-l4 { fill: #0b1215; }
     @media (prefers-color-scheme: dark) {
-      .bg { fill: #1a1a19; }
-      .ink { fill: #f0efec; }
-      .ink2 { fill: #c3c2b7; }
+      .bg { fill: #0f1614; } .frame { stroke: #1f2a26; }
+      .ink { fill: #edf3f0; } .ink2 { fill: #b4c1bb; } .muted { fill: #83918b; } .accent { fill: #34d399; }
+      .arrow { stroke: #4b5853; } .arrowhead { fill: #4b5853; }
+      .l1 { fill: #56dba3; } .l2 { fill: #2db27f; } .l3 { fill: #1f634e; } .l4 { fill: #1a4739; }
+      .on-l1, .on-l2 { fill: #04140e; } .on-l3, .on-l4 { fill: #edf3f0; }
     }
   </style>
 
-  <rect class="bg" width="880" height="330" rx="12"/>
-  <text class="ink" x="32" y="40" font-size="17" font-weight="600">When rules conflict, the higher one wins</text>
+  <rect class="bg frame" x="0.5" y="0.5" width="879" height="351" rx="12" stroke-width="1"/>
+  <text class="ink" x="32" y="42" font-size="18" font-weight="700">When rules conflict, the higher one wins</text>
+  <circle class="accent" cx="773" cy="34" r="3.5"/>
+  <text class="muted mono" x="848" y="38" font-size="11" text-anchor="end">clean-code</text>
+
+  <line class="arrow" x1="44" y1="300" x2="44" y2="84" stroke-width="2" stroke-linecap="round"/>
+  <path class="arrowhead" d="M44 74 L50 86 L38 86 Z"/>
+  <text class="muted mono" font-size="11" letter-spacing="1" transform="translate(36 260) rotate(-90)">TAKES PRECEDENCE</text>
 
   <g font-size="15">
-    <rect class="l1" x="32" y="64" width="400" height="52" rx="6"/>
-    <text class="on-dark" x="52" y="96" font-weight="600">1  Correct and verified</text>
-    <text class="ink2" x="456" y="88">Tests, type checks and linters pass.</text>
-    <text class="ink2" x="456" y="108">Unintended behavior did not change.</text>
+    <rect class="l1" x="64" y="70" width="380" height="54" rx="8"/>
+    <text class="on-l1 mono" x="84" y="102" font-size="13" font-weight="700" opacity="0.75">01</text>
+    <text class="on-l1" x="116" y="102" font-weight="700">Correct and verified</text>
+    <text class="ink2" x="472" y="93">Tests, type checks and linters pass.</text>
+    <text class="ink2" x="472" y="113">Unintended behavior did not change.</text>
 
-    <rect class="l2" x="32" y="122" width="400" height="52" rx="6"/>
-    <text class="on-dark" x="52" y="154" font-weight="600">2  The codebase and the language</text>
-    <text class="ink2" x="456" y="146">Project conventions, then language idioms.</text>
-    <text class="ink2" x="456" y="166">Go errors, Kotlin nulls, C# I-prefixes stay.</text>
+    <rect class="l2" x="64" y="132" width="380" height="54" rx="8"/>
+    <text class="on-l2 mono" x="84" y="164" font-size="13" font-weight="700" opacity="0.75">02</text>
+    <text class="on-l2" x="116" y="164" font-weight="700">The codebase and the language</text>
+    <text class="ink2" x="472" y="155">Project conventions, then language idioms.</text>
+    <text class="ink2" x="472" y="175">Go errors, Kotlin nulls, C# I-prefixes stay.</text>
 
-    <rect class="l3" x="32" y="180" width="400" height="52" rx="6"/>
-    <text class="on-light" x="52" y="212" font-weight="600">3  Beck's four rules of simple design</text>
-    <text class="ink2" x="456" y="204">Passes tests, no duplication,</text>
-    <text class="ink2" x="456" y="224">expresses intent, fewest elements.</text>
+    <rect class="l3" x="64" y="194" width="380" height="54" rx="8"/>
+    <text class="on-l3 mono" x="84" y="226" font-size="13" font-weight="700" opacity="0.75">03</text>
+    <text class="on-l3" x="116" y="226" font-weight="700">Beck's four rules of simple design</text>
+    <text class="ink2" x="472" y="217">Passes tests, no duplication,</text>
+    <text class="ink2" x="472" y="237">expresses intent, fewest elements.</text>
 
-    <rect class="l4" x="32" y="238" width="400" height="52" rx="6"/>
-    <text class="on-light" x="52" y="270" font-weight="600">4  Heuristics C1–T9</text>
-    <text class="ink2" x="456" y="262">The smell catalog from chapter 17,</text>
-    <text class="ink2" x="456" y="282">cited by code in reviews.</text>
+    <rect class="l4" x="64" y="256" width="380" height="54" rx="8"/>
+    <text class="on-l4 mono" x="84" y="288" font-size="13" font-weight="700" opacity="0.75">04</text>
+    <text class="on-l4" x="116" y="288" font-weight="700">Heuristics C1–T9</text>
+    <text class="ink2" x="472" y="279">The smell catalog from chapter 17,</text>
+    <text class="ink2" x="472" y="299">named in plain words in reviews.</text>
   </g>
 
-  <text class="muted" x="32" y="314" font-size="12">Bend a rule only with a one-line reason: hot paths, generated code, spikes, legacy consistency.</text>
+  <text class="muted" x="64" y="334" font-size="12.5">Bend a rule only with a one-line reason: hot paths, generated code, spikes, legacy consistency.</text>
 </svg>
