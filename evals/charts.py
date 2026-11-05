@@ -8,12 +8,12 @@ from harness import REPO_DIR
 
 ASSETS_DIR = REPO_DIR / "docs" / "assets"
 FONT = "Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-MONO_FONT = "ui-monospace, 'SF Mono', 'Cascadia Code', 'JetBrains Mono', Menlo, Consolas, monospace"
-BRAND = "clean-code"
+MONO_FONT = "'Cascadia Code', 'JetBrains Mono', 'SF Mono', Consolas, monospace"
+BRAND = "Clean Code Skill"
 
 # Magnitude ramps for heatmaps, weakest to strongest; in dark mode the strongest step is the brightest.
-SEQUENTIAL_LIGHT = ["#e3f5ed", "#c2e9d8", "#8fd6b9", "#4fbb92", "#12906a", "#0a7253"]
-SEQUENTIAL_DARK = ["#15302a", "#1a4739", "#1f634e", "#238866", "#2db27f", "#56dba3"]
+SEQUENTIAL_LIGHT = ["#e1e8fb", "#c3d2f5", "#a0b9eb", "#7b9adf", "#4b6fc8", "#284fba"]
+SEQUENTIAL_DARK = ["#22395b", "#2b4674", "#385a95", "#4269a9", "#8fabff", "#b4c9ff"]
 SEQUENTIAL_STEPS = len(SEQUENTIAL_LIGHT)
 FIRST_STRONG_STEP = 4  # from this step on, cell text switches to the color that reads on strong fills
 
@@ -29,38 +29,38 @@ def _sequential_roles(ramp: list[str], on_weak: str, on_strong: str) -> dict[str
 
 # Every role becomes a CSS class of the same name. `on-*` roles are for text set inside a filled mark.
 LIGHT = {
-    "bg": "#f6f8f7",
-    "frame": "#e2e8e5",
-    "ink": "#0b1215",
-    "ink2": "#47554f",
-    "muted": "#6f7d77",
-    "grid": "#e2e8e5",
-    "bar": "#cfd7d3",
-    "accent": "#08805f",
-    "axis": "#c3ccc8",
-    "ref": "#47554f",
-    "bar-strong": "#74817c",
+    "bg": "#eceff8",
+    "frame": "#ccd6ea",
+    "ink": "#172740",
+    "ink2": "#435573",
+    "muted": "#566985",
+    "grid": "#ccd6ea",
+    "bar": "#ced8eb",
+    "accent": "#284fba",
+    "axis": "#adbbd5",
+    "ref": "#435573",
+    "bar-strong": "#607393",
     "on-accent": "#ffffff",
-    "on-bar": "#0b1215",
+    "on-bar": "#172740",
     "on-bar-strong": "#ffffff",
-    **_sequential_roles(SEQUENTIAL_LIGHT, on_weak="#0b1215", on_strong="#ffffff"),
+    **_sequential_roles(SEQUENTIAL_LIGHT, on_weak="#172740", on_strong="#ffffff"),
 }
 DARK = {
-    "bg": "#0f1614",
-    "frame": "#1f2a26",
-    "ink": "#edf3f0",
-    "ink2": "#b4c1bb",
-    "muted": "#83918b",
-    "grid": "#1f2a26",
-    "bar": "#34403c",
-    "accent": "#34d399",
-    "axis": "#3a4642",
-    "ref": "#b4c1bb",
-    "bar-strong": "#64716c",
-    "on-accent": "#04140e",
-    "on-bar": "#edf3f0",
+    "bg": "#172740",
+    "frame": "#2c4260",
+    "ink": "#f3f6fc",
+    "ink2": "#cbd5e7",
+    "muted": "#aabad5",
+    "grid": "#2c4260",
+    "bar": "#354d71",
+    "accent": "#8fabff",
+    "axis": "#4b6386",
+    "ref": "#cbd5e7",
+    "bar-strong": "#536c90",
+    "on-accent": "#172740",
+    "on-bar": "#f3f6fc",
     "on-bar-strong": "#ffffff",
-    **_sequential_roles(SEQUENTIAL_DARK, on_weak="#edf3f0", on_strong="#04140e"),
+    **_sequential_roles(SEQUENTIAL_DARK, on_weak="#f3f6fc", on_strong="#172740"),
 }
 LINE_ROLES = {"frame", "grid", "axis", "ref"}
 
@@ -96,8 +96,8 @@ def chart_frame(width: int, height: int, *, title: str, heading: str, subheading
         ),
         f'<text class="ink" x="24" y="34" font-size="17" font-weight="700">{escape(heading)}</text>',
         f'<text class="ink2" x="24" y="54" font-size="12.5">{escape(subheading)}</text>',
-        f'<circle class="accent" cx="{width - 24 - _mono_width(BRAND, 11) - 9:.1f}" cy="30" r="3.5"/>',
-        f'<text class="muted mono" x="{width - 24}" y="34" font-size="11" text-anchor="end">{BRAND}</text>',
+        f'<rect class="accent" x="{width - 24 - _mono_width(BRAND, 11) - 16:.1f}" y="47" width="7" height="7"/>',
+        f'<text class="muted mono" x="{width - 24}" y="54" font-size="11" text-anchor="end">{BRAND}</text>',
     ]
 
 

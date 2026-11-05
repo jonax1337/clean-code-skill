@@ -1,15 +1,15 @@
 <p align="center">
-  <img src="docs/assets/banner.svg" alt="clean-code: Clean Code after Robert C. Martin, rebuilt for coding agents" width="100%">
+  <img src="docs/assets/banner.png" alt="Clean Code Skill — The right change. Right here." width="100%">
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-08805f?labelColor=0b1215"></a>
-  <a href="https://agentskills.io"><img alt="Agent Skills format" src="https://img.shields.io/badge/format-Agent%20Skills-08805f?labelColor=0b1215"></a>
-  <a href="evals/README.md"><img alt="Evals: 28 tasks, blind-graded" src="https://img.shields.io/badge/evals-28%20tasks%2C%20blind--graded-08805f?labelColor=0b1215"></a>
-  <a href="README.de.md"><img alt="Deutsch" src="https://img.shields.io/badge/lang-Deutsch-47554f?labelColor=0b1215"></a>
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-284fba?labelColor=172740"></a>
+  <a href="https://agentskills.io"><img alt="Agent Skills format" src="https://img.shields.io/badge/format-Agent%20Skills-284fba?labelColor=172740"></a>
+  <a href="evals/README.md"><img alt="Evals: 28 tasks, blind-graded" src="https://img.shields.io/badge/evals-28%20tasks%2C%20blind--graded-284fba?labelColor=172740"></a>
+  <a href="README.de.md"><img alt="Deutsch" src="https://img.shields.io/badge/lang-Deutsch-435573?labelColor=172740"></a>
 </p>
 
-An [Agent Skill](https://agentskills.io) that teaches coding agents *Clean Code* (Robert C. Martin), including Beck's four rules of simple design and the full C1–T9 smell catalog, and adapts it to how agents actually fail.
+**Clean Code Skill** is an [Agent Skill](https://agentskills.io) that teaches coding agents *Clean Code* (Robert C. Martin), including Beck's four rules of simple design and the full C1–T9 smell catalog, and adapts it to how agents actually fail.
 
 Most clean-code skills restate the book. This one also tells the agent **when the book loses**: when the language has a different idiom, when the codebase has a convention, when the code is a hot path, or when "cleaning up" means touching code nobody asked about.
 
@@ -204,6 +204,8 @@ Pick by what you need: a reference to look things up, a per-chapter checker, or 
 Issues and pull requests are welcome, especially new eval cases. A good case is a realistic task where a naive reading of the book produces a worse result. Add it to [`evals/cases/`](evals/cases) for a single reply, or to [`evals/cases-agentic/`](evals/cases-agentic) as a small repository with hidden tests, checks and a reference solution that `selftest_agentic.py` accepts. Rerun the evals and include the summary in the pull request.
 
 ## Credits
+
+Logo, palette and visual guidelines: [Focus identity](docs/branding/README.md).
 
 Based on *Clean Code: A Handbook of Agile Software Craftsmanship* by Robert C. Martin (Prentice Hall, 2008), and on Kent Beck's rules of simple design. This project is not affiliated with or endorsed by the authors. The skill paraphrases the ideas; for the reasoning and the examples behind them, read the book.
 

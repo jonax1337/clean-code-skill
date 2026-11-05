@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="docs/assets/banner.svg" alt="clean-code: Clean Code nach Robert C. Martin, für Coding-Agents" width="100%">
+  <img src="docs/assets/banner.png" alt="Clean Code Skill — The right change. Right here." width="100%">
 </p>
 
 <p align="center"><a href="README.md">English</a> · Deutsch</p>
 
-Ein [Agent Skill](https://agentskills.io), der Coding-Agents *Clean Code* nach Robert C. Martin beibringt, inklusive Becks vier Regeln des einfachen Designs und des vollständigen Smell-Katalogs C1–T9. Er passt das Buch an die Fehler an, die Agents tatsächlich machen.
+**Clean Code Skill** ist ein [Agent Skill](https://agentskills.io), der Coding-Agents *Clean Code* nach Robert C. Martin beibringt, inklusive Becks vier Regeln des einfachen Designs und des vollständigen Smell-Katalogs C1–T9. Er passt das Buch an die Fehler an, die Agents tatsächlich machen.
 
 Die meisten Clean-Code-Skills geben das Buch wieder. Dieser sagt dem Agent zusätzlich, **wann das Buch verliert**: wenn die Sprache ein anderes Idiom hat, wenn die Codebasis eine Konvention hat, wenn der Code ein Hot Path ist, oder wenn „Aufräumen“ bedeutet, Code anzufassen, nach dem niemand gefragt hat.
 
@@ -107,6 +107,8 @@ Before writing, changing or reviewing code, load the clean-code skill and follow
 ```
 
 ## Hinweis
+
+Logo, Farbpalette und Gestaltungsregeln: [Focus-Branding](docs/branding/README.md).
 
 Basiert auf *Clean Code* von Robert C. Martin (2008) und Kent Becks Regeln des einfachen Designs. Das Projekt ist weder mit den Autoren verbunden noch von ihnen autorisiert. Der Skill gibt die Ideen sinngemäß wieder; die Begründungen stehen im Buch.
 

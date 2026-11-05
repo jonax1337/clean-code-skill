@@ -1,7 +1,7 @@
 {
   "name": "clean-code",
   "version": "4.0.0",
-  "description": "Clean Code after Robert C. Martin, adapted for coding agents: precedence for language idioms and project conventions, scope discipline, agent failure modes and a blind-graded eval suite.",
+  "description": "Clean Code Skill: Robert C. Martin's Clean Code adapted for coding agents, with precedence for language idioms and project conventions, scope discipline, agent failure modes and a blind-graded eval suite.",
   "author": {
     "name": "Jonas Laux",
     "url": "https://github.com/jonax1337"

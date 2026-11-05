@@ -6,7 +6,7 @@ metadata:
   version: "4.0.0"
 ---
 
-# Clean Code for coding agents
+# Clean Code Skill
 
 > Clean code can be read, and enhanced by a developer other than its original author.
 > — Dave Thomas, quoted in *Clean Code*
