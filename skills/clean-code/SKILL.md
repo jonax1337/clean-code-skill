@@ -34,6 +34,8 @@ An agent's most expensive mistake is not an ugly function. It is a diff that doe
 - **When the task is to clean up or refactor a unit, the whole unit is the task.** Improve it fully, types included, instead of deferring parts of it to "a follow-up". Scope discipline protects the code *outside* the unit you were asked to change, not the unit itself.
 - **Let the toolchain decide what is safe.** When a type checker, compiler or test suite can verify a change (replacing an `any`, tightening a type, renaming a private symbol), make the change and run the tool. Do not skip an improvement because it *might* break callers; find out. Back out only what the tool shows to be wrong.
 - **Search before you write.** Look for an existing helper, type, constant or pattern before adding one. A second `formatCurrency` is duplication (G5) even if yours is nicer.
+- **Write the least code that does the job.** Not needed: write nothing. In the codebase: reuse it. In the standard library or an installed dependency: use that. Otherwise the minimum, without cutting validation or error handling.
+- **Put new code where code of its kind already lives.** No new `utils`, `helpers` or `common` module, no `_v2` or `_new` copy next to the original. A new file is wired in (imports, exports, registration) or it is dead code.
 - **Keep public signatures stable** unless the task is to change them. If a refactoring has to change one, say so and list the callers. Add new enum members, fields and options so that existing order and identity stay the same, usually at the end.
 - **No speculative generality.** No interfaces with one implementation, no options nobody passes (a parameter with a default that no caller changes is one), no plugin systems for one plugin. Add the abstraction when the second case arrives.
 - **Leave nothing behind:** debug prints, commented-out code (C5), unused imports, scratch files, TODOs you could have resolved.
@@ -43,6 +45,7 @@ An agent's most expensive mistake is not an ugly function. It is a diff that doe
 - A name says why the thing exists, what it does and how it is used. If it needs a comment, rename it (N1).
 - No disinformation (`accountList` that is a map) and no noise distinctions (`data1/data2`, `ProductInfo` vs `ProductData`).
 - Pronounceable and searchable. Name magic numbers, and string literals that carry meaning such as codes, keys and statuses (G25). Name length grows with scope (N5): `i` in a three-line loop is fine.
+- Name a value when the reader cannot tell its meaning at the use site. A unit factor next to its unit (`seconds * 1000` into `timeoutMs`) is already clear; a constant used in one file stays private to that file.
 - Classes are nouns, methods are verbs. `Manager`, `Processor`, `Helper` usually hide a missing concept.
 - One word per concept (`fetch`/`get`/`retrieve` — pick one). Side effects belong in the name (N7).
 - Encodings (N6): avoid Hungarian notation and `m_`. Where the ecosystem uses a prefix by convention (C# `IRepository`), the convention wins.
@@ -53,6 +56,7 @@ An agent's most expensive mistake is not an ugly function. It is a diff that doe
 - **One level of abstraction per function** (G34). Read top-down: each function is followed by the ones it calls, one level lower (stepdown rule).
 - Size is a symptom, not the goal. A function you write or substantially change should fit on one screen (about 30 lines) with little nesting; when it does not, look for the part that deserves a name of its own. Do not split a clear function into five-line pieces the reader has to chase. Extract when the new name explains something the reader would otherwise have to work out.
 - **Arguments:** fewer is better; more than three wants a parameter object (F1). No flag arguments (F3) or selector arguments (G15) — split the function. No output arguments (F2).
+- **Prefer the direct form.** A plain loop over a clever chain, an explicit assignment over a mutator's return value (`push(x) - 1`), one place that changes a piece of state over updates spread across helpers.
 - **No hidden side effects.** Command–query separation: a function either changes state or answers a question. Make required ordering visible by passing results along (G31).
 - **Errors:** use the language's error mechanism consistently. Keep error handling apart from the main path; a function that handles errors does little else.
 
@@ -176,7 +180,7 @@ When asked to review code:
 
 - Order findings by impact: correctness and security first, then design problems that make change hard, then readability.
 - Separate what must change (bugs, security holes, data loss, broken contracts) from suggestions. A design preference that would change a public signature is a suggestion; say what it costs.
-- For each finding: the location with the line quoted, the problem in plain words, why it matters, and a concrete fix. A catalog code may follow in parentheses; never refer to this skill's sections.
+- For each finding: the location (file and line as the file reads after the change, not a line of the diff) with the line quoted, the problem in plain words, why it matters, and a concrete fix. A catalog code may follow in parentheses; never refer to this skill's sections.
 - Prefer a few findings that matter over many that do not. Put style nits in one line, or leave them to the formatter.
 - When the answer depends on something you cannot see (a database constraint, a caller, a configuration value), ask instead of assuming.
 - Name the tests that would catch the bugs you found.

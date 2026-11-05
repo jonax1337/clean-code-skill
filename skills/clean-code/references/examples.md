@@ -151,3 +151,83 @@ const user = cache.get(id) ?? (await db.users.find(id));
 ```
 
 The first two comments restate the code or the edit history. The new one tells a future reader something the code cannot.
+
+## 7. The direct form (TypeScript) — G19, G30
+
+Before:
+
+```ts
+const seen = new Map<string, number>();
+const keep = (sku: string, index: number) => seen.set(sku.trim().toUpperCase(), index);
+
+for (const line of lines) {
+  const at = seen.get(line.sku.trim().toUpperCase());
+  if (at === undefined) keep(line.sku, cart.push({ ...line }) - 1);
+  else cart[at].quantity += line.quantity;
+}
+```
+
+After:
+
+```ts
+const indexBySku = new Map<string, number>();
+
+for (const line of lines) {
+  const sku = line.sku.trim().toUpperCase();
+  const existing = indexBySku.get(sku);
+  if (existing === undefined) {
+    indexBySku.set(sku, cart.length);
+    cart.push({ ...line });
+  } else {
+    cart[existing].quantity += line.quantity;
+  }
+}
+```
+
+Same behavior, same speed. The key is normalized once, the index is written where it is decided, and nothing depends on `push` returning the new length. A closure and an arithmetic trick saved two lines and cost every reader a pause.
+
+## 8. When a name helps, and when it does not (Python, Kotlin) — G25, N1
+
+A value gets a name when the reader cannot tell what it means at the use site:
+
+```python
+if attempts > 3:            # three what, and why three?
+    lock_account(user)
+
+MAX_FAILED_LOGINS = 3       # after this many, the account is locked
+if attempts > MAX_FAILED_LOGINS:
+    lock_account(user)
+```
+
+A unit factor next to its unit already says what it is. A shared constant for it widens the module's surface and sends the reader to another file:
+
+```kotlin
+// Before: a new export, imported by four files
+const val MILLIS_PER_SECOND = 1000L
+val timeoutMs = config.timeoutSeconds * MILLIS_PER_SECOND
+
+// After: the unit is in both names
+val timeoutMs = config.timeoutSeconds * 1000L
+```
+
+When a constant is needed in one file only, keep it private there. Promote it when the second file needs it.
+
+## 9. Where new code goes (Python) — G5, G17
+
+Task: add a function that formats a duration for the activity feed.
+
+Not this:
+
+```text
+app/utils.py            (new)  format_duration()
+app/feed/render_v2.py   (new)  copy of render.py with one call changed
+```
+
+This:
+
+```text
+app/feed/render.py      format_duration() next to format_timestamp(), its sibling
+tests/feed/test_render.py  two cases for it
+```
+
+A `utils` module collects unrelated functions, and the next person cannot guess where anything lives. A `_v2` copy leaves two versions that drift apart. Put the function next to the code it belongs with and change the original in place.
