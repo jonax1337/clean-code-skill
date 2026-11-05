@@ -8,19 +8,19 @@
       "name": "same_result_as_before",
       "description": "mergeContacts returns exactly what the old implementation returned on random inputs with many duplicates, on a book that already holds the same email twice, and when called repeatedly.",
       "passed": true,
-      "evidence": "\u2714 gives the same result as the original merge on random inputs with many duplicates (8.4ms)\n\u2714 when the existing book already holds the same email twice, the first entry receives the merge (0.1702ms)\n\u2714 does not remember anything between calls, even for the same array (0.2474ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 98.314"
+      "evidence": "\u2714 gives the same result as the original merge on random inputs with many duplicates (9.8362ms)\n\u2714 when the existing book already holds the same email twice, the first entry receives the merge (0.2049ms)\n\u2714 does not remember anything between calls, even for the same array (0.1868ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 169.121"
     },
     {
       "name": "inputs_not_modified",
       "description": "mergeContacts does not modify the arrays or contacts it receives and always returns a new array.",
       "passed": true,
-      "evidence": "\u2714 neither the arrays nor the contacts that were passed in are modified (1.4683ms)\n\u2714 the result is always a new array, even when there is nothing to import (0.4874ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 88.3646"
+      "evidence": "\u2714 neither the arrays nor the contacts that were passed in are modified (1.5195ms)\n\u2714 the result is always a new array, even when there is nothing to import (0.4593ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 106.0018"
     },
     {
       "name": "work_grows_linearly",
       "description": "Merging 3000 contacts reads each email only a handful of times instead of once per other contact.",
       "passed": true,
-      "evidence": "\u2714 looks at each email a constant number of times, not once per other contact (4.7467ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 1\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 91.8357"
+      "evidence": "\u2714 looks at each email a constant number of times, not once per other contact (6.9055ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 1\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 126.1317"
     },
     {
       "name": "only_expected_files_changed",
@@ -38,7 +38,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 the incoming fields win unless they are empty (0.9985ms)\n\u2714 normalizeEmail trims and lower-cases (0.5065ms)\n\u2714 importCsv merges the upload into the stored book (0.6778ms)\n\u2714 summarize counts contacts, phones and tags (0.8716ms)\n\u2139 tests 8\n\u2139 suites 0\n\u2139 pass 8\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 176.7388"
+      "evidence": "\u2714 the incoming fields win unless they are empty (2.1151ms)\n\u2714 normalizeEmail trims and lower-cases (0.519ms)\n\u2714 importCsv merges the upload into the stored book (0.9546ms)\n\u2714 summarize counts contacts, phones and tags (0.7918ms)\n\u2139 tests 8\n\u2139 suites 0\n\u2139 pass 8\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 203.6618"
     },
     {
       "name": "typecheck_passes",

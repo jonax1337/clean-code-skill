@@ -1,0 +1,77 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "this-repo": "d22fedb569e807ad",
+    "claudemd-baseline": "add78fc0657e7b53"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes correctly implement the requested state transitions, audit format, and customer-only notification, with equivalent coverage of the important edge cases. A narrowly wins on scope: it preserves the existing barrel-export convention, whereas B additionally exports an individual event interface that the task does not require. Both reports accurately describe their changes and reported verification.",
+        "a_issues": [],
+        "b_issues": [
+          "Adds SubscriptionPaused to src/index.ts even though existing individual event interfaces are not re-exported there; this is a minor, unnecessary public API expansion."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes correctly implement the requested state transitions, audit serialization, and customer-only notification, with effectively equivalent test coverage. I slightly prefer B because it preserves the existing barrel-export convention rather than additionally exposing one concrete event type at the package root. Both reports accurately describe their changes and reported verification; there is no substantive correctness difference.",
+        "a_issues": [
+          "Minor API-scope concern: src/index.ts additionally exports SubscriptionPaused, although existing concrete event interfaces are not exported there and the task does not require changing that convention."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

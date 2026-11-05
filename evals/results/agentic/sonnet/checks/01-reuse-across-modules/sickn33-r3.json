@@ -8,7 +8,7 @@
       "name": "hidden_behavior",
       "description": "The email shows the gross total with per-line VAT rounding, shipping and German formatting, right after the item list, and the rest of the email is unchanged (hidden tests).",
       "passed": true,
-      "evidence": "...                                                                      [100%]\n3 passed in 0.02s"
+      "evidence": "...                                                                      [100%]\n3 passed in 0.03s"
     },
     {
       "name": "reuses_helpers",

@@ -1,0 +1,90 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "6cbb88408c2821da",
+    "claudemd-baseline": "cab45f5b4989f915"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.0,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.10592,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes find the same root cause: the CRM file uses `customer_id`, so CRM customers were indexed under `undefined`. Both also route the export through `requireCustomer`, so a missing customer becomes a reported error. B renames the field once, where the CRM file is loaded, and leaves `buildCustomerIndex` unchanged. A puts the special case inside the generic index and stores a copy of each record instead of the original, which forced it to loosen three existing assertions from `equal` to `deepEqual`. B also adds a test showing the export throws `UnknownReferenceError` for a missing customer; A leaves that path untested. B's only drawback is that its error message passes the bare invoice id rather than the `invoice INV-\u2026` wording the existing test uses.",
+        "a_issues": [
+          "Normalizes CRM field names inside the generic `buildCustomerIndex` instead of where the CRM file is loaded, mixing knowledge of the source format into the index.",
+          "The index now stores a spread copy of each record, so lookups no longer return the original object; three existing assertions were loosened from `equal` to `deepEqual` to fit.",
+          "The normalized copy still carries the leftover `customer_id` field.",
+          "No test covers the new `requireCustomer` path in `exportInvoices` (unknown customer leads to `UnknownReferenceError`)."
+        ],
+        "b_issues": [
+          "Passes `invoice.id` rather than `invoice ${invoice.id}` as `referencedBy`, so the message reads \"(referenced by INV-1041)\", unlike the `invoice INV-7` wording in the existing `requireCustomer` test.",
+          "The new import of `customers.js` is placed above `csv.js`, breaking the file's alphabetical import order.",
+          "The test writes temp directories and never removes them."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.106304,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both fix the root cause, the CRM's `customer_id` key, and both switch the export to `requireCustomer`, so an unknown customer now fails as the README requires. A normalizes the CRM records at the source boundary in `sources.js`, which keeps `buildCustomerIndex` generic and leaves its identity semantics unchanged. B puts CRM-specific key fallback into the generic index, copies every record, and weakens three existing assertions to fit that change. A also tests both the loader normalization and the new export error path, while B tests only the index.",
+        "a_issues": [
+          "Passes `invoice.id` alone as `referencedBy`, so the message reads \"referenced by INV-1041\" instead of the established \"referenced by invoice INV-\u2026\" style.",
+          "The test's temp directory is never cleaned up."
+        ],
+        "b_issues": [
+          "Puts system-specific key handling (`customerId ?? customer_id`) inside the generic `buildCustomerIndex` instead of at the CRM load boundary.",
+          "The index now stores copies instead of the original records, and three existing assertions were weakened from `equal` to `deepEqual` to make that pass.",
+          "A record with neither key is silently indexed under `undefined`.",
+          "No test covers the new `requireCustomer` error path in `exportInvoices`."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

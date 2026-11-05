@@ -1,0 +1,77 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "5f2690d022105286",
+    "this-repo": "d22fedb569e807ad"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes implement the requested behavior correctly, preserve existing behavior, and keep resuming out of scope. Their production code is effectively identical, and both reports accurately describe the changes and reported verification. B has a small testing advantage: its paused-cancellation test also verifies canceledAt, protecting the requirement that cancellation still works as usual.",
+        "a_issues": [
+          "The paused-cancellation test checks status and resumeOn but does not assert that canceledAt records the cancellation timestamp."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement the requested behavior correctly with effectively identical production code, preserve existing behavior, and stay within scope. A has a small testing advantage: its cancellation-from-paused test also verifies canceledAt, protecting the requirement that cancellation still works as usual. Both reports accurately describe the changes and their reported verification results.",
+        "a_issues": [],
+        "b_issues": [
+          "The cancellation-from-paused test checks status and resumeOn but does not verify that canceledAt records the cancellation timestamp, unlike A."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

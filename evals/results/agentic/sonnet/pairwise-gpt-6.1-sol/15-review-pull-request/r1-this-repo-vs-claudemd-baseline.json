@@ -1,0 +1,90 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "this-repo": "8d1934add5a82d08",
+    "claudemd-baseline": "cf256ff989afac75"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes deliver the requested review and identify the major injection, audit-integrity, and pagination defects. A is slightly stronger because it reports targeted verification, demonstrates duplicate and nonexistent audit targets concretely, and keeps those audit-integrity problems in the must-fix group. Both have inaccurate line references, while B additionally presents an injection example that would fail parameter binding rather than return the claimed result set.",
+        "a_issues": [
+          "The reference to adminhub/users.py:160-167 is outside the patched file; the bulk-deactivation finding needs a correct location.",
+          "Treats literal wildcard matching as a required fix without an established search contract, and adds low-value suggestions about removing a TODO and using executemany.",
+          "The final report states that the actor can be spoofed more categorically than the available information about the web layer supports."
+        ],
+        "b_issues": [
+          "Several locations are inaccurate: total_pages is at api.py:36, and api.py:25-30 does not contain search. The bulk audit-loop finding lacks a line number.",
+          "The proposed injection example comments out the LIMIT/OFFSET placeholders, so supplying the existing two parameters causes a binding error rather than the claimed changed result set.",
+          "The verdict permits deferring audit entries for nonexistent or unchanged targets despite identifying them as an audit-integrity defect.",
+          "Provides static inspection only, without the test run and targeted probes reported by A."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes deliver the requested review without modifying application code and identify the SQL injection, swallowed audit failures, and pagination defects. B is slightly stronger because its reported probes are consistent with the code, it explicitly demonstrates duplicate audit entries, and it makes bulk audit integrity a merge prerequisite. Neither review is fully precise: both contain inaccurate line references, and A's sample injection would actually fail because commenting out the pagination placeholders leaves unmatched bound parameters.",
+        "a_issues": [
+          "The stated injection example, `' OR 1=1 --`, comments out LIMIT/OFFSET placeholders and therefore causes a binding error rather than returning the claimed altered result set. The underlying injection vulnerability is real.",
+          "Several references are inaccurate or incomplete: the search finding cites api.py:25-30 rather than the new search handler, and the bulk audit finding provides no line number.",
+          "The closing recommendation allows findings beyond 1\u20134 to follow later, despite identifying misleading audit records in finding 5."
+        ],
+        "b_issues": [
+          "The reference adminhub/users.py:160-167 does not exist in the patched file, making a major finding unnecessarily difficult to locate.",
+          "Treats escaping LIKE wildcards as mandatory without an established requirement that search terms must interpret percent and underscore literally.",
+          "Includes low-value prescriptions about removing a TODO and replacing audit calls with executemany that are not needed to resolve the substantive defects."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

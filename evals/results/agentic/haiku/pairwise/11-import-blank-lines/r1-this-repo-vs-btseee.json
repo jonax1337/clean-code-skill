@@ -1,0 +1,89 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c0a6be3a392b3869",
+    "btseee": "0e36a32192bf5dde"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.08053199999999999,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same code edit to `parse_entries`: blank and whitespace-only lines are skipped, and line numbering is unchanged. B's unit test is the better guard for the new branch, since it covers an empty line, a whitespace-only line with CRLF and an empty string. A's CLI test only uses plain empty lines and checks only the import count. A's report is a bit stronger, because it says the new test fails when the fix is reverted and it flags the decision to skip blank lines anywhere in the file.",
+        "a_issues": [
+          "The test does not cover whitespace-only lines (e.g. `\"   \\r\\n\"`), even though `strip()` exists to handle them.",
+          "The test checks only the 'imported 2 entries' message, not which entries were stored.",
+          "No test checks that a later error's line number still counts the skipped blank lines, although the report claims this behavior."
+        ],
+        "b_issues": [
+          "No test checks that error line numbers still count skipped blank lines, although the report claims this behavior.",
+          "The report says the empty string is 'between valid rows', but in the test it is the last item.",
+          "There is no end-to-end CLI test for the accountant's scenario."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.07731199999999999,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct one-line fix in the importer. Skipping blank lines before parsing keeps error line numbers pointing at the right physical line. A's unit test covers more edge cases, including whitespace-only and CRLF blank lines. B's report is more accurate and more useful: it shows the new test fails with the fix reverted, and it flags that blank lines are now skipped anywhere in the file, not only at the end.",
+        "a_issues": [
+          "The report says the test has an empty string between valid rows, but the empty string is the last list element.",
+          "No test checks that error line numbers still count the skipped blank lines.",
+          "The README's CSV import section is not updated to say blank lines are ignored."
+        ],
+        "b_issues": [
+          "The test covers only fully empty lines, not whitespace-only or CRLF blank lines.",
+          "No test checks that error line numbers still count the skipped blank lines.",
+          "The README's CSV import section is not updated to say blank lines are ignored."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

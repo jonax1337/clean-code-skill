@@ -1,0 +1,87 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "d0fd3941d1b2e90d",
+    "claudemd-baseline": "768c9016d4c7322e"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.179676,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two handlers are functionally identical: the same status check, the same cap against `amountPaid`, and the same validation and error codes. B's tests are a bit more protective. They cover cancelled orders and negative amounts, and they assert that nothing is recorded when a refund is rejected. B's report also states exactly which command was run to verify the change. A covers the two-decimal-place rule and mentions the concurrency caveat, but that does not outweigh B's broader rejection-path coverage.",
+        "a_issues": [
+          "The README sentence about the cap is added on one over-long line, which breaks the existing line wrapping.",
+          "No test covers rejection of a cancelled order or a negative amount.",
+          "The wrong-status and over-total tests do not check that `amountRefunded` stays unchanged."
+        ],
+        "b_issues": [
+          "The README table row is very long and breaks the table's column alignment.",
+          "No test covers rejection of an amount with more than two decimal places, although the report states this rule."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.180764,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both handlers are essentially identical and correct: they check SHIPPED/DELIVERED status, cap cumulative refunds against amountPaid, and leave status unchanged. A's test suite is somewhat stronger. It checks that rejected refunds record nothing in several cases, covers a cancelled order, and refunds exactly up to the paid amount. B's tests are slightly thinner, although they do cover decimal precision. B's report adds a useful concurrency caveat, but that does not outweigh A's better test coverage.",
+        "a_issues": [
+          "README row is very long and breaks the table's column alignment and its 'Moves the order from' semantics",
+          "No test for the two-decimal precision rule on refund amounts"
+        ],
+        "b_issues": [
+          "Test for refunds above amountPaid does not assert that nothing was recorded",
+          "No test for refunding a cancelled order",
+          "README paragraph edit produces an overly long line inconsistent with the file's wrapping"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

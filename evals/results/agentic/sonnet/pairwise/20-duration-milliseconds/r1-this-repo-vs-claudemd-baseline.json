@@ -1,0 +1,86 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4448c99b2e985cff",
+    "claudemd-baseline": "6b396f2655124427"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.107724,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "The two diffs are essentially identical for the core conversion, and both are correct. B adds a regression test for each of the two callers that now divide by 1000, `rateLimitHeaders` and `describeSettings`. A leaves those two conversions untested, and its report says so. B's `Math.round` is harmless and keeps `Retry-After` in whole seconds.",
+        "a_issues": [
+          "No tests cover the new `/ 1000` conversions in `http.ts` and `report.ts`. A unit regression there would go unnoticed.",
+          "The report admits typecheck output was only partially seen, so verification is incomplete."
+        ],
+        "b_issues": [
+          "`Math.round` is redundant, since every duration is a whole number of seconds. It is harmless.",
+          "The new test file uses a default import from `node:test`, while the other test files use a named import. This is a small style inconsistency."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.111448,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "The production changes are nearly identical and both correct: every `* 1000` is removed, `validate.ts` limits are converted, and `http.ts`/`report.ts` divide by 1000. Durations are always whole seconds, so A's `Math.round` and B's plain division give the same output. The deciding difference is that A adds tests for `rateLimitHeaders` and `describeSettings`, the two callers whose conversion direction flipped and which had no tests. B leaves those conversions unexercised, though its report says so honestly.",
+        "a_issues": [
+          "`Math.round` in `http.ts` is unneeded, because `parseDuration` always returns whole seconds' worth of milliseconds.",
+          "The new `test/units.test.ts` uses a default `import test from \"node:test\"`, unlike the named import used in the other test files.",
+          "The new test file's name, `units.test.ts`, doesn't match the per-module naming of the other test files."
+        ],
+        "b_issues": [
+          "There are no tests for the changed `/ 1000` conversions in `rateLimitHeaders` and `describeSettings`, so a units regression there would go unnoticed.",
+          "Typechecking is only partially verified: by its own account it saw only the tail of the `tsc` output."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

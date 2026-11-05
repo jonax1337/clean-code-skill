@@ -1,0 +1,81 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "9110d257d31fd2c6",
+    "btseee": "16dbde7532324361"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.078532,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same two-line code fix in parse_entries and add essentially the same two tests, so they behave identically. A also updates the README. Its CSV section said any unreadable line stops the import, which became inaccurate once blank lines are skipped. B leaves that sentence stale. A's report is also more complete: it lists the README edit and openly says an earlier scripted edit attempt was reverted.",
+        "a_issues": [
+          "The report's note about a reverted scripted edit is noise, though harmless and honest."
+        ],
+        "b_issues": [
+          "The README still says any line that cannot be read stops the import, but blank lines are now silently skipped, so the docs no longer match the behavior."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.07723999999999999,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The code fix and tests are essentially identical: blank and whitespace-only lines are skipped, and line numbers still count them. B also updates the README, which said any unreadable line stops the import; after this change that sentence would mislead without B's edit. B's report also says plainly that an earlier scripted edit went wrong and was reverted.",
+        "a_issues": [
+          "Leaves the README's CSV import section saying any unreadable line stops the import, which no longer matches the new blank-line behavior."
+        ],
+        "b_issues": [
+          "No notable issues."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

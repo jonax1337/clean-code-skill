@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 
-from harness import ALL_CONDITIONS, RUNS_DIR, Case, Condition, ask_claude, load_cases
+from harness import RUNS_DIR, SINGLE_TURN_CONDITIONS, Case, Condition, ask_claude, load_cases
 
 
 @dataclass(frozen=True)
@@ -43,7 +43,7 @@ def main() -> None:
     jobs = [
         Job(case, condition, rep)
         for case in cases
-        for condition in ALL_CONDITIONS
+        for condition in SINGLE_TURN_CONDITIONS
         if condition.applies_to(case.language)
         for rep in range(1, args.reps + 1)
     ]

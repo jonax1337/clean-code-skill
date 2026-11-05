@@ -1,0 +1,88 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "e189290b7f4ef9bb",
+    "btseee": "572ca4c4e4a6c645"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.06274,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs make the same correct fix: they build a Map from normalized email to the index of the first matching entry, then add new entries to it as they are appended. Original behavior is kept, including merging into the first of several existing duplicates and merging duplicates within the upload. B checks the Map result against `undefined` directly, which reads a bit more naturally than A's `?? -1` sentinel. B's report is also more candid: it says typecheck was not confirmed and that no test was added for the duplicate-in-existing case. A has a helpful comment on the map, but neither PR adds tests.",
+        "a_issues": [
+          "Converts a missing Map entry to -1 with `?? -1` just to keep the old sentinel check, which is a little roundabout",
+          "No test added for duplicates already in `existing`, or for the new index map",
+          "Report does not say whether typecheck was run"
+        ],
+        "b_issues": [
+          "No test added for duplicates already in `existing` (the report acknowledges this)",
+          "No comment explaining what the map holds (first-occurrence semantics)"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.063712,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same fix: build a map from normalized email to index once, take the first index for duplicates already in the book, and register appended contacts so duplicates within the upload still merge. Behavior and complexity are identical. A checks for `undefined` directly instead of converting a miss to a `-1` sentinel with `?? -1`, which is slightly cleaner. A's report is also more candid: it says typecheck wasn't confirmed and that the duplicate-in-existing case has no test.",
+        "a_issues": [
+          "No test added for duplicates already in `existing` or for the incoming-duplicate map registration.",
+          "No benchmark or timing on a realistic dataset."
+        ],
+        "b_issues": [
+          "Converts a map miss to a `-1` sentinel (`?? -1`) only to keep the old `findIndex`-style comparison; checking `undefined` directly would be cleaner.",
+          "No tests added for the new map-based edge cases.",
+          "Report doesn't mention whether typecheck was run.",
+          "No benchmark or timing on a realistic dataset."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ffffe84b2e6a3f25",
+    "claudemd-baseline": "977764e6075e09ca"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.07372,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same fix in `parse_entries`: blank and whitespace-only lines are skipped and still count toward line numbers. The difference is in the tests. A splits the two behaviors into two clearly named tests, and one of them puts a blank line between valid entries. B packs both behaviors into one test with a sliced-list second assertion, which is harder to read and only checks trailing blank lines after a single entry. Both reports are accurate, including their test counts (20 and 19).",
+        "a_issues": [
+          "No CLI-level test that imports a file with a trailing empty line",
+          "README's CSV import section is not updated to say that blank lines are ignored"
+        ],
+        "b_issues": [
+          "One test checks two behaviors, using a list slice that is less clear to read",
+          "The test does not cover a blank line between valid entries, only blank lines after the single valid entry",
+          "No CLI-level test, and the README is not updated"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.07404,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same code fix: in `parse_entries`, lines that are empty or only whitespace are skipped before parsing, and the line numbering is kept. B's tests are clearer and slightly stronger. They check that valid entries on both sides of blank lines are parsed, and they test line numbering in a separate, well-named test. A packs both checks into one test that never has a valid entry after a blank line. B's report also explains the root cause and lists the tests it added. Both reports give accurate test counts (19 and 20).",
+        "a_issues": [
+          "The single test mixes two concerns (an error's line number and successful parsing) with list-slicing tricks, so it is harder to read.",
+          "No test has a valid entry after a blank line in the middle of the file, so the case where parsing continues past a blank line is not covered."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

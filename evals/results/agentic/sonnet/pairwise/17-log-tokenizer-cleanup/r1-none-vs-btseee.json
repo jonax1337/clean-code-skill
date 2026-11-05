@@ -1,0 +1,90 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "6cb47dcc60bb5f2f",
+    "btseee": "8644c0d29e370cdd"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.5,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.185944,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors give the same tokens, errors, error positions, final position and end-of-stream behavior as the original, and both leave the public API unchanged. B's scanners are pure functions that return `(Token, next_pos)`. That puts the 'fail and jump to the end' step and every state change in one place in `next()`, so each scanner is easy to read and test on its own. A keeps the state changes and failure handling spread across mutating methods, and adds `#[inline(always)]` to every helper. Neither adds tests, and both reports are candid that their timings were noisy and ask for a real run on the nightly import.",
+        "a_issues": [
+          "`#[inline(always)]` is on every helper, which is heavy-handed. The report admits its benchmark could not separate the effect from noise, so the attributes may be cargo-cult.",
+          "State changes (`self.state = State::Item/Value`) are scattered across `key_or_word`, `quoted`, `bare` and `value`, so the state machine is less visible.",
+          "No regression test was added. The old-versus-new comparison was deleted, even though the report itself notes the existing tests are thin."
+        ],
+        "b_issues": [
+          "`next()` matches on `self.state` twice, plus a separate `state == Field` end-of-line check, which is slightly awkward.",
+          "The next state is inferred from the token kind (`Key` \u2192 `Value`, everything else \u2192 `Field`). This is implicit and could be missed when a new token kind is added.",
+          "No regression test was added for the randomized old-versus-new equivalence it says it ran.",
+          "The performance claim rests on a single representative line on a noisy machine, though the report says so."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.16664,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors produce the same tokens and errors as the original, including error positions, the end position after an error, and the state transitions. Neither changes the public API. A's scanners are pure functions that return `(token, next_pos)`, so the fail and state-transition bookkeeping lives in one place in `next()`, which makes it easier to extend. B spreads state and position updates across mutating methods and puts `#[inline(always)]` on every helper. B's report is more candid about benchmarking pitfalls, but A's structure is the better fit for a maintainability task.",
+        "a_issues": [
+          "`next()` matches on `self.state` twice and special-cases `Field` at end of line, which is slightly awkward.",
+          "Neither change adds a permanent equivalence or regression test. The differential fuzz comparison was not kept.",
+          "The performance check is informal and may have the cross-crate inlining flaw that B found in its own benchmark. The report says the check was noisy but not this possible flaw."
+        ],
+        "b_issues": [
+          "State and position transitions are scattered across `timestamp`, `key_or_word`, `quoted`, `bare` and `value`, so each new construct must remember to update them correctly.",
+          "`#[inline(always)]` on nearly every method is heavy-handed and adds noise. The measured gain was within run-to-run noise.",
+          "No permanent test was added, although the report offers to add one."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

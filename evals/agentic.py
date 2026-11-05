@@ -395,6 +395,8 @@ def run_agent(
             prompt_file = Path(skill_temp) / "skill-prompt.txt"
             prompt_file.write_text(_skill_prompt(skill, skill_dir), encoding="utf-8")
             command += ["--append-system-prompt-file", str(prompt_file), "--add-dir", str(skill_dir)]
+        if condition.project_instructions:
+            command += ["--append-system-prompt", condition.project_instructions]
         completed = subprocess.run(
             command,
             input=case.prompt,
@@ -413,7 +415,7 @@ def run_agent(
             review_diff=workspace.diff(ignore_cr_at_eol=True),
             returncode=completed.returncode,
             stderr=completed.stderr,
-            skill_fingerprint=skill.fingerprint() if skill else None,
+            skill_fingerprint=condition.fingerprint(case.language),
         )
 
 

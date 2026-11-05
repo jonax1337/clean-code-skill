@@ -1,0 +1,89 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "3fc8c7b1e9052bd9",
+    "btseee": "ecb292977c665dd5"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.25,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.75,
+    "tests": 0.25,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.165576,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs meet the task: a mutually exclusive `--with`/`--percent` group, reuse of `allocate`, exit code 2 with nothing saved on bad input, and a README row. A keeps the split rules inside `split_by_percent` (a minimum of 1, sum to 100, no duplicates) and shares the duplicate check with `split_equally`, so the domain function is safe to call directly. B puts most of the validation in CLI parsing and leaves `split_by_percent` checking only the total. B's parsing is a little stricter (ASCII digits only, names stripped), but that does not outweigh the cleaner layering in A.",
+        "a_issues": [
+          "`int()` parsing also accepts inputs like '+50', ' 50' or '5_0'; harmless but looser than needed",
+          "Names are not stripped, so 'alice =50' becomes a separate person 'alice '",
+          "The 34/33/33 CLI test on 10.00 divides exactly and never exercises leftover-cent rounding; only the 1-cent unit test does",
+          "Small refactor of `split_equally` beyond the strict task, though it is justified by reuse"
+        ],
+        "b_issues": [
+          "`split_by_percent` validates only the total; zero percentages, and duplicates in any caller that is not the CLI, rely on the CLI parser, so the domain function accepts a 0% share silently",
+          "The duplicate-name check is reimplemented inline in the CLI instead of reusing the existing check in `splitting.py`",
+          "Splitting unit tests do not cover invalid percentages because that validation lives in the CLI"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.163956,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes add a mutually exclusive `--percent` option that reuses `allocate`, and both work. B keeps the domain checks (duplicates, zero or negative values, sum to 100) inside `split_by_percent` and reuses the existing duplicate check through a small shared helper. A splits validation between the CLI parser and the splitter and re-implements the duplicate check with its own message. A has a stricter parser and a CLI test that actually exercises leftover-cent rounding, but B's structure is the better one to maintain.",
+        "a_issues": [
+          "Duplicate-name check is re-implemented in `_parse_percents` instead of reusing the logic in `split_equally`.",
+          "`split_by_percent` does not check for zero or negative percentages itself; it relies on the CLI parser, or on `allocate`'s generic error for negatives."
+        ],
+        "b_issues": [
+          "`int(value)` accepts lenient forms such as `5_0`, `+50` and padded whitespace as percentages.",
+          "Names are not stripped of whitespace, so `alice =50` creates a person called `alice `.",
+          "The CLI 'keeps every cent' test uses 10.00 at 34/33/33, which divides exactly and so never exercises leftover-cent rounding through the CLI."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

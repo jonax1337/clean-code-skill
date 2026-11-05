@@ -1,0 +1,91 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "538c1c503ab8cb19",
+    "this-repo": "f1a549990499bcec"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes fix silent fallback, aggregate actionable diagnostics, and reject invalid configuration before processing input. A has a slight edge because it preserves case-insensitive boolean parsing, rejects mistyped HTTP schemes, and keeps validation in straightforward static helpers. B has stronger boundary tests, but unnecessarily rejects previously valid uppercase booleans and inaccurately describes the original missing-URL behavior.",
+        "a_issues": [
+          "Rejects zero timeouts without documenting the new positive-only constraint; the existing configuration documentation does not explicitly prohibit zero.",
+          "Still accepts retry.max-attempts=2147483647, which overflows Relay's retryAttempts + 1, and durations whose conversion to milliseconds overflows in ConsoleUplink.",
+          "Does not add an automated startup test verifying exit status, stderr diagnostics, and refusal to process input."
+        ],
+        "b_issues": [
+          "Changes boolean parsing from case-insensitive to lowercase-only, rejecting previously valid values such as TRUE without a clear need.",
+          "Accepts arbitrary URL schemes, including likely typos such as htps://example.com, despite the upstream being described as an HTTP client.",
+          "Still accepts retry.max-attempts=2147483647 and durations that fit Duration but overflow ConsoleUplink's toMillis() conversion.",
+          "Does not add an automated startup test verifying exit status, stderr diagnostics, and refusal to process input.",
+          "The report incorrectly says a missing upstream.url caused an NPE; the original uri helper caught that exception and returned null."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes eliminate silent fallback for malformed values and provide aggregated, actionable startup errors. B is slightly preferable because it preserves existing case-insensitive boolean parsing, validates the endpoint for HTTP delivery, and avoids constructing a ServiceConfig before validation succeeds. A has stronger edge-case tests, while B should explicitly document its additional URL-scheme and positive-timeout constraints.",
+        "a_issues": [
+          "Rejects previously accepted boolean spellings such as TRUE and False without a task-driven reason.",
+          "Allows non-HTTP URLs and zero timeouts, whereas B checks these additional semantic constraints.",
+          "Like B, misses downstream numeric limits: Integer.MAX_VALUE retries overflows Relay's attempt calculation, and some accepted durations overflow ConsoleUplink's toMillis() conversion."
+        ],
+        "b_issues": [
+          "Introduces HTTP(S)-only URLs and strictly positive timeouts without updating the configuration table to state those constraints.",
+          "Has weaker boundary-test coverage than A, notably lacking duration-overflow and zero-retry acceptance tests; neither change adds automated startup/exit-code tests.",
+          "Like A, accepts retry counts and durations that can overflow their downstream calculations despite passing configuration validation."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

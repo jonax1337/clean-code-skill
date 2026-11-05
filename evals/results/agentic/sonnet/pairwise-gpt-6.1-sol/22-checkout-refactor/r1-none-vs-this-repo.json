@@ -1,0 +1,86 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "b477b75d43eca366",
+    "this-repo": "37075b9c61f427d6"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "A is the more faithful extraction of the original implementation, retaining both the pricing evaluation order and the reservation list used for rollback. B offers substantially better characterization tests and stronger type annotations, but its payment-decline cleanup uses the current order.items rather than the recorded reservations, changing behavior if the item list changes during charging. For a production refactor explicitly requiring unchanged behavior, I narrowly prefer A; B's characterization tests would be valuable additions.",
+        "a_issues": [
+          "Adds no regression tests despite gaps in the existing coverage around pricing boundaries, partial rollback, and notification failures.",
+          "Reservation-related helper parameters use bare list annotations instead of list[Item].",
+          "Extracting the one-line shipping expression into a separate helper adds little readability."
+        ],
+        "b_issues": [
+          "Payment-decline rollback releases order.items instead of the original reservation snapshot. If the list changes during charging, this can release unreserved items or leave reservations outstanding.",
+          "Pricing now traverses items twice and calculates the subtotal before looking up the tax rate, rather than preserving the original single-pass evaluation order."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "B more faithfully preserves the original implementation, particularly the captured reservation list used to roll back a declined payment. A adds substantially better regression coverage, but releases the current order.items instead of the actual reservations, which can change behavior if a collaborator modifies the item list during checkout. Given the explicit production requirement to preserve behavior, I narrowly prefer B, though its lack of additional characterization tests is a significant weakness.",
+        "a_issues": [
+          "Payment-decline rollback uses order.items rather than the captured reservation list. If the list changes during a gateway call, rollback can release unreserved items or leave reservations outstanding.",
+          "Pricing now traverses items twice and recomputes line prices rather than retaining the original single-pass calculation; this is unnecessary churn for a behavior-preserving extraction."
+        ],
+        "b_issues": [
+          "Adds no characterization tests despite the existing suite lacking coverage for several important pricing, partial-rollback, and notification-failure cases.",
+          "Uses unparameterized list annotations for reservations, and _charge has a long six-argument signature."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

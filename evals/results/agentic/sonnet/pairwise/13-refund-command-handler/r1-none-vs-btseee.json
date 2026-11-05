@@ -1,0 +1,89 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "d0fd3941d1b2e90d",
+    "btseee": "e68c56ab190c0735"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.25,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.191388,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two handlers are essentially identical and both look correct. Each validates input, enforces the SHIPPED/DELIVERED status rule, caps cumulative refunds at amountPaid, and leaves the status unchanged. A's tests compare BigDecimal with compareTo, as the existing PayOrderHandlerTest does. B's tests use assertEquals with BigDecimal.equals, which depends on scale and is fragile. B's report is a little more candid because it flags its misaligned README row, but A has the same cosmetic issue, so neither PR is clearly better and the edge is slight.",
+        "a_issues": [
+          "README table row is wider than the others, so the columns no longer line up, and the report does not mention it.",
+          "The added README sentence makes one paragraph line much longer than the surrounding wrapped lines.",
+          "No test covers a null refund amount or a refund on a PLACED or CANCELLED order."
+        ],
+        "b_issues": [
+          "Tests compare BigDecimal with assertEquals/equals, which depends on scale, for example assertEquals(BigDecimal.ZERO, ...) and assertEquals(new BigDecimal(\"30.00\"), ...). This is brittle and inconsistent with the compareTo style in the existing tests.",
+          "README table row is misaligned (acknowledged in the report).",
+          "No test for too many decimal places or for a refund on a PLACED or CANCELLED order."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.183604,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes implement the same correct handler: status check, cumulative cap against amountPaid rather than total, refund recorded, status unchanged, and the handler registered on the bus. B's tests set up a partially paid order (80 on 100) for every case and compare money with compareTo, as the existing PayOrderHandlerTest does. A's tests rely on BigDecimal.equals, which breaks if the scale changes. A's report is slightly more candid because it mentions the misaligned README row, but B has the better tests overall.",
+        "a_issues": [
+          "Tests assert with BigDecimal.equals (e.g. assertEquals(BigDecimal.ZERO, ...)), so they depend on the stored scale instead of the value, unlike the existing tests that use compareTo",
+          "recordRefund is placed between markPaid and markShipped, an odd spot in the lifecycle method order",
+          "README table row is wider than the others (disclosed in the report)"
+        ],
+        "b_issues": [
+          "Added README sentence breaks the paragraph's line wrapping",
+          "README table row is wider than the others, and the report does not mention it",
+          "Order.refund is a slightly ambiguous name for something that only records an amount"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

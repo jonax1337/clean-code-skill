@@ -8,7 +8,7 @@
       "name": "blank_lines_skipped",
       "description": "Blank lines are skipped wherever they are in the file: empty, whitespace-only and Windows line endings, at the start, in the middle and at the end.",
       "passed": true,
-      "evidence": ".........                                                                [100%]\n9 passed, 8 deselected in 0.07s"
+      "evidence": ".........                                                                [100%]\n9 passed, 8 deselected in 0.08s"
     },
     {
       "name": "malformed_lines_still_rejected",
@@ -38,13 +38,13 @@
       "name": "regression_test_added",
       "description": "The agent added at least one test that fails on the original code, so the bug cannot return unnoticed.",
       "passed": true,
-      "evidence": "['tests/test_cli.py::test_import_ignores_blank_lines'] on the original code: exit 1\n\n    def test_import_ignores_blank_lines(run, tmp_path):\n        csv_file = tmp_path / \"export.csv\"\n        csv_file.write_text(\"2025-03-03,Acme,90\\n\\n2025-03-04,Acme,30\\n\\n\", encoding=\"utf-8\")\n        code, out, _ = run(\"import\", str(csv_file))\n>       assert code == 0\nE       assert 1 == 0\n\ntests\\test_cli.py:35: AssertionError\n=========================== short test summary info ===========================\nFAILED tests/test_cli.py::test_import_ignores_blank_lines - assert 1 == 0\n1 failed in 0.10s"
+      "evidence": "['tests/test_cli.py::test_import_ignores_blank_lines'] on the original code: exit 1\n\n    def test_import_ignores_blank_lines(run, tmp_path):\n        csv_file = tmp_path / \"export.csv\"\n        csv_file.write_text(\"2025-03-03,Acme,90\\n\\n2025-03-04,Acme,30\\n\\n\", encoding=\"utf-8\")\n        code, out, _ = run(\"import\", str(csv_file))\n>       assert code == 0\nE       assert 1 == 0\n\ntests\\test_cli.py:35: AssertionError\n=========================== short test summary info ===========================\nFAILED tests/test_cli.py::test_import_ignores_blank_lines - assert 1 == 0\n1 failed in 0.12s"
     },
     {
       "name": "suite_passes",
       "description": "The project's own test suite passes.",
       "passed": true,
-      "evidence": "...................                                                      [100%]\n19 passed in 0.08s"
+      "evidence": "...................                                                      [100%]\n19 passed in 0.09s"
     },
     {
       "name": "clean_diff",

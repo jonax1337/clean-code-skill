@@ -1,0 +1,88 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "77170ee207707cbd",
+    "claudemd-baseline": "4185285afe4592ef"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.25,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.164992,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews find the same main blockers (SQL injection, swallowed audit errors, floor-division page count, unvalidated paging input, the client-supplied actor) and both correctly say not to merge. B adds valid extra findings: duplicate ids and already-inactive users get audited and counted again. However, B cites `users.py:160-162` and `:164-166` for a file that is only about 68 lines after the patch, which breaks the explicit file-and-line requirement despite its own note about line numbering. A's citations are accurate, it reproduced the injection concretely, and its fix snippets are more complete.",
+        "a_issues": [
+          "Misses that duplicate ids are audited twice and that already-inactive users are re-counted and re-audited in deactivate_users.",
+          "Fix snippet uses SELECT_USER in search.py without noting it must be imported from users."
+        ],
+        "b_issues": [
+          "Line numbers for users.py (160-162, 164-166) are wrong; the patched file is about 68 lines, contradicting its own statement that lines refer to the post-patch files.",
+          "Did not actually reproduce the SQL injection (stopped by a filter), so that finding is weaker; the report discloses this honestly.",
+          "Fix snippet for search is incomplete: the query string is not assigned to anything."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.17691199999999999,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both reviews find the same main blockers: the SQL injection, the swallowed audit errors, the floor-division page count and the paging input crashes. Both reach the correct verdict not to merge. B's line references match the patched files (api.py:61-62 for bulk_deactivate, users.py:63-64 for the audit loop). A cites users.py:160-166 in a file of about 68 lines, and api.py:56-58 for bulk_deactivate, which is wrong. B also demonstrates the injection with a concrete payload and the O'Brien crash, and flags the silent change to the list_users contract. A's extra point about duplicate and already-inactive ids is useful but does not outweigh the misleading line numbers.",
+        "a_issues": [
+          "Line numbers for users.py findings (160-162, 164-166) point past the end of the ~68-line patched file.",
+          "bulk_deactivate cited at api.py:56-58, but it is at 60-62 after the patch.",
+          "SQL injection only partially confirmed (a binding-count error); no demonstration that the query can be bypassed.",
+          "Does not frame the list_users default change (all users to 25) as a contract break for existing callers."
+        ],
+        "b_issues": [
+          "Misses duplicate ids producing duplicate audit rows, and already-inactive users being counted and re-audited.",
+          "Minor nits (renaming `res`, the TODO placement) add a little noise."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

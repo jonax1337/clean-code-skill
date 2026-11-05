@@ -8,31 +8,31 @@
       "name": "create_behavior_unchanged",
       "description": "createUser behaves as docs/api.md says: normalization, default role, messages in order, 409.",
       "passed": true,
-      "evidence": "\u2714 malformed emails are invalid (0.1484ms)\n\u2714 a null or unknown role is invalid, only a missing role defaults (0.1069ms)\n\u2714 a taken email answers 409, whatever its case (0.1384ms)\n\u2714 nothing is stored when validation fails (0.1464ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 65.1075"
+      "evidence": "\u2714 malformed emails are invalid (0.1755ms)\n\u2714 a null or unknown role is invalid, only a missing role defaults (0.1114ms)\n\u2714 a taken email answers 409, whatever its case (0.1396ms)\n\u2714 nothing is stored when validation fails (0.1806ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 74.2886"
     },
     {
       "name": "update_stays_partial",
       "description": "updateUser still validates only the fields that are present, rejects an empty body with 'no fields to update', and keeps its 404 and 409 answers (documented difference).",
       "passed": true,
-      "evidence": "\u2714 only the fields that are present are reported, in the order email, name, role (0.1093ms)\n\u2714 an invalid field prevents the valid ones from being applied (0.1029ms)\n\u2714 an unknown user answers 404 before the body is looked at (0.1058ms)\n\u2714 the email of another user answers 409, the own email does not (0.143ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 9\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 61.834"
+      "evidence": "\u2714 only the fields that are present are reported, in the order email, name, role (0.104ms)\n\u2714 an invalid field prevents the valid ones from being applied (0.1015ms)\n\u2714 an unknown user answers 404 before the body is looked at (0.1011ms)\n\u2714 the email of another user answers 409, the own email does not (0.1337ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 9\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 71.0375"
     },
     {
       "name": "invite_keeps_its_differences",
       "description": "inviteUser still accepts a missing or empty name, requires a role, rejects owner and keeps its 409 (documented differences).",
       "passed": true,
-      "evidence": "\u2714 email problems use the same messages as everywhere else (0.1171ms)\n\u2714 messages come in the order email, name, role (0.101ms)\n\u2714 an email that belongs to a user or to a pending invitation answers 409 (0.2386ms)\n\u2714 nothing is stored when validation fails (0.144ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 65.3278"
+      "evidence": "\u2714 email problems use the same messages as everywhere else (0.1158ms)\n\u2714 messages come in the order email, name, role (0.095ms)\n\u2714 an email that belongs to a user or to a pending invitation answers 409 (0.1848ms)\n\u2714 nothing is stored when validation fails (0.1537ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 74.0077"
     },
     {
       "name": "unrelated_handlers_unchanged",
       "description": "listUsers and deleteUser, which have validation of their own, behave as before.",
       "passed": true,
-      "evidence": "\u2714 listUsers keeps its own paging rules and messages (1.0128ms)\n\u2714 deleteUser keeps its own rules (0.1834ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 61.4234"
+      "evidence": "\u2714 listUsers keeps its own paging rules and messages (1.5613ms)\n\u2714 deleteUser keeps its own rules (0.2734ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 71.9532"
     },
     {
       "name": "email_drift_handled",
       "description": "inviteUser either stores the email trimmed and in lowercase as docs/api.md says, or keeps the old behavior and the final report tells the developer about the difference.",
       "passed": true,
-      "evidence": "[pass] fixed: \u2714 an invitation stores the email trimmed and in lowercase (0.6644ms)\n\u2714 an invitation for an existing user is found whatever the case of the email (0.1564ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 59.7456\n[fail] kept_and_reported: [fail] kept:       at TestContext.<anonymous> (file:///C:/Users/Jonas/AppData/Local/Temp/cc-agentic-0id41275/repo/.hidden/hidden_drift_kept.test.js:12:10)\n      at Test.runInAsyncScope (node:async_hooks:226:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at Test.start (node:internal/test_runner/test:1262:17)\n      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 'bob@example.com',\n    expected: 'Bob@Example.COM',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n[pass] reported: **Behavior change in `inviteUser`:** it used to trim the email but not lowercase it, which contradicts `docs/api.md`. That says invitation emails are stored in lowercase. With the shared validator they are now low"
+      "evidence": "[pass] fixed: \u2714 an invitation stores the email trimmed and in lowercase (0.9369ms)\n\u2714 an invitation for an existing user is found whatever the case of the email (0.201ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 70.7198\n[fail] kept_and_reported: [fail] kept:       at TestContext.<anonymous> (file:///C:/Users/Jonas/AppData/Local/Temp/cc-agentic-dym_8pu9/repo/.hidden/hidden_drift_kept.test.js:12:10)\n      at Test.runInAsyncScope (node:async_hooks:226:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at Test.start (node:internal/test_runner/test:1262:17)\n      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 'bob@example.com',\n    expected: 'Bob@Example.COM',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n[pass] reported: **Behavior change in `inviteUser`:** it used to trim the email but not lowercase it, which contradicts `docs/api.md`. That says invitation emails are stored in lowercase. With the shared validator they are now low"
     },
     {
       "name": "validation_defined_once",
@@ -62,7 +62,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 changes only the fields that are present (1.0355ms)\n\u2714 answers 404 for an unknown user (0.1137ms)\n\u2714 rejects a present but invalid email (0.1639ms)\n\u2714 answers 409 when the email belongs to another user (0.1365ms)\n\u2139 tests 16\n\u2139 suites 0\n\u2139 pass 16\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 115.0693"
+      "evidence": "\u2714 changes only the fields that are present (1.0182ms)\n\u2714 answers 404 for an unknown user (0.1401ms)\n\u2714 rejects a present but invalid email (0.1968ms)\n\u2714 answers 409 when the email belongs to another user (0.1571ms)\n\u2139 tests 16\n\u2139 suites 0\n\u2139 pass 16\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 139.975"
     },
     {
       "name": "clean_diff",

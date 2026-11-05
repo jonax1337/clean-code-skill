@@ -1,0 +1,89 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ef055682729a8867",
+    "claudemd-baseline": "10bf7e5e0e0b89a8"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.1167,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both diffs make the same core conversion correctly. B also changes the user-visible output of `describeSettings` from \"timeout 30s\" to \"timeout 30000ms\", which the task did not ask for: the task was to change the internal unit and adapt callers, not to change what they print. A keeps every caller's external behavior the same, including the report text and `Retry-After` in whole seconds. B's new tests for http and report are useful, but its report test locks in the unrequested format change.",
+        "a_issues": [
+          "No tests were added for the `/1000` conversions in `http.ts` and `report.ts`; the report says so openly.",
+          "The typecheck exit code was not captured, so the clean typecheck is only partly verified."
+        ],
+        "b_issues": [
+          "`describeSettings` output changes from seconds (`30s`) to milliseconds (`30000ms`). This is a user-visible change outside the task.",
+          "The new `report.test.ts` locks in that unrequested format.",
+          "The report says `MAX_TTL_MS = 86_400_000`, but the code writes it as `24 * 60 * 60 * 1000`. The value is the same, so this is minor.",
+          "The `240000` \u2192 `240_000` edit in `retry.test.ts` is cosmetic churn."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.11484799999999999,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes convert `parseDuration` to milliseconds and adapt cache, retry, scheduler, validate and http identically and correctly. A also changes the user-visible output of `describeSettings` from \"timeout 30s\" to \"timeout 30000ms\", which the task did not ask for, and adds a test that locks in that change. B divides by 1000 and keeps the existing output. B's report is also more careful: it points out that the public re-export of `parseDuration` is a breaking change and says honestly which paths it did not test. A's extra tests are a plus, but they do not outweigh the unrequested behavior change.",
+        "a_issues": [
+          "Changes `describeSettings` output from seconds (`30s`) to milliseconds (`30000ms`), an unrequested behavior change for consumers of the report string.",
+          "The new `report.test.ts` enshrines the changed output instead of protecting the original behavior.",
+          "Report does not mention that `parseDuration` is publicly re-exported, so the unit change breaks external consumers.",
+          "Cosmetic-only edit in `retry.test.ts` (240000 to 240_000) adds noise to the diff."
+        ],
+        "b_issues": [
+          "Adds no tests for the http and report conversions, which are the call sites most likely to regress.",
+          "Did not confirm the typecheck exit code (though it says so honestly)."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

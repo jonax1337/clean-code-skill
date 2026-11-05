@@ -8,19 +8,19 @@
       "name": "hidden_behavior",
       "description": "December works at the root: `month_range` returns the first day of the next month for all 12 months, and the December report includes Dec 31 but not Jan 1 (hidden tests).",
       "passed": true,
-      "evidence": "..                                                                       [100%]\n2 passed in 0.02s"
+      "evidence": "..                                                                       [100%]\n2 passed in 0.03s"
     },
     {
       "name": "regression_test",
       "description": "A new regression test runs and fails on the original code.",
       "passed": true,
-      "evidence": "['tests/test_periods.py::test_month_range_december_ends_in_next_year', 'tests/test_periods.py::test_quarter_range_fourth_quarter_ends_in_next_year', 'tests/test_sales.py::test_monthly_report_for_december_includes_the_last_day'] on the original code: exit 1\n        \"\"\"Return (first day of the month, first day of the next month).\"\"\"\n        start = datetime.date(year, month, 1)\n>       end = datetime.date(year, month + 1, 1)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       ValueError: month must be in 1..12\n\nreports\\periods.py:9: ValueError\n=========================== short test summary info ===========================\nFAILED tests/test_periods.py::test_month_range_december_ends_in_next_year - V...\nFAILED tests/test_periods.py::test_quarter_range_fourth_quarter_ends_in_next_year\nFAILED tests/test_sales.py::test_monthly_report_for_december_includes_the_last_day\n3 failed in 0.10s"
+      "evidence": "['tests/test_periods.py::test_month_range_december_ends_in_next_year', 'tests/test_periods.py::test_quarter_range_fourth_quarter_ends_in_next_year', 'tests/test_sales.py::test_monthly_report_for_december_includes_the_last_day'] on the original code: exit 1\n        \"\"\"Return (first day of the month, first day of the next month).\"\"\"\n        start = datetime.date(year, month, 1)\n>       end = datetime.date(year, month + 1, 1)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       ValueError: month must be in 1..12\n\nreports\\periods.py:9: ValueError\n=========================== short test summary info ===========================\nFAILED tests/test_periods.py::test_month_range_december_ends_in_next_year - V...\nFAILED tests/test_periods.py::test_quarter_range_fourth_quarter_ends_in_next_year\nFAILED tests/test_sales.py::test_monthly_report_for_december_includes_the_last_day\n3 failed in 0.13s"
     },
     {
       "name": "sibling_bug",
       "description": "The same crash in `quarter_range` for Q4 is fixed or reported to the user (bugs cluster, T6).",
       "passed": true,
-      "evidence": "[pass] q4_fixed: .                                                                        [100%]\n1 passed in 0.01s\n[pass] q4_reported: **Same bug in Q4:** `quarter_range` had the same problem (`3 * quarter + 1` is 13 for quarter 4), so `quarterly_report` would have crashed for Q4. I fixed it with the same helper."
+      "evidence": "[pass] q4_fixed: .                                                                        [100%]\n1 passed in 0.02s\n[pass] q4_reported: **Same bug in Q4:** `quarter_range` had the same problem (`3 * quarter + 1` is 13 for quarter 4), so `quarterly_report` would have crashed for Q4. I fixed it with the same helper."
     },
     {
       "name": "scope_files",
@@ -44,7 +44,7 @@
       "name": "suite_green",
       "description": "The full test suite passes, including the agent's own tests.",
       "passed": true,
-      "evidence": "........                                                                 [100%]\n8 passed in 0.02s"
+      "evidence": "........                                                                 [100%]\n8 passed in 0.03s"
     },
     {
       "name": "clean_diff",

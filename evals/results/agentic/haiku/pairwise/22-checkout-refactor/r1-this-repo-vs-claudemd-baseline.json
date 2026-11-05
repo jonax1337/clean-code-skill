@@ -1,0 +1,91 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "a07a5b15cc705cfe",
+    "claudemd-baseline": "50b305b2cfc0b10c"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.157948,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors preserve behavior. Both extract sensible helpers and add characterization tests that were run against the original code. A gets there with plain functions. It also pins the risky edges of the try/except restructuring: the gateway error other than a decline that leaves stock reserved, the VIP discount stacked on a coupon, and the exact inventory log. B adds a `_Pricing` dataclass that buys little, and it leaves the gateway-error behavior it noticed untested.",
+        "a_issues": [
+          "`_tax_cents` recomputes line totals separately from the subtotal, which duplicates the line arithmetic.",
+          "On a decline it releases `order.items` instead of the reserved list. This is equivalent, but it relies on reasoning about control flow rather than being a literal move.",
+          "No test sits exactly on the free-shipping threshold, and none checks the threshold after a coupon is applied.",
+          "The report claims a 20,000-order differential run that is not part of the diff and cannot be checked from it."
+        ],
+        "b_issues": [
+          "The `_Pricing` dataclass with a `total` property adds abstraction a single integer total would not need.",
+          "The gateway error other than `PaymentDeclined` is mentioned in the report but not pinned by a test, even though that is exactly the path the restructured try/except could change.",
+          "The VIP test does not stack the discount with a coupon, so the order in which the two discounts are applied is not protected."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.159992,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors preserve behavior and add characterization tests that were run against the original code. A is closer to a literal move: it keeps the subtotal and tax loop in one place, keeps releasing the `reserved` list, and pulls the commit/redeem/status block into `_mark_paid`, so `process_order` reads as a clean list of steps. B computes `line_cents` in two places, leaves the commit block inline, and swaps `reserved` for `order.items`. That swap is equivalent and B discloses it, but it is a needless deviation. B has a slightly stronger test set (VIP stacked on a coupon, exact `inventory.log` assertions, the non-decline gateway path) and a more detailed report, but it misses the exact free-shipping boundary that A tests.",
+        "a_issues": [
+          "The `_Pricing` dataclass is a small extra abstraction where a plain total would do.",
+          "No test for a VIP discount stacked on a coupon, or for a gateway error other than a decline."
+        ],
+        "b_issues": [
+          "Line-price multiplication is duplicated in `_total_cents` and `_tax_cents`.",
+          "On decline it releases `order.items` instead of `reserved`, which is an unnecessary semantic shift in a behavior-preserving refactor (disclosed).",
+          "The commit/redeem/status block stays inline, so `process_order` is less uniform.",
+          "The free-shipping test uses 6000 rather than the exact 5000 boundary, so the `>=` comparison is not pinned.",
+          "The 20,000-order differential run is claimed but does not appear in the diff."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

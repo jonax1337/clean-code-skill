@@ -1,0 +1,93 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "6ebffa2962215a2f",
+    "claudemd-baseline": "19dd063532d5a4c5"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.14333600000000002,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes add `--percent` the same way: `--with` is no longer required, both-or-neither is rejected in `_add`, and the shares go through `allocate`. B reuses the existing duplicate-name check through `_reject_duplicates` instead of copying it, and adds focused unit tests for `parse_percent` and `split_by_percent`, including malformed input and cent preservation. B also explicitly decides to reject 0% and says so in the report. A's tests are thinner: they don't cover the neither case, and the mixed-options test doesn't check the error message.",
+        "a_issues": [
+          "Copies the duplicate-name check from `split_equally` instead of reusing it.",
+          "Adds a new `UsageError` class that isn't really needed, since `TabtallyError` would do.",
+          "Silently allows 0% shares, which records a person with a zero share; this isn't mentioned in the report.",
+          "No unit tests for `parse_percent` or `split_by_percent`, and no test for giving neither `--with` nor `--percent`.",
+          "The mixed `--with`/`--percent` test doesn't check stderr.",
+          "The report opens with an odd process remark (\"The README row came out right, so I'm wrapping up\")."
+        ],
+        "b_issues": [
+          "Raises the base `TabtallyError` directly rather than a specific subclass. This is minor.",
+          "Rejecting 0% is a judgment call the task didn't ask for, although the report flags it.",
+          "The README adds a second `add` row instead of folding `--percent` into the existing one. This is slightly redundant."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.14056000000000002,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes add `--percent` the same way: `--with` becomes optional, exactly one mode is required, cents are allocated with the existing `allocate`, and the README is updated. A pulls the duplicate-name check into a shared helper instead of copying it, rejects 0% entries explicitly and says so in its report, and adds unit tests for `parse_percent` and `split_by_percent` plus a CLI test for giving neither option. B copies the duplicate check, has no unit tests for the new splitting functions, and does not test the neither-option path.",
+        "a_issues": [
+          "Rejecting 0% is an extra policy the task did not ask for, though the report flags it clearly",
+          "The mode check raises a bare TabtallyError rather than a more specific subclass"
+        ],
+        "b_issues": [
+          "The duplicate-name check is copied from split_equally instead of reused",
+          "No unit tests for parse_percent or split_by_percent, and no CLI test for giving neither --with nor --percent",
+          "A 0% entry is silently accepted and stores a zero share",
+          "Adds a UsageError class that only one call site uses",
+          "The report opens with an odd, irrelevant sentence about the README row"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

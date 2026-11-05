@@ -1,0 +1,127 @@
+diff --git a/src/customers.js b/src/customers.js
+index 4ba264d..7f02e1a 100644
+--- a/src/customers.js
++++ b/src/customers.js
+@@ -2,16 +2,21 @@ import { UnknownReferenceError } from "./errors.js";
+ 
+ /**
+  * @typedef {object} Customer
+  * @property {string} customerId
+  * @property {string} name
+  * @property {string} country
+  */
+ 
++/** A CRM export record in the shape of a billing one: the CRM spells the id `customer_id`. */
++export function customerFromCrmRecord({ customer_id: customerId, name, country }) {
++  return { customerId, name, country };
++}
++
+ /** Customers by id, for lookups. */
+ export function buildCustomerIndex(records) {
+   const index = new Map();
+   for (const record of records) {
+     index.set(record.customerId, record);
+   }
+   return index;
+ }
+diff --git a/src/export.js b/src/export.js
+index 2ad1481..649a166 100644
+--- a/src/export.js
++++ b/src/export.js
+@@ -1,15 +1,16 @@
++import { requireCustomer } from "./customers.js";
+ import { toCsv } from "./csv.js";
+ import { invoiceTotalCents } from "./invoices.js";
+ import { formatCents } from "./money.js";
+ 
+ const HEADER = ["invoice_id", "customer", "issued_on", "total"];
+ 
+ function invoiceRow(invoice, customers) {
+-  const customer = customers.get(invoice.customerId);
++  const customer = requireCustomer(customers, invoice.customerId, `invoice ${invoice.id}`);
+   return [invoice.id, customer.name, invoice.issuedOn, formatCents(invoiceTotalCents(invoice))];
+ }
+ 
+ /** One CSV row per invoice, in the order given, for the accounting import. */
+ export function exportInvoices(invoices, customers) {
+   return toCsv([HEADER, ...invoices.map((invoice) => invoiceRow(invoice, customers))]);
+ }
+diff --git a/src/sources.js b/src/sources.js
+index 637fd82..dfcb983 100644
+--- a/src/sources.js
++++ b/src/sources.js
+@@ -1,18 +1,19 @@
+ import { readFileSync } from "node:fs";
+ import { join } from "node:path";
++import { customerFromCrmRecord } from "./customers.js";
+ 
+ function readJson(directory, file) {
+   return JSON.parse(readFileSync(join(directory, file), "utf8"));
+ }
+ 
+ export function loadInvoices(directory) {
+   return readJson(directory, "invoices.json");
+ }
+ 
+ /** The customers of both systems in one list: billing first, then the CRM. */
+ export function loadCustomerRecords(directory) {
+   return [
+     ...readJson(directory, "billing-customers.json"),
+-    ...readJson(directory, "crm-customers.json"),
++    ...readJson(directory, "crm-customers.json").map(customerFromCrmRecord),
+   ];
+ }
+diff --git a/tests/customers.test.js b/tests/customers.test.js
+index d3ea6b7..f1601c1 100644
+--- a/tests/customers.test.js
++++ b/tests/customers.test.js
+@@ -1,11 +1,11 @@
+ import assert from "node:assert/strict";
+ import { test } from "node:test";
+-import { buildCustomerIndex, requireCustomer } from "../src/customers.js";
++import { buildCustomerIndex, customerFromCrmRecord, requireCustomer } from "../src/customers.js";
+ import { UnknownReferenceError } from "../src/errors.js";
+ 
+ const acme = { customerId: "C-1", name: "Acme", country: "DE" };
+ const nordwind = { customerId: "C-2", name: "Nordwind", country: "US" };
+ 
+ test("buildCustomerIndex finds customers by id", () => {
+   const index = buildCustomerIndex([acme, nordwind]);
+   assert.equal(index.get("C-1"), acme);
+@@ -21,8 +21,16 @@ test("requireCustomer names the unknown customer and who asked for it", () => {
+   const index = buildCustomerIndex([acme]);
+   assert.throws(
+     () => requireCustomer(index, "C-9", "invoice INV-7"),
+     (error) =>
+       error instanceof UnknownReferenceError &&
+       error.message === 'Unknown customer "C-9" (referenced by invoice INV-7)',
+   );
+ });
++
++test("customerFromCrmRecord maps the CRM's customer_id to customerId", () => {
++  assert.deepEqual(customerFromCrmRecord({ customer_id: "C-2201", name: "Birch & Co", country: "NL" }), {
++    customerId: "C-2201",
++    name: "Birch & Co",
++    country: "NL",
++  });
++});
+diff --git a/tests/export.test.js b/tests/export.test.js
+index de0aa44..7a7072e 100644
+--- a/tests/export.test.js
++++ b/tests/export.test.js
+@@ -31,8 +31,15 @@ test("exportInvoices writes the header and one row per invoice in order", () =>
+     exportInvoices(invoices, customers),
+     ["invoice_id,customer,issued_on,total", 'INV-1,"Nordwind, Inc.",2026-10-01,30.00', "INV-2,Acme,2026-10-02,17.50", ""].join("\n"),
+   );
+ });
+ 
+ test("exportInvoices of no invoices is just the header", () => {
+   assert.equal(exportInvoices([], customers), "invoice_id,customer,issued_on,total\n");
+ });
++
++test("exportInvoices names the invoice whose customer is unknown", () => {
++  assert.throws(
++    () => exportInvoices([{ ...invoices[0], customerId: "C-9" }], customers),
++    { name: "UnknownReferenceError", message: 'Unknown customer "C-9" (referenced by invoice INV-1)' },
++  );
++});

@@ -1,0 +1,84 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "this-repo": "f6b9c9c33acd563d",
+    "claudemd-baseline": "19dd063532d5a4c5"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 0.25,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement percentage splitting with the existing cent allocator, preserve equal splitting, and add useful documentation and tests. A is preferable because its required argparse mutually exclusive group expresses the option constraint directly, produces accurate usage text, and preserves parser-level rejection when no split option is supplied. Both unnecessarily reject 0%, although the task only requires whole-number percentages totaling 100.",
+        "a_issues": [
+          "Rejects zero percentages, imposing a restriction not requested by the task."
+        ],
+        "b_issues": [
+          "Rejects zero percentages, imposing a restriction not requested by the task.",
+          "Checks the required choice between --with and --percent manually in _add rather than through argparse, so generated usage does not express that exactly one is required."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes implement percentage splitting using the existing cent allocator, reject duplicate names, and preserve equal splitting. B is preferable because its required argparse mutually exclusive group expresses the CLI contract directly, produces accurate usage text, and preserves parser-level rejection when no split option is supplied. A has slightly stronger CLI tests, but both changes impose an unrequested restriction by rejecting 0% entries.",
+        "a_issues": [
+          "Enforces option exclusivity and presence inside _add rather than argparse, so usage text does not express the constraint and missing split options change from parser-level rejection to handler-level rejection.",
+          "Rejects 0% entries even though the task only requires whole-number percentages totaling 100."
+        ],
+        "b_issues": [
+          "Rejects 0% entries even though the task only requires whole-number percentages totaling 100.",
+          "Does not explicitly test rejection when neither split option is supplied or verify that invalid percentage totals leave storage unchanged."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

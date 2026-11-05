@@ -1,0 +1,85 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "34c7afcc2465701d",
+    "claudemd-baseline": "6b396f2655124427"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.109732,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs make the same correct core change. Each removes `* 1000` from the millisecond callers, converts the validate limits, and divides by 1000 where seconds are still needed. B also adds tests for `rateLimitHeaders` and `describeSettings`, the two callers most at risk of a silent unit regression, and reports running the typecheck. A leaves those seconds-based outputs untested and skipped the typecheck. B's `Math.round` changes nothing in practice, because every supported unit is a whole number of seconds.",
+        "a_issues": [
+          "Does not add tests for `rateLimitHeaders` or `describeSettings`, the callers that must keep emitting seconds and that no existing test covers.",
+          "Did not run the typecheck (stated honestly in the report)."
+        ],
+        "b_issues": [
+          "`Math.round` in `http.ts` is unnecessary, since `parseDuration` always returns whole seconds' worth of milliseconds; it is minor noise.",
+          "The new test file uses a default `import test from \"node:test\"`, unlike the named import used in the other test files."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.107988,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two diffs are nearly identical and both are behaviorally correct. parseDuration only accepts whole numbers of units, so B's plain `/ 1000` in http.ts always yields a whole number of seconds, and A's `Math.round` changes nothing in practice. A wins because it adds tests for the two seconds-facing callers, `rateLimitHeaders` and `describeSettings`. Those are exactly the places where the unit conversion could silently regress, and they had no coverage. A also ran the typecheck, while B states it didn't.",
+        "a_issues": [
+          "`Math.round` in http.ts is redundant because parseDuration always returns a multiple of 1000, which adds slight noise.",
+          "The new test file uses a default `import test from \"node:test\"` and a different import order from the existing test files, which is a minor style inconsistency."
+        ],
+        "b_issues": [
+          "No tests cover `rateLimitHeaders` or `describeSettings`, the two callers whose conversion back to seconds is the riskiest part of the change.",
+          "The typecheck was not run."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

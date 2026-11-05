@@ -1,0 +1,86 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "b0caa35c046c7662",
+    "this-repo": "424a85167c257204"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes centralize the validation checks, preserve endpoint-specific behavior and message ordering, and fix invitation email normalization consistently with the documented contract. B has a slight advantage because it adds a regression test for that intentional behavior change, whereas A adds no tests. Neither adequately tests the shared validation boundaries or case-insensitive invitation conflicts.",
+        "a_issues": [
+          "Adds no tests for the extracted validators or the intentional invitation email normalization change.",
+          "The validateRole comment misleadingly suggests an undefined role is accepted when required is false; without a default, it actually returns 'role is invalid'."
+        ],
+        "b_issues": [
+          "The new test covers lowercase invitation output but not case-variant conflicts against existing users or invitations, validation message ordering, or name-length boundaries.",
+          "validateName and validateOptionalName duplicate name normalization, leaving that small part of the validation pipeline in two places."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes centralize the field checks while preserving endpoint-specific defaults, validation messages, ordering, and partial-update behavior. Both also appropriately fix invitation email normalization to match the documented contract. A narrowly wins because it adds a regression test for that behavior change, whereas B adds no tests; B's explicit update loop is somewhat easier to follow than A's object-transformation pipeline.",
+        "a_issues": [
+          "The added test covers lowercase invitation storage but not case-insensitive conflicts against existing users or invitations.",
+          "Neither shared-validator boundaries nor endpoint-specific differences receive new coverage, including the 80-character name limit, optional invitation names, invitation role restrictions, and empty updates.",
+          "The update handler's filter/map/fromEntries/collect pipeline adds indirection compared with a straightforward validation loop."
+        ],
+        "b_issues": [
+          "No tests were added, leaving both the extracted validation behavior and the intentional invitation-normalization fix without new regression coverage.",
+          "The validateRole comment says a missing role is an error only when required is set, but with the default options undefined still produces 'role is invalid'."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

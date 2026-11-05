@@ -1,0 +1,88 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d25be316cdeedc33",
+    "btseee": "26e605c60493560f"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.197952,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same core fix: wrong values are collected and reported together, unknown keys and missing files are refused, upstream.url is validated, and Main exits with status 2. B is slightly ahead on the details. Its unknown-key error lists the valid keys, its duration overflow error is accurate, and its tests pin the exact messages plus the overflow and token-not-echoed cases. Both reports are accurate (17 and 19 test counts check out), and B's adds the actual output and the open choices for the developer to confirm.",
+        "a_issues": [
+          "Duration overflow is reported as a format error ('must be a whole number followed by ms, s or m') even though the value is well-formed, which is misleading.",
+          "The unknown-key error does not suggest the valid keys, so the deployer has to look them up to fix a typo.",
+          "Fewer edge-case tests: no overflow test, and no test that the API token is kept out of error messages."
+        ],
+        "b_issues": [
+          "The out-of-range and not-a-number cases share one message ('must be a whole number, at least N'), which is a little less precise.",
+          "The unknown-key message repeats the full list of known keys for every unknown key, which gets noisy when there are several typos.",
+          "The report is long relative to a change of this size."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.19608399999999998,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes do essentially the same work: they collect every problem, reject invalid present values, unknown keys and missing files, and exit with status 2 from Main. A's error messages help the deployer more, because unknown-key errors list the valid keys and an overflowing timeout is reported as too large rather than as a format error. A also tests more edge cases, including the overflow and a check that the API token is never echoed. B's main advantage is cleaner reuse of required() for upstream.url.",
+        "a_issues": [
+          "uri() repeats the required-check logic instead of calling required().",
+          "intValue uses one message for both non-numeric and below-minimum values, which is slightly less precise."
+        ],
+        "b_issues": [
+          "An overflowing timeout such as 99999999999999999999m gets the generic format message, which is misleading.",
+          "The unknown-key error does not list the valid keys, so the deployer has to look them up.",
+          "There is no test for the overflow case and no test that the API token is never echoed."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

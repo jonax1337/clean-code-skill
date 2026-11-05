@@ -8,19 +8,19 @@
       "name": "transient_failures_are_retried",
       "description": "Reads (get_shipment, list_shipments, wait_for_label) succeed when the first attempt hits a timeout, a connection failure, a 502 or a 503; this is the request.",
       "passed": true,
-      "evidence": "............                                                             [100%]\n12 passed in 0.06s"
+      "evidence": "............                                                             [100%]\n12 passed in 0.07s"
     },
     {
       "name": "permanent_errors_are_not_retried",
       "description": "A 4xx answer (reads and keyed creates) and an unexpected exception such as a ValueError are raised after a single request: retrying cannot fix them and would only delay the failure.",
       "passed": true,
-      "evidence": "........                                                                 [100%]\n8 passed in 0.04s"
+      "evidence": "........                                                                 [100%]\n8 passed in 0.05s"
     },
     {
       "name": "gives_up_and_keeps_the_original_error",
       "description": "A failure that never clears stops after a bounded number of attempts (at least 2, at most 10) and raises the original error, or an error explicitly raised from it; the sync job fails loudly instead of reporting success.",
       "passed": true,
-      "evidence": "....                                                                     [100%]\n4 passed in 0.04s"
+      "evidence": "....                                                                     [100%]\n4 passed in 0.05s"
     },
     {
       "name": "keyed_create_is_retried_safely",

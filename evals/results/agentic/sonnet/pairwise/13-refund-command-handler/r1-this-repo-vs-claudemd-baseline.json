@@ -1,0 +1,89 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "cfc5518d65186853",
+    "claudemd-baseline": "768c9016d4c7322e"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 0.75,
+    "report": 0.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.18709599999999998,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both handlers apply the same status rule and the same cap of refunds already recorded plus the new one against amountPaid, so they are equally correct. A's handler is a bit easier to read because it names a `refundable` variable, and its README note is cleaner than B's overloaded table row. A's tests also cover sub-cent amounts and check that refunding exactly the paid amount succeeds on an underpaid order. B's report is more accurate, since A says 8 new tests when there are 9, and B's assertions use compareTo, which holds up if the scale changes.",
+        "a_issues": [
+          "Report says 8 new refund tests, but the diff adds 9.",
+          "Tests compare BigDecimal with assertEquals, so they depend on scale.",
+          "The README table row puts a non-transition ('stays SHIPPED or DELIVERED') in the 'Moves the order from' column."
+        ],
+        "b_issues": [
+          "The README table row is overloaded with rule details and does not fit the 'Moves the order from' column.",
+          "No test for sub-cent refund amounts, although the report says the two-decimal rule applies.",
+          "The handler computes `amountRefunded().add(amount)` twice, which is slightly less readable than naming the remaining refundable amount."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.18807200000000002,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement the same correct logic: a SHIPPED/DELIVERED status check, a cumulative cap at amountPaid, the existing Validator reused for the amount, and status left unchanged. A edges ahead because its tests compare money with compareTo, which ignores scale, and its report counts its tests correctly. B's tests check more edge cases (sub-cent amounts, the exact cap being accepted on an underpaid order), but they compare BigDecimal with equals, which depends on scale, and its report says 8 new tests when there are 9. A's README row is awkward, which costs it a little.",
+        "a_issues": [
+          "The README table row crams the full rule into the 'Moves the order from' column, which makes the table hard to read.",
+          "The test for an underpaid order only checks that a refund over amountPaid is rejected. It does not check that a refund of exactly amountPaid is accepted.",
+          "No test checks that a refund amount with more than two decimal places is rejected."
+        ],
+        "b_issues": [
+          "The tests compare amountRefunded with BigDecimal.equals, which depends on scale. They pass only because the scales happen to line up, and they would break under a harmless change to how money is represented.",
+          "The report says there are 8 new refund tests, but the diff adds 9 (20 existing + 9 = 29), so the count is inconsistent.",
+          "The report's 'for Support to confirm' note mostly restates the cap rule and adds little."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

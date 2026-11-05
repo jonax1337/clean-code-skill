@@ -1,0 +1,83 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ea21bf4559dbff79",
+    "btseee": "d51f040e9c138355"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.130288,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes remove `--compact` the same way across the parser, Options, renderer, README, usage text and CHANGELOG, and both leave the rest of the behavior intact. B also adds a test that asserts `--compact` is now rejected with `UnknownOption`, which pins the user-visible behavior change, while A only deletes the old tests. B leaves a stray blank line before the closing brace of the render tests module, a trivial formatting nit.",
+        "a_issues": [
+          "No test pins the removal: nothing checks that `--compact`/`-c` is now rejected."
+        ],
+        "b_issues": [
+          "Leaves a blank line before the closing `}` of the render.rs test module, which rustfmt would remove.",
+          "The new test covers only `--compact`, not the short `-c` form."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.130936,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes remove the same code, help text, README row and struct field, and both add a correct changelog entry, so behavior is identical. A also replaces the deleted compact tests with an integration test asserting that `--compact` now returns `UnknownOption`, which pins the removal. B only deletes tests, so nothing protects the new behavior. Both reports are accurate about test counts and changes.",
+        "a_issues": [
+          "The new test covers only `--compact`, not the short `-c` form.",
+          "Leaves a stray blank line before the closing brace of the render tests module."
+        ],
+        "b_issues": [
+          "No test asserts that `--compact`/`-c` is now rejected, so the removal is not protected against regressions."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "model": "haiku",
+  "model_ids": [
+    "claude-haiku-5-5"
+  ],
+  "outcome": "success",
+  "is_error": false,
+  "cost_usd": 0.007011740000000001,
+  "duration_ms": 39196,
+  "num_turns": 4,
+  "output_tokens": 6879,
+  "permission_denials": 0,
+  "skill_fingerprint": "98cc395384e76976",
+  "tools": [
+    "Bash",
+    "Edit",
+    "Glob",
+    "Grep",
+    "Read",
+    "Write"
+  ],
+  "skill_files_read": [],
+  "returncode": 0
+}

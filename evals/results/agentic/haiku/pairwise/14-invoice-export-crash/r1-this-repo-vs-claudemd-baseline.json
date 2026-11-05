@@ -1,0 +1,86 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c574043ff7e8c196",
+    "claudemd-baseline": "b104877a6be6a26f"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.104692,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes fix the root cause the same way: CRM records get `customer_id` renamed to `customerId` at load time, and the export switches to `requireCustomer` so the README's error convention holds. The production code is functionally equivalent. B's tests are more robust: they resolve the data directory from the test file instead of the cwd, check all three CRM customers, and assert nothing is indexed under `undefined`. B's named `normalizeCrmCustomer` also reads more clearly than A's inline map.",
+        "a_issues": [
+          "`tests/sources.test.js` loads `\"data\"` relative to the cwd, so it breaks if tests run from another directory.",
+          "The sources test checks only one CRM customer and does not assert that no record is indexed under `undefined`.",
+          "`loadCustomerRecords` was restructured, so CRM is read before billing and the mapping is inline. This is slightly less readable than a named helper."
+        ],
+        "b_issues": [
+          "Exports a new `normalizeCrmCustomer` function, which widens the module API slightly, mainly so it can be tested.",
+          "The report's remark about `customerStatement` now finding CRM customers is unverified, though it is hedged with \"should\"."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.10441600000000001,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix: they rename the CRM `customer_id` field when loading and switch the export to `requireCustomer`, so the README's error convention holds. A pulls the rename into a small named, documented `normalizeCrmCustomer` and tests it directly. A's data test checks all three CRM customers and that nothing is indexed under `undefined`, and it finds the data directory relative to the test file rather than the working directory. B's code is equally correct, but its test depends on the cwd and covers less.",
+        "a_issues": [
+          "Exports `normalizeCrmCustomer` mainly for testing. This is a slightly larger public surface for a one-line mapping."
+        ],
+        "b_issues": [
+          "`tests/sources.test.js` loads `\"data\"` relative to the process cwd, so it breaks if the tests run from another directory.",
+          "The data test checks only one CRM customer and does not assert that no record ends up under an `undefined` key.",
+          "The rename is an inline destructuring map inside `loadCustomerRecords`. It is harder to read than a named helper, and the JSDoc line has grown long."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

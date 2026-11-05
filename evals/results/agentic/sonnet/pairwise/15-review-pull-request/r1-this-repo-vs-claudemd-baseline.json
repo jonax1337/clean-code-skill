@@ -1,0 +1,91 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "8d1934add5a82d08",
+    "claudemd-baseline": "cf256ff989afac75"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.160244,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews find the same core problems in the right priority order: SQL injection, swallowed audit errors, floor-divided `pages`, unvalidated paging input, a spoofable `actor` and audit rows for unknown ids. Both conclude correctly that the PR should not be merged as is. A backs each finding with a specific probe whose result matches the code, such as `ids=[1,1,999]` giving one deactivation but three audit rows, which makes it more convincing. B says honestly that it did not run anything, and adds a couple of extra points (the non-unique `ORDER BY name` and string `ids`), but it also has a clearly wrong line reference for `search`.",
+        "a_issues": [
+          "Line reference `adminhub/users.py:160-167` is badly wrong; the patched file is only about 68 lines.",
+          "Some api.py line numbers are off by one.",
+          "Misses the non-unique `ORDER BY name` paging instability in search."
+        ],
+        "b_issues": [
+          "Did not apply the patch or run any probes, so the findings rest on reading the code alone (B states this honestly).",
+          "Line reference `adminhub/api.py:25-30` for `search` is wrong; the handler is around lines 42-47.",
+          "The `total_pages` line number is off."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.161832,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both reviews find the same blockers: SQL injection in search, swallowed audit errors, the floor-division `pages` bug, unvalidated paging input, and the forgeable or unchecked actor and ids in bulk deactivation. Both reach the same correct verdict. B actually applied the patch, ran the suite and confirmed each finding with concrete probes. It also adds useful points A misses: `q=%` matches every user, duplicate ids produce extra audit rows, and search has its own page-size default. A explicitly did not verify anything and has a clearly wrong line reference for `search`.",
+        "a_issues": [
+          "Did not apply the patch or run any tests, so every finding is unverified reasoning.",
+          "Places `search` at `adminhub/api.py:25-30`; it actually starts around line 42 after the patch.",
+          "Cites `total_pages` at api.py:35; it is around line 37.",
+          "Typo in finding 7: lists `page` twice among the undocumented fields.",
+          "Misses the duplicate-id audit rows and the default page size duplicated in `search_users`."
+        ],
+        "b_issues": [
+          "The line reference `adminhub/users.py:160-167` is impossible; the patched file is about 68 lines long.",
+          "Paging-parameter line numbers (`api.py:34-35`, `:36`) are off by about one.",
+          "Its 'What is good' section and the executemany suggestion add length with little review value."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

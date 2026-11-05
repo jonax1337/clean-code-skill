@@ -1,0 +1,91 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "751f6b2e4f9cbc9b",
+    "claudemd-baseline": "669cbdfef6468606"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.23736800000000002,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors look behavior-preserving. Tracing each path (separator skipping, the timestamp and quote scans, empty bare values, the error-then-exhausted state) gives the same tokens, positions and stream ends as the original. A's structure is cleaner: small free helpers with a shared `scan_unquoted`, and error handling in one place in `next()`. A also leaves 19 lasting unit tests that pin every error variant and edge case, which helps future format changes. B's exhaustive oracle is strong evidence for this refactor, but it commits a 175-line copy of the old tokenizer plus a timing test. That oracle will break on every intentional format change the user plans, and B's design adds `#[inline(always)]` everywhere and a `(Token, usize, bool)` return.",
+        "a_issues": [
+          "The randomized old-vs-new comparison ran in a deleted scratch crate, so it can't be reproduced from the repo",
+          "Speed figures come from a noisy ad-hoc benchmark, not the real dump (the report says so)"
+        ],
+        "b_issues": [
+          "Commits a frozen 175-line copy of the old tokenizer as a test oracle; it must be updated or deleted at the first intentional line-format change",
+          "The exhaustive 1.1M-line equivalence test runs on every `cargo test` and may be slow in debug builds",
+          "`#[inline(always)]` on every helper is unexplained noise",
+          "`lex_key_or_word` returns an awkward `(Token, usize, bool)` tuple, and the state change happens inside a `map` closure",
+          "Adds no lasting unit tests for specific edge cases or error positions"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.23759600000000003,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors look behavior-preserving. Tracing every path (separator skipping, empty bare values, escapes, error positions, the post-error state) shows both match the original. B's structure is cleaner: small free scan functions, with one shared `scan_unquoted` for keys, words and bare values, and error handling done once in `next()`. Its 19 targeted tests were run against the original code first and will keep documenting the format as it evolves. A's frozen 175-line copy of the old tokenizer is strong proof of equivalence right now, but it duplicates code and will have to be deleted the first time the line format changes, which the user says is the reason for the refactor.",
+        "a_issues": [
+          "Commits a 175-line frozen copy of the old tokenizer as a test oracle. This duplicates code, and the equivalence test will break, and must be removed, on the first intended format change.",
+          "The exhaustive test over about 1.1M lines plus 200k random lines makes `cargo test` noticeably slower in debug builds.",
+          "`lex_key_or_word` returns a `(Token, usize, bool)` triple, and a `.map` closure mutates `self.state`. This is a slightly awkward way to signal that a value follows.",
+          "Blanket `#[inline(always)]` on every helper is heavy-handed and was not shown to be needed."
+        ],
+        "b_issues": [
+          "The old-vs-new comparison on random lines ran in a scratch crate that was deleted, so this check is not reproducible from the PR.",
+          "Without an oracle, equivalence rests on targeted tests plus that unreproducible comparison. This is weaker evidence than A's exhaustive check for short lines.",
+          "The benchmark is informal, and no timing was done on a real dump; the report acknowledges this."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "this-repo": "8a93070a66755558",
+    "claudemd-baseline": "2ec830cdc432b4d3"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.75,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors appear to preserve token values, error variants, byte offsets, and termination after errors. A achieves the cleanup with a more direct structure: token-specific methods and one centralized error transition, without B's additional emission abstraction and nested Result combinators. B provides stronger retained equivalence coverage, but its exhaustive test unnecessarily constructs ten million untested strings in its final iteration, creating substantial memory overhead for the normal test suite.",
+        "a_issues": [
+          "The reported exhaustive comparison and performance benchmark were removed, so their results are not directly reproducible from the PR.",
+          "The committed regression tests do not exercise multibyte input or compare complete token prefixes before each error."
+        ],
+        "b_issues": [
+          "matches_reference_on_all_short_lines constructs the next generation even at the maximum tested length, allocating ten million strings that are never checked and potentially consuming hundreds of megabytes.",
+          "The combination of Step, emit, a boolean-configured scan_run, and nested and_then/map expressions adds more abstraction and indirection than this cleanup needs.",
+          "The frozen reference duplicates the entire original tokenizer, including its token definitions; comparing formatted Debug strings is less robust than comparing typed token values.",
+          "The performance benchmark was removed, and the reported approximately \u00b110% timing noise cannot rule out a meaningful slowdown."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors appear to preserve token values, error variants, byte offsets, and termination behavior. B is easier to maintain: token-specific methods and centralized error handling make the control flow clearer without A's additional Step/emit machinery and boolean-controlled scanner. A retains stronger differential coverage, but its exhaustive test unnecessarily constructs ten million unchecked strings in its final iteration. Neither change retains a reproducible benchmark establishing the required absence of a slowdown.",
+        "a_issues": [
+          "The exhaustive test builds the next generation even after checking length-six inputs, unnecessarily allocating ten million length-seven strings and substantially increasing test memory and runtime.",
+          "Step, emit, and the stop_at_eq scanner parameter add abstraction and indirection to a relatively small tokenizer.",
+          "The differential test compares formatted Debug output rather than token values directly, and includes an unnecessary Token import and dummy binding.",
+          "Performance evidence comes from a removed, single-line benchmark with approximately \u00b110% noise, which cannot confidently exclude a meaningful regression."
+        ],
+        "b_issues": [
+          "The exhaustive comparison was removed, so future changes cannot rerun that verification from the repository; the retained tests also lack multibyte-input coverage.",
+          "The performance benchmark was removed, and the reported noisy synthetic measurements do not conclusively establish no slowdown."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

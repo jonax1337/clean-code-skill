@@ -21,12 +21,17 @@ from statistics import mean
 
 from agentic import AGENTIC_RESULTS_DIR, SPLITS, coder_models, load_agentic_cases, results_dir
 from charts import ASSETS_DIR, chart_frame, row_highlight, short_label
-from harness import ALL_CONDITIONS, CONDITIONS, NO_SKILL, THIS_REPO, write_text_atomic
+from harness import ALL_CONDITIONS, CLAUDEMD_BASELINE, CONDITIONS, NO_SKILL, THIS_REPO, write_text_atomic
 
 LABELS = {condition.name: condition.label for condition in ALL_CONDITIONS}
 ORDER = [condition.name for condition in ALL_CONDITIONS]
 REFERENCES = [NO_SKILL, THIS_REPO]  # conditions every other condition is compared against
-OPPONENTS = [condition.name for condition in CONDITIONS if condition.name != THIS_REPO]
+# In the charts the cheap CLAUDE.md baseline follows no skill directly: together they bracket what a skill adds.
+OPPONENTS = [NO_SKILL, CLAUDEMD_BASELINE] + [
+    condition.name
+    for condition in CONDITIONS
+    if condition.name not in (THIS_REPO, NO_SKILL, CLAUDEMD_BASELINE)
+]
 WINNER_SCORE = {"A": 1.0, "tie": 0.5, "B": 0.0}
 RESAMPLES = 10_000
 
@@ -35,7 +40,9 @@ TRIGGER_MODES = {
     "installed": "Installed, nothing mentions it (the agent decides whether to load the skill)",
     "instructed": "Installed, with the CLAUDE.md line that asks the agent to load it",
 }
-CHART_MODEL_ORDER = ("sonnet", "opus", "haiku")  # the order of the README tables
+# Coder models that are reported, in the order of the README tables. Haiku runs stay under results/ but are not
+# reported: the skill targets agents of the Sonnet and Opus class.
+REPORTED_MODELS = ("sonnet", "opus")
 CHECKS_CHART_MODEL = "sonnet"
 CHECKS_CHART_CONDITIONS = [condition.name for condition in CONDITIONS]
 SPLIT_PANELS = {
@@ -54,7 +61,7 @@ def main() -> None:
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]  # stdout is a TextIOWrapper here
     cases = {case.case_id: case for case in load_agentic_cases()}
     summary, lines, rationales = {}, _intro(), ["# Judge rationales", ""]
-    for model in coder_models():
+    for model in [model for model in coder_models() if model in REPORTED_MODELS]:
         grades = _load(results_dir(model, "checks"))
         comparisons = _load(results_dir(model, "pairwise"))
         if not grades:
@@ -171,6 +178,7 @@ def _pairwise_stats(comparisons: list[dict]) -> dict:
             "first": first,
             "second": second,
             "units": len(items),
+            "cases": len(scores),
             "first_score": _case_mean(scores),
             "first_score_ci": bootstrap_ci(scores),
             "first_wins": sum(score > 0.5 for score in flat),
@@ -201,10 +209,15 @@ def _is_contradictory(comparison: dict) -> bool:
 def bootstrap_ci(by_case: ByCase, minus: ByCase | None = None) -> list[float]:
     """95 % interval of the case-weighted mean (or of its difference to `minus`), resampling within each case."""
     rng = random.Random(0)
-    estimates = sorted(
-        _resampled_case_mean(by_case, rng) - (_resampled_case_mean(minus, rng) if minus else 0.0)
-        for _ in range(RESAMPLES)
-    )
+    # With a single run per case nothing varies within a case, so the cases are resampled instead, the same draw
+    # for both arms of a difference so that it stays paired by case.
+    if any(_single_run(arm) for arm in (by_case, minus) if arm):
+        estimates = sorted(_resampled_cases_difference(by_case, minus, rng) for _ in range(RESAMPLES))
+    else:
+        estimates = sorted(
+            _resampled_case_mean(by_case, rng) - (_resampled_case_mean(minus, rng) if minus else 0.0)
+            for _ in range(RESAMPLES)
+        )
     return [estimates[int(0.025 * RESAMPLES)], estimates[int(0.975 * RESAMPLES) - 1]]
 
 
@@ -216,6 +229,16 @@ def _resampled_case_mean(by_case: ByCase, rng: random.Random) -> float:
     return mean(mean(rng.choices(values, k=len(values))) for values in by_case.values())
 
 
+def _single_run(by_case: ByCase) -> bool:
+    return all(len(values) == 1 for values in by_case.values())
+
+
+def _resampled_cases_difference(by_case: ByCase, minus: ByCase | None, rng: random.Random) -> float:
+    cases = rng.choices(list(by_case), k=len(by_case))
+    drawn = mean(mean(by_case[case]) for case in cases)
+    return drawn - (mean(mean(minus[case]) for case in cases) if minus else 0.0)
+
+
 def _intro() -> list[str]:
     return [
         "# Agentic eval results",
@@ -223,7 +246,8 @@ def _intro() -> list[str]:
         "A coding agent with Read/Grep/Glob/Edit/Write/Bash works on a fresh copy of a fixture repo; deterministic",
         "checks grade the result and a blind judge compares runs pairwise. `dev` cases may have shaped the skill;",
         "`test` cases are held out. Cases are weighted equally. Brackets are 95 % bootstrap intervals that resample",
-        "runs within each case, so they describe these cases only.",
+        "runs within each case, so they describe these cases only; where a condition has one run per case, they",
+        "resample the cases instead.",
     ]
 
 
@@ -394,6 +418,7 @@ class Preference:
 
     model: str
     opponent: str
+    tasks: int
     wins: int
     ties: int
     losses: int
@@ -423,6 +448,7 @@ def _this_repo_side(model: str, opponent: str, pair: dict) -> Preference:
         return Preference(
             model,
             opponent,
+            pair["cases"],
             pair["first_wins"],
             pair["ties"],
             pair["second_wins"],
@@ -432,6 +458,7 @@ def _this_repo_side(model: str, opponent: str, pair: dict) -> Preference:
     return Preference(
         model,
         opponent,
+        pair["cases"],
         pair["second_wins"],
         pair["ties"],
         pair["first_wins"],
@@ -447,7 +474,7 @@ def _preference_chart(preferences: list[Preference], case_count: int) -> str:
         ("tie", "bar"),
         ("alternative preferred", "bar-strong"),
     ]
-    width, bar_x, bar_width, bar_height, row_pitch, group_pitch, top = 760, 196, 310, 24, 38, 30, 100
+    width, bar_x, bar_width, bar_height, row_pitch, group_pitch, top = 760, 234, 272, 24, 38, 30, 100
     value_x, parity_x = bar_x + bar_width + 28, bar_x + bar_width / 2
     models = sorted(dict.fromkeys(row.model for row in preferences), key=_chart_rank)
     height = top + len(preferences) * row_pitch + len(models) * group_pitch + 24
@@ -470,13 +497,17 @@ def _preference_chart(preferences: list[Preference], case_count: int) -> str:
         y += group_pitch
         rows = [row for row in preferences if row.model == model]
         group_top = y
-        most_comparisons = max(row.comparisons for row in rows)
+        most_runs = max(row.comparisons // row.tasks for row in rows)
         for row in rows:
             opponent = short_label(LABELS[row.opponent])
-            # A skill that exists only for some languages runs on fewer tasks; say so next to its name.
-            tasks = round(case_count * row.comparisons / most_comparisons)
-            if tasks < case_count:
-                opponent += f" ({tasks} tasks)"
+            # A skill that exists only for some languages runs on fewer tasks, a condition added later on fewer
+            # runs per task; say so next to its name.
+            notes = [f"{row.tasks} tasks"] if row.tasks < case_count else []
+            if row.comparisons // row.tasks < most_runs:
+                runs = row.comparisons // row.tasks
+                notes.append(f"{runs} run" if runs == 1 else f"{runs} runs")
+            if notes:
+                opponent += f" ({', '.join(notes)})"
             counts = [row.wins, row.ties, row.losses]
             segments = [(name, count, fill) for (name, fill), count in zip(parts_of_bar, counts)]
             low, high = row.ci
@@ -544,7 +575,17 @@ def _checks_chart(model: str, splits: dict) -> str:
     panels = [split for split in SPLITS if split in splits]
     width, gap, top, row_pitch = 760, 24, 84, 32
     panel_width = (width - 48 - gap * (len(panels) - 1)) / len(panels)
-    height = top + 36 + len(CHECKS_CHART_CONDITIONS) * row_pitch + 28
+    # Panel captions give this repo's runs per task; conditions added later with one run get a footnote.
+    single_run = [
+        short_label(LABELS[name])
+        for name in CHECKS_CHART_CONDITIONS
+        if all(
+            splits[split]["conditions"].get(name, {}).get("runs", 0) == splits[split]["cases"]
+            for split in panels
+        )
+    ]
+    footnote_room = 22 if single_run else 0
+    height = top + 36 + len(CHECKS_CHART_CONDITIONS) * row_pitch + 28 + footnote_room
     parts = chart_frame(
         width,
         height,
@@ -555,6 +596,8 @@ def _checks_chart(model: str, splits: dict) -> str:
     )
     for index, split in enumerate(panels):
         parts += _checks_panel(24 + index * (panel_width + gap), top, panel_width, split, splits[split])
+    if single_run:
+        parts.append(_text(24, height - 12, f"{' and '.join(single_run)}: one run per task.", "muted", 11))
     parts.append("</svg>")
     return "\n".join(parts)
 
@@ -637,7 +680,7 @@ def _text_width(text: str, size: int) -> float:
 
 def _chart_rank(model: str) -> int:
     """Position of a coder model in the charts; models not listed come last."""
-    return CHART_MODEL_ORDER.index(model) if model in CHART_MODEL_ORDER else len(CHART_MODEL_ORDER)
+    return REPORTED_MODELS.index(model)
 
 
 def _model_name(model: str) -> str:

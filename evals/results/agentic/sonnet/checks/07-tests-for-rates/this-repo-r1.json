@@ -14,7 +14,7 @@
       "name": "new_tests_pass_on_original_code",
       "description": "The tests the agent added run and pass against the untouched fixture (including the original rates.ts).",
       "passed": true,
-      "evidence": "['test/rates.test.ts'] on the original code: exit 0, tests ran: True\n\u2714 quote rejects an amount that does not cover the fee (0.1318ms)\n\u2714 quote of zero is all zeros (0.0975ms)\n\u2714 quote rejects negative amounts (0.116ms)\n\u2714 quote rejects unknown currencies and fractional amounts (0.142ms)\n\u2139 tests 30\n\u2139 suites 0\n\u2139 pass 30\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 180.6173"
+      "evidence": "['test/rates.test.ts'] on the original code: exit 0, tests ran: True\n\u2714 quote rejects an amount that does not cover the fee (0.1219ms)\n\u2714 quote of zero is all zeros (0.0926ms)\n\u2714 quote rejects negative amounts (0.087ms)\n\u2714 quote rejects unknown currencies and fractional amounts (0.1284ms)\n\u2139 tests 30\n\u2139 suites 0\n\u2139 pass 30\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 274.9591"
     },
     {
       "name": "tests_catch_mutants_of_rates",
@@ -38,7 +38,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 quote rejects unknown currencies and fractional amounts (0.0695ms)\n\u2714 nextBusinessDay moves a weekday to the following day (1.3529ms)\n\u2714 nextBusinessDay skips the weekend (0.1205ms)\n\u2714 nextBusinessDay ignores the time of day and does not change its input (0.2267ms)\n\u2139 tests 40\n\u2139 suites 0\n\u2139 pass 40\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 169.7345"
+      "evidence": "\u2714 quote rejects unknown currencies and fractional amounts (0.1212ms)\n\u2714 nextBusinessDay moves a weekday to the following day (1.5536ms)\n\u2714 nextBusinessDay skips the weekend (0.2633ms)\n\u2714 nextBusinessDay ignores the time of day and does not change its input (0.3179ms)\n\u2139 tests 40\n\u2139 suites 0\n\u2139 pass 40\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 193.7307"
     },
     {
       "name": "typecheck_passes",

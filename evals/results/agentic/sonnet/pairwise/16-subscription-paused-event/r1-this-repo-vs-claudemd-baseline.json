@@ -1,0 +1,79 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d22fedb569e807ad",
+    "claudemd-baseline": "add78fc0657e7b53"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.142284,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two source changes are functionally identical. Both handle the paused state, the payment no-ops, clearing resumeOn on cancel, the audit format and the notification correctly, and both have equivalent test coverage. B also exports SubscriptionPaused from index.ts, which the task did not ask for and which no other event interface does. That makes B slightly broader in scope, so A is the cleaner merge.",
+        "a_issues": [],
+        "b_issues": [
+          "Exports SubscriptionPaused from src/index.ts, which the task did not ask for and which is inconsistent with the other event interfaces, none of which are exported individually."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.145928,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The source changes are functionally identical: same event type, same reducer logic, same audit line, same notification, and both handle every behavior the task specifies. The only code difference is that A also exports `SubscriptionPaused` from `src/index.ts`. Nothing asked for that, and it breaks the existing pattern of exporting only the `SubscriptionEvent` union rather than individual event types. The tests are equivalent in coverage, and both reports are accurate; B's also flags that `resumeOn` is not validated as a date.",
+        "a_issues": [
+          "Exports `SubscriptionPaused` from `src/index.ts`, which was not requested and is inconsistent with the barrel exporting only the `SubscriptionEvent` union and no other individual event types."
+        ],
+        "b_issues": [
+          "The tests for the start state (`resumeOn` null) and the pause state are split into separate small tests. This is harmless, just slightly more verbose than needed."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

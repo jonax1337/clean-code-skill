@@ -1,0 +1,87 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "424a85167c257204",
+    "claudemd-baseline": "b9e3c0012455145c"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.0,
+    "design": 1.0,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.162172,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "A's refactor applies one email rule everywhere, which brings `inviteUser` in line with `docs/api.md` (invitation emails are stored lowercase). It discloses that behaviour change and covers it with a test. B keeps the old case-sensitive invite behaviour by adding a `lowercase: false` option to the shared validator, which writes a known contract violation into the code meant to stop such divergences, though B does flag it honestly. B has better tests, with direct unit tests of the validators including the 80-character limit, but A's result is closer to the documented contract and to the task's goal.",
+        "a_issues": [
+          "Mixes a behaviour change (lowercasing invite emails) into a refactor; it is disclosed and tested, but a strictly scoped refactor would leave it out",
+          "No direct tests for `validation.js`, so boundaries like the 80-character limit and a blank name on update are untested",
+          "`collect` relies on object key insertion order to keep the message order email, name, role, and this is not obvious at the call sites"
+        ],
+        "b_issues": [
+          "The `lowercase: false` option bakes a documented bug (invite emails not lowercased, so the duplicate check is case-sensitive) into the shared validator",
+          "The `[email, name, role].filter(...).map(...)` message collection is repeated in two handlers instead of being shared",
+          "The options-object flags (`required`, `lowercase`, `allowed`) are slightly more indirection than separate functions"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.16088000000000002,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors are correct and keep the error messages and their order intact. B makes inviteUser lowercase emails as docs/api.md requires, which removes the very divergence the task wants gone, and it reports that change openly with a test. A keeps the case-sensitive invite bug alive through a `lowercase: false` option, which preserves a per-handler difference in the shared validator, although A does flag it. A has the better unit tests for the validators, but B's alignment with the documented contract and its cleaner `collect` helper outweigh that.",
+        "a_issues": [
+          "Adds a `lowercase` option whose only purpose is to keep inviteUser's undocumented, case-sensitive email handling, which contradicts docs/api.md.",
+          "The filter/map message collection is repeated in createUser and inviteUser rather than shared."
+        ],
+        "b_issues": [
+          "Changes inviteUser's behavior (lowercasing emails) inside a refactor task, though it is disclosed and matches the docs.",
+          "No direct unit tests for validation.js, so boundaries such as the 80-character name limit and a blank name in updateUser are not covered (the report acknowledges this)."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

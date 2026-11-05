@@ -1,0 +1,85 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "2a29f0f0d9192b06",
+    "btseee": "6789e71ac7a9daed"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 0.75
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.127496,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes behave the same and are correct: the three `* 1000` call sites are dropped, the three seconds-based callers (http, report, validate) convert back, and both add the same characterization tests before the change. A gives the conversion a single named constant and defines the TTL bounds with `parseDuration(\"5s\")` and `parseDuration(\"1d\")`, so the limits read the same as their error messages. B repeats the magic number 1000 in several places. A's newly exported `MS_PER_SECOND` slightly widens the module surface, but it is not re-exported from `index.ts`, so the cost is small.",
+        "a_issues": [
+          "Exports a new `MS_PER_SECOND` constant from `duration.ts`, a small expansion of the module's API that the task did not need.",
+          "The private `inSeconds` helper in `report.ts` is a small extra abstraction for two call sites."
+        ],
+        "b_issues": [
+          "Repeats the literal 1000 in `http.ts`, `report.ts` and `validate.ts` instead of naming the conversion once.",
+          "The TTL bounds `5_000` and `24 * 60 * 60 * 1000` mix two styles and are not tied to the `5s`/`1d` wording in the error messages."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.122936,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes are functionally equivalent and correct. They remove the `* 1000` from the three millisecond callers, convert back to seconds in http, report and validate, and add the same characterization tests before the change. A does this with the smallest edit, using plain `/ 1000` and literal millisecond bounds. B adds a new exported `MS_PER_SECOND` constant, a private `inSeconds` helper and module-level `parseDuration(\"5s\")` calls, which is extra surface the task did not need.",
+        "a_issues": [
+          "Uses a bare `1000` divisor in two places rather than a named constant (minor)."
+        ],
+        "b_issues": [
+          "Adds a new exported `MS_PER_SECOND` constant to duration.ts's public surface, which the task did not ask for.",
+          "Adds an `inSeconds` helper in report.ts that is used only twice.",
+          "Computes the TTL limits by calling `parseDuration` at module load, which is slightly indirect for fixed constants."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

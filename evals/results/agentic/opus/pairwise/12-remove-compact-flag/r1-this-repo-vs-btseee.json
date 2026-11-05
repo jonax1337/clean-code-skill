@@ -1,0 +1,77 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "aec379d7cd46bba6",
+    "btseee": "dd973f981b3558a9"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.132408,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two diffs are byte-for-byte identical. Each removes the flag, its field, its render path, help text, README row and the six compact tests. Each adds a test that `-c`/`--compact` now give UnknownOption, plus a CHANGELOG entry. The only difference is the report: A also points out that removing the `pub compact` field on the public `Options` struct is a compile-time break for library users. That is a real and easy-to-miss consequence, so A's report is slightly more complete.",
+        "a_issues": [],
+        "b_issues": [
+          "The report does not mention that removing the public `Options::compact` field breaks library users at compile time. It only covers the CLI-level break."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.134656,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two diffs are byte-for-byte identical: they remove the flag, the field, the render path, the docs and the obsolete tests, and add a test that `-c` and `--compact` are now rejected. Both reports give accurate test counts (25 = 13 unit + 12 integration). B's report also points out that removing the `pub compact` field on the public `Options` struct breaks library users, and lists clippy and grep checks. That makes B's report somewhat more complete and useful for release notes.",
+        "a_issues": [
+          "Report does not mention that removing the public `Options.compact` field breaks library callers at compile time, not just CLI users."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

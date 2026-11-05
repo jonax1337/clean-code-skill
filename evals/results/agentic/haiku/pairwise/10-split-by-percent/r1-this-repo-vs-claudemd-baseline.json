@@ -1,0 +1,91 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "3fc8c7b1e9052bd9",
+    "claudemd-baseline": "335e0289dbbf3e3e"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.25,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.16900800000000002,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs add `--percent` correctly: they use a mutually exclusive required group, reuse `allocate`, and validate that the percentages sum to 100. A reuses the existing duplicate check through a small shared helper, and its report is accurate. B parses input a bit more strictly and tests more edge cases, but it duplicates the duplicate-check logic and adds a redundant range check. B's report also states the 34/33/33 example gives 6.80/3.30/3.30, which contradicts its own test (6.60) and the real shares (3.40/3.30/3.30).",
+        "a_issues": [
+          "`int()` parsing accepts forms such as `5_0`, ` 50` and `+5`, and names are not stripped, so `alice =50` creates the name `alice `",
+          "No test covers passing neither `--with` nor `--percent`",
+          "The combined-options test checks only for `SystemExit`, not the exit code or the message"
+        ],
+        "b_issues": [
+          "The report wrongly says the 34/33/33 split of 10.00 gives 6.80, 3.30, 3.30, which contradicts its own test and the actual result",
+          "The duplicate-name check is written a second time in `parse_percents` instead of reusing the existing logic",
+          "The 1..100 range check is redundant once each value must be at least 1 and the total must be 100",
+          "It imports `re` for a simple digit check"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.16572800000000001,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs implement `--percent` the same way: an argparse mutually exclusive group, the existing `allocate` helper, duplicate rejection and an exactly-100 check. A's parser is stricter and better tested. It requires plain digits, so it rejects `+5`, `5_0` and similar inputs that B's `int()` accepts, and it strips stray whitespace around names. A also has a parametrized set of malformed-input tests and a test for passing neither option. A's report misstates the 34/33/33 example as giving 6.80, which is a real accuracy flaw, but A's tests pin the correct 6.60, so the merged code is sound.",
+        "a_issues": [
+          "Report wrongly says the 34/33/33 split of 10.00 gives 6.80; both the code and A's own test give alice a balance of 6.60, and the report's wording about rounding is confusing.",
+          "The 1..100 range check is partly redundant with the sum check, though harmless."
+        ],
+        "b_issues": [
+          "`_parse_percent` uses `int()`, which accepts `+5`, `5_0`, padded values and non-ASCII digits, so validation of whole numbers is looser than intended.",
+          "Names are not stripped, so `alice =50` records a person named 'alice ' who is distinct from 'alice'.",
+          "Parsing helper lives in cli.py while validation lives in splitting.py, splitting the logic across modules.",
+          "Test that `--with` and `--percent` cannot be combined does not check the exit code or message, and there is no test for passing neither option.",
+          "Small unrequested refactor of the duplicate check into `_reject_duplicates`."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

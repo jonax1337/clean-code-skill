@@ -8,7 +8,7 @@
       "name": "hidden_behavior",
       "description": "Behavior is preserved for every input the old code handled: member rates, missing category, coupon after the discount and floored at 0, ignored coupons, no clamp without a coupon, rounding (hidden tests).",
       "passed": true,
-      "evidence": "\u2714 SAVE10 never takes the price below 0 (0.0768ms)\n\u2714 unknown, lowercase and empty coupons are ignored (0.0873ms)\n\u2714 without a coupon the price is not clamped (0.0763ms)\n\u2714 results are rounded to cents (0.1259ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 9\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 90.7891"
+      "evidence": "\u2714 SAVE10 never takes the price below 0 (0.183ms)\n\u2714 unknown, lowercase and empty coupons are ignored (0.1529ms)\n\u2714 without a coupon the price is not clamped (0.1132ms)\n\u2714 results are rounded to cents (0.1456ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 9\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 134.1414"
     },
     {
       "name": "callers_compatible",
@@ -44,7 +44,7 @@
       "name": "suite_green",
       "description": "The full test suite passes, including the agent's own tests.",
       "passed": true,
-      "evidence": "\u2714 members get the member price on every line (0.5593ms)\n\u2714 a cart coupon applies once to the whole cart (0.1233ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 102.8775"
+      "evidence": "\u2714 members get the member price on every line (0.8414ms)\n\u2714 a cart coupon applies once to the whole cart (0.1539ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 216.4934"
     },
     {
       "name": "clean_diff",

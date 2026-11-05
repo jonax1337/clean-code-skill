@@ -1,0 +1,86 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c079f3de1e5d6745",
+    "btseee": "8e7625d12ac77c5a"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.15340399999999998,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The source changes are effectively identical and both correctly implement the pause state rules, the audit line and the notification. A's audit test uses a reason with embedded quotes, so it actually checks that the reason is quoted the same way as the cancellation reason; B's test only uses the plain example. B's report also gets its own numbers wrong: it says 7 of the 19 tests are new, but 13 existed before, so only 6 are new.",
+        "a_issues": [
+          "Report's remark about CRLF line endings in test/subscription.test.ts is incidental and cannot be confirmed from the diff.",
+          "The 'resumeOn is null when not paused' check is a separate one-line test instead of an extra assertion in the existing start test."
+        ],
+        "b_issues": [
+          "Audit test uses a reason with no special characters, so it does not exercise the JSON quoting or escaping of the reason.",
+          "Report says 7 of the 19 tests are new, but 13 existed and 19 pass now, so 6 are new.",
+          "Report does not mention that `Subscription` gained a required field, which breaks callers outside the repo that build one by hand."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.154868,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production code is effectively identical in both changes and correctly handles pausing, payment events while paused, cancelling while paused, the audit line and the notification. B's audit test uses a reason containing quotes, so it actually checks the JSON quoting the task asked for, while A's test only uses the plain example. B's test count in its report adds up; A's \"7 of them new\" does not. A's report does helpfully point out that plan changes are still allowed while paused.",
+        "a_issues": [
+          "Audit test uses a reason without quotes, so the JSON quoting of the reason is never checked.",
+          "Report says 7 new tests, but the diff adds 6 new tests plus one extra assertion in an existing test (19 total)."
+        ],
+        "b_issues": [
+          "Report includes claims the diff cannot confirm (tests written first and failing, CRLF line endings in one test file).",
+          "Audit test does not use the task's literal example line, though it exercises the quoting more strictly."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

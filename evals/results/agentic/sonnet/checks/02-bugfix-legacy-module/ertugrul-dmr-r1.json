@@ -8,7 +8,7 @@
       "name": "hidden_behavior",
       "description": "December works at the root: `month_range` returns the first day of the next month for all 12 months, and the December report includes Dec 31 but not Jan 1 (hidden tests).",
       "passed": true,
-      "evidence": "..                                                                       [100%]\n2 passed in 0.03s"
+      "evidence": "..                                                                       [100%]\n2 passed in 0.04s"
     },
     {
       "name": "regression_test",
@@ -20,7 +20,7 @@
       "name": "sibling_bug",
       "description": "The same crash in `quarter_range` for Q4 is fixed or reported to the user (bugs cluster, T6).",
       "passed": true,
-      "evidence": "[pass] q4_fixed: .                                                                        [100%]\n1 passed in 0.02s\n[pass] q4_reported: **Same bug elsewhere:** `quarter_range` had it for Q4, so `quarterly_report(rows, year, 4)` would have crashed too. I fixed that as well."
+      "evidence": "[pass] q4_fixed: .                                                                        [100%]\n1 passed in 0.01s\n[pass] q4_reported: **Same bug elsewhere:** `quarter_range` had it for Q4, so `quarterly_report(rows, year, 4)` would have crashed too. I fixed that as well."
     },
     {
       "name": "scope_files",

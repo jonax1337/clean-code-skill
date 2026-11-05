@@ -15,7 +15,7 @@ import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-from harness import ALL_CONDITIONS, GRADES_DIR, RUNS_DIR, Case, ask_claude, extract_json, load_cases
+from harness import GRADES_DIR, RUNS_DIR, SINGLE_TURN_CONDITIONS, Case, ask_claude, extract_json, load_cases
 
 JUDGE_SYSTEM_PROMPT = (
     "You are a strict senior code reviewer grading answers from coding assistants. You only output JSON."
@@ -40,7 +40,7 @@ def main() -> None:
 
 
 def _conditions_for(case: Case) -> list[str]:
-    return [condition.name for condition in ALL_CONDITIONS if condition.applies_to(case.language)]
+    return [condition.name for condition in SINGLE_TURN_CONDITIONS if condition.applies_to(case.language)]
 
 
 def _reply_path(case: Case, condition: str, rep: int) -> Path:

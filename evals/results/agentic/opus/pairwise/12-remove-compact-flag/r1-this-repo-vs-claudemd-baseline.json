@@ -1,0 +1,86 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "aec379d7cd46bba6",
+    "claudemd-baseline": "e1de968e4ffaf25d"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.140044,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The code changes in src/, README and CHANGELOG are identical in both PRs and cleanly remove the flag, its field, its render path and its help line. B's tests protect the removal a little better: it checks rejection at the parser and through `run`, and adds a check that `--help` no longer mentions `--compact`, so the help-text removal is covered. A's report is more accurate, since it counts the deleted tests correctly and flags the public `Options` field break. That edge is not enough to outweigh B's stronger test coverage.",
+        "a_issues": [
+          "No test guards that the `--compact` line was removed from the help text.",
+          "The unit-level compact test in cli.rs was deleted with no parser-level replacement."
+        ],
+        "b_issues": [
+          "The report says five compact tests were deleted, but six were removed or replaced.",
+          "The report does not mention that removing the `pub compact` field breaks library users of `Options`.",
+          "The parser-level rejection test largely duplicates the integration test."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.141688,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production code changes are identical: both remove the match arm, the field, the help line, the render branch and its helpers, the README row, and both add the changelog entry. A adds a little more test coverage, but its unit-level rejection test duplicates the integration test, and the help check adds little. B's report is fully accurate about test counts and deletions, and it flags that removing the public `compact` field breaks library users at compile time. A's report undercounts the deleted tests as five instead of six.",
+        "a_issues": [
+          "Report says five compact tests were deleted, but six were removed or replaced (two in render.rs, one in cli.rs, three in tests/cli.rs).",
+          "The new unit test in cli.rs repeats the rejection check already covered by the integration test.",
+          "Report does not mention that removing the public `Options.compact` field breaks library users at compile time."
+        ],
+        "b_issues": [
+          "Has no test confirming that `--help` no longer lists `--compact`; this is minor, since the help text is a constant that was edited directly."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

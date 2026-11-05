@@ -1,0 +1,90 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "f1a549990499bcec",
+    "claudemd-baseline": "e396e967bab1a0c0"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.75,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.19323200000000001,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make a present-but-invalid value fail startup, report every problem at once, and reject unknown keys and missing files. A also updates the README to describe the new fail-fast contract and exit code. Its error output is a little friendlier: it lists the known keys and prints the absolute path. Its tests are more thorough: queue.capacity minimum, overflowing timeout, zero retries accepted, and both URL failure modes. B adds a zero-timeout rule that nobody asked for and the README does not document, and it does not touch the docs.",
+        "a_issues": [
+          "Reworks ConfigLoader into an instance-based parser with key constants, which is more restructuring than strictly needed.",
+          "Rejecting unknown keys goes beyond what was asked (the report says so)."
+        ],
+        "b_issues": [
+          "Rejects request.timeout=0s, a new rule that the README does not document, while the README still says only 'a whole number'.",
+          "README is not updated to say that invalid values now stop startup.",
+          "Passing the errors list through every helper adds noise; error messages use the relative file path.",
+          "Tests are less granular: queue.capacity below minimum and the too-large timeout are not tested, and several cases are bundled into one test."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.186824,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same core fix: errors are collected instead of silently falling back to defaults, unknown keys and a missing file are rejected, and Main exits non-zero with a message. B is slightly better to merge because it documents the new behavior in the README, gives deployers more useful messages (an absolute path and the list of known keys), and tests more edge cases (too-large timeout, zero retries accepted, non-absolute and illegal URLs). Against that, B adds some refactoring churn and its report contains a small inaccuracy.",
+        "a_issues": [
+          "Rejects `request.timeout=0s` even though the README format (a whole number plus a unit) allows it. This is a behavior change the task did not ask for.",
+          "Does not update the README to say that invalid values now stop startup.",
+          "The unknown-key error does not list the valid keys, so the deployer has to look them up.",
+          "Thinner tests: no coverage for the too-large timeout path, for a non-absolute URL, or for confirming that boundary values like 0 retries are still accepted."
+        ],
+        "b_issues": [
+          "Restructures ConfigLoader into an instance with key-name constants. This is more churn than the fix needs.",
+          "The report says a missing upstream.url used to cause an NPE. In the original code that NPE was caught inside uri() and the URL silently became null.",
+          "The README addition is a small scope extension, though a helpful one."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

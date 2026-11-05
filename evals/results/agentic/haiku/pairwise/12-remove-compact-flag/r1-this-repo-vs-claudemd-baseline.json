@@ -1,0 +1,84 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ea21bf4559dbff79",
+    "claudemd-baseline": "49a46b21b4bbaa6c"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.128384,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs remove the same production code, docs and help text, and both leave behavior otherwise unchanged. B also replaces the compact integration tests with a regression test asserting that `--compact` is now rejected with `UnknownOption`, which protects the removal. A only deletes the tests, so nothing checks that the flag is actually gone. A's changelog is slightly more explicit about the new error, but B's report states the behavior change clearly too.",
+        "a_issues": [
+          "Deletes every compact test without adding one that `--compact`/`-c` is now rejected, so nothing guards against the flag coming back"
+        ],
+        "b_issues": [
+          "The new test covers only `--compact`, not the short `-c` form",
+          "Leaves a stray blank line before the closing brace of the render.rs test module",
+          "Changelog entry does not say that passing the flag now errors (the report does)"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.130388,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes remove `--compact` the same way across the CLI, renderer, README, help text and changelog, and both leave the remaining behavior unchanged. A also adds an integration test asserting that `--compact` now returns `UnknownOption`, so the removal is protected against regression. B deletes the compact tests without replacing them. A leaves a stray blank line before the closing brace of the render test module, which is cosmetic.",
+        "a_issues": [
+          "Leaves a stray blank line before the closing `}` of the render.rs test module.",
+          "The new rejection test covers only `--compact`, not the short `-c` form."
+        ],
+        "b_issues": [
+          "No test asserts that `--compact`/`-c` is now rejected, so the removal is not protected against regression."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

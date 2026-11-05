@@ -1,0 +1,77 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "10a286f5e87c078d",
+    "this-repo": "4185f882b618ce6a"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes implement the requested behavior correctly with effectively identical production code and no unrelated changes. B has slightly stronger tests: it explicitly verifies that pausing an already-paused subscription with a different resume date changes nothing, and it checks object identity for ignored events, matching the existing test style. Both reports accurately describe the changes and report passing tests and typechecking.",
+        "a_issues": [
+          "The non-active pause test covers past_due and canceled but omits already-paused subscriptions, leaving preservation of the original resume date untested."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement the requested behavior with effectively identical production code, preserve existing behavior, and stay within scope. A has slightly stronger test coverage: it explicitly verifies that pausing an already-paused subscription with a different resume date changes nothing. Both reports accurately describe their changes and report passing tests and typechecking.",
+        "a_issues": [],
+        "b_issues": [
+          "The tests omit an already-paused subscription receiving another pause event with a different resumeOn, leaving that required no-op behavior unprotected."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

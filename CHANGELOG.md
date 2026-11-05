@@ -2,10 +2,20 @@
 
 ## Unreleased
 
+Evals (the skill is unchanged and was frozen at commit `c10f424` for these runs):
+
+- A cheap baseline without a skill, `claudemd-baseline`: four sentences a project would put into `CLAUDE.md` (scoped diff, tests, a test run at the end, an honest report). It wins against no skill with Sonnet in 9 of 13 comparisons, almost entirely through the tests; this skill still beats it with Sonnet (9 of 13, 73%, interval 50–92%) and comes out even with it under Opus (54%). The README's summary now says that a large part of the skill's lead comes from these habits.
+- btseee/clean-code-skills as a fifth comparison, pinned to `49b1354`: the whole skill folder in plain sessions, without its interactive `init`. This skill was preferred in 11 of 13 comparisons with Sonnet (90%) and 6 of 13 with Opus (60%, interval includes 50%).
+- A judge from another model family: `judge_pairwise.py --model gpt-6.1-sol --via gateway` sends the judge prompt to the Anthropic-compatible endpoint Claude Code uses, so a gateway such as Claudapter routes it to GPT 6.1 Sol, and stores the verdicts in `pairwise-<model>/` next to Opus's. On the 39 Sonnet comparisons against no skill and the baseline it kept the direction (81% and 77% for this skill) and picked the same side as Opus in 77%; `judge_agreement.py` writes the agreement, overall and per dimension, to `results/agentic/judge-agreement.md`.
+- `human_review.py` draws 15 blind pull-request pairs for a human to rate and compares the ratings with both judges.
+- Harness: a condition can carry `CLAUDE.md` text (appended to the system prompt, because enabling CLAUDE.md files also loads the user's own) and be marked `agentic_only`, so the single-turn suite and its numbers stay as they were; a GitHub-pinned skill without a file list downloads its whole folder; pairwise verdicts record the judge's cost; where a condition has one run per task, the bootstrap interval resamples the tasks instead of returning a zero-width interval.
+- Reports and charts cover Sonnet and Opus. Haiku runs stay under `results/agentic/haiku/` but are no longer reported.
+- [`docs/roadmap.md`](docs/roadmap.md) collects issue drafts: design rules from btseee and naming examples from ertugrul-dmr for a reference file, a hook-based strict mode, other coding agents, the human ratings.
+
 Docs:
 
 - New visual identity: an ink-and-mint palette, a reworked icon (also the plugin icon), banner, precedence diagram, a results-at-a-glance card and a workflow diagram in place of the Mermaid flowchart. Every graphic has its own light and dark theme.
-- The eval charts share the new theme from `charts.py`: the preference chart lists Sonnet, Opus and Haiku in the order of the README tables and marks 50%, the condition under test is labelled "This skill" and highlighted, the heatmap ramp has its own dark-mode steps, and `report.py` draws quality score and assertions passed as one two-panel chart (`results-single-turn.svg`) instead of two half-width ones.
+- The eval charts share the new theme from `charts.py`: the preference chart lists the coding agents in the order of the README tables and marks 50%, the condition under test is labelled "This skill" and highlighted, the heatmap ramp has its own dark-mode steps, and `report.py` draws quality score and assertions passed as one two-panel chart (`results-single-turn.svg`) instead of two half-width ones.
 
 ## 4.0.0 — 2026-11-03
 

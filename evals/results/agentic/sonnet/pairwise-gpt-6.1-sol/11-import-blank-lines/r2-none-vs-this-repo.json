@@ -1,0 +1,80 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "4ff49b4ba963466b",
+    "this-repo": "07abbb78b8dfd0ee"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same minimal, correct fix: skip whitespace-only lines while preserving physical line numbers and validation of nonblank lines. B has clearer, independently focused regression tests, including successful parsing of a valid entry after skipped lines. Its report also accurately describes broader verification: the reported 20-test full-suite count matches the repository and diff.",
+        "a_issues": [
+          "Combines successful blank-line handling and error-line numbering in one test, with list slicing making the successful case less immediately clear.",
+          "Reports running only importer tests, leaving the rest of the suite unverified."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement the same minimal, correct fix: skip whitespace-only lines while preserving physical line numbers and validation of nonblank input. A has clearer, separate regression tests and explicitly checks that valid entries after blank lines are retained. A also reports running the full suite, whereas B reports running only importer tests; both reports accurately describe their changes and verification limits.",
+        "a_issues": [],
+        "b_issues": [
+          "The regression test combines error and success cases using list slicing, making it less direct than A's separate tests.",
+          "The tests do not explicitly verify that a valid entry after skipped blank lines is retained.",
+          "Verification was limited to importer tests rather than the full suite."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

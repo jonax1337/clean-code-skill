@@ -1,0 +1,90 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c2d04bb7b3de8401",
+    "btseee": "3e35354fb8d183da"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.25,
+    "tests": 0.75,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.191012,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors preserve the observable tokens and errors and break the function into readable pieces. A also keeps the internal invariants exactly: on error it sets `pos = len`, and it routes all state transitions through one `Step` value in `next()`. B scatters state mutation across methods, for example `lex_value` sets `Between` before it might fail, and it leaves `pos` mid-line after an error. A's new tests also cover the empty-value path (`a= b=1`, `a=`), which is the subtlest branch; B's do not.",
+        "a_issues": [
+          "The `find`/`Step` helpers add a little abstraction compared with plain loops.",
+          "The benchmark measured synthetic lines, not a real dump (this is disclosed)."
+        ],
+        "b_issues": [
+          "After an error `pos` is no longer set to the end of the line, so the internal state and `Debug` output differ from the original; the report says nothing about this.",
+          "State changes are spread across `lex_value` and `lex_key_or_word`, and `lex_value` sets `Between` before a possible error, which is harder to reason about.",
+          "No test covers the empty bare value path (`key=` followed by a blank or the end of the line).",
+          "The report does not mention that the derived `Debug` output changed."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.19432400000000002,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors look behavior-preserving, split the monolith into per-rule functions with a state enum, and back that up with differential testing and new pinning tests. B stays closer to the original in small ways: on error it still sets `pos` to the line length, and empty values are still slices of the input rather than a static `\"\"`. B's report is also more precise: it names the `Debug` output change, gives correct test counts, and benchmarks the `Stats::add_line` path the import actually uses. A's method-per-token layout is about equally readable, so the margin is small.",
+        "a_issues": [
+          "On error the stream no longer moves `pos` to the end of the line. This is not observable through the API, but it is a small drift from the original state handling.",
+          "Empty values are returned as a static `\"\"` rather than a slice of the input. They compare equal, but this departs from the 'borrowed from the line' contract.",
+          "The report says `cargo test` passes 17 tests, but that leaves out the 3 stats tests.",
+          "The report does not mention that the derived `Debug` output of `Tokens` changed.",
+          "The benchmark measures token iteration only, not the `Stats::add_line` path the import calls."
+        ],
+        "b_issues": [
+          "The `Step` struct adds a small extra abstraction compared with mutating `self` directly.",
+          "The pure scan functions take `(src, p)` everywhere, which is a little noisier than methods on `self`."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

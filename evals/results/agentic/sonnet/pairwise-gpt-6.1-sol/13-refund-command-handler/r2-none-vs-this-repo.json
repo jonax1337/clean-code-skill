@@ -1,0 +1,80 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "fdd59481c46e8043",
+    "this-repo": "69ec8ee675ba45f1"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both implementations correctly validate refunds, enforce the cumulative amount-paid limit, persist the refund, and preserve order status while following existing handler conventions. B has stronger regression coverage, including every disallowed status, negative and overly precise amounts, and multiple refunds that exactly exhaust the refundable balance. B also updates the README to document the new command and refund cap; neither change introduces unrelated behavior.",
+        "a_issues": [
+          "Tests cover only PAID among disallowed statuses and omit negative amounts, excessive decimal precision, and multiple refunds that exactly exhaust the refundable balance.",
+          "The README command list is not updated to include RefundOrder."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both implementations correctly validate input, restrict refunds to shipped or delivered orders, enforce the cumulative amount-paid limit, and persist refunds without changing status. A has stronger regression coverage, including every disallowed status, negative and overprecise amounts, and multiple refunds that exactly exhaust the refundable balance. Its README update also documents the new command and refund limit without expanding scope.",
+        "a_issues": [],
+        "b_issues": [
+          "Tests cover only PAID among disallowed statuses and omit negative and overprecise refund amounts.",
+          "Tests do not explicitly verify that multiple refunds can exactly exhaust the remaining refundable balance.",
+          "The README command list is not updated to include RefundOrder."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

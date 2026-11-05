@@ -1,0 +1,85 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "34c7afcc2465701d",
+    "this-repo": "4448c99b2e985cff"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.5,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes correctly migrate parseDuration and all its callers to milliseconds while preserving seconds-based headers, reporting, and TTL limits. B has a small readability advantage through the more descriptive ttlMs variable and digit separators in test expectations. Test coverage is otherwise identical, and both reports disclose verification limitations.",
+        "a_issues": [
+          "No regression tests were added for seconds-based HTTP headers, settings output, or TTL validation boundaries.",
+          "Typechecking was not run."
+        ],
+        "b_issues": [
+          "No regression tests were added for seconds-based HTTP headers, settings output, or TTL validation boundaries.",
+          "The report does not conclusively establish a successful typecheck; it notes seeing only the tail of the output."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes correctly migrate the parser and every caller to milliseconds while preserving existing timing, validation, and seconds-based output behavior. A has a small readability advantage through the descriptive ttlMs variable and numeric separators in test expectations. Its report also documents a typecheck attempt and explicitly identifies untested conversions, though neither change adds regression coverage for those conversions or TTL validation boundaries.",
+        "a_issues": [
+          "No regression tests were added for the seconds-based HTTP header and settings report, or for the minimum and inclusive boundaries of TTL validation.",
+          "The report does not establish a fully confirmed successful typecheck; it explicitly qualifies the observed output."
+        ],
+        "b_issues": [
+          "No regression tests were added for the seconds-based HTTP header and settings report, or for the minimum and inclusive boundaries of TTL validation.",
+          "Typechecking was not run."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

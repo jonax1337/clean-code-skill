@@ -8,7 +8,7 @@
       "name": "hidden_behavior",
       "description": "Behavior is preserved for every input the old code handled: member rates, missing category, coupon after the discount and floored at 0, ignored coupons, no clamp without a coupon, rounding (hidden tests).",
       "passed": true,
-      "evidence": "\u2714 SAVE10 never takes the price below 0 (0.0801ms)\n\u2714 unknown, lowercase and empty coupons are ignored (0.0813ms)\n\u2714 without a coupon the price is not clamped (0.0866ms)\n\u2714 results are rounded to cents (0.0998ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 9\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 149.4729"
+      "evidence": "\u2714 SAVE10 never takes the price below 0 (0.1398ms)\n\u2714 unknown, lowercase and empty coupons are ignored (0.1515ms)\n\u2714 without a coupon the price is not clamped (0.1319ms)\n\u2714 results are rounded to cents (0.1852ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 9\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 122.2276"
     },
     {
       "name": "callers_compatible",
@@ -32,7 +32,7 @@
       "name": "characterization_tests",
       "description": "Tests for `getPrice` are added, and they run and pass on the original code, so they pin the old behavior.",
       "passed": true,
-      "evidence": "['test/pricing.test.ts'] on the original code: exit 0, tests ran: True\n\u2714 SAVE10 never goes below zero (0.1253ms)\n\u2714 SAVE10 applies after the member discount (0.1327ms)\n\u2714 unknown coupons are ignored (0.1335ms)\n\u2714 result is rounded to cents (0.0901ms)\n\u2139 tests 8\n\u2139 suites 0\n\u2139 pass 8\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 108.7176"
+      "evidence": "['test/pricing.test.ts'] on the original code: exit 0, tests ran: True\n\u2714 SAVE10 never goes below zero (0.1237ms)\n\u2714 SAVE10 applies after the member discount (0.077ms)\n\u2714 unknown coupons are ignored (0.0774ms)\n\u2714 result is rounded to cents (0.0795ms)\n\u2139 tests 8\n\u2139 suites 0\n\u2139 pass 8\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 103.5137"
     },
     {
       "name": "no_over_engineering",
@@ -44,7 +44,7 @@
       "name": "suite_green",
       "description": "The full test suite passes, including the agent's own tests.",
       "passed": true,
-      "evidence": "\u2714 SAVE10 never goes below zero (0.084ms)\n\u2714 SAVE10 applies after the member discount (0.0794ms)\n\u2714 unknown coupons are ignored (0.0799ms)\n\u2714 result is rounded to cents (0.076ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 107.532"
+      "evidence": "\u2714 SAVE10 never goes below zero (0.0722ms)\n\u2714 SAVE10 applies after the member discount (0.0763ms)\n\u2714 unknown coupons are ignored (0.0772ms)\n\u2714 result is rounded to cents (0.118ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 127.2784"
     },
     {
       "name": "clean_diff",

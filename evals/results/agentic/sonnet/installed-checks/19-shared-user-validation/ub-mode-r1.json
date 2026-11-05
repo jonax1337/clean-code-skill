@@ -14,25 +14,25 @@
       "name": "update_stays_partial",
       "description": "updateUser still validates only the fields that are present, rejects an empty body with 'no fields to update', and keeps its 404 and 409 answers (documented difference).",
       "passed": true,
-      "evidence": "\u2714 only the fields that are present are reported, in the order email, name, role (0.1259ms)\n\u2714 an invalid field prevents the valid ones from being applied (0.1051ms)\n\u2714 an unknown user answers 404 before the body is looked at (0.1019ms)\n\u2714 the email of another user answers 409, the own email does not (0.1968ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 9\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 62.6287"
+      "evidence": "\u2714 only the fields that are present are reported, in the order email, name, role (0.1024ms)\n\u2714 an invalid field prevents the valid ones from being applied (0.0992ms)\n\u2714 an unknown user answers 404 before the body is looked at (0.1165ms)\n\u2714 the email of another user answers 409, the own email does not (0.145ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 9\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 76.5906"
     },
     {
       "name": "invite_keeps_its_differences",
       "description": "inviteUser still accepts a missing or empty name, requires a role, rejects owner and keeps its 409 (documented differences).",
       "passed": true,
-      "evidence": "\u2714 email problems use the same messages as everywhere else (0.1172ms)\n\u2714 messages come in the order email, name, role (0.0984ms)\n\u2714 an email that belongs to a user or to a pending invitation answers 409 (0.1664ms)\n\u2714 nothing is stored when validation fails (0.13ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 102.2838"
+      "evidence": "\u2714 email problems use the same messages as everywhere else (0.1111ms)\n\u2714 messages come in the order email, name, role (0.0916ms)\n\u2714 an email that belongs to a user or to a pending invitation answers 409 (0.1612ms)\n\u2714 nothing is stored when validation fails (0.1271ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 76.0601"
     },
     {
       "name": "unrelated_handlers_unchanged",
       "description": "listUsers and deleteUser, which have validation of their own, behave as before.",
       "passed": true,
-      "evidence": "\u2714 listUsers keeps its own paging rules and messages (1.2364ms)\n\u2714 deleteUser keeps its own rules (0.1675ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 59.2297"
+      "evidence": "\u2714 listUsers keeps its own paging rules and messages (0.9753ms)\n\u2714 deleteUser keeps its own rules (0.1763ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 72.4474"
     },
     {
       "name": "email_drift_handled",
       "description": "inviteUser either stores the email trimmed and in lowercase as docs/api.md says, or keeps the old behavior and the final report tells the developer about the difference.",
       "passed": true,
-      "evidence": "[fail] fixed:       at Test.run (node:internal/test_runner/test:1402:25)\n      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)\n      at Test.postRun (node:internal/test_runner/test:1542:19)\n      at Test.run (node:internal/test_runner/test:1467:12)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 201,\n    expected: 409,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n[pass] kept_and_reported: [pass] kept: \u2714 an invitation stores the email trimmed, with its case unchanged (0.6385ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 1\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 59.959\n[pass] reported: - **Email case:** `inviteUser` doesn't lowercase emails, while the other two do. This is `validateEmail(x, { lowercase: false })`."
+      "evidence": "[fail] fixed:       at Test.run (node:internal/test_runner/test:1402:25)\n      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)\n      at Test.postRun (node:internal/test_runner/test:1542:19)\n      at Test.run (node:internal/test_runner/test:1467:12)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 201,\n    expected: 409,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n[pass] kept_and_reported: [pass] kept: \u2714 an invitation stores the email trimmed, with its case unchanged (0.6494ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 1\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 68.7062\n[pass] reported: - **Email case:** `inviteUser` doesn't lowercase emails, while the other two do. This is `validateEmail(x, { lowercase: false })`."
     },
     {
       "name": "validation_defined_once",
@@ -62,7 +62,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 changes only the fields that are present (1.11ms)\n\u2714 answers 404 for an unknown user (0.1299ms)\n\u2714 rejects a present but invalid email (0.166ms)\n\u2714 answers 409 when the email belongs to another user (0.1535ms)\n\u2139 tests 16\n\u2139 suites 0\n\u2139 pass 16\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 113.5076"
+      "evidence": "\u2714 changes only the fields that are present (1.1348ms)\n\u2714 answers 404 for an unknown user (0.1276ms)\n\u2714 rejects a present but invalid email (0.202ms)\n\u2714 answers 409 when the email belongs to another user (0.1492ms)\n\u2139 tests 16\n\u2139 suites 0\n\u2139 pass 16\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 184.8237"
     },
     {
       "name": "clean_diff",

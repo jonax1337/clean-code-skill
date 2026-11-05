@@ -8,7 +8,7 @@
       "name": "blank_lines_skipped",
       "description": "Blank lines are skipped wherever they are in the file: empty, whitespace-only and Windows line endings, at the start, in the middle and at the end.",
       "passed": true,
-      "evidence": ".........                                                                [100%]\n9 passed, 8 deselected in 0.09s"
+      "evidence": ".........                                                                [100%]\n9 passed, 8 deselected in 0.08s"
     },
     {
       "name": "malformed_lines_still_rejected",
@@ -38,7 +38,7 @@
       "name": "regression_test_added",
       "description": "The agent added at least one test that fails on the original code, so the bug cannot return unnoticed.",
       "passed": true,
-      "evidence": "['tests/test_importer.py::test_blank_lines_are_skipped', 'tests/test_importer.py::test_skipped_blank_lines_still_count_in_error_line_numbers'] on the original code: exit 1\n    def test_skipped_blank_lines_still_count_in_error_line_numbers():\n>       with pytest.raises(ImportFormatError, match=r\"line 3\\b\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       AssertionError: Regex pattern did not match.\nE         Expected regex: 'line 3\\\\b'\nE         Actual message: 'line 2: not enough values to unpack (expected 3, got 1)'\n\ntests\\test_importer.py:38: AssertionError\n=========================== short test summary info ===========================\nFAILED tests/test_importer.py::test_blank_lines_are_skipped - hourlog.importe...\nFAILED tests/test_importer.py::test_skipped_blank_lines_still_count_in_error_line_numbers\n2 failed in 0.14s"
+      "evidence": "['tests/test_importer.py::test_blank_lines_are_skipped', 'tests/test_importer.py::test_skipped_blank_lines_still_count_in_error_line_numbers'] on the original code: exit 1\n    def test_skipped_blank_lines_still_count_in_error_line_numbers():\n>       with pytest.raises(ImportFormatError, match=r\"line 3\\b\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       AssertionError: Regex pattern did not match.\nE         Expected regex: 'line 3\\\\b'\nE         Actual message: 'line 2: not enough values to unpack (expected 3, got 1)'\n\ntests\\test_importer.py:38: AssertionError\n=========================== short test summary info ===========================\nFAILED tests/test_importer.py::test_blank_lines_are_skipped - hourlog.importe...\nFAILED tests/test_importer.py::test_skipped_blank_lines_still_count_in_error_line_numbers\n2 failed in 0.17s"
     },
     {
       "name": "suite_passes",

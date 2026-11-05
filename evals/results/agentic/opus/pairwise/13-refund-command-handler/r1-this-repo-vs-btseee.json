@@ -1,0 +1,83 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "96a0292c5f2267e2",
+    "btseee": "6cd06cba835d6175"
+  },
+  "score": 0.25,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 1.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.17876,
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both changes are functionally identical. Each validates the input, requires SHIPPED or DELIVERED, caps the sum of refunds at amountPaid rather than the total, records the refund via a new Order.recordRefund, keeps the status unchanged and registers the handler. A's tests are slightly more granular and use a small money-assert helper, while B aligns its README row and adds a useful note on the concurrency gap. Neither difference outweighs the other, so I would merge either.",
+        "a_issues": [
+          "The new README table row is wider than the existing columns, which breaks the table's alignment."
+        ],
+        "b_issues": [
+          "The delivered-order case is only covered inside the cumulative-refund test, not on its own.",
+          "The over-limit error message does not include the order id, unlike the other handlers' messages."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.181164,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes have essentially the same correct handler: they validate input, allow only SHIPPED or DELIVERED orders, cap the refund at amountPaid minus amountRefunded, and keep the status unchanged. A puts a short code comment on the non-obvious decision to cap at the amount paid rather than the total, keeps the README table aligned, and its report honestly notes the concurrency limit it did not address. B's tests are slightly tidier, with an assertMoney helper and a separate delivered-order test. Overall the differences are small.",
+        "a_issues": [
+          "Combines the delivered-status case and the sum-to-exact-limit case in one test, so a failure is less clear about which rule broke."
+        ],
+        "b_issues": [
+          "The new README table row is wider than the other rows and breaks the raw markdown column alignment.",
+          "The handler has no comment explaining why the cap uses amountPaid instead of total; this is only explained in the report."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

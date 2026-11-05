@@ -1,0 +1,88 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "this-repo": "f1a549990499bcec",
+    "claudemd-baseline": "e396e967bab1a0c0"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 1.0,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes fix silent fallback, aggregate actionable configuration errors, and stop startup before creating the relay. A has broader regression coverage and documents the new deployment behavior, while preserving the previously accepted zero timeout; B rejects zero without an explicit requirement to change that behavior. A's report does contain a factual error about the original missing-URL behavior.",
+        "a_issues": [
+          "The report incorrectly says a missing upstream.url previously caused an NPE: the original uri method caught that exception and returned null.",
+          "Validation still accepts values that overflow downstream operations, such as retry.max-attempts=2147483647 in Relay and request.timeout=9223372036854775807s in ConsoleUplink."
+        ],
+        "b_issues": [
+          "Rejects zero timeouts even though the existing documentation specifies a whole number and the original implementation accepted zero; this is an additional compatibility change without a stated requirement.",
+          "Does not update repository documentation to explain strict validation and rejection of unknown keys.",
+          "Tests omit several cases covered by A, including duration overflow, relative URLs, queue capacity below its minimum, and acceptance of zero retries.",
+          "Validation still accepts values that overflow downstream operations, such as retry.max-attempts=2147483647 in Relay and request.timeout=9223372036854775807s in ConsoleUplink."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes fix silent fallback, aggregate actionable errors, and prevent startup before creating the relay. B has broader regression coverage and documents the deployment-facing behavior, while preserving zero-valued timeouts, which the existing documentation does not prohibit. A has a simpler implementation and a more accurate report, but its additional timeout restriction is neither justified nor documented.",
+        "a_issues": [
+          "Rejects request.timeout=0s even though the existing configuration contract specifies a whole number and does not require a positive timeout.",
+          "Does not update the README to explain strict validation, unknown-key rejection, or startup failure behavior.",
+          "Tests omit explicit coverage for queue capacity below its minimum, zero retries remaining valid, relative URLs, and timeout overflow."
+        ],
+        "b_issues": [
+          "The report incorrectly says a missing upstream.url previously caused an NPE; the original uri helper caught that exception and returned null.",
+          "Introduces a stateful loader instance and additional key constants for a small parser; A achieves equivalent error aggregation with less structural change."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "B",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

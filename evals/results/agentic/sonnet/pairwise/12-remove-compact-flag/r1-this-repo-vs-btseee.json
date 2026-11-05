@@ -1,0 +1,84 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "1bed82f5001c2452",
+    "btseee": "1cf5025a1bb53817"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.131848,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs remove the flag, its field, the render path, the help line and the docs in the same way, and add the same changelog entry. A also replaces the deleted cli unit test with one that checks both `--compact` and `-c` are rejected as unknown options. B only checks `--compact` at the integration level and leaves `-c` untested. B's report usefully points out that the changelog's `--max-width` suggestion is not a real replacement, but B kept that wording anyway, so the observation does not make up for the weaker tests.",
+        "a_issues": [
+          "The changelog repeats the misleading claim that `--max-width` replaces `--compact`, and the report does not flag it."
+        ],
+        "b_issues": [
+          "No test checks that the short `-c` flag is now rejected.",
+          "The changelog keeps the misleading `--max-width` replacement sentence; the report flags it but does not fix it.",
+          "The report gives only the integration test count and does not mention the unit tests."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.132656,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The production code, README and CHANGELOG edits are identical in both changes. B's tests also cover the short `-c` flag being rejected, which A leaves unprotected. A's report is more candid: it points out that the copied 'Use --max-width' advice in the changelog is misleading, a flaw both changes share. B's better test coverage of the removed behavior tips it slightly ahead.",
+        "a_issues": [
+          "No test checks that `-c` is now rejected; only `--compact` is covered.",
+          "The changelog still recommends `--max-width` as a replacement even though it doesn't remove padding. The report flags this but leaves it in."
+        ],
+        "b_issues": [
+          "The changelog keeps the misleading 'Use `--max-width` to keep output narrow' advice, and the report doesn't flag it."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

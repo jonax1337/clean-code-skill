@@ -1,0 +1,77 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "this-repo": "1bed82f5001c2452",
+    "claudemd-baseline": "6b983190217a25c2"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes completely remove compact parsing, configuration, rendering, and user-facing documentation while preserving the remaining behavior. B has a small testing advantage: its integration regression test verifies rejection of both --compact and -c, whereas A checks only --compact at that level. Otherwise, the implementations are effectively identical, and both reports describe the changes and claimed verification adequately.",
+        "a_issues": [
+          "The integration regression test checks only --compact; rejection of -c is covered only by the parser unit test."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes fully remove compact mode from parsing, configuration, rendering, help, and current documentation while preserving the remaining behavior. A has a small testing advantage: it verifies rejection of both flag spellings through the public run API, whereas B covers the short spelling only in parser unit tests. Otherwise, the implementations are equivalent and both reports are consistent with the diffs.",
+        "a_issues": [],
+        "b_issues": [
+          "The integration regression test checks only --compact; -c rejection is covered only by the parser unit test."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

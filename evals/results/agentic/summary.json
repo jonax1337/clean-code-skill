@@ -1,262 +1,4 @@
 {
-  "haiku": {
-    "test": {
-      "cases": 13,
-      "conditions": {
-        "none": {
-          "runs": 26,
-          "checks_passed": 0.958072483072483,
-          "checks_passed_ci": [
-            0.9478465978465979,
-            0.9682983682983684
-          ],
-          "runs_all_passed": 16,
-          "cost_usd": 0.010097776538461539,
-          "turns": 15.038461538461538,
-          "duration_s": 78.07884615384616,
-          "runs_reading_skill_files": 0,
-          "metrics": {
-            "runs": 24,
-            "long_functions_added": -0.08333333333333333,
-            "complex_functions_added": -0.16666666666666666,
-            "runs_adding_long_function": 0,
-            "runs_adding_complex_function": 0.08333333333333333,
-            "max_nloc_after": 21.083333333333332,
-            "max_ccn_after": 6.458333333333333
-          },
-          "deltas": {
-            "this-repo": {
-              "delta": -0.006196581196581175,
-              "ci": [
-                -0.02021034521034526,
-                0.00752580752580756
-              ]
-            }
-          }
-        },
-        "this-repo": {
-          "runs": 26,
-          "checks_passed": 0.9642690642690642,
-          "checks_passed_ci": [
-            0.9541791541791542,
-            0.9743589743589743
-          ],
-          "runs_all_passed": 18,
-          "cost_usd": 0.015246886538461539,
-          "turns": 15.76923076923077,
-          "duration_s": 74.837,
-          "runs_reading_skill_files": 0,
-          "metrics": {
-            "runs": 24,
-            "long_functions_added": -0.041666666666666664,
-            "complex_functions_added": -0.16666666666666666,
-            "runs_adding_long_function": 0.041666666666666664,
-            "runs_adding_complex_function": 0.08333333333333333,
-            "max_nloc_after": 21.25,
-            "max_ccn_after": 6.458333333333333
-          },
-          "deltas": {
-            "none": {
-              "delta": 0.006196581196581175,
-              "ci": [
-                -0.007875457875457847,
-                0.020268620268620308
-              ]
-            }
-          }
-        },
-        "ub-mode": {
-          "runs": 26,
-          "checks_passed": 0.9732905982905983,
-          "checks_passed_ci": [
-            0.9626068376068376,
-            0.9839743589743589
-          ],
-          "runs_all_passed": 21,
-          "cost_usd": 0.013690068846153848,
-          "turns": 17.03846153846154,
-          "duration_s": 93.86711538461539,
-          "runs_reading_skill_files": 0,
-          "metrics": {
-            "runs": 24,
-            "long_functions_added": -0.16666666666666666,
-            "complex_functions_added": -0.16666666666666666,
-            "runs_adding_long_function": 0,
-            "runs_adding_complex_function": 0.08333333333333333,
-            "max_nloc_after": 20.125,
-            "max_ccn_after": 5.916666666666667
-          },
-          "deltas": {
-            "none": {
-              "delta": 0.015218115218115225,
-              "ci": [
-                0.001329226329226385,
-                0.02894050394050396
-              ]
-            },
-            "this-repo": {
-              "delta": 0.00902153402153405,
-              "ci": [
-                -0.005050505050505083,
-                0.023093573093573072
-              ]
-            }
-          }
-        },
-        "sickn33": {
-          "runs": 26,
-          "checks_passed": 0.9455710955710955,
-          "checks_passed_ci": [
-            0.9343822843822844,
-            0.9567599067599067
-          ],
-          "runs_all_passed": 15,
-          "cost_usd": 0.010108318846153846,
-          "turns": 13.923076923076923,
-          "duration_s": 53.359115384615386,
-          "runs_reading_skill_files": 0,
-          "metrics": {
-            "runs": 24,
-            "long_functions_added": -0.08333333333333333,
-            "complex_functions_added": -0.16666666666666666,
-            "runs_adding_long_function": 0,
-            "runs_adding_complex_function": 0.08333333333333333,
-            "max_nloc_after": 20.541666666666668,
-            "max_ccn_after": 6.291666666666667
-          },
-          "deltas": {
-            "none": {
-              "delta": -0.012501387501387518,
-              "ci": [
-                -0.027672327672327746,
-                0.0023199023199023117
-              ]
-            },
-            "this-repo": {
-              "delta": -0.018697968697968692,
-              "ci": [
-                -0.035198135198135194,
-                -0.00366300366300365
-              ]
-            }
-          }
-        },
-        "ertugrul-dmr": {
-          "runs": 14,
-          "checks_passed": 0.9598330241187384,
-          "checks_passed_ci": [
-            0.9390538033395176,
-            0.9806122448979592
-          ],
-          "runs_all_passed": 9,
-          "cost_usd": 0.00803739,
-          "turns": 12.857142857142858,
-          "duration_s": 43.48314285714285,
-          "runs_reading_skill_files": 0,
-          "metrics": {
-            "runs": 12,
-            "long_functions_added": -0.08333333333333333,
-            "complex_functions_added": 0,
-            "runs_adding_long_function": 0,
-            "runs_adding_complex_function": 0.16666666666666666,
-            "max_nloc_after": 20.333333333333332,
-            "max_ccn_after": 5.5
-          },
-          "deltas": {}
-        }
-      },
-      "pairwise": {
-        "none vs this-repo": {
-          "first": "none",
-          "second": "this-repo",
-          "units": 26,
-          "first_score": 0.46153846153846156,
-          "first_score_ci": [
-            0.34615384615384615,
-            0.5769230769230769
-          ],
-          "first_wins": 11,
-          "ties": 2,
-          "second_wins": 13,
-          "contradictory": 0.038461538461538464,
-          "dimension_scores": {
-            "correctness": 0.5384615384615384,
-            "scope": 0.5192307692307693,
-            "design": 0.5384615384615384,
-            "readability": 0.5,
-            "tests": 0.38461538461538464,
-            "report": 0.3942307692307692
-          }
-        },
-        "this-repo vs ub-mode": {
-          "first": "this-repo",
-          "second": "ub-mode",
-          "units": 26,
-          "first_score": 0.46153846153846156,
-          "first_score_ci": [
-            0.34615384615384615,
-            0.5769230769230769
-          ],
-          "first_wins": 11,
-          "ties": 2,
-          "second_wins": 13,
-          "contradictory": 0.07692307692307693,
-          "dimension_scores": {
-            "correctness": 0.5096153846153846,
-            "scope": 0.5480769230769231,
-            "design": 0.4519230769230769,
-            "readability": 0.5288461538461539,
-            "tests": 0.4423076923076923,
-            "report": 0.6346153846153846
-          }
-        },
-        "this-repo vs sickn33": {
-          "first": "this-repo",
-          "second": "sickn33",
-          "units": 26,
-          "first_score": 0.6346153846153846,
-          "first_score_ci": [
-            0.5384615384615384,
-            0.7307692307692307
-          ],
-          "first_wins": 14,
-          "ties": 6,
-          "second_wins": 6,
-          "contradictory": 0.23076923076923078,
-          "dimension_scores": {
-            "correctness": 0.5576923076923077,
-            "scope": 0.5,
-            "design": 0.6057692307692307,
-            "readability": 0.5288461538461539,
-            "tests": 0.6153846153846154,
-            "report": 0.5096153846153846
-          }
-        },
-        "this-repo vs ertugrul-dmr": {
-          "first": "this-repo",
-          "second": "ertugrul-dmr",
-          "units": 14,
-          "first_score": 0.75,
-          "first_score_ci": [
-            0.5714285714285714,
-            0.9285714285714286
-          ],
-          "first_wins": 10,
-          "ties": 1,
-          "second_wins": 3,
-          "contradictory": 0.07142857142857142,
-          "dimension_scores": {
-            "correctness": 0.4642857142857143,
-            "scope": 0.5,
-            "design": 0.5892857142857143,
-            "readability": 0.6428571428571429,
-            "tests": 0.6428571428571429,
-            "report": 0.6785714285714286
-          }
-        }
-      }
-    }
-  },
   "opus": {
     "test": {
       "cases": 13,
@@ -421,6 +163,82 @@
             "max_ccn_after": 5.583333333333333
           },
           "deltas": {}
+        },
+        "btseee": {
+          "runs": 13,
+          "checks_passed": 0.9724941724941725,
+          "checks_passed_ci": [
+            0.9405594405594405,
+            1.0
+          ],
+          "runs_all_passed": 10,
+          "cost_usd": 0.2827467846153846,
+          "turns": 9.23076923076923,
+          "duration_s": 77.87130769230768,
+          "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 12,
+            "long_functions_added": -0.16666666666666666,
+            "complex_functions_added": -0.16666666666666666,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.08333333333333333,
+            "max_nloc_after": 20,
+            "max_ccn_after": 6.166666666666667
+          },
+          "deltas": {
+            "none": {
+              "delta": 0.0032051282051281937,
+              "ci": [
+                -0.007284382284382329,
+                0.013694638694638717
+              ]
+            },
+            "this-repo": {
+              "delta": -0.002933177933177933,
+              "ci": [
+                -0.030069930069930084,
+                0.023504273504273532
+              ]
+            }
+          }
+        },
+        "claudemd-baseline": {
+          "runs": 13,
+          "checks_passed": 0.9871794871794872,
+          "checks_passed_ci": [
+            0.9615384615384616,
+            1.0
+          ],
+          "runs_all_passed": 12,
+          "cost_usd": 0.25715566153846153,
+          "turns": 9.153846153846153,
+          "duration_s": 69.38792307692307,
+          "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 12,
+            "long_functions_added": -0.08333333333333333,
+            "complex_functions_added": -0.16666666666666666,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.08333333333333333,
+            "max_nloc_after": 20.666666666666668,
+            "max_ccn_after": 6.333333333333333
+          },
+          "deltas": {
+            "none": {
+              "delta": 0.017890442890442948,
+              "ci": [
+                -0.022435897435897467,
+                0.05594405594405594
+              ]
+            },
+            "this-repo": {
+              "delta": 0.011752136752136821,
+              "ci": [
+                -0.020299145299145227,
+                0.047008547008547064
+              ]
+            }
+          }
         }
       },
       "pairwise": {
@@ -428,6 +246,7 @@
           "first": "none",
           "second": "this-repo",
           "units": 26,
+          "cases": 13,
           "first_score": 0.28846153846153844,
           "first_score_ci": [
             0.23076923076923078,
@@ -450,6 +269,7 @@
           "first": "this-repo",
           "second": "ub-mode",
           "units": 26,
+          "cases": 13,
           "first_score": 0.8076923076923077,
           "first_score_ci": [
             0.75,
@@ -472,6 +292,7 @@
           "first": "this-repo",
           "second": "sickn33",
           "units": 26,
+          "cases": 13,
           "first_score": 0.7403846153846154,
           "first_score_ci": [
             0.6442307692307693,
@@ -494,6 +315,7 @@
           "first": "this-repo",
           "second": "ertugrul-dmr",
           "units": 14,
+          "cases": 7,
           "first_score": 0.5892857142857143,
           "first_score_ci": [
             0.4642857142857143,
@@ -510,6 +332,52 @@
             "readability": 0.48214285714285715,
             "tests": 0.5,
             "report": 0.6785714285714286
+          }
+        },
+        "this-repo vs btseee": {
+          "first": "this-repo",
+          "second": "btseee",
+          "units": 13,
+          "cases": 13,
+          "first_score": 0.5961538461538461,
+          "first_score_ci": [
+            0.36538461538461536,
+            0.8076923076923077
+          ],
+          "first_wins": 6,
+          "ties": 3,
+          "second_wins": 4,
+          "contradictory": 0.23076923076923078,
+          "dimension_scores": {
+            "correctness": 0.5384615384615384,
+            "scope": 0.5,
+            "design": 0.38461538461538464,
+            "readability": 0.38461538461538464,
+            "tests": 0.7115384615384616,
+            "report": 0.5384615384615384
+          }
+        },
+        "this-repo vs claudemd-baseline": {
+          "first": "this-repo",
+          "second": "claudemd-baseline",
+          "units": 13,
+          "cases": 13,
+          "first_score": 0.5384615384615384,
+          "first_score_ci": [
+            0.3076923076923077,
+            0.7692307692307693
+          ],
+          "first_wins": 6,
+          "ties": 2,
+          "second_wins": 5,
+          "contradictory": 0.15384615384615385,
+          "dimension_scores": {
+            "correctness": 0.4423076923076923,
+            "scope": 0.5192307692307693,
+            "design": 0.4423076923076923,
+            "readability": 0.4807692307692308,
+            "tests": 0.4807692307692308,
+            "report": 0.7115384615384616
           }
         }
       }
@@ -679,6 +547,82 @@
             "max_ccn_after": 3.8333333333333335
           },
           "deltas": {}
+        },
+        "btseee": {
+          "runs": 7,
+          "checks_passed": 0.9563492063492064,
+          "checks_passed_ci": [
+            0.8928571428571429,
+            1.0
+          ],
+          "runs_all_passed": 5,
+          "cost_usd": 0.09643132857142858,
+          "turns": 7.142857142857143,
+          "duration_s": 34.72685714285714,
+          "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 6,
+            "long_functions_added": -0.16666666666666666,
+            "complex_functions_added": -0.16666666666666666,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0,
+            "max_nloc_after": 15,
+            "max_ccn_after": 5.166666666666667
+          },
+          "deltas": {
+            "none": {
+              "delta": 0.134920634920635,
+              "ci": [
+                0.06349206349206349,
+                0.19841269841269848
+              ]
+            },
+            "this-repo": {
+              "delta": -0.03998778998778996,
+              "ci": [
+                -0.1071428571428571,
+                0.0073260073260073
+              ]
+            }
+          }
+        },
+        "claudemd-baseline": {
+          "runs": 7,
+          "checks_passed": 0.9325396825396826,
+          "checks_passed_ci": [
+            0.8571428571428571,
+            1.0
+          ],
+          "runs_all_passed": 5,
+          "cost_usd": 0.08629665714285714,
+          "turns": 10.285714285714286,
+          "duration_s": 38.904714285714284,
+          "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 6,
+            "long_functions_added": 0.16666666666666666,
+            "complex_functions_added": 0.16666666666666666,
+            "runs_adding_long_function": 0.16666666666666666,
+            "runs_adding_complex_function": 0.16666666666666666,
+            "max_nloc_after": 18.833333333333332,
+            "max_ccn_after": 6.333333333333333
+          },
+          "deltas": {
+            "none": {
+              "delta": 0.11111111111111116,
+              "ci": [
+                0.031746031746031744,
+                0.19047619047619047
+              ]
+            },
+            "this-repo": {
+              "delta": -0.06379731379731379,
+              "ci": [
+                -0.13919413919413925,
+                0.0073260073260073
+              ]
+            }
+          }
         }
       },
       "pairwise": {
@@ -686,6 +630,7 @@
           "first": "none",
           "second": "this-repo",
           "units": 21,
+          "cases": 7,
           "first_score": 0.023809523809523808,
           "first_score_ci": [
             0.0,
@@ -708,6 +653,7 @@
           "first": "this-repo",
           "second": "ub-mode",
           "units": 21,
+          "cases": 7,
           "first_score": 0.9523809523809524,
           "first_score_ci": [
             0.9047619047619048,
@@ -891,6 +837,82 @@
             "max_ccn_after": 5.5
           },
           "deltas": {}
+        },
+        "btseee": {
+          "runs": 13,
+          "checks_passed": 0.9615384615384616,
+          "checks_passed_ci": [
+            0.9230769230769231,
+            0.9935897435897436
+          ],
+          "runs_all_passed": 9,
+          "cost_usd": 0.11461386923076923,
+          "turns": 9.461538461538462,
+          "duration_s": 41.22,
+          "runs_reading_skill_files": 1,
+          "metrics": {
+            "runs": 12,
+            "long_functions_added": 0,
+            "complex_functions_added": -0.16666666666666666,
+            "runs_adding_long_function": 0.08333333333333333,
+            "runs_adding_complex_function": 0.08333333333333333,
+            "max_nloc_after": 21,
+            "max_ccn_after": 6.25
+          },
+          "deltas": {
+            "none": {
+              "delta": -0.0013708513708513559,
+              "ci": [
+                -0.028235653235653246,
+                0.025646575646575687
+              ]
+            },
+            "this-repo": {
+              "delta": -0.022435897435897356,
+              "ci": [
+                -0.05128205128205132,
+                0.0
+              ]
+            }
+          }
+        },
+        "claudemd-baseline": {
+          "runs": 13,
+          "checks_passed": 0.9880952380952381,
+          "checks_passed_ci": [
+            0.9706959706959707,
+            1.0
+          ],
+          "runs_all_passed": 11,
+          "cost_usd": 0.11008406923076923,
+          "turns": 10.538461538461538,
+          "duration_s": 41.613461538461536,
+          "runs_reading_skill_files": 0,
+          "metrics": {
+            "runs": 12,
+            "long_functions_added": -0.08333333333333333,
+            "complex_functions_added": -0.16666666666666666,
+            "runs_adding_long_function": 0,
+            "runs_adding_complex_function": 0.08333333333333333,
+            "max_nloc_after": 19.75,
+            "max_ccn_after": 6
+          },
+          "deltas": {
+            "none": {
+              "delta": 0.025185925185925218,
+              "ci": [
+                0.00583028083028081,
+                0.045454545454545525
+              ]
+            },
+            "this-repo": {
+              "delta": 0.004120879120879217,
+              "ci": [
+                -0.01236263736263743,
+                0.022435897435897356
+              ]
+            }
+          }
         }
       },
       "pairwise": {
@@ -898,6 +920,7 @@
           "first": "none",
           "second": "this-repo",
           "units": 26,
+          "cases": 13,
           "first_score": 0.057692307692307696,
           "first_score_ci": [
             0.0,
@@ -916,10 +939,57 @@
             "report": 0.22115384615384615
           }
         },
+        "none vs btseee": {
+          "first": "none",
+          "second": "btseee",
+          "units": 13,
+          "cases": 13,
+          "first_score": 0.25,
+          "first_score_ci": [
+            0.038461538461538464,
+            0.4807692307692308
+          ],
+          "first_wins": 3,
+          "ties": 0,
+          "second_wins": 10,
+          "contradictory": 0,
+          "dimension_scores": {
+            "correctness": 0.5384615384615384,
+            "scope": 0.46153846153846156,
+            "design": 0.40384615384615385,
+            "readability": 0.4423076923076923,
+            "tests": 0.40384615384615385,
+            "report": 0.28846153846153844
+          }
+        },
+        "none vs claudemd-baseline": {
+          "first": "none",
+          "second": "claudemd-baseline",
+          "units": 13,
+          "cases": 13,
+          "first_score": 0.3076923076923077,
+          "first_score_ci": [
+            0.07692307692307693,
+            0.5384615384615384
+          ],
+          "first_wins": 4,
+          "ties": 0,
+          "second_wins": 9,
+          "contradictory": 0,
+          "dimension_scores": {
+            "correctness": 0.6153846153846154,
+            "scope": 0.5,
+            "design": 0.4423076923076923,
+            "readability": 0.38461538461538464,
+            "tests": 0.11538461538461539,
+            "report": 0.4230769230769231
+          }
+        },
         "this-repo vs ub-mode": {
           "first": "this-repo",
           "second": "ub-mode",
           "units": 26,
+          "cases": 13,
           "first_score": 1.0,
           "first_score_ci": [
             1.0,
@@ -942,6 +1012,7 @@
           "first": "this-repo",
           "second": "sickn33",
           "units": 26,
+          "cases": 13,
           "first_score": 0.8365384615384616,
           "first_score_ci": [
             0.7884615384615384,
@@ -964,6 +1035,7 @@
           "first": "this-repo",
           "second": "ertugrul-dmr",
           "units": 14,
+          "cases": 7,
           "first_score": 0.7857142857142857,
           "first_score_ci": [
             0.6785714285714286,
@@ -980,6 +1052,52 @@
             "readability": 0.42857142857142855,
             "tests": 0.75,
             "report": 0.6964285714285714
+          }
+        },
+        "this-repo vs btseee": {
+          "first": "this-repo",
+          "second": "btseee",
+          "units": 13,
+          "cases": 13,
+          "first_score": 0.9038461538461539,
+          "first_score_ci": [
+            0.7884615384615384,
+            1.0
+          ],
+          "first_wins": 11,
+          "ties": 2,
+          "second_wins": 0,
+          "contradictory": 0.07692307692307693,
+          "dimension_scores": {
+            "correctness": 0.5961538461538461,
+            "scope": 0.5384615384615384,
+            "design": 0.5,
+            "readability": 0.6923076923076923,
+            "tests": 0.8461538461538461,
+            "report": 0.6153846153846154
+          }
+        },
+        "this-repo vs claudemd-baseline": {
+          "first": "this-repo",
+          "second": "claudemd-baseline",
+          "units": 13,
+          "cases": 13,
+          "first_score": 0.7307692307692307,
+          "first_score_ci": [
+            0.5,
+            0.9230769230769231
+          ],
+          "first_wins": 9,
+          "ties": 1,
+          "second_wins": 3,
+          "contradictory": 0.07692307692307693,
+          "dimension_scores": {
+            "correctness": 0.6346153846153846,
+            "scope": 0.5384615384615384,
+            "design": 0.6153846153846154,
+            "readability": 0.75,
+            "tests": 0.5384615384615384,
+            "report": 0.5961538461538461
           }
         }
       }
@@ -1004,6 +1122,11 @@
         "runs": 7,
         "skill_loaded": 0.14285714285714285,
         "checks_passed": 0.9857142857142858
+      },
+      "btseee": {
+        "runs": 13,
+        "skill_loaded": 0.07692307692307693,
+        "checks_passed": 0.9541791541791542
       }
     },
     "instructed": {
@@ -1026,6 +1149,11 @@
         "runs": 7,
         "skill_loaded": 1,
         "checks_passed": 0.9714285714285714
+      },
+      "btseee": {
+        "runs": 13,
+        "skill_loaded": 1,
+        "checks_passed": 0.993006993006993
       }
     }
   }

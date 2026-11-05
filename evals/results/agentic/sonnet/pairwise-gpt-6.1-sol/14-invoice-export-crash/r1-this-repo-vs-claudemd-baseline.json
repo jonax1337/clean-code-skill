@@ -1,0 +1,86 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "this-repo": "1912bff4c56a25ca",
+    "claudemd-baseline": "cab45f5b4989f915"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes fix the root cause by normalizing CRM customer IDs at the loading boundary and reuse requireCustomer to preserve fail-fast export behavior. A has a modest edge because its unknown-customer error explicitly identifies the referring record as an invoice, and its regression test verifies the complete diagnostic rather than only the error class. A also keeps that export test in the existing export test suite.",
+        "a_issues": [
+          "The new filesystem test creates a temporary directory without cleaning it up.",
+          "No CLI regression test verifies exit status 1 and empty stdout for an unknown customer."
+        ],
+        "b_issues": [
+          "The new filesystem test creates a temporary directory without cleaning it up.",
+          "The unknown-customer test checks only the error class, leaving the customer ID and referring invoice diagnostic unprotected, and is placed in sources.test.js rather than export.test.js.",
+          "No CLI regression test verifies exit status 1 and empty stdout for an unknown customer."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes fix the root cause by normalizing CRM customer IDs at the loading boundary and reuse requireCustomer to preserve the documented failure behavior for genuinely missing customers. B is preferable because it includes explicit invoice context in the error and tests the exact diagnostic in the existing export test suite. Its source-loading test also verifies the complete normalized result and billing-first ordering.",
+        "a_issues": [
+          "The unknown-customer regression test checks only the exception class, so losing the customer ID or referring invoice from the diagnostic would go unnoticed.",
+          "The export regression test is placed in sources.test.js rather than the existing export.test.js.",
+          "The temporary test directory is not cleaned up."
+        ],
+        "b_issues": [
+          "The temporary test directory is not cleaned up."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

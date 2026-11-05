@@ -1,0 +1,89 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "6cb47dcc60bb5f2f",
+    "claudemd-baseline": "2ec830cdc432b4d3"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.25,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.19240400000000002,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors preserve the original tokenizer's behavior: error positions, empty Bare values, the separator check and the fused-after-error semantics all match the old code. B also commits an exhaustive equivalence test that runs about 1.1M lines against a frozen copy of the old function, which directly protects the 'exactly the same tokens and errors' requirement. A only reports a one-off random comparison and then deleted it. B's scanners are pure functions returning end indices, which separates scanning from state updates more cleanly than A's set of mutating `#[inline(always)]` methods.",
+        "a_issues": [
+          "No regression test added: the old-versus-new comparison was deleted, so the equivalence claim is not protected going forward.",
+          "Applies `#[inline(always)]` to nearly every helper, which adds noise and is justified only by a benchmark the report itself calls noisy.",
+          "Every helper mutates `self`, which mixes state transitions into the scanning logic more than necessary."
+        ],
+        "b_issues": [
+          "The equivalence test embeds about 170 lines of the old tokenizer, with an unindented `mod reference` block and a `let _ = Token::Word(\"\");` hack to silence an unused import.",
+          "The exhaustive test of about 1.1M lines may run noticeably slower in debug `cargo test` than the 2s the report gives for release mode.",
+          "`Token::Bare(\"\")` uses a static empty str instead of a slice of the line, a tiny departure from 'borrowed from the line'; Debug-based comparison would not catch this."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.187172,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors look behavior-preserving when traced branch by branch against the original, and both replace the u8 state with an enum and per-token helpers. A also commits an exhaustive equivalence test over about 1.1M short strings against a frozen copy of the old tokenizer. That directly protects the user's hard requirement of exactly the same tokens and errors. B ran a similar random comparison but deleted it, so the merged change rests only on the thin existing tests.",
+        "a_issues": [
+          "tests/equivalence.rs embeds a 170-line verbatim copy of the old tokenizer, which is heavy to keep in the repo",
+          "Leftover `let _ = Token::Word(\"\");` line exists only to silence an unused import",
+          "The `.and_then(|e| check_separator(b, e + 1).map(|_| e))` chain is clunkier than a plain early return"
+        ],
+        "b_issues": [
+          "The old-versus-new comparison was deleted, so nothing guards the exact-equivalence requirement going forward",
+          "Blanket `#[inline(always)]` on every helper is heavy-handed, and the benchmark that justified it is not kept",
+          "`check_separator` takes `&mut self` although it does not mutate anything"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

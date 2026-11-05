@@ -1,0 +1,93 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "f1a549990499bcec",
+    "btseee": "82ede838597fbbdb"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.75,
+    "scope": 0.75,
+    "design": 0.25,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.20302800000000001,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes turn silent fallbacks into collected errors, exit with status 2, and reject unknown keys, so they are functionally very close. A stays closer to the documented contract, while B also rejects a `0s` timeout and any non-http(s) scheme, neither of which the README mentions. A gives separate, clearer messages for a non-number versus a value below the minimum, and reports an overflowing timeout as its own error. A's tests assert exact message fragments and cover more edge cases, such as overflow and zero retries being accepted. B's tests mostly check only that the key name appears in the message.",
+        "a_issues": [
+          "Unknown-key rejection goes beyond the request (disclosed in the report).",
+          "The unknown-key message prints the full known-key set for every unknown key, which is a bit noisy.",
+          "The 'Cannot read' message embeds the exception's toString, which is somewhat raw."
+        ],
+        "b_issues": [
+          "Adds undocumented restrictions: rejects `0s` timeouts and URLs that are not http(s), beyond the README's contract.",
+          "Threads a `problems` list parameter through every static helper, which is clunkier than a stateful loader.",
+          "Uses one combined message for non-number and below-minimum values, which is less precise for the deployer.",
+          "Tests assert only that the key name or value appears in the message, so a regression in message quality would go unnoticed.",
+          "The missing-file test does not check that the message names the file.",
+          "The error message uses the path as given rather than the absolute path, so the deployer may not see which file was read."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.211688,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same core fix: collect every problem, reject present-but-invalid values, reject unknown keys and a missing file, and exit 2 from Main. B's tests are stronger, asserting the exact message text with helpful failure output and covering zero retries and an overflowing timeout. B's README also states the absent-versus-invalid rule clearly. A is simpler, keeping the static helpers rather than a stateful refactor, and its report is fully accurate, but B's better-protected behavior gives it a slight edge.",
+        "a_issues": [
+          "Rejects `request.timeout=0s` even though the README says any whole number is allowed. This is an undocumented tightening and the README was not updated.",
+          "Tests mostly check only that the key name appears in the message, not the actual wording, so a regression in message quality would go unnoticed.",
+          "The error message shows the path as passed, not an absolute path, which helps a deployer less."
+        ],
+        "b_issues": [
+          "Turns ConfigLoader into a stateful instance with a problems field, which is more structural churn than the task needs.",
+          "The report says a missing `upstream.url` previously caused an NPE. In fact the old `catch (Exception)` swallowed it and returned a null URI.",
+          "Accepts any scheme with a host (for example `ftp://`) for `upstream.url`, which is looser than an HTTP upstream needs.",
+          "`intValue` returns the out-of-range value when it is below the minimum; this is harmless because load throws, but it is slightly confusing."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

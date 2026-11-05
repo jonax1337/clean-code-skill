@@ -1,0 +1,90 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "c3e71b79395a283f",
+    "btseee": "3e24319dd104cfae"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 0.25,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.14756,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find the same core blockers in the same order: the SQL injection in search, swallowed audit errors, the spoofable actor and padded audit rows, the floor-division page count, unvalidated paging and the silent change to the list_users contract. B says it applied the patch, ran the suite and ran targeted probes (e.g. the dropped audit_log table, ids [1, 999], q=\"%\"), which would confirm several findings rather than infer them. B also adds a few real issues A missed: duplicate and string ids, non-deterministic ORDER BY for paging, and a split-shipping option for the deadline. B's review does contain some template leftovers (check_boundaries.py, the .clean/ state, 'A5') that are irrelevant to this repo.",
+        "a_issues": [
+          "Did not run the tests or any probes, so the findings are reasoned rather than verified (it says this honestly)",
+          "Misses duplicate ids being audited twice and a string `ids` value iterating characters",
+          "Misses that ORDER BY name with ties makes search paging unstable",
+          "Gives no concrete ceiling-division fix and no shared paging helper"
+        ],
+        "b_issues": [
+          "Contains irrelevant template leftovers (check_boundaries.py, the map script, the .clean/ state, the 'A5' label, 'no layers declared') that do not apply to this repo",
+          "P2-2 (mixed levels in the handler) is a weak, somewhat padded finding",
+          "Longer and more heavily structured than needed"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.14698,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews find the same blocking problems: the SQL injection in search, swallowed audit errors, a client-supplied actor, audit rows for unchanged ids, floor-divided `pages`, and unvalidated paging. A actually applied the patch, ran the suite and backed its claims with concrete probes. That makes its findings verified rather than inferred, and it adds a practical path to meet the deadline. B is honest that it did not run anything and is clean and well ordered, but it offers less evidence. A loses a little for stray references to tooling and labels that do not exist in this repo.",
+        "a_issues": [
+          "Mentions `check_boundaries.py`, a map script, `.clean/` state and declared layers, none of which exist in this repo. This is confusing noise.",
+          "Uses an unexplained label 'A5' in finding P2-1.",
+          "Does not point out that `search` returns no `page`/`pages` metadata, only that it ignores `per_page`."
+        ],
+        "b_issues": [
+          "Did not apply the patch or run the tests, so the '28 passed' claim and the behavioural findings are unverified.",
+          "Less concrete evidence for findings, for example it does not show that the `%` wildcard matches all users or that the audit failure was reproduced.",
+          "Does not suggest how the console team's deadline could still be met, for example by shipping the paged list separately."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

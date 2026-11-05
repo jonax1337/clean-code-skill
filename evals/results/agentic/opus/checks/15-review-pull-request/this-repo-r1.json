@@ -56,13 +56,13 @@
       "name": "pr_not_left_applied",
       "description": "Hidden tests confirm the code is still the state before PR 482: the PR was neither merged nor left applied in the working tree.",
       "passed": true,
-      "evidence": "...                                                                      [100%]\n3 passed in 0.07s"
+      "evidence": "...                                                                      [100%]\n3 passed in 0.04s"
     },
     {
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": ".............                                                            [100%]\n13 passed in 0.15s"
+      "evidence": ".............                                                            [100%]\n13 passed in 0.04s"
     },
     {
       "name": "clean_diff",

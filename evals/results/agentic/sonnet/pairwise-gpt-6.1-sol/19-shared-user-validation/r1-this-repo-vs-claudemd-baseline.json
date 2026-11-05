@@ -1,0 +1,87 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "this-repo": "424a85167c257204",
+    "claudemd-baseline": "b9e3c0012455145c"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.25,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes centralize the field checks while preserving endpoint-specific defaults, partial updates, and error wording. I prefer A because its shared email normalization follows the documented contract and fixes mixed-case invitation requests bypassing duplicate checks; B deliberately preserves that bug and tests the case-preserving option. B has broader validator tests and a clearer update loop, so A's limited regression coverage keeps the margin slight.",
+        "a_issues": [
+          "Adds only one regression test; shared validation boundaries, message ordering, and endpoint-specific exceptions remain insufficiently protected.",
+          "The Object.fromEntries/map/collect pipeline in updateUser is less straightforward than B's explicit validation loop."
+        ],
+        "b_issues": [
+          "Invitation emails still violate the documented lowercase-storage and case-insensitive-matching contract, allowing mixed-case requests to bypass duplicate checks.",
+          "Adds a lowercase opt-out and a test protecting it specifically to retain the existing invitation inconsistency.",
+          "New tests exercise validators directly but do not verify endpoint integration, partial-update behavior, or multi-field message ordering."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "B centralizes validation while enforcing the documented requirement that invitation emails be lowercased, fixing mixed-case duplicate detection as well as storage. A deliberately preserves that contract violation and adds an option and test supporting it. A offers broader validator tests and a simpler update loop, but B's contract-correct behavior and explicit explanation of the behavior change outweigh those advantages.",
+        "a_issues": [
+          "Invitation emails still retain their case, violating docs/api.md and allowing mixed-case requests to bypass duplicate checks against normalized users or invitations.",
+          "The lowercase option and its case-preservation test institutionalize an existing bug rather than establishing consistent shared email validation.",
+          "The report identifies the invitation inconsistency but treats the intended behavior as undecided despite the explicit API contract."
+        ],
+        "b_issues": [
+          "The added test covers invitation normalization only; shared validation boundaries, ordered multi-field errors, partial updates, and mixed-case invitation conflicts lack additional regression coverage.",
+          "The update handler's filter/map/Object.fromEntries pipeline is less straightforward to follow than A's explicit validation loop."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

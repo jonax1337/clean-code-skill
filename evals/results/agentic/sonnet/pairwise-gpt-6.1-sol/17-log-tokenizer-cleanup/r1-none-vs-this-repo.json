@@ -1,0 +1,89 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "6cb47dcc60bb5f2f",
+    "this-repo": "8a93070a66755558"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors appear to preserve token boundaries, error variants and byte offsets, empty values, and termination after an error without introducing allocations. B is preferable because it centralizes error termination in the iterator, keeps token readers straightforward, and adds permanent regression tests for previously uncovered edge cases. Neither change establishes performance parity conclusively, since the reported synthetic timings are noisy and the benchmark harnesses were removed.",
+        "a_issues": [
+          "Adds no permanent regression tests despite restructuring the entire tokenizer and identifying the existing coverage as thin.",
+          "Uses #[inline(always)] throughout the helper methods, adding optimization annotations and constraining compiler decisions without retained benchmark evidence.",
+          "Removes the differential-testing and benchmarking harnesses, making the reported verification difficult to reproduce."
+        ],
+        "b_issues": [
+          "The report's categorical claim that it isn't slower is stronger than noisy synthetic measurements establish; representative workload timing remains necessary.",
+          "Removes the differential-testing and benchmarking harnesses, making the reported verification difficult to reproduce.",
+          "Expect::Nothing is documented as covering ordinary exhaustion, but the implementation only enters it after an error."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors appear to preserve token boundaries, error variants and byte offsets, empty values, and termination after errors. A provides the cleaner implementation by centralizing error termination in the dispatcher and avoiding B's blanket forced-inlining annotations and additional plumbing. A also adds permanent regression tests for previously uncovered behavior, whereas B removes all its new verification code. Neither change provides reproducible evidence sufficient to establish the strict no-slowdown requirement.",
+        "a_issues": [
+          "The performance benchmark and differential comparison were removed, so reviewers cannot reproduce the reported results from the change.",
+          "The report's opening claim that the tokenizer is not slower is stronger than its noisy synthetic timings establish."
+        ],
+        "b_issues": [
+          "No regression tests were added despite restructuring the entire tokenizer and acknowledging that existing coverage is thin.",
+          "Blanket #[inline(always)] annotations add compiler-policy noise throughout the implementation without retained benchmark evidence demonstrating their necessity.",
+          "Error termination still requires an explicit fail() call at each error site; A's dispatcher enforces that invariant centrally.",
+          "Performance and differential verification are not reproducible from the submitted change, and the reported timings do not establish performance parity."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

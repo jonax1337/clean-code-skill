@@ -1,0 +1,620 @@
+diff --git a/src/token.rs b/src/token.rs
+index 1ee5ac4..9084354 100644
+--- a/src/token.rs
++++ b/src/token.rs
+@@ -10,165 +10,195 @@ pub enum Token<'a> {
+     /// A double-quoted value without its quotes, escapes left as written.
+     Quoted(&'a str),
+     /// An unquoted value; empty for `key=` followed by a space or the end of the line.
+     Bare(&'a str),
+     /// A run of characters that is neither a timestamp nor part of a pair.
+     Word(&'a str),
+ }
+ 
++/// What the tokenizer expects at its current position.
++#[derive(Debug, Clone, Copy, PartialEq, Eq)]
++enum State {
++    /// Between tokens: a timestamp, a key or a word may follow.
++    Start,
++    /// Right after `key=`: the value follows.
++    Value,
++    /// An error was reported; nothing more is yielded.
++    Done,
++}
++
+ /// Streams the tokens of one line. After the first error it yields nothing more.
+ #[derive(Debug, Clone)]
+ pub struct Tokens<'a> {
+     src: &'a str,
+     pos: usize,
+-    st: u8,
++    state: State,
+ }
+ 
+ impl<'a> Tokens<'a> {
+     pub fn new(src: &'a str) -> Self {
+-        Tokens { src, pos: 0, st: 0 }
++        Tokens { src, pos: 0, state: State::Start }
+     }
+ }
+ 
+ /// Tokenizes one log line without copying any of it.
+ pub fn tokenize(line: &str) -> Tokens<'_> {
+     Tokens::new(line)
+ }
+ 
+-impl<'a> Iterator for Tokens<'a> {
+-    type Item = Result<Token<'a>, LexError>;
++/// A successfully lexed token and the byte offset just past it.
++type Lexed<'a> = Result<(Token<'a>, usize), LexError>;
+ 
+-    fn next(&mut self) -> Option<Self::Item> {
+-        let src: &'a str = self.src;
+-        let b = src.as_bytes();
+-        let n = b.len();
++#[inline(always)]
++fn is_separator(byte: u8) -> bool {
++    byte == b' ' || byte == b'\t'
++}
++
++/// Checks that the byte after a closing `]` or `"` at `close` is a separator or the end of the line.
++#[inline(always)]
++fn expect_separator(b: &[u8], close: usize) -> Result<(), LexError> {
++    let after = close + 1;
++    if after < b.len() && !is_separator(b[after]) {
++        return Err(LexError::ExpectedSeparator { pos: after });
++    }
++    Ok(())
++}
++
++impl<'a> Tokens<'a> {
++    /// `[...]` starting at `open`. The timestamp may not contain `[`.
++    #[inline(always)]
++    fn lex_timestamp(&self, open: usize) -> Lexed<'a> {
++        let b = self.src.as_bytes();
++        let start = open + 1;
++        let mut i = start;
++        loop {
++            match b.get(i) {
++                None => return Err(LexError::UnterminatedTimestamp { pos: open }),
++                Some(b']') => break,
++                Some(b'[') => return Err(LexError::NestedBracket { pos: i }),
++                Some(_) => i += 1,
++            }
++        }
++        expect_separator(b, i)?;
++        Ok((Token::Timestamp(&self.src[start..i]), i + 1))
++    }
++
++    /// A run up to the next separator or `=`; a key if `=` ends it, otherwise a word.
++    /// The flag says whether a value follows.
++    #[inline(always)]
++    fn lex_key_or_word(&self, start: usize) -> Result<(Token<'a>, usize, bool), LexError> {
++        let b = self.src.as_bytes();
++        let mut i = start;
++        while i < b.len() && !is_separator(b[i]) && b[i] != b'=' {
++            if b[i] == b'"' {
++                return Err(LexError::UnexpectedQuote { pos: i });
++            }
++            i += 1;
++        }
++        let text = &self.src[start..i];
++        if i < b.len() && b[i] == b'=' {
++            Ok((Token::Key(text), i + 1, true))
++        } else {
++            Ok((Token::Word(text), i, false))
++        }
++    }
++
++    /// `"..."` starting at `open`, with the escapes `\"`, `\\`, `\n` and `\t`.
++    #[inline(always)]
++    fn lex_quoted(&self, open: usize) -> Lexed<'a> {
++        let b = self.src.as_bytes();
++        let start = open + 1;
++        let mut i = start;
++        loop {
++            match b.get(i) {
++                None => return Err(LexError::UnterminatedQuote { pos: open }),
++                Some(b'"') => break,
++                Some(b'\\') => match b.get(i + 1) {
++                    None => return Err(LexError::UnterminatedQuote { pos: open }),
++                    Some(b'"' | b'\\' | b'n' | b't') => i += 2,
++                    Some(_) => return Err(LexError::InvalidEscape { pos: i }),
++                },
++                Some(_) => i += 1,
++            }
++        }
++        expect_separator(b, i)?;
++        Ok((Token::Quoted(&self.src[start..i]), i + 1))
++    }
++
++    /// An unquoted value up to the next separator; may be empty.
++    #[inline(always)]
++    fn lex_bare(&self, start: usize) -> Lexed<'a> {
++        let b = self.src.as_bytes();
++        let mut i = start;
++        while i < b.len() && !is_separator(b[i]) {
++            if b[i] == b'"' {
++                return Err(LexError::UnexpectedQuote { pos: i });
++            }
++            i += 1;
++        }
++        Ok((Token::Bare(&self.src[start..i]), i))
++    }
++
++    /// The next token when between tokens, or `None` at the end of the line.
++    #[inline(always)]
++    fn next_in_start(&mut self) -> Option<Result<Token<'a>, LexError>> {
++        let b = self.src.as_bytes();
+         let mut p = self.pos;
+-        match self.st {
+-            0 => {
+-                while p < n && (b[p] == b' ' || b[p] == b'\t') {
+-                    p += 1;
+-                }
+-                if p >= n {
+-                    self.pos = p;
+-                    return None;
+-                }
+-                match b[p] {
+-                    b'[' => {
+-                        let s = p + 1;
+-                        let mut i = s;
+-                        loop {
+-                            if i >= n {
+-                                self.st = 2;
+-                                self.pos = n;
+-                                return Some(Err(LexError::UnterminatedTimestamp { pos: p }));
+-                            }
+-                            match b[i] {
+-                                b']' => break,
+-                                b'[' => {
+-                                    self.st = 2;
+-                                    self.pos = n;
+-                                    return Some(Err(LexError::NestedBracket { pos: i }));
+-                                }
+-                                _ => i += 1,
+-                            }
+-                        }
+-                        if i + 1 < n && b[i + 1] != b' ' && b[i + 1] != b'\t' {
+-                            self.st = 2;
+-                            self.pos = n;
+-                            return Some(Err(LexError::ExpectedSeparator { pos: i + 1 }));
+-                        }
+-                        self.pos = i + 1;
+-                        Some(Ok(Token::Timestamp(&src[s..i])))
+-                    }
+-                    b'"' => {
+-                        self.st = 2;
+-                        self.pos = n;
+-                        Some(Err(LexError::UnexpectedQuote { pos: p }))
+-                    }
+-                    b'=' => {
+-                        self.st = 2;
+-                        self.pos = n;
+-                        Some(Err(LexError::EmptyKey { pos: p }))
+-                    }
+-                    _ => {
+-                        let mut i = p;
+-                        while i < n && b[i] != b' ' && b[i] != b'\t' && b[i] != b'=' {
+-                            if b[i] == b'"' {
+-                                self.st = 2;
+-                                self.pos = n;
+-                                return Some(Err(LexError::UnexpectedQuote { pos: i }));
+-                            }
+-                            i += 1;
+-                        }
+-                        if i < n && b[i] == b'=' {
+-                            self.st = 1;
+-                            self.pos = i + 1;
+-                            Some(Ok(Token::Key(&src[p..i])))
+-                        } else {
+-                            self.pos = i;
+-                            Some(Ok(Token::Word(&src[p..i])))
+-                        }
+-                    }
++        while p < b.len() && is_separator(b[p]) {
++            p += 1;
++        }
++        self.pos = p;
++        let first = *b.get(p)?;
++        let lexed = match first {
++            b'[' => self.lex_timestamp(p),
++            b'"' => Err(LexError::UnexpectedQuote { pos: p }),
++            b'=' => Err(LexError::EmptyKey { pos: p }),
++            _ => self.lex_key_or_word(p).map(|(token, end, value_follows)| {
++                if value_follows {
++                    self.state = State::Value;
+                 }
++                (token, end)
++            }),
++        };
++        Some(self.finish(lexed))
++    }
++
++    /// The value right after `key=`.
++    #[inline(always)]
++    fn next_in_value(&mut self) -> Result<Token<'a>, LexError> {
++        let p = self.pos;
++        self.state = State::Start;
++        let lexed = match self.src.as_bytes().get(p) {
++            Some(b'"') => self.lex_quoted(p),
++            _ => self.lex_bare(p),
++        };
++        self.finish(lexed)
++    }
++
++    /// Advances past a lexed token, or stops the stream on an error.
++    #[inline(always)]
++    fn finish(&mut self, lexed: Lexed<'a>) -> Result<Token<'a>, LexError> {
++        match lexed {
++            Ok((token, end)) => {
++                self.pos = end;
++                Ok(token)
+             }
+-            1 => {
+-                if p >= n || b[p] == b' ' || b[p] == b'\t' {
+-                    self.st = 0;
+-                    self.pos = p;
+-                    return Some(Ok(Token::Bare(&src[p..p])));
+-                }
+-                if b[p] == b'"' {
+-                    let s = p + 1;
+-                    let mut i = s;
+-                    loop {
+-                        if i >= n {
+-                            self.st = 2;
+-                            self.pos = n;
+-                            return Some(Err(LexError::UnterminatedQuote { pos: p }));
+-                        }
+-                        match b[i] {
+-                            b'"' => break,
+-                            b'\\' => {
+-                                if i + 1 >= n {
+-                                    self.st = 2;
+-                                    self.pos = n;
+-                                    return Some(Err(LexError::UnterminatedQuote { pos: p }));
+-                                }
+-                                match b[i + 1] {
+-                                    b'"' | b'\\' | b'n' | b't' => i += 2,
+-                                    _ => {
+-                                        self.st = 2;
+-                                        self.pos = n;
+-                                        return Some(Err(LexError::InvalidEscape { pos: i }));
+-                                    }
+-                                }
+-                            }
+-                            _ => i += 1,
+-                        }
+-                    }
+-                    if i + 1 < n && b[i + 1] != b' ' && b[i + 1] != b'\t' {
+-                        self.st = 2;
+-                        self.pos = n;
+-                        return Some(Err(LexError::ExpectedSeparator { pos: i + 1 }));
+-                    }
+-                    self.st = 0;
+-                    self.pos = i + 1;
+-                    Some(Ok(Token::Quoted(&src[s..i])))
+-                } else {
+-                    let mut i = p;
+-                    while i < n && b[i] != b' ' && b[i] != b'\t' {
+-                        if b[i] == b'"' {
+-                            self.st = 2;
+-                            self.pos = n;
+-                            return Some(Err(LexError::UnexpectedQuote { pos: i }));
+-                        }
+-                        i += 1;
+-                    }
+-                    self.st = 0;
+-                    self.pos = i;
+-                    Some(Ok(Token::Bare(&src[p..i])))
+-                }
++            Err(error) => {
++                self.state = State::Done;
++                self.pos = self.src.len();
++                Err(error)
+             }
+-            _ => None,
++        }
++    }
++}
++
++impl<'a> Iterator for Tokens<'a> {
++    type Item = Result<Token<'a>, LexError>;
++
++    fn next(&mut self) -> Option<Self::Item> {
++        match self.state {
++            State::Start => self.next_in_start(),
++            State::Value => Some(self.next_in_value()),
++            State::Done => None,
+         }
+     }
+ }
+diff --git a/tests/equivalence.rs b/tests/equivalence.rs
+new file mode 100644
+index 0000000..a1750f2
+--- /dev/null
++++ b/tests/equivalence.rs
+@@ -0,0 +1,101 @@
++//! Checks that the tokenizer behaves exactly like the frozen pre-refactor implementation.
++
++#[allow(dead_code)]
++#[path = "support/reference_token.rs"]
++mod reference;
++
++use std::time::Instant;
++
++/// Every byte class the tokenizer distinguishes, plus a multi-byte character.
++const ALPHABET: &[&str] = &[" ", "\t", "[", "]", "\"", "\\", "=", "n", "a", "é"];
++
++/// Compares the whole stream, including the `None`s after it ends or fails.
++fn assert_same(line: &str) {
++    let mut new = logscan::tokenize(line);
++    let mut old = reference::tokenize(line);
++    for _ in 0..line.len() + 3 {
++        let (n, o) = (new.next(), old.next());
++        let o = o.map(|r| {
++            r.map(|t| match t {
++                reference::Token::Timestamp(s) => logscan::Token::Timestamp(s),
++                reference::Token::Key(s) => logscan::Token::Key(s),
++                reference::Token::Quoted(s) => logscan::Token::Quoted(s),
++                reference::Token::Bare(s) => logscan::Token::Bare(s),
++                reference::Token::Word(s) => logscan::Token::Word(s),
++            })
++        });
++        assert_eq!(n, o, "line {line:?}");
++    }
++}
++
++#[test]
++fn matches_reference_on_all_short_lines() {
++    let mut line = String::new();
++    let mut digits = Vec::new();
++    for len in 0..=6 {
++        digits.clear();
++        digits.resize(len, 0usize);
++        loop {
++            line.clear();
++            for &d in &digits {
++                line.push_str(ALPHABET[d]);
++            }
++            assert_same(&line);
++            // Next combination, odometer style.
++            let mut k = 0;
++            while k < len && digits[k] == ALPHABET.len() - 1 {
++                digits[k] = 0;
++                k += 1;
++            }
++            if k == len {
++                break;
++            }
++            digits[k] += 1;
++        }
++    }
++}
++
++struct Lcg(u64);
++
++impl Lcg {
++    fn next(&mut self) -> usize {
++        self.0 = self.0.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
++        (self.0 >> 33) as usize
++    }
++}
++
++#[test]
++fn matches_reference_on_random_long_lines() {
++    let pieces = [
++        " ", "\t", "[", "]", "\"", "\\", "=", "n", "a", "é", "key=", "k=\"v w\" ", "[ts] ", "\\\"", "word ",
++    ];
++    let mut rng = Lcg(42);
++    let mut line = String::new();
++    for _ in 0..200_000 {
++        line.clear();
++        for _ in 0..rng.next() % 40 {
++            line.push_str(pieces[rng.next() % pieces.len()]);
++        }
++        assert_same(&line);
++    }
++}
++
++/// Timing comparison; run with `cargo test --release --test equivalence -- --ignored --nocapture`.
++#[test]
++#[ignore]
++fn compare_speed_with_reference() {
++    let sample = "[2024-05-01T12:00:00Z] level=info msg=\"disk 91% full \\\"sda\\\"\" user=ann retries= started worker-3";
++    let lines: Vec<String> = (0..200_000).map(|i| format!("{sample} id={i}")).collect();
++    let count_new = |lines: &[String]| lines.iter().map(|l| logscan::tokenize(l).count()).sum::<usize>();
++    let count_old = |lines: &[String]| lines.iter().map(|l| reference::tokenize(l).count()).sum::<usize>();
++    for round in 0..3 {
++        let t = Instant::now();
++        let a = std::hint::black_box(count_old(std::hint::black_box(&lines)));
++        let old = t.elapsed();
++        let t = Instant::now();
++        let b = std::hint::black_box(count_new(std::hint::black_box(&lines)));
++        let new = t.elapsed();
++        assert_eq!(a, b);
++        println!("round {round}: reference {old:?}, refactored {new:?}");
++    }
++}
+diff --git a/tests/support/reference_token.rs b/tests/support/reference_token.rs
+new file mode 100644
+index 0000000..0c4e59e
+--- /dev/null
++++ b/tests/support/reference_token.rs
+@@ -0,0 +1,175 @@
++// Frozen copy of the tokenizer before the refactor, used as an oracle by tests/equivalence.rs.
++use logscan::LexError;
++
++/// One piece of a log line, borrowed from the line itself.
++#[derive(Debug, Clone, Copy, PartialEq, Eq)]
++pub enum Token<'a> {
++    /// The text between `[` and `]`.
++    Timestamp(&'a str),
++    /// The name in front of `=`.
++    Key(&'a str),
++    /// A double-quoted value without its quotes, escapes left as written.
++    Quoted(&'a str),
++    /// An unquoted value; empty for `key=` followed by a space or the end of the line.
++    Bare(&'a str),
++    /// A run of characters that is neither a timestamp nor part of a pair.
++    Word(&'a str),
++}
++
++/// Streams the tokens of one line. After the first error it yields nothing more.
++#[derive(Debug, Clone)]
++pub struct Tokens<'a> {
++    src: &'a str,
++    pos: usize,
++    st: u8,
++}
++
++impl<'a> Tokens<'a> {
++    pub fn new(src: &'a str) -> Self {
++        Tokens { src, pos: 0, st: 0 }
++    }
++}
++
++/// Tokenizes one log line without copying any of it.
++pub fn tokenize(line: &str) -> Tokens<'_> {
++    Tokens::new(line)
++}
++
++impl<'a> Iterator for Tokens<'a> {
++    type Item = Result<Token<'a>, LexError>;
++
++    fn next(&mut self) -> Option<Self::Item> {
++        let src: &'a str = self.src;
++        let b = src.as_bytes();
++        let n = b.len();
++        let mut p = self.pos;
++        match self.st {
++            0 => {
++                while p < n && (b[p] == b' ' || b[p] == b'\t') {
++                    p += 1;
++                }
++                if p >= n {
++                    self.pos = p;
++                    return None;
++                }
++                match b[p] {
++                    b'[' => {
++                        let s = p + 1;
++                        let mut i = s;
++                        loop {
++                            if i >= n {
++                                self.st = 2;
++                                self.pos = n;
++                                return Some(Err(LexError::UnterminatedTimestamp { pos: p }));
++                            }
++                            match b[i] {
++                                b']' => break,
++                                b'[' => {
++                                    self.st = 2;
++                                    self.pos = n;
++                                    return Some(Err(LexError::NestedBracket { pos: i }));
++                                }
++                                _ => i += 1,
++                            }
++                        }
++                        if i + 1 < n && b[i + 1] != b' ' && b[i + 1] != b'\t' {
++                            self.st = 2;
++                            self.pos = n;
++                            return Some(Err(LexError::ExpectedSeparator { pos: i + 1 }));
++                        }
++                        self.pos = i + 1;
++                        Some(Ok(Token::Timestamp(&src[s..i])))
++                    }
++                    b'"' => {
++                        self.st = 2;
++                        self.pos = n;
++                        Some(Err(LexError::UnexpectedQuote { pos: p }))
++                    }
++                    b'=' => {
++                        self.st = 2;
++                        self.pos = n;
++                        Some(Err(LexError::EmptyKey { pos: p }))
++                    }
++                    _ => {
++                        let mut i = p;
++                        while i < n && b[i] != b' ' && b[i] != b'\t' && b[i] != b'=' {
++                            if b[i] == b'"' {
++                                self.st = 2;
++                                self.pos = n;
++                                return Some(Err(LexError::UnexpectedQuote { pos: i }));
++                            }
++                            i += 1;
++                        }
++                        if i < n && b[i] == b'=' {
++                            self.st = 1;
++                            self.pos = i + 1;
++                            Some(Ok(Token::Key(&src[p..i])))
++                        } else {
++                            self.pos = i;
++                            Some(Ok(Token::Word(&src[p..i])))
++                        }
++                    }
++                }
++            }
++            1 => {
++                if p >= n || b[p] == b' ' || b[p] == b'\t' {
++                    self.st = 0;
++                    self.pos = p;
++                    return Some(Ok(Token::Bare(&src[p..p])));
++                }
++                if b[p] == b'"' {
++                    let s = p + 1;
++                    let mut i = s;
++                    loop {
++                        if i >= n {
++                            self.st = 2;
++                            self.pos = n;
++                            return Some(Err(LexError::UnterminatedQuote { pos: p }));
++                        }
++                        match b[i] {
++                            b'"' => break,
++                            b'\\' => {
++                                if i + 1 >= n {
++                                    self.st = 2;
++                                    self.pos = n;
++                                    return Some(Err(LexError::UnterminatedQuote { pos: p }));
++                                }
++                                match b[i + 1] {
++                                    b'"' | b'\\' | b'n' | b't' => i += 2,
++                                    _ => {
++                                        self.st = 2;
++                                        self.pos = n;
++                                        return Some(Err(LexError::InvalidEscape { pos: i }));
++                                    }
++                                }
++                            }
++                            _ => i += 1,
++                        }
++                    }
++                    if i + 1 < n && b[i + 1] != b' ' && b[i + 1] != b'\t' {
++                        self.st = 2;
++                        self.pos = n;
++                        return Some(Err(LexError::ExpectedSeparator { pos: i + 1 }));
++                    }
++                    self.st = 0;
++                    self.pos = i + 1;
++                    Some(Ok(Token::Quoted(&src[s..i])))
++                } else {
++                    let mut i = p;
++                    while i < n && b[i] != b' ' && b[i] != b'\t' {
++                        if b[i] == b'"' {
++                            self.st = 2;
++                            self.pos = n;
++                            return Some(Err(LexError::UnexpectedQuote { pos: i }));
++                        }
++                        i += 1;
++                    }
++                    self.st = 0;
++                    self.pos = i;
++                    Some(Ok(Token::Bare(&src[p..i])))
++                }
++            }
++            _ => None,
++        }
++    }
++}

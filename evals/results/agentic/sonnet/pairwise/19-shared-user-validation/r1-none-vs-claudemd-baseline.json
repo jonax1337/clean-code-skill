@@ -1,0 +1,91 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "b0caa35c046c7662",
+    "claudemd-baseline": "b9e3c0012455145c"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.0,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.153964,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs pull the checks into `src/validation.js` and keep the message wording and order. A also makes invitation emails lowercase, as `docs/api.md` requires, and keeps all role rules, including `role is required`, inside the shared module. B keeps the case-sensitive invite email behind a `lowercase: false` flag and writes a test for it, which builds a contract violation into the shared validator. B also leaves the `role is required` string inline in `inviteUser`. B's unit tests for the validators are a real advantage, but A's design and correctness against the documented contract matter more.",
+        "a_issues": [
+          "Adds no tests for the new validation module.",
+          "Adds no test for the invite-email lowercasing change or the case-insensitive duplicate detection that comes with it.",
+          "Changes behavior inside a refactor. The change is justified by the docs and disclosed, but it goes beyond a pure extraction.",
+          "A `validateRole` call with neither `defaultRole` nor `required` falls through to `role is invalid` for an undefined role. This is subtle and only safe because `updateUser` skips undefined fields."
+        ],
+        "b_issues": [
+          "Keeps invitation emails case-sensitive through a `lowercase: false` option, which contradicts `docs/api.md`, and adds a test that locks this in.",
+          "Leaves the `role is required` message hard-coded in `inviteUser`, so part of the validation is still outside the shared module.",
+          "Because invite emails keep their case, the duplicate check against invitations still misses invites that differ only in case."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "A",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.16178399999999998,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors put the checks in one module and keep the message strings and their order. B also makes inviteUser lowercase emails, which is what docs/api.md specifies for invitations, and it discloses this change clearly. A keeps that documented bug behind a `lowercase: false` option, which preserves exactly the kind of divergence the task wants gone. A has the stronger tests with its validator unit tests, but B's design and contract alignment are better overall.",
+        "a_issues": [
+          "Adds a `lowercase: false` option only to keep inviteUser's non-lowercased email, which contradicts docs/api.md; it is flagged in the report but left unfixed",
+          "The 'role is required' rule stays inline in inviteUser rather than in the shared validator, so part of the role validation still lives outside the single module",
+          "The report says 21 tests pass, but there are 15 existing tests plus 5 new ones, which is 20"
+        ],
+        "b_issues": [
+          "Changes behavior (lowercasing invitation emails) in what was asked as a refactor; this is disclosed and justified by the docs but goes beyond pure deduplication",
+          "No tests added for the new validation module or for the invitation email lowercasing",
+          "The report says 16 existing tests, but there are 15",
+          "validateRole's interplay of defaultRole, required and allowed is slightly intricate"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "B",
+          "readability": "B",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

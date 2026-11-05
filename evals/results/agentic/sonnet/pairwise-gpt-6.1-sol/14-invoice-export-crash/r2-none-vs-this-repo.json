@@ -1,0 +1,78 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "81b26d33dca311c1",
+    "this-repo": "944d175d31f77bd9"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes fix the CRM identifier mismatch at the loading boundary and reuse requireCustomer to preserve the documented missing-reference behavior without changing CSV formatting. B is preferable because it also adds regression tests for CRM normalization and the export's contextual UnknownReferenceError. Both reports accurately describe their changes and verification limits.",
+        "a_issues": [
+          "Adds no regression test for CRM identifier normalization, the root cause of the reported crash.",
+          "Adds no export-level test for the new missing-customer error behavior."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes fix the root cause by normalizing CRM customer IDs at the loading boundary and reuse requireCustomer to report genuinely missing customers without changing the CSV format. A adds regression tests for both the CRM mapping and the export's unknown-customer error, whereas B leaves both changed behaviors untested. Both reports accurately describe their changes and verification limits.",
+        "a_issues": [],
+        "b_issues": [
+          "Adds no regression tests; the existing tests exercise neither CRM ID normalization nor the export's new unknown-customer handling."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

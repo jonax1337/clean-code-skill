@@ -1,0 +1,87 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "1912bff4c56a25ca",
+    "claudemd-baseline": "cab45f5b4989f915"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.104556,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs fix the root cause the same way: they map the CRM `customer_id` field to `customerId` at load time and switch the export to `requireCustomer`, which matches the README convention. A passes `invoice ${invoice.id}` as the referencing record, following the repo's existing message convention ('referenced by invoice INV-7'). B passes the bare id, so its message reads 'referenced by INV-9'. A's tests also check the exact error message and sit in the matching test files, and its report flags the unchecked risk of duplicate ids across billing and CRM.",
+        "a_issues": [
+          "The report notes but does not check for customer ids shared between billing and CRM, where the CRM record would silently override the billing one."
+        ],
+        "b_issues": [
+          "`referencedBy` is the bare invoice id, so the error reads '(referenced by INV-9)' instead of following the 'invoice INV-7' convention used in the existing tests.",
+          "The unknown-customer test only checks the error type, not the message naming the invoice.",
+          "The export behaviour test is placed in `tests/sources.test.js` instead of `tests/export.test.js`.",
+          "The report says the CLI 'writes no file'; it writes nothing to stdout, but the shell redirect in `npm run export > invoices.csv` still creates an empty file.",
+          "The report does not mention the risk of duplicate ids across the two sources."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.10188,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both PRs fix the root cause the same way: they map the CRM's `customer_id` to `customerId` at load time and switch the export to `requireCustomer`. B passes `invoice ${invoice.id}` as `referencedBy`, which matches the documented and tested message (\"referenced by invoice INV-7\"). A passes the bare id, so its error reads \"referenced by INV-9\". B's tests also pin the exact error message and put the export test in `export.test.js`, and its report flags real caveats for the deadline: a cross-source id collision would let the CRM record silently win, and the export stops at the first unknown customer.",
+        "a_issues": [
+          "Passes the bare `invoice.id` as `referencedBy`, so the error message says \"referenced by INV-9\" instead of following the existing \"referenced by invoice INV-7\" convention.",
+          "The unknown-customer export test is placed in `sources.test.js` instead of `export.test.js`, and it only checks the error type, not the message naming the invoice.",
+          "The report does not mention residual risks such as a customer id shared between billing and CRM, where the CRM record would silently win."
+        ],
+        "b_issues": [
+          "Neither PR detects duplicate ids across billing and CRM; B only mentions this in its report and does not guard against it."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

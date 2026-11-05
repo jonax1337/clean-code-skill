@@ -1,0 +1,82 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "9110d257d31fd2c6",
+    "claudemd-baseline": "6b59a4106d3d8be2"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.07928800000000001,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make the same one-line fix in `parse_entries`, skipping blank or whitespace-only lines while keeping line numbering. A also updates the README sentence that said any unreadable line stops the import, so the docs match the new behavior. B leaves that sentence stale, although its report points out the behavior choice. A's tests are a little broader, checking blank lines both mid-file and at the end in the parsed result.",
+        "a_issues": [
+          "Report spends space on a failed first attempt that left nothing behind, which is noise even if it is honest"
+        ],
+        "b_issues": [
+          "README still says a line that cannot be read stops the import, which no longer holds for blank lines",
+          "Trailing-line test covers only a bare `\\n` and does not check the parsed result of a whitespace-only line"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.07878800000000001,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct one-line fix: they skip whitespace-only lines and keep the original line numbering. B also updates the README, which until now said that any unreadable line stops the import, so the docs stay accurate for the new behavior. B's report also says the new tests were checked to fail without the fix, which is stronger evidence than A gives.",
+        "a_issues": [
+          "Leaves the README saying that a line that cannot be read stops the import, which no longer fully describes the behavior now that blank lines are skipped."
+        ],
+        "b_issues": [
+          "No code comment explaining why blank lines are skipped (minor)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

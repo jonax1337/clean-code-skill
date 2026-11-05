@@ -1,0 +1,87 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "70920b8ef3a9c02c",
+    "claudemd-baseline": "102c1160f03c1e69"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.079996,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both replace the quadratic findIndex scan with a Map from normalized email to first index, preserve first-match semantics and arrival order, and add the same duplicate-in-existing test. B is a little more straightforward: it normalizes each incoming email once and records the new index explicitly. A normalizes twice for new contacts and hides the index inside `result.push(contact) - 1`. B also adds a scale test that checks count and ordering as well as speed; its 2 s timing bound is a mild flakiness risk but has a wide margin.",
+        "a_issues": [
+          "`remember(contact.email, result.push(contact) - 1)` is a compact, clever expression that is harder to read than an explicit index.",
+          "Each new incoming email is normalized twice: once for the lookup and again inside `remember`.",
+          "Nothing in the suite guards against a return to quadratic behaviour; the benchmark was run once and deleted."
+        ],
+        "b_issues": [
+          "The wall-clock assertion (`elapsed < 2000`) could fail on very slow or overloaded CI machines.",
+          "The report does not say the new output was compared against the old implementation on the same data; it relies on reasoning plus tests."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.082296,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix: a Map from normalized email to the first index, updated as new contacts are appended. Behavior is preserved, including first-match merging when the stored book already has duplicates. A is slightly more direct to read, normalizes each email only once, and adds a scale test that checks both correctness and performance with a generous threshold. B's report is more rigorous, with a before/after measurement and a check of its new test against the old code, but B leaves no regression guard for the performance fix.",
+        "a_issues": [
+          "The wall-clock timing assertion could in principle flake on very slow CI, though a 2 s limit against roughly 68 ms is generous.",
+          "The report says the output is identical to before without saying this was checked against the old implementation."
+        ],
+        "b_issues": [
+          "The `remember` closure combined with `result.push(contact) - 1` is a bit clever and harder to read than an explicit index.",
+          "Newly appended contacts get their email normalized twice, once for the lookup and again inside `remember`.",
+          "No test protects the performance improvement, which was the whole point of the task."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

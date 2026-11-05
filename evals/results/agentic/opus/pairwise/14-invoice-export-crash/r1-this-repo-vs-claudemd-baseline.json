@@ -1,0 +1,82 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "8074c3e7445d4b1e",
+    "claudemd-baseline": "c913747cdbf662ad"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.112356,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes have identical production code: they rename the CRM `customer_id` to `customerId` at load time, which follows the README's 'read as delivered' rule, and they route the export lookup through the existing `requireCustomer` so failures follow the documented error convention. The tests are equivalent in what they protect; B's extra index lookup adds nothing beyond its `deepEqual`, while A's small temp-directory helper reads a little cleaner. A's report is a little more precise: it states the exit status 1 / empty stdout behavior and the before/after test counts correctly. B says the CRM customers were indexed under an 'empty ID', when in fact they all collided under `undefined`.",
+        "a_issues": [
+          "Report claims both new tests failed before the fix without saying how that was checked."
+        ],
+        "b_issues": [
+          "Report says the CRM customers were looked up under an 'empty ID'; in fact they were all indexed under `undefined`, each overwriting the previous one.",
+          "The extra `buildCustomerIndex` assertion in the sources test duplicates what the `deepEqual` already guarantees."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.109596,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same fix: they rename the CRM `customer_id` to `customerId` at load time, and they make the export use `requireCustomer` so the README's error convention holds. Both add equivalent tests. The deciding difference is the report: A says the CRM customers were 'looked up under an empty ID', when in fact they were indexed under `undefined` and overwrote each other. B describes the cause and the README-conformant failure behavior (exit 1, nothing on stdout) accurately.",
+        "a_issues": [
+          "Report says CRM customers were 'looked up under an empty ID'. They were actually all indexed under the key `undefined` and overwrote each other, so the cause is described imprecisely."
+        ],
+        "b_issues": [
+          "Sources test checks only the loaded records and not the index lookup. This is a minor gap, since the rest is covered elsewhere."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

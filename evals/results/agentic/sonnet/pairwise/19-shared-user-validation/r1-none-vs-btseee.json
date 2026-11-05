@@ -1,0 +1,92 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "b0caa35c046c7662",
+    "btseee": "b5e694f0ed240712"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.0,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.146952,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes move the email, name and role rules into one shared module and keep message order and wording, so behavior matches the existing tests. A puts trim-and-lowercase in the shared email validator, which makes inviteUser follow the documented rule that invitation emails are stored lowercase; A's report states this behavior change clearly. B keeps inviteUser's non-lowercasing behavior, so the lowercasing is still copied into createUser and updateUser, which partly defeats the task's goal of making a fix in only one place (B does flag this and asks). Neither adds tests, and A's behavior change goes unprotected.",
+        "a_issues": [
+          "Changes inviteUser behavior (lowercasing, and so case-insensitive duplicate detection) during a refactor without adding a test for it",
+          "validateRole's options mix `defaultRole` and `required`; with neither set, a missing role falls through to 'role is invalid', which is confusing",
+          "No unit tests for the new validation module"
+        ],
+        "b_issues": [
+          "Email lowercasing is still duplicated in createUser and updateUser, so the email rule is not fully in one place",
+          "Leaves inviteUser out of line with docs/api.md, which says invitation emails are stored lowercase, so case-variant duplicate invitations can still get through",
+          "The 'role is required' check stays inline in inviteUser instead of in the shared validator",
+          "No unit tests for the new validation module"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.147284,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors keep every validation message and the per-handler rules, and both reports are honest. B centralizes all of the field logic, including lowercasing and role defaulting/requiredness. It also fixes the invitation email casing, which docs/api.md requires and which caused case-variant duplicate invitations; B discloses this behaviour change clearly. A keeps the old behaviour and asks about it, which is defensible, but it leaves lowercasing duplicated in createUser and updateUser and 'role is required' inline in inviteUser, which works against the task's 'fix once' goal.",
+        "a_issues": [
+          "Email lowercasing is still duplicated in createUser and updateUser, so the shared validator does not fully own email normalization.",
+          "inviteUser still stores emails without lowercasing and misses case-variant duplicates, contrary to docs/api.md (flagged in the report but not fixed).",
+          "The 'role is required' check stays inline in inviteUser, so role logic is split between the handler and the module.",
+          "The email wrapper lambda in updateUser adds noise to a small refactor.",
+          "No tests for the new validation module."
+        ],
+        "b_issues": [
+          "Changes inviteUser behaviour (email is now lowercased) inside a refactoring task, though it is doc-backed and disclosed.",
+          "validateRole's combination of allowed/defaultRole/required options is somewhat intricate for three call sites.",
+          "No tests for the new module or for the new invitation lowercasing behaviour."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "B",
+          "readability": "B",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

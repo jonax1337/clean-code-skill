@@ -1,0 +1,90 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "424a85167c257204",
+    "btseee": "b5e694f0ed240712"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.25,
+    "design": 1.0,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.15379600000000002,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "A centralizes all three rules, including lowercasing, in one module. That also makes inviteUser follow docs/api.md, which says invitation emails are stored lowercase. A reported this change openly and covered it with a test. B deliberately kept the documented bug and left lowercasing duplicated in createUser and updateUser, so a casing fix would still need several edits, which is what the task asked to remove. B also adds no tests.",
+        "a_issues": [
+          "Changes inviteUser behavior (now lowercases emails) inside a refactoring task, though it is documented, reported and tested",
+          "No direct boundary tests for validation.js (80-character name limit, blank name on update)",
+          "The inline `{ error: 'role is required' }` in inviteUser sits outside the shared module"
+        ],
+        "b_issues": [
+          "Shared validateEmail does not lowercase, so normalization stays duplicated in createUser and updateUser, which undercuts the single-place goal",
+          "Keeps the inviteUser case-sensitivity bug that contradicts docs/api.md, so differently-cased duplicates pass the conflict check",
+          "updateUser wraps validateEmail in an ad-hoc lambda to lowercase, which is awkward",
+          "No tests added for the new module or the refactor"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.149236,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "B makes the shared email validator trim and lowercase, so a casing fix now lives in one place, as the task asked. It also brings inviteUser in line with docs/api.md, which says invitation emails are stored lowercase, and adds a test for that. A keeps lowercasing duplicated in createUser and updateUser and leaves the documented casing bug in inviteUser, so invitations still have a case-sensitive duplicate check. Both preserve message wording and ordering, and B's updateUser rewrite using presentFields is equivalent to the original.",
+        "a_issues": [
+          "Shared validateEmail does not lowercase, so createUser and updateUser each still lowercase on their own. That duplication is what the task wanted removed.",
+          "Leaves inviteUser storing and comparing emails without lowercasing, which contradicts docs/api.md and lets differently-cased duplicates through.",
+          "Adds no tests for the new module or for any behavior."
+        ],
+        "b_issues": [
+          "Changes inviteUser behavior (lowercasing) as part of a refactor. It is justified by the docs and disclosed in the report, but it is still a behavior change.",
+          "Adds no direct boundary tests for validation.js, such as the 80-character limit or a blank name on update. The report acknowledges this.",
+          "INVITABLE_ROLES stays local to inviteUser rather than being derived from the shared ROLES list."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

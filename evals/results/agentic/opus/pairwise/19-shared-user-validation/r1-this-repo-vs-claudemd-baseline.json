@@ -1,0 +1,88 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "601d3e468a9a5f24",
+    "claudemd-baseline": "3310dfcbcb80ac46"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.186412,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs pull the checks into src/userValidation.js the same way, keep the exact messages and their order, and fix the same inviteUser lowercase bug. A wrote handler-level tests before refactoring that pin down the behavior that must not change. These cover the email, name, role message order, the 80/81-character boundary, a null role, 'no fields to update', an optional invite name, owner invites and duplicate pending invitations. B's tests mostly exercise the validators in isolation and add nothing for updateUser or createUser wiring. B's options-style API is slightly neater, but A's stronger protection of the refactor tips it.",
+        "a_issues": [
+          "Requires callers to pass the allowed-roles list explicitly; `checkOptionalName` is an extra exported function where an option would do",
+          "Reported test count (27) does not match the 15 existing plus 11 added tests visible in the diff"
+        ],
+        "b_issues": [
+          "The filter/map that collects error messages is repeated in createUser and inviteUser rather than shared",
+          "No new handler tests for updateUser or createUser, so the refactored wiring (field order, partial updates, 'no fields to update', null role) is protected only by the original tests",
+          "Reported test counts (16 before, 23 after) do not match the files in the repository"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.188572,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes extract the same shared validators, keep the messages and their order intact, and fix the same invitation lowercase bug, which both reports disclose. B wrote handler-level characterization tests before refactoring. They cover the email/name/role error order, the 80/81-character boundary, a null role, `no fields to update`, update fields held to the create rules, an optional invite name and duplicate pending invitations. That protects the refactor at the contract level better than A's mostly unit-level validator tests. B also shares the error-collection step through `errorMessages`, where A repeats it in two handlers.",
+        "a_issues": [
+          "The filter/map that collects messages is duplicated in createUser and inviteUser.",
+          "Tests are mostly unit tests on the new module. Handler-level behavior that could regress is not covered: the error order across fields, `no fields to update`, update holding present fields to the create rules, and an optional invite name stored as an empty string.",
+          "Exports `MAX_NAME_LENGTH`, which no other module uses."
+        ],
+        "b_issues": [
+          "The test named 'stores the email in lowercase' only asserts the 409 and never checks the stored lowercase value.",
+          "Callers must pass `ROLES` to `checkRole` explicitly; the requirement is clear but slightly repetitive.",
+          "No direct unit tests for the new validation module, although handler tests cover it indirectly."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

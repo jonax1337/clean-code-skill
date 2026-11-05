@@ -1,0 +1,84 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "6055b6aaeb3cc9a8",
+    "claudemd-baseline": "590b2418eadb217d"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.078,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix: a Map from normalized email to the first index, with appended contacts added to the map so duplicates within the upload still merge and first-match semantics are kept. B also adds a performance test at the reported scale (30k into 50k), and the old O(n\u00b7m) implementation would fail it, so the speedup is protected. Its 2-second threshold is far above the expected tens of milliseconds, so flakiness risk is low. A's speedup claim rests only on a throwaway script, while B's report says plainly that it did not time the old version.",
+        "a_issues": [
+          "No committed test guards against reintroducing the quadratic scan; the 79 ms figure comes from a throwaway script that cannot be reproduced."
+        ],
+        "b_issues": [
+          "The wall-clock assertion in the unit suite could in principle be flaky on a heavily loaded CI machine.",
+          "The duplicate-existing test checks only phone fields, not ids, so it is slightly less explicit than A's version."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.08457200000000001,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs make the same code change: a Map from normalized email to first index, updated on append. It keeps first-match semantics and merges duplicates within the upload. A adds a 30k-into-50k regression test with a generous 2s threshold, which guards against a return to the quadratic scan; B's tests cover only behavior, so a performance regression would go unnoticed. B's report is more informative because it cites a real ~79 ms measurement, but that does not outweigh the missing regression guard.",
+        "a_issues": [
+          "The wall-clock assertion in a unit test can in principle flake on a very slow CI machine, though the margin is large.",
+          "The report never measured the speedup, and it asserts that any remaining slowness lies outside mergeContacts without having profiled anything."
+        ],
+        "b_issues": [
+          "No committed test protects the performance improvement, which was the whole point of the task.",
+          "The 79 ms figure comes from an uncommitted throwaway script, so a reviewer cannot reproduce it."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

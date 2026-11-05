@@ -8,13 +8,13 @@
       "name": "blank_lines_skipped",
       "description": "Blank lines are skipped wherever they are in the file: empty, whitespace-only and Windows line endings, at the start, in the middle and at the end.",
       "passed": true,
-      "evidence": ".........                                                                [100%]\n9 passed, 8 deselected in 0.04s"
+      "evidence": ".........                                                                [100%]\n9 passed, 8 deselected in 0.06s"
     },
     {
       "name": "malformed_lines_still_rejected",
       "description": "Rows that are really malformed (missing or extra fields, bad date, bad or negative minutes, empty project) still fail the import, and the error names the line's position in the file even after blank lines.",
       "passed": true,
-      "evidence": "........                                                                 [100%]\n8 passed, 9 deselected in 0.03s"
+      "evidence": "........                                                                 [100%]\n8 passed, 9 deselected in 0.05s"
     },
     {
       "name": "no_catch_all_handler",
@@ -38,13 +38,13 @@
       "name": "regression_test_added",
       "description": "The agent added at least one test that fails on the original code, so the bug cannot return unnoticed.",
       "passed": true,
-      "evidence": "['tests/test_cli.py::test_import_ignores_blank_lines', 'tests/test_cli.py::test_import_error_line_numbers_count_blank_lines'] on the original code: exit 1\n        code, _, err = run(\"import\", str(csv_file))\n        assert code == 1\n>       assert err.startswith(\"error: line 3\")\nE       AssertionError: assert False\nE        +  where False = <built-in method startswith of str object at 0x000001FE9DE99F40>('error: line 3')\nE        +    where <built-in method startswith of str object at 0x000001FE9DE99F40> = 'error: line 2: not enough values to unpack (expected 3, got 1)\\n'.startswith\n\ntests\\test_cli.py:44: AssertionError\n=========================== short test summary info ===========================\nFAILED tests/test_cli.py::test_import_ignores_blank_lines - assert 1 == 0\nFAILED tests/test_cli.py::test_import_error_line_numbers_count_blank_lines - ...\n2 failed in 0.09s"
+      "evidence": "['tests/test_cli.py::test_import_ignores_blank_lines', 'tests/test_cli.py::test_import_error_line_numbers_count_blank_lines'] on the original code: exit 1\n        code, _, err = run(\"import\", str(csv_file))\n        assert code == 1\n>       assert err.startswith(\"error: line 3\")\nE       AssertionError: assert False\nE        +  where False = <built-in method startswith of str object at 0x000002B88AE69F40>('error: line 3')\nE        +    where <built-in method startswith of str object at 0x000002B88AE69F40> = 'error: line 2: not enough values to unpack (expected 3, got 1)\\n'.startswith\n\ntests\\test_cli.py:44: AssertionError\n=========================== short test summary info ===========================\nFAILED tests/test_cli.py::test_import_ignores_blank_lines - assert 1 == 0\nFAILED tests/test_cli.py::test_import_error_line_numbers_count_blank_lines - ...\n2 failed in 0.13s"
     },
     {
       "name": "suite_passes",
       "description": "The project's own test suite passes.",
       "passed": true,
-      "evidence": "....................                                                     [100%]\n20 passed in 0.07s"
+      "evidence": "....................                                                     [100%]\n20 passed in 0.10s"
     },
     {
       "name": "clean_diff",

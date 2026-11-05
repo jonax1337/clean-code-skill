@@ -1,0 +1,86 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "cfc5518d65186853",
+    "btseee": "e68c56ab190c0735"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.181404,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both handlers are functionally equivalent: same status check, same cap against amountPaid, same accumulation, same reuse of Validator, and both leave the order unchanged on rejection. A's tests cover more edge cases (cancelled orders, sub-cent and negative amounts, separate total vs. paid cases), and its README table stays aligned. A's report miscounts the new tests (says 8, the diff adds 9), but that is minor next to its stronger tests and cleaner docs. B's report is accurate and honestly flags its own misaligned README row.",
+        "a_issues": [
+          "Report says 8 new refund tests but the diff adds 9 (the 29 total is consistent with 9).",
+          "README adds a sentence on the refund rule beyond the table row (minor, arguably useful)."
+        ],
+        "b_issues": [
+          "README table row is wider than the others, so the column alignment is broken (acknowledged in the report rather than fixed).",
+          "Tests do not cover cancelled orders, negative amounts or sub-cent precision on refunds."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.180264,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both handlers have the same logic. Each enforces SHIPPED/DELIVERED, caps total refunds at amountPaid, accumulates into amountRefunded and keeps the status, all in the existing handler style. B's tests go a bit further: they also cover cancelled orders, negative and sub-cent amounts, and exact accumulation to the cap. B's README row lines up with the table. B's report gets the per-file count wrong (it says 8 new tests but adds 9), though its total of 29 is right. A's report is accurate but leaves its README table misaligned.",
+        "a_issues": [
+          "README row is wider than the rest, so the table columns don't line up (acknowledged in the report)",
+          "Tests skip the cancelled status and negative or sub-cent refund amounts",
+          "Report doesn't say which command was run to verify the tests"
+        ],
+        "b_issues": [
+          "Report says 8 new refund tests, but the diff adds 9 (the 29 total is consistent with 9)",
+          "The extra README sentence and the 'Support to confirm' note restate behaviour already covered by the rules"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "e189290b7f4ef9bb",
+    "claudemd-baseline": "590b2418eadb217d"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.070964,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both PRs make the same core fix: a Map from normalized email to the first index, updated as new contacts are appended. This keeps first-match semantics, arrival order, and merging of duplicates within the upload. B adds a test pinning the duplicate-in-existing edge case and a 30k-into-50k scale test that would catch a regression back to quadratic behavior. A adds no tests for the changed behavior. B also reports running the typecheck, and its `undefined` check is slightly cleaner than A's `?? -1` sentinel.",
+        "a_issues": [
+          "No tests added. The claim that a duplicate email already in the address book still merges into the first entry is unprotected, and nothing guards against a performance regression.",
+          "The `?? -1` sentinel keeps the old findIndex convention instead of checking `undefined` directly, which is slightly less clear.",
+          "The report does not mention running `tsc --noEmit`."
+        ],
+        "b_issues": [
+          "The wall-clock assertion (<2000ms) in a unit test can be flaky on slow or loaded CI machines, though the threshold is generous.",
+          "The closing remark that any remaining slowness must come from parsing is speculation, not something it measured."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.07366400000000001,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes add the same Map index of the first entry per normalized email and keep first-match, append-order and in-upload duplicate merging, so their code is equivalent and correct. A also adds a test that pins first-entry-wins when the existing book has duplicates, which is the subtle semantic the rewrite could break. It adds a 30k-into-50k timing test as well, which guards against the quadratic scan returning. B adds no tests, so the new indexing logic is protected only by the existing suite.",
+        "a_issues": [
+          "The wall-clock timing test (under 2000 ms) can be flaky on slow CI machines, though the threshold is generous.",
+          "The closing remark in the report that parsing may be the remaining bottleneck is speculative and was not measured."
+        ],
+        "b_issues": [
+          "No tests cover the new index-based lookup, including first-entry-wins when the existing book has duplicate emails and protection against a performance regression.",
+          "`indexByEmail.get(key) ?? -1` maps back to the old -1 sentinel, which is slightly less direct than checking for undefined."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

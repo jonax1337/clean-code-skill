@@ -1,0 +1,93 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "a07a5b15cc705cfe",
+    "btseee": "930ce76f9bf1e66c"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.25,
+    "scope": 1.0,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.25
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.166808,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors preserve behavior: the helpers are faithful extractions, and the reordered pure computations have no side effects. A keeps the diff tighter, while B moves `refund_order` below the private helpers for no functional reason. A's tests also pin the per-line tax rounding invariant that its own split of the tax loop could have broken, and they pin the non-decline gateway path. B's report is somewhat more internally consistent, but on the code and tests A is the slightly better merge.",
+        "a_issues": [
+          "Report says '9 passed before', yet also claims the new tests were run against the original code first; that run should have shown 17 passing.",
+          "Releasing `order.items` instead of the reserved list is an extra, non-literal change, though it is equivalent.",
+          "Adds a test that pins possibly-buggy gateway-error behavior; it is clearly labelled, but it locks in that behavior.",
+          "The commit loop and coupon redemption stay inline in `process_order`, so its level of abstraction is slightly uneven."
+        ],
+        "b_issues": [
+          "Moves `refund_order` above the private helpers, which adds diff noise unrelated to the refactor.",
+          "No test for per-line tax rounding, the invariant documented in the code comment.",
+          "`_coupon_discount_cents` is a very thin helper that adds a little needless indirection.",
+          "No test covering the non-decline gateway path that the report calls out."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.17217600000000002,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors are behavior-preserving and verified the same way, by characterization tests plus a 20,000-scenario differential run. A is the more literal move: it keeps one pass for subtotal and tax and still releases exactly the `reserved` list on a payment decline. B swaps that list for `order.items` (equivalent, but an avoidable deviation) and computes each line price twice. B's tests are somewhat stronger, mainly the per-line tax rounding test, but that does not outweigh A's tighter preservation of the original code.",
+        "a_issues": [
+          "Moves `refund_order` above the helpers, so the diff shows unchanged code as moved and is noisier to review.",
+          "Splitting out `_coupon_discount_cents` is finer-grained than needed.",
+          "No test pins the per-line tax rounding that the comment calls out as required for the accounting export.",
+          "The non-`PaymentDeclined` gateway-error behavior is only mentioned in the report, not pinned by a test."
+        ],
+        "b_issues": [
+          "On a payment decline it releases `order.items` instead of the `reserved` list: equivalent today, but not a literal move in a production refactor (this is disclosed in the report).",
+          "The line price `unit_price_cents * quantity` is computed twice, once in the subtotal sum and again in `_tax_cents`.",
+          "Commit, redeem and mark-paid stay inline in `process_order`, so the top-level function is less uniform than the rest.",
+          "The report says '9 passed before', which is ambiguous next to its claim that the new tests were run against the original code."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

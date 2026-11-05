@@ -14,7 +14,7 @@
       "name": "new_tests_pass_on_original_code",
       "description": "The tests the agent added run and pass against the untouched fixture (including the original rates.ts).",
       "passed": true,
-      "evidence": "['test/rates.test.ts'] on the original code: exit 0, tests ran: True\n\u2714 quote accepts an amount that exactly covers the fee (0.0473ms)\n\u2714 quote rejects an amount that does not cover the fee (0.0633ms)\n\u2714 quote rejects negative amounts (0.0505ms)\n\u2714 quote rejects invalid input (0.0746ms)\n\u2139 tests 30\n\u2139 suites 0\n\u2139 pass 30\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 104.0234"
+      "evidence": "['test/rates.test.ts'] on the original code: exit 0, tests ran: True\n\u2714 quote accepts an amount that exactly covers the fee (0.0891ms)\n\u2714 quote rejects an amount that does not cover the fee (0.1262ms)\n\u2714 quote rejects negative amounts (0.0843ms)\n\u2714 quote rejects invalid input (0.122ms)\n\u2139 tests 30\n\u2139 suites 0\n\u2139 pass 30\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 188.5895"
     },
     {
       "name": "tests_catch_mutants_of_rates",
@@ -38,7 +38,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 quote rejects invalid input (0.0671ms)\n\u2714 nextBusinessDay moves a weekday to the following day (1.404ms)\n\u2714 nextBusinessDay skips the weekend (0.1165ms)\n\u2714 nextBusinessDay ignores the time of day and does not change its input (0.2448ms)\n\u2139 tests 40\n\u2139 suites 0\n\u2139 pass 40\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 138.0876"
+      "evidence": "\u2714 quote rejects invalid input (0.0679ms)\n\u2714 nextBusinessDay moves a weekday to the following day (2.279ms)\n\u2714 nextBusinessDay skips the weekend (0.2125ms)\n\u2714 nextBusinessDay ignores the time of day and does not change its input (0.4706ms)\n\u2139 tests 40\n\u2139 suites 0\n\u2139 pass 40\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 180.3777"
     },
     {
       "name": "typecheck_passes",

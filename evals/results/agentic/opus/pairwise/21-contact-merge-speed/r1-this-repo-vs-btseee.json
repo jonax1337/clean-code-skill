@@ -1,0 +1,85 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "70920b8ef3a9c02c",
+    "btseee": "ba21af20d1b6522b"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.077948,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs make the same fix: a Map from normalized email to its first position, with new appends recorded so duplicates within one upload still merge. Both add the same first-duplicate test, and the behavior is identical. B is slightly more direct: it normalizes each incoming email once and writes the index explicitly. A routes this through a `remember` closure and the `result.push(contact) - 1` trick, and normalizes appended emails twice. A's report is somewhat stronger: it says the new test was run against the old code and that both versions produced identical output on the benchmark.",
+        "a_issues": [
+          "`remember(contact.email, result.push(contact) - 1)` relies on push's return value and is less obvious than setting the index directly.",
+          "Appended contacts have their email normalized twice (once for the lookup, once inside `remember`)."
+        ],
+        "b_issues": [
+          "The report does not say that output was compared between the old and new versions on the benchmark data, only the timings.",
+          "The comment claims O(1) lookups without qualification; this is minor."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.07669999999999999,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix: a Map from normalized email to first index, updated as new contacts are appended. Both keep the first-entry merge behavior when the stored book has duplicates, and both add the same edge-case test. A's loop is more direct: it normalizes the email once and assigns the new index explicitly. B adds a closure helper, normalizes incoming emails twice, and relies on the less obvious `result.push(contact) - 1` idiom. B's report is slightly stronger because it says the new test was run against the old code, but the simpler code tips it to A.",
+        "a_issues": [
+          "Report does not say whether the new duplicate-email test was checked against the original implementation."
+        ],
+        "b_issues": [
+          "Normalizes each new incoming email twice: once for the lookup and again inside `remember`.",
+          "`remember(contact.email, result.push(contact) - 1)` hides the index assignment in an idiom that is harder to read.",
+          "The `remember` closure is a small abstraction for logic used in only two places."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

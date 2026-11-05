@@ -1,0 +1,90 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "538c1c503ab8cb19",
+    "btseee": "82ede838597fbbdb"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.19029200000000002,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes reject the same set of problems, report them all at once and exit with status 2, so they are nearly equivalent. A keeps the original case-insensitive boolean parsing that Boolean.parseBoolean gave. B now rejects values like `TRUE` that used to work, a regression its report does not mention. A also leaves ConfigException's constructor unchanged, gives separate error messages for a non-number and an out-of-range value, and its missing-file test checks that the message names the file.",
+        "a_issues": [
+          "Unknown-key rejection goes beyond the request (it is disclosed in the report).",
+          "The read-failure message includes the full exception `toString`, which is a bit noisy."
+        ],
+        "b_issues": [
+          "`metrics.enabled` now requires exactly lowercase `true`/`false`, so `TRUE`/`True` stop working; the old code accepted them and the report does not flag this.",
+          "Replaces ConfigException's String constructor with a Path+List one. This is an API change the task did not need.",
+          "The same message is used for a non-numeric value and a below-minimum value, which is less precise for the deployer.",
+          "The missing-file test only asserts that an exception is thrown, not that the message is useful.",
+          "Unknown-key rejection goes beyond the request (it is disclosed in the report)."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.18897999999999998,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes do the same job: they collect every config problem, reject unknown keys and a missing file, and exit with status 2. B keeps the old case-insensitive handling of `metrics.enabled`, as `Boolean.parseBoolean` did. A now accepts only lowercase `true`/`false`, so a working `metrics.enabled=TRUE` config would stop starting. B also gives more precise messages that separate a non-number from an out-of-range value, keeps `ConfigException` unchanged, and its missing-file test checks that the file name appears in the message.",
+        "a_issues": [
+          "`metrics.enabled` now accepts only lowercase `true`/`false`. Values like `TRUE` used to work through `Boolean.parseBoolean` and now block startup, and the report does not mention this.",
+          "The same message is used for a non-numeric value and an out-of-range one, so the deployer is told less.",
+          "Changing the `ConfigException` constructor signature is an API change the task did not need.",
+          "The missing-file test only checks that an exception is thrown, not that the message is useful."
+        ],
+        "b_issues": [
+          "The error-message building is inlined in `load()`, which makes the method a bit longer.",
+          "Exit code 2 is a magic number in `Main`, not a named constant."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

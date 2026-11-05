@@ -1,0 +1,87 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "4448c99b2e985cff",
+    "btseee": "963f40110c5d7617"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.106304,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs are functionally identical. Each converts `parseDuration` to milliseconds, removes the `* 1000` in cache, retry and scheduler, adds `/ 1000` where seconds are needed (http, report), and rescales the validate limits. The only code difference is the local name in `validate.ts`: `ttlMs` in A versus `ms` in B, which is a cosmetic edge for A. A's report is somewhat more useful because it says the new `/ 1000` paths in `rateLimitHeaders` and `describeSettings` have no tests and states the limits of its typecheck run.",
+        "a_issues": [
+          "No tests added for `rateLimitHeaders` or `describeSettings`, so the new `/ 1000` conversions are unprotected (acknowledged in the report).",
+          "Typecheck result is only partially verified: the report says only the tail of the `tsc` output was seen."
+        ],
+        "b_issues": [
+          "No tests added for `rateLimitHeaders` or `describeSettings`, and the report does not mention this gap.",
+          "Typecheck was not run.",
+          "The local variable name `ms` in `validateTtl` is less descriptive than `ttlMs`."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.107684,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The code changes are functionally identical: both convert the unit table to milliseconds, drop `* 1000` in cache, retry and scheduler, add `/ 1000` in http and report, and rescale the validate constants and the duration tests. The only code difference is the local name in validate.ts, where B's `ttlMs` is a bit clearer than A's bare `ms`. B's report is more candid: it says the typecheck output was only partly seen and that the new `/ 1000` paths in `rateLimitHeaders` and `describeSettings` are not covered by any test.",
+        "a_issues": [
+          "No tests added for `rateLimitHeaders` or `describeSettings`, where the new `/ 1000` conversions live.",
+          "The report says those outputs stay the same without noting that no test checks them.",
+          "Typecheck was not run."
+        ],
+        "b_issues": [
+          "No tests added for `rateLimitHeaders` or `describeSettings`, where the new `/ 1000` conversions live.",
+          "Typecheck is only partly verified, since only the tail of the output was seen."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

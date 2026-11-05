@@ -1,0 +1,87 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "this-repo": "4448c99b2e985cff",
+    "claudemd-baseline": "6b396f2655124427"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes correctly migrate the parser and every caller to milliseconds while preserving seconds-based headers, reports, and TTL limits. B has the edge because it adds regression tests for the previously untested HTTP and reporting conversions and reports complete test and typecheck results. Its additional rounding is unnecessary for the supported integer-second duration syntax, but is not a material drawback.",
+        "a_issues": [
+          "Does not add regression tests for the changed rateLimitHeaders and describeSettings conversions.",
+          "The report leaves typecheck verification uncertain because only the output tail was inspected.",
+          "Does not add TTL boundary tests to protect the converted validation thresholds."
+        ],
+        "b_issues": [
+          "Math.round in rateLimitHeaders is unnecessary for the currently supported integer-second duration syntax.",
+          "Does not add TTL boundary tests to protect the converted validation thresholds."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes correctly migrate the parser and all callers to milliseconds while preserving seconds-based headers, reports, and TTL limits. A is preferable because it adds regression tests for the previously untested HTTP and reporting conversions. Its extra rounding is unnecessary for the supported integer-unit inputs, but does not materially detract from the stronger test coverage.",
+        "a_issues": [
+          "Math.round in rateLimitHeaders is unnecessary because supported durations already represent whole seconds.",
+          "No added TTL boundary tests protect the converted minimum and maximum thresholds."
+        ],
+        "b_issues": [
+          "No regression tests cover the changed conversions in rateLimitHeaders or describeSettings.",
+          "No added TTL boundary tests protect the converted minimum and maximum thresholds.",
+          "The report acknowledges incomplete visibility into the typecheck output, leaving that verification less conclusive."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

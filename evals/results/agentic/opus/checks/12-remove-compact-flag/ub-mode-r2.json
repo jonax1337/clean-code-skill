@@ -8,13 +8,13 @@
       "name": "flag_is_rejected",
       "description": "`--compact` and `-c` are rejected as unknown options, also between other options, and the help no longer mentions them.",
       "passed": true,
-      "evidence": "exit 0, 4 tests passed\ntest removed_flag_is_not_advertised_in_the_help ... ok\ntest removed_flag_is_rejected_between_other_options ... ok\ntest removed_long_flag_is_an_unknown_option ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.02s\n\n    Blocking waiting for file lock on package cache\n     Locking 1 package to highest compatible version\n   Compiling tabulate v0.9.0 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-fm334f94\\repo)\n   Compiling tabulate-hidden v0.0.0 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-fm334f94\\repo\\.hidden)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.61s\n     Running tests\\removal.rs (.hidden\\target\\debug\\deps\\removal-4c1b0c46efce766d.exe)"
+      "evidence": "exit 0, 4 tests passed\ntest removed_short_flag_is_an_unknown_option ... ok\ntest removed_flag_is_not_advertised_in_the_help ... ok\ntest removed_long_flag_is_an_unknown_option ... ok\ntest removed_flag_is_rejected_between_other_options ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s\n\n     Locking 1 package to highest compatible version\n   Compiling tabulate v0.9.0 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-qec8jdl_\\repo)\n   Compiling tabulate-hidden v0.0.0 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-qec8jdl_\\repo\\.hidden)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.41s\n     Running tests\\removal.rs (.hidden\\target\\debug\\deps\\removal-f459eebfa8cd0298.exe)"
     },
     {
       "name": "other_behavior_preserved",
       "description": "The output of the remaining options (alignment, header, border, delimiter, max width) and their error messages are unchanged.",
       "passed": true,
-      "evidence": "exit 0, 6 tests passed\nrunning 6 tests\ntest preserved_header_and_border ... ok\ntest preserved_help_text ... ok\ntest preserved_delimiter_and_ragged_rows ... ok\ntest preserved_errors_for_other_bad_arguments ... ok\ntest preserved_default_output ... ok\ntest preserved_max_width_truncation ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s\n     Running tests\\removal.rs (.hidden\\target\\debug\\deps\\removal-4c1b0c46efce766d.exe)"
+      "evidence": "exit 0, 6 tests passed\nrunning 6 tests\ntest preserved_delimiter_and_ragged_rows ... ok\ntest preserved_header_and_border ... ok\ntest preserved_max_width_truncation ... ok\ntest preserved_errors_for_other_bad_arguments ... ok\ntest preserved_help_text ... ok\ntest preserved_default_output ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s\n     Running tests\\removal.rs (.hidden\\target\\debug\\deps\\removal-f459eebfa8cd0298.exe)"
     },
     {
       "name": "builds_without_warnings",
@@ -50,7 +50,7 @@
       "name": "suite_passes",
       "description": "The project's own test suite passes.",
       "passed": true,
-      "evidence": "\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling tabulate v0.9.0 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-fm334f94\\repo)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.54s\n     Running unittests src\\lib.rs (target\\debug\\deps\\tabulate-38af66c891923fa8.exe)\n     Running unittests src\\main.rs (target\\debug\\deps\\tabulate-6f5148a6aae50842.exe)\n     Running tests\\cli.rs (target\\debug\\deps\\cli-1a80c9f608a5d079.exe)\n   Doc-tests tabulate"
+      "evidence": "\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling tabulate v0.9.0 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-qec8jdl_\\repo)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.34s\n     Running unittests src\\lib.rs (target\\debug\\deps\\tabulate-38af66c891923fa8.exe)\n     Running unittests src\\main.rs (target\\debug\\deps\\tabulate-6f5148a6aae50842.exe)\n     Running tests\\cli.rs (target\\debug\\deps\\cli-1a80c9f608a5d079.exe)\n   Doc-tests tabulate"
     },
     {
       "name": "clean_diff",

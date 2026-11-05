@@ -20,7 +20,7 @@
       "name": "sibling_bug",
       "description": "The same crash in `quarter_range` for Q4 is fixed or reported to the user (bugs cluster, T6).",
       "passed": true,
-      "evidence": "[pass] q4_fixed: .                                                                        [100%]\n1 passed in 0.02s\n[pass] q4_reported: `quarter_range` had the same bug for Q4, because its end date also landed on month 13. I switched it to the same helper"
+      "evidence": "[pass] q4_fixed: .                                                                        [100%]\n1 passed in 0.01s\n[pass] q4_reported: `quarter_range` had the same bug for Q4, because its end date also landed on month 13. I switched it to the same helper"
     },
     {
       "name": "scope_files",

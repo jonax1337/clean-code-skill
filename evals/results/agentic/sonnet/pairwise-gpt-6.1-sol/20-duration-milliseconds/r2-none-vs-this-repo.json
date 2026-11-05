@@ -1,0 +1,87 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "6df2f45da8951ea9",
+    "this-repo": "4b3d1f2201ff8f5a"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.5,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes migrate the parser and all callers to the new units while preserving normal application behavior. B is slightly clearer through explicit unit-bearing names and a shared conversion constant, and it avoids A's unnecessary rounding of Retry-After. Neither adds regression coverage for seconds-based outputs or TTL validation boundaries, so the testing gap is shared.",
+        "a_issues": [
+          "Math.round in rateLimitHeaders introduces an unnecessary rounding policy; the parser accepts only whole-number quantities in units of at least one second.",
+          "No regression tests cover Retry-After, settings output, or the minimum and maximum TTL boundaries after the unit migration."
+        ],
+        "b_issues": [
+          "No regression tests cover Retry-After, settings output, or the minimum and maximum TTL boundaries after the unit migration.",
+          "The report's reference to type-checking the seconds conversions provides limited assurance: TypeScript cannot distinguish seconds from milliseconds when both are numbers."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement the millisecond contract and adapt every caller while preserving ordinary behavior. A is slightly preferable for its consistent conversion constant, clearer unit-bearing names, and avoidance of B's unnecessary HTTP rounding. Neither adds regression coverage for the seconds-facing outputs or TTL validation boundaries; A's report is more explicit about verification and coverage gaps.",
+        "a_issues": [
+          "No regression tests for Retry-After or settings output remaining in seconds.",
+          "No added TTL validation tests covering the minimum, maximum, and accepted values after changing the comparison units."
+        ],
+        "b_issues": [
+          "Math.round in rateLimitHeaders is unnecessary for the supported whole-second duration syntax and introduces an unrequested rounding policy.",
+          "No regression tests for Retry-After or settings output remaining in seconds.",
+          "No added TTL validation tests covering the minimum, maximum, and accepted values after changing the comparison units.",
+          "The report does not state that typechecking was performed and leaves existing coverage of the seconds-facing paths unexamined."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

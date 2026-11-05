@@ -1,0 +1,89 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "c3e71b79395a283f",
+    "claudemd-baseline": "cf256ff989afac75"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.172712,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews find the same core blockers: the SQL injection in search, swallowed audit errors, the floor-division `pages` bug, the client-supplied actor and audit rows for unchanged ids. Both are honest that the tests were not run. A's line references are all correct against `pr/482.diff`, and it adds a relevant compliance point: single `deactivate_user` writes no audit entry at all. Several of B's post-patch line numbers for `api.py` are wrong, e.g. search is cited at 25-30 but sits around 41-46, though B does add a few useful points such as the non-unique ORDER BY tie-breaker and the undocumented new handlers.",
+        "a_issues": [
+          "Citing diff line numbers rather than file lines is less convenient for the author, though they are accurate",
+          "Misses the non-unique `ORDER BY name` pagination stability issue",
+          "Does not point out that the README lacks the new `search`/`bulk_deactivate` handlers"
+        ],
+        "b_issues": [
+          "Wrong line reference for `search` in `adminhub/api.py` (cited 25-30, actually ~41-46)",
+          "`api.py:35` for `total_pages` is off by two lines",
+          "Misses that single-user `deactivate_user` is not audited despite the 'every deactivation' compliance requirement",
+          "Typo listing `page` twice among undocumented fields"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.165456,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find the same core blockers: SQL injection in search, swallowed audit errors, a client-supplied actor, audit rows for unchanged ids, and the floor-division page count. Both reach the same correct verdict. B's line references (diff lines) check out precisely against the patch, while some of A's post-patch line numbers are wrong: `api.py:35` should be about 37, and `api.py:25-30` for `search` should be about 42-47. B also adds a useful finding that the existing single `deactivate_user` writes no audit entry, despite the compliance requirement.",
+        "a_issues": [
+          "Some line numbers are wrong: `total_pages` is cited at `api.py:35` (actually about 37), and `search` at `api.py:25-30` (actually about 42-47).",
+          "Misses that single `deactivate_user` writes no audit entry, a gap given the stated compliance requirement.",
+          "Minor duplication in finding 7 ('page, per_page, page and pages')."
+        ],
+        "b_issues": [
+          "Line numbers refer to `pr/482.diff` rather than source files, which is slightly less convenient. It is clearly stated, and the README says reviews are done from the patch.",
+          "Ranks the `pages` bug as 'should fix' in the body but lists it among the must-fix items in the verdict, a small inconsistency in severity labelling."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

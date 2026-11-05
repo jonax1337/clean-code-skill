@@ -1,0 +1,88 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "f6b9c9c33acd563d",
+    "claudemd-baseline": "19dd063532d5a4c5"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.151672,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement and validate `--percent` the same way and reuse `allocate` and the duplicate check. A enforces 'exactly one of --with/--percent' with argparse's required mutually exclusive group. That is the idiomatic way, keeps the requirement visible in `--help`, and rejects bad usage before any work is done. B hand-rolls the check in `_add` after parsing the amount, which turns a usage error into an application error and hides the requirement from `--help`. B's tests are slightly more thorough (they check nothing is saved and cover the neither case), but that does not outweigh A's cleaner design.",
+        "a_issues": [
+          "No CLI test for giving neither --with nor --percent (argparse handles it, but it is unprotected)",
+          "The test rejecting percentages that don't add to 100 does not check that nothing was saved"
+        ],
+        "b_issues": [
+          "Checks for --with/--percent exclusivity by hand in _add instead of using argparse's mutually exclusive group; --help no longer shows that one of them is required",
+          "Runs the exclusivity check after parse_amount, so a bad amount combined with bad options reports the amount error first",
+          "parse_percent does not strip whitespace around the number, so 'alice= 50' is rejected",
+          "Parametrized rejection test does not match on the error message, so it would pass for the wrong reason"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.147008,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes implement --percent correctly with the same validation and reuse `allocate`. B uses argparse's built-in mutually exclusive group, which is the idiomatic way to require exactly one of `--with` or `--percent`, and keeps the help/usage output accurate. A re-implements that check by hand in `_add`, so `--help` no longer shows that a split option is required. A's tests cover the 'neither' case and that nothing is saved, which B lacks, but B's design advantage outweighs this.",
+        "a_issues": [
+          "Enforces 'exactly one of --with/--percent' manually in _add instead of using argparse's mutually exclusive group, so --help no longer shows that a split option is required",
+          "parse_percent rejects whitespace around the number (e.g. 'alice= 50'), slightly stricter than needed"
+        ],
+        "b_issues": [
+          "No test for giving neither --with nor --percent",
+          "No CLI test that a rejected percentage split saves nothing",
+          "Moves _reject_duplicates below its callers, making the splitting.py diff noisier than needed"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

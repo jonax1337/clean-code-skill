@@ -1,0 +1,88 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "8d1934add5a82d08",
+    "btseee": "3e24319dd104cfae"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.25,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.171008,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find the same blockers: the SQL injection in search, the swallowed audit errors, the rounded-down `pages` value, unvalidated paging input and the over-eager bulk audit. Both reach the right verdict, backed by probes. B adds findings A misses: the existing single-user `deactivate_user` still writes no audit row, so compliance is still not met; search duplicates `SELECT_USER` and the paging logic; and `ORDER BY name` makes paging unstable. B's location scheme (diff line plus function name) is stated and consistent, while several of A's file:line references are off or impossible. B's template leftovers (check_boundaries, `.clean/`, layers, 'A5') are noise but do not mislead.",
+        "a_issues": [
+          "Line references are inconsistent: `users.py:160-167` cannot exist in a file of about 70 lines, and the `api.py` line numbers are off by one.",
+          "Misses that the existing single-user deactivation path writes no audit entry, so the compliance goal is still unmet.",
+          "Does not flag that search duplicates the `SELECT_USER` column list and the offset/page-size logic.",
+          "Does not flag that `ORDER BY name` without a tiebreaker makes paging unstable."
+        ],
+        "b_issues": [
+          "Contains irrelevant template boilerplate ('check_boundaries.py and the map script', '.clean/ state', 'no layers declared', 'A5') that does not apply to this repo.",
+          "Cites diff line numbers rather than file lines, which is less convenient, though it says so explicitly.",
+          "Somewhat padded sections (P2-2, open questions) add length without much new substance."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "B",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.160956,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find the same blockers, each backed by probes: the SQL injection in search, the swallowed audit errors, the rounded-down page count, unvalidated paging parameters, and bulk-deactivation audit padding and a spoofable actor. B cites real file:line positions (one is off by one) and probes a case that shows `pages=0`. A cites diff line numbers that are harder to use, and it refers to nonexistent tooling (`check_boundaries.py`, a map script, `.clean/` state, a stray 'A5' label). A does make the useful extra point that single-user deactivation writes no audit entry, but B's review is cleaner and more trustworthy overall.",
+        "a_issues": [
+          "References nonexistent tooling (check_boundaries.py, map script, .clean/, 'no layers declared') and a stray 'A5' label, which look like leftover template text",
+          "Line references use diff line numbers rather than file lines, which makes them harder to act on"
+        ],
+        "b_issues": [
+          "Misses that the existing single-user deactivate_user writes no audit entry, so the compliance goal of auditing every deactivation is not met",
+          "api.py line reference for total_pages is off by one (37, not 36)"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "B",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

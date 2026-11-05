@@ -1,0 +1,77 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "ee051a818773050c",
+    "this-repo": "594b79b61bfc8b48"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes fully remove compact parsing, configuration, rendering, and current documentation while preserving the remaining behavior. B is preferable because it replaces obsolete acceptance tests with explicit rejection tests for both spellings at the parser and public run API levels. The production changes are otherwise equivalent, and both reports accurately describe their respective diffs.",
+        "a_issues": [
+          "Deletes the compact acceptance tests without adding regression coverage that explicitly requires both --compact and -c to return UnknownOption."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes fully remove compact parsing, rendering, configuration, and current documentation while preserving the remaining behavior. A additionally replaces obsolete acceptance tests with regression tests asserting that both --compact and -c produce the existing unknown-option error at the parser and public run API levels. That focused coverage makes A preferable; otherwise the implementations and reports are equivalent.",
+        "a_issues": [],
+        "b_issues": [
+          "Deletes the compact acceptance tests without adding regression tests that verify rejection of both removed flag spellings."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

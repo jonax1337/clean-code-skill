@@ -1,0 +1,85 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "3c6d7f4b2238cd5d",
+    "claudemd-baseline": "d27c76e0aa020e46"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.25,
+    "report": 1.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.08258,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs make the same production change: a Map from normalized email to its first position in the result, updated as new contacts are appended. That preserves first-entry-wins semantics and merging of duplicates within the upload. B wins on tests: besides the duplicate-in-stored-book regression test, it commits a 50k\u00d730k scale test whose arithmetic is correct (25k matches, 5k new, 55k rows) and which would effectively hang if the quadratic scan returned. A's report is somewhat stronger because it gives a measured before/after benchmark, while B honestly says it did not measure the old code.",
+        "a_issues": [
+          "The benchmark that proves the speedup was not committed, so nothing in the suite guards against the quadratic lookup coming back."
+        ],
+        "b_issues": [
+          "No before/after benchmark, so the report cannot quantify the speedup. It says so openly.",
+          "The scale test checks only the length and the end ids, not the merged field contents at scale. It also adds some runtime to every test run."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.08388000000000001,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two `src/import.ts` changes are functionally identical: both build a normalized-email-to-index Map once, keep the first existing entry when the book already has duplicates, and register appended contacts so duplicates within the upload still merge. B backs its claim with a measured benchmark of the old and new code (103 s \u2192 47 ms) and checks that the output is identical. A openly says it never compared against the old code. B's duplicate test also confirms the second duplicate is left untouched. A's extra 50k/30k scale test checks correctness at volume but does not guard performance, and it makes every test run heavier.",
+        "a_issues": [
+          "No benchmark of old vs new code and no output-equivalence check against the original implementation; the speedup claim is inferred, though the report says so honestly.",
+          "The large-scale test sits in the regular unit suite but asserts nothing about timing, so it adds runtime without protecting the performance change.",
+          "The duplicate-existing test checks `result[1].id` but not that the second duplicate's fields were left unmerged."
+        ],
+        "b_issues": [
+          "The benchmark was run from a scratch copy outside the repo, so it cannot be reproduced from the PR.",
+          "Only one new test; there is no coverage at realistic scale."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

@@ -14,7 +14,7 @@
       "name": "new_tests_pass_on_original_code",
       "description": "The tests the agent added run and pass against the untouched fixture (including the original rates.ts).",
       "passed": true,
-      "evidence": "['test/rates.test.ts'] on the original code: exit 0, tests ran: True\n  \u2714 rejects an amount that does not cover the fee (0.058ms)\n  \u2714 rejects a negative amount (0.0564ms)\n  \u2714 rejects unknown currencies (0.059ms)\n\u2714 quote (1.0333ms)\n\u2139 tests 33\n\u2139 suites 4\n\u2139 pass 33\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 104.2169"
+      "evidence": "['test/rates.test.ts'] on the original code: exit 0, tests ran: True\n  \u2714 rejects an amount that does not cover the fee (0.0665ms)\n  \u2714 rejects a negative amount (0.0546ms)\n  \u2714 rejects unknown currencies (0.0615ms)\n\u2714 quote (1.347ms)\n\u2139 tests 33\n\u2139 suites 4\n\u2139 pass 33\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 125.9764"
     },
     {
       "name": "tests_catch_mutants_of_rates",
@@ -38,7 +38,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 quote (1.0994ms)\n\u2714 nextBusinessDay moves a weekday to the following day (1.463ms)\n\u2714 nextBusinessDay skips the weekend (0.1207ms)\n\u2714 nextBusinessDay ignores the time of day and does not change its input (0.2352ms)\n\u2139 tests 43\n\u2139 suites 4\n\u2139 pass 43\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 141.4137"
+      "evidence": "\u2714 quote (1.5651ms)\n\u2714 nextBusinessDay moves a weekday to the following day (1.9938ms)\n\u2714 nextBusinessDay skips the weekend (0.1698ms)\n\u2714 nextBusinessDay ignores the time of day and does not change its input (0.2951ms)\n\u2139 tests 43\n\u2139 suites 4\n\u2139 pass 43\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 237.6093"
     },
     {
       "name": "typecheck_passes",

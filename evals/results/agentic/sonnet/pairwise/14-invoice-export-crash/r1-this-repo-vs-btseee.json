@@ -1,0 +1,88 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "1912bff4c56a25ca",
+    "btseee": "84b2e9f74f32a919"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.75,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.10726,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct root-cause fix: they map the CRM `customer_id` to `customerId` at load time and switch the export to `requireCustomer`, so the README's data-error rule is enforced. A's `referencedBy` string, `invoice INV-9`, follows the convention set by the existing customers test, while B's bare `INV-9` gives a less descriptive message. A's sources test builds its own fixture in a temp directory and checks the exact merged records, whereas B's test reads the real `data/` directory and depends on the working directory and on production data staying the same. A's report also flags the duplicate-id risk across billing and CRM, which is useful.",
+        "a_issues": [
+          "The new `requireCustomer` import is placed above `./csv.js`, which breaks the alphabetical import order.",
+          "The duplicate-id overwrite between billing and CRM is mentioned but not checked or tested."
+        ],
+        "b_issues": [
+          "`referencedBy` is passed as a bare `invoice.id`, giving 'referenced by INV-9', which is inconsistent with the existing 'invoice INV-7' convention and less clear.",
+          "`tests/sources.test.js` reads the real `data/` directory, which ties the test to production data and to the working directory.",
+          "The sources test checks only one CRM lookup, not the shape or order of the merged list.",
+          "The report does not mention that two customers could share an id across billing and CRM, in which case the CRM record would silently win."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.1033,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes fix the root cause the same way: they map the CRM `customer_id` to `customerId` at load time and switch the export to `requireCustomer`. B passes `invoice ${invoice.id}` as the referrer, which matches the repository's existing message convention (\"referenced by invoice INV-7\"); A produces the less clear \"referenced by INV-9\". B's sources test uses an isolated temp-directory fixture and checks the whole normalized record shape. A's test reads the real `data/` directory, so it depends on the working directory and on production data. B's report also flags the cross-system duplicate-id risk worth checking before delivery.",
+        "a_issues": [
+          "The referrer is passed as a bare `invoice.id`, so the message reads \"referenced by INV-9\" instead of the established \"referenced by invoice INV-...\" convention.",
+          "`tests/sources.test.js` reads the real `data/` directory. It is coupled to the current working directory and to production data that can change.",
+          "The sources test only checks one name lookup, not that the records are normalized correctly."
+        ],
+        "b_issues": [
+          "The `requireCustomer` import is placed before `./csv.js`, which breaks the alphabetical import order of the file.",
+          "The temp directory created in the sources test is never cleaned up."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

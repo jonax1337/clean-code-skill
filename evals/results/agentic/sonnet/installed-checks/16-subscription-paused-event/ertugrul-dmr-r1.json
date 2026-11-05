@@ -8,19 +8,19 @@
       "name": "reducer_handles_pause",
       "description": "The state reducer pauses only active subscriptions, keeps payment events and a second pause from moving a paused one, and clears the resume date when a paused subscription is canceled.",
       "passed": true,
-      "evidence": "\u2714 a recovered payment does not move a paused subscription (0.084ms)\n\u2714 a plan change on a paused subscription keeps it paused (0.1109ms)\n\u2714 cancelling a paused subscription cancels it and clears the resume date (0.1378ms)\n\u2714 payments after cancelling a paused subscription change nothing (0.1062ms)\n\u2139 tests 11\n\u2139 suites 0\n\u2139 pass 11\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 93.283"
+      "evidence": "\u2714 a recovered payment does not move a paused subscription (0.1315ms)\n\u2714 a plan change on a paused subscription keeps it paused (0.2019ms)\n\u2714 cancelling a paused subscription cancels it and clears the resume date (0.2451ms)\n\u2714 payments after cancelling a paused subscription change nothing (0.1326ms)\n\u2139 tests 11\n\u2139 suites 0\n\u2139 pass 11\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 193.4386"
     },
     {
       "name": "audit_log_records_pause",
       "description": "The audit log line for a pause has the resume date, then the quoted reason, and the other lines are unchanged.",
       "passed": true,
-      "evidence": "\u2714 a pause entry has the resume date, then the quoted reason (0.5689ms)\n\u2714 the reason of a pause entry is escaped like a cancellation reason (0.0969ms)\n\u2714 entries of the other events keep their format (0.1057ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 86.4111"
+      "evidence": "\u2714 a pause entry has the resume date, then the quoted reason (0.8084ms)\n\u2714 the reason of a pause entry is escaped like a cancellation reason (0.1316ms)\n\u2714 entries of the other events keep their format (0.1406ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 106.5674"
     },
     {
       "name": "notifier_handles_pause",
       "description": "A pause emails the customer the resume date and nobody else, and the other events keep their emails.",
       "passed": true,
-      "evidence": "\u2714 a pause sends the customer one email with the resume date and nothing else (0.9754ms)\n\u2714 the billing team is not told about a pause (0.1171ms)\n\u2714 the other events keep their emails (0.161ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 91.4437"
+      "evidence": "\u2714 a pause sends the customer one email with the resume date and nothing else (0.8471ms)\n\u2714 the billing team is not told about a pause (0.1688ms)\n\u2714 the other events keep their emails (0.1982ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 115.0643"
     },
     {
       "name": "typecheck_passes",
@@ -74,7 +74,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 only an active subscription can be paused (0.0892ms)\n\u2714 pausing again keeps the first resume date (0.1387ms)\n\u2714 payment events leave a paused subscription as it is (0.1403ms)\n\u2714 cancelling a paused subscription clears the resume date (0.0899ms)\n\u2139 tests 21\n\u2139 suites 0\n\u2139 pass 21\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 127.0485"
+      "evidence": "\u2714 only an active subscription can be paused (0.1052ms)\n\u2714 pausing again keeps the first resume date (0.1196ms)\n\u2714 payment events leave a paused subscription as it is (0.1414ms)\n\u2714 cancelling a paused subscription clears the resume date (0.0943ms)\n\u2139 tests 21\n\u2139 suites 0\n\u2139 pass 21\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 151.0689"
     },
     {
       "name": "clean_diff",

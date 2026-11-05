@@ -1,0 +1,90 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "538c1c503ab8cb19",
+    "claudemd-baseline": "e396e967bab1a0c0"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.177008,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same core fix: they collect every validation error, reject a missing or unreadable file, reject unknown keys and stop startup with a clear message. A keeps case-insensitive booleans, as the original Boolean.parseBoolean was, so a value like `metrics.enabled=TRUE` still loads. B now rejects that value, which can break an existing valid deployment. A also limits the upstream to an http(s) URL with a host, documents the strict behaviour in the README and tests slightly more edge cases.",
+        "a_issues": [
+          "Unknown-key rejection goes beyond the request, though the report flags it",
+          "Exit code 2 is an arbitrary choice, though the report notes it"
+        ],
+        "b_issues": [
+          "metrics.enabled must be exactly lowercase 'true' or 'false', so case variants that used to work are now rejected",
+          "upstream.url accepts any scheme with a host, such as ftp://, even though the relay forwards over HTTP",
+          "README is not updated to say that bad values no longer fall back to defaults",
+          "Tests do not cover an out-of-range queue.capacity or a URL with no host"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.181468,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make ConfigLoader collect every problem and throw, and make Main exit non-zero with a clear message, so both fix the reported issue. B keeps the old case-insensitive boolean parsing, so an existing `metrics.enabled=TRUE` still loads instead of now failing. B also documents the new strict startup behavior in the README and covers a few more edge cases in its tests (queue.capacity below minimum, a path-only URL, a missing api.token among several errors). The differences are small and both reports are accurate.",
+        "a_issues": [
+          "`metrics.enabled` now accepts only lowercase `true`/`false`, so a previously valid `TRUE` or `True` makes the relay refuse to start.",
+          "README is not updated, even though startup behavior changed noticeably (strict validation, unknown keys rejected).",
+          "The URL check accepts any scheme with a host (e.g. `ftp://`), which is looser than an HTTP upstream needs.",
+          "Tests do not cover `queue.capacity` being out of range."
+        ],
+        "b_issues": [
+          "The http/https scheme restriction on `upstream.url` is a slightly opinionated extra rule.",
+          "The output quoted in the report leaves out the actual prefix, so it is a fragment rather than the real output.",
+          "Tests for out-of-range values only check that the key name appears, not the wording of the message."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

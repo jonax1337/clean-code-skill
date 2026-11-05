@@ -1,0 +1,82 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "4c9569c089292f8a",
+    "btseee": "244d5ba81d1226ac"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.063236,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes make the same code fix in parse_entries: whitespace-only lines are skipped, and line numbering is kept by still counting them in enumerate. B also adds two focused tests. One covers blank and whitespace-only lines, including a trailing one and a CRLF one. The other confirms line numbers still count skipped lines. A leaves the new behavior with no tests, and its report says so.",
+        "a_issues": [
+          "No test for skipping blank lines or for line numbers staying correct after a skipped line, so the fix could regress silently."
+        ],
+        "b_issues": [
+          "README's CSV import section is not updated to say blank lines are ignored (A has the same gap)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.066176,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes make the same correct fix in `parse_entries`: blank and whitespace-only lines are skipped, and line numbering is unchanged. A also adds two focused tests, one that blank lines (including whitespace and CRLF) are skipped and one that error line numbers still count skipped lines. B leaves the new behavior with no test protecting it. Both reports are accurate, and B is honest about adding no test, but A's change is the one I would rather merge.",
+        "a_issues": [
+          "README's CSV import section is not updated to mention that blank lines are ignored"
+        ],
+        "b_issues": [
+          "No test covers the blank-line fix or the line-number behavior after skipped lines, so a regression would go unnoticed",
+          "README's CSV import section is not updated to mention that blank lines are ignored"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

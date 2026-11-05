@@ -8,13 +8,13 @@
       "name": "totals_unchanged",
       "description": "Prices, tax rounding per line, discounts and shipping come out exactly as before for orders that exercise rounding, coupons, VIP customers and the free-shipping boundary.",
       "passed": true,
-      "evidence": ".........                                                                [100%]\n9 passed in 0.04s"
+      "evidence": ".........                                                                [100%]\n9 passed in 0.05s"
     },
     {
       "name": "failures_and_side_effects_unchanged",
       "description": "Rejections, stock reservation and release order, charge timing, coupon redemption, logging and swallowed receipt errors behave exactly as before.",
       "passed": true,
-      "evidence": ".............                                                            [100%]\n13 passed in 0.04s"
+      "evidence": ".............                                                            [100%]\n13 passed in 0.05s"
     },
     {
       "name": "only_expected_files_changed",
@@ -32,13 +32,13 @@
       "name": "new_tests_pass_on_original_code",
       "description": "Any test the agent added passes on the untouched original code, so it pins existing behavior.",
       "passed": true,
-      "evidence": "['tests/test_checkout_pricing_and_rollback.py'] on the original code: exit 0, tests ran: True\n.................                                                        [100%]\n17 passed in 0.05s"
+      "evidence": "['tests/test_checkout_pricing_and_rollback.py'] on the original code: exit 0, tests ran: True\n.................                                                        [100%]\n17 passed in 0.04s"
     },
     {
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "..........................                                               [100%]\n26 passed in 0.05s"
+      "evidence": "..........................                                               [100%]\n26 passed in 0.06s"
     },
     {
       "name": "no_function_longer_than_thirty_lines",

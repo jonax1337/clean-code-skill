@@ -8,13 +8,13 @@
       "name": "output_unchanged",
       "description": "buildReport and formatMoney produce byte-for-byte what the original produced: literal reports for all three regions, name truncation, thousands grouping, bulk and large-order boundaries, cent rounding order, ordering, filters, errors, an unmodified input list, and 400 random reports compared with the original implementation.",
       "passed": true,
-      "evidence": "\u2714 unsupported formats and malformed months are rejected as before (0.4327ms)\n\u2714 formatMoney pins the regional formats, rounding, negatives and unknown regions (0.2241ms)\n\u2714 random reports match the original implementation exactly (7.5373ms)\n\u2714 random amounts format like the original (3.0424ms)\n\u2139 tests 12\n\u2139 suites 0\n\u2139 pass 12\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 76.9836"
+      "evidence": "\u2714 unsupported formats and malformed months are rejected as before (0.3773ms)\n\u2714 formatMoney pins the regional formats, rounding, negatives and unknown regions (0.1953ms)\n\u2714 random reports match the original implementation exactly (7.1108ms)\n\u2714 random amounts format like the original (2.3136ms)\n\u2139 tests 12\n\u2139 suites 0\n\u2139 pass 12\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 87.8232"
     },
     {
       "name": "exports_and_callers_intact",
       "description": "report.js still exports exactly buildReport and formatMoney, and the finance export and the digest that import them still produce their old output.",
       "passed": true,
-      "evidence": "\u2714 report.js still exports exactly buildReport and formatMoney (0.828ms)\n\u2714 the finance export still wraps the report (0.3455ms)\n\u2714 the digest still formats the top deals (0.1498ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 61.5683"
+      "evidence": "\u2714 report.js still exports exactly buildReport and formatMoney (0.8212ms)\n\u2714 the finance export still wraps the report (0.342ms)\n\u2714 the digest still formats the top deals (0.1471ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 67.8115"
     },
     {
       "name": "only_expected_files_changed",
@@ -32,7 +32,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 cuts product names longer than 20 characters to 19 plus an ellipsis (0.2398ms)\n\u2714 keeps the odd DE and UK grouping of negative line amounts (0.1661ms)\n\u2714 formats amounts for every region, negatives and rounding included (0.1345ms)\n\u2714 rejects unknown regions, formats and malformed months (0.4621ms)\n\u2139 tests 12\n\u2139 suites 0\n\u2139 pass 12\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 89.6596"
+      "evidence": "\u2714 cuts product names longer than 20 characters to 19 plus an ellipsis (0.3105ms)\n\u2714 keeps the odd DE and UK grouping of negative line amounts (0.2475ms)\n\u2714 formats amounts for every region, negatives and rounding included (0.2427ms)\n\u2714 rejects unknown regions, formats and malformed months (0.5284ms)\n\u2139 tests 12\n\u2139 suites 0\n\u2139 pass 12\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 101.2668"
     },
     {
       "name": "no_function_longer_than_forty_lines",

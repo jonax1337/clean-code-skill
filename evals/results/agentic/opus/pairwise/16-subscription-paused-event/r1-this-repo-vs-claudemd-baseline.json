@@ -1,0 +1,85 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c079f3de1e5d6745",
+    "claudemd-baseline": "f76c27c8b782be6e"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.149,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The source changes are essentially identical and both meet every behavior the task asks for: pause only when active, payment events ignored while paused, cancel clears resumeOn, the audit format, and a customer-only notification. A's audit test uses a reason containing quotes, so it actually checks the JSON.stringify escaping. A's report also gives the correct count of 7 new tests, while B's report says 10 of the 20 tests are new, which is wrong. B adds a helpful comment and raises a fair open question about plan_changed while paused, but that does not outweigh the inaccurate report.",
+        "a_issues": [
+          "Report mentions CRLF line endings in test/subscription.test.ts, which cannot be verified from the diff and does not matter here",
+          "Audit test does not check the task's exact example line with reason=\"vacation\""
+        ],
+        "b_issues": [
+          "Report says 10 of the 20 tests are new; only 7 were added (13 existed before)",
+          "Audit test does not use a reason with quotes, so the escaping of quotes in the pause reason is not tested"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.149368,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two source changes are effectively the same and both implement every rule correctly: paused only from active, payment events ignored while paused, cancel clears resumeOn, the audit format, and a customer-only notification. B's audit test uses a reason containing quotes, so it actually checks the escaping the task asked for. A's report says 10 of the 20 tests are new, but the diff adds 7 (13 existing plus 7 new). B's counts are right, and it also points out that the new required `resumeOn` field breaks code outside the repo that builds `Subscription` objects by hand. A does raise a fair open question about plan changes while paused.",
+        "a_issues": [
+          "The report says 10 of the 20 tests are new, but only 7 were added.",
+          "The audit test uses a plain reason, so quote escaping for the pause reason is not checked."
+        ],
+        "b_issues": [
+          "The report's claims about CRLF line endings and about writing the tests first cannot be checked from the diff and add little.",
+          "It does not mention that plan_changed still applies while a subscription is paused."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

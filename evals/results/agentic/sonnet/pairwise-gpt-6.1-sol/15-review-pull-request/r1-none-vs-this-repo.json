@@ -1,0 +1,93 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "c3e71b79395a283f",
+    "this-repo": "8d1934add5a82d08"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.25,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes deliver the requested review and correctly reject PR 482 over SQL injection, swallowed audit failures, broken page counts, and missing validation. B is more actionable and technically restrained, with concrete examples, clearer remediation, and reported verification against the patched code. Its advantage is limited by an incorrect source-line reference and its omission of the unaudited single-user deactivation path that A identifies.",
+        "a_issues": [
+          "Overstates the demonstrated SQL-injection impact by claiming callers can alter the database; the vulnerable statement is a SELECT executed through sqlite3.execute.",
+          "The proposed SQL-injection example comments out the LIMIT/OFFSET placeholders, causing a binding-count error rather than demonstrating successful exploitation.",
+          "Treats actor spoofing as established without accounting for the possibility that the web layer supplies a trusted actor.",
+          "Uses patch-line references rather than post-patch source locations, making findings less convenient to navigate."
+        ],
+        "b_issues": [
+          "References adminhub/users.py:160-167 even though the patched source file is much shorter; these appear to be patch-line numbers despite the stated source-line convention.",
+          "Does not flag that the existing single-user deactivate_user path still writes no audit entry, despite the stated requirement to audit every deactivation.",
+          "Does not explicitly identify malformed bulk ids as another source of uncaught conversion errors."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes deliver the requested review without modifying application code and identify the major injection, audit-integrity, and pagination defects. A more appropriately prioritizes paging validation, qualifies the authentication-boundary concern in the review, and reports targeted verification beyond the happy-path suite. B usefully notices the unaudited single-user deactivation path, but overstates the SQL injection's demonstrated capabilities and treats actor spoofing as established despite the unspecified web-layer trust boundary.",
+        "a_issues": [
+          "The users.py:160-167 reference is incorrect under the review's stated post-patch line-number convention; those appear to be patch-file line numbers.",
+          "Misses that the existing single-user deactivation path still writes no audit entry, relevant to the stated requirement to audit every deactivation.",
+          "The final report states actor spoofing categorically, whereas the review correctly makes it conditional on how the web layer supplies params.",
+          "Treats literal wildcard escaping as required without establishing whether search is intended to support LIKE patterns."
+        ],
+        "b_issues": [
+          "Claims the injection permits reading or altering the database without substantiating that scope. The supplied comment-based payload also comments out the LIMIT/OFFSET placeholders while execute still supplies bindings, causing a binding-count error rather than demonstrating the claimed exploit.",
+          "Treats actor spoofing as a confirmed blocker without establishing whether actor is supplied by a trusted web layer.",
+          "Recognizes zero and negative pagination failures but relegates validation to 'Should fix' and allows it merely to be documented in the verdict.",
+          "Does not report executing tests or targeted probes.",
+          "Treats literal wildcard escaping as required without establishing the intended search semantics."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

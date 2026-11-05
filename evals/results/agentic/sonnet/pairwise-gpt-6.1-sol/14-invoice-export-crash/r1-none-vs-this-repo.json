@@ -1,0 +1,86 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "6cbb88408c2821da",
+    "this-repo": "1912bff4c56a25ca"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.25,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes fix CRM customer lookups and reuse requireCustomer for meaningful failures. B normalizes the external CRM schema at the loading boundary, preserving buildCustomerIndex's existing behavior and customer object identity; A unnecessarily copies every customer and relaxes existing identity assertions. B also adds regression coverage for unknown customers in the export itself, making it the safer change to merge.",
+        "a_issues": [
+          "buildCustomerIndex now copies every record, changing the previously tested behavior that lookups return the original customer object.",
+          "Moves source-specific schema handling into the shared index builder rather than normalizing CRM records at the loading boundary.",
+          "Adds no regression test for the changed export error path."
+        ],
+        "b_issues": [
+          "The new sources test creates a temporary directory without cleaning it up."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes fix CRM customer lookup and reuse requireCustomer for genuine missing references. A normalizes the external schema at the loading boundary while preserving buildCustomerIndex's existing behavior, including returning the original customer objects. B unnecessarily clones every customer and weakens existing identity assertions to accommodate that change; A also adds regression coverage for the export's unknown-customer error.",
+        "a_issues": [
+          "The new sources test creates a temporary directory without cleaning it up."
+        ],
+        "b_issues": [
+          "Clones all customer records, unnecessarily changing the object-identity behavior explicitly covered by existing tests.",
+          "Changes existing identity assertions to deep equality rather than preserving the established behavior.",
+          "Couples the general customer index to the CRM's external field naming instead of normalizing at the source boundary.",
+          "Does not add a regression test for the newly introduced unknown-customer error path in exportInvoices."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

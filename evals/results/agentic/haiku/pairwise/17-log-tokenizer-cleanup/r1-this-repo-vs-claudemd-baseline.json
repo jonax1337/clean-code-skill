@@ -1,0 +1,89 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c2d04bb7b3de8401",
+    "claudemd-baseline": "c19ba9e74d5658c0"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.1955,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors preserve the original tokens, errors, error offsets and the post-error Done/pos behavior. Both add similar tests that pin the previously untested edge cases. A's scanners are pure functions that return a `Step`, so all state and position updates happen in one place in `next()`. B spreads `self.state` and `self.pos` changes across several methods, for example `value()` resets the state before scanning, which makes future additions easier to get wrong. A's verification is also a bit stronger, since it showed its differential test can actually catch a change.",
+        "a_issues": [
+          "Introduces a `Step` struct plus a generic `find` helper, slightly more machinery than strictly needed",
+          "Not timed on a real dump; only synthetic benchmarks on a noisy machine (stated in the report)"
+        ],
+        "b_issues": [
+          "State and position updates are scattered across methods (`key_or_word` sets Value, `value` sets Start before scanning), so the bookkeeping is less centralized",
+          "Moves `tokenize` above `impl Tokens`, unneeded churn in the diff",
+          "Speed check is synthetic only (stated in the report)"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.189992,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors appear to preserve tokens, errors and positions exactly, and both back that with differential testing and benchmarks. B's scanners are pure functions that return a `Step`, so `next()` does all state and position bookkeeping in one place. A's helpers mutate `self.pos` and `self.state` from several methods, so state transitions are spread around. B's report also states that it confirmed the differential harness can catch a deliberate change, which strengthens its equivalence claim.",
+        "a_issues": [
+          "State transitions are scattered across helper methods: `value()` sets `Start` up front, `key_or_word` sets `Value`, and `next()` sets `Done` on error. That makes the state machine harder to follow.",
+          "Moves `tokenize` above `impl Tokens` with no functional reason, which adds churn to the diff.",
+          "Speed was measured on a synthetic corpus only (acknowledged in the report)."
+        ],
+        "b_issues": [
+          "The `Step` struct adds a small extra abstraction.",
+          "The `find` helper slices `bytes[from..]` and would panic if `from` ever exceeded the line length; current callers keep it in bounds, but the invariant is implicit.",
+          "The report mentions a 2\u20133% cross-crate gap that it dismissed as an artifact without fully proving it.",
+          "No benchmark on real data (acknowledged in the report)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

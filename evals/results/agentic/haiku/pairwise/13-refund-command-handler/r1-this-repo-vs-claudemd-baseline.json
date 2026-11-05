@@ -1,0 +1,86 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d0771495562166b5",
+    "claudemd-baseline": "f918d26605747365"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.190084,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two handlers are almost identical and both apply the cap correctly as amountPaid minus amountRefunded, check status, and leave status unchanged. B's tests probe the exact boundaries (80.01, and 30.01 after a 50.00 refund) and also cover a placed order, so they protect the cap more tightly than A's 90.00 and 31.00 cases. One of B's tests is a verbatim copy of another, which is minor. B's report also flags a real caveat: two concurrent refunds could both pass the check.",
+        "a_issues": [
+          "Over-cap tests use loose values (90.00, 31.00) rather than exact boundaries like 80.01, so an off-by-a-cent comparison bug could slip through.",
+          "The helper `placeAndPartlyPay` also ships the order, so its name is slightly misleading.",
+          "No test for refunding a PLACED (unpaid) order."
+        ],
+        "b_issues": [
+          "`allowsRefundingExactlyTheAmountPaid` has exactly the same body as `addsUpPartialRefunds`, so it is duplicated and adds no coverage of a single full refund.",
+          "Renaming the method to `Order.refund` and adding a doc comment is fine, but the comment states only the obvious."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.188588,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both handlers are essentially the same and correct. Each validates input, allows only SHIPPED or DELIVERED orders, caps the total refunded at amountPaid minus amountRefunded, records the refund and leaves the status unchanged. The difference is in the tests. A's `allowsRefundingExactlyTheAmountPaid` is a verbatim copy of `addsUpPartialRefunds`, so its report counts 11 tests when only 10 are distinct. B's tests are each distinct, including a direct full refund of exactly what was paid. B's only flaw is a misleadingly named helper.",
+        "a_issues": [
+          "`allowsRefundingExactlyTheAmountPaid` has exactly the same body as `addsUpPartialRefunds`, a copy-paste duplicate that adds no coverage.",
+          "The report counts the duplicate as a new test and says it covers the exact-amount edge case separately."
+        ],
+        "b_issues": [
+          "The helper `placeAndPartlyPay` (and its doc comment) also ships the order, which its name and comment do not say.",
+          "There is no test for refunding an order that is only PLACED; a PLACED order is tested only after it has been cancelled."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

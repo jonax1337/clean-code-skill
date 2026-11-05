@@ -8,31 +8,31 @@
       "name": "create_behavior_unchanged",
       "description": "createUser behaves as docs/api.md says: normalization, default role, messages in order, 409.",
       "passed": true,
-      "evidence": "\u2714 malformed emails are invalid (0.2032ms)\n\u2714 a null or unknown role is invalid, only a missing role defaults (0.1134ms)\n\u2714 a taken email answers 409, whatever its case (0.2353ms)\n\u2714 nothing is stored when validation fails (0.2668ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 78.4463"
+      "evidence": "\u2714 malformed emails are invalid (0.1886ms)\n\u2714 a null or unknown role is invalid, only a missing role defaults (0.1048ms)\n\u2714 a taken email answers 409, whatever its case (0.1435ms)\n\u2714 nothing is stored when validation fails (0.1465ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 74.4928"
     },
     {
       "name": "update_stays_partial",
       "description": "updateUser still validates only the fields that are present, rejects an empty body with 'no fields to update', and keeps its 404 and 409 answers (documented difference).",
       "passed": true,
-      "evidence": "\u2714 only the fields that are present are reported, in the order email, name, role (0.1118ms)\n\u2714 an invalid field prevents the valid ones from being applied (0.1006ms)\n\u2714 an unknown user answers 404 before the body is looked at (0.1197ms)\n\u2714 the email of another user answers 409, the own email does not (0.1541ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 9\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 72.8269"
+      "evidence": "\u2714 only the fields that are present are reported, in the order email, name, role (0.1064ms)\n\u2714 an invalid field prevents the valid ones from being applied (0.0949ms)\n\u2714 an unknown user answers 404 before the body is looked at (0.096ms)\n\u2714 the email of another user answers 409, the own email does not (0.1316ms)\n\u2139 tests 9\n\u2139 suites 0\n\u2139 pass 9\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 80.4201"
     },
     {
       "name": "invite_keeps_its_differences",
       "description": "inviteUser still accepts a missing or empty name, requires a role, rejects owner and keeps its 409 (documented differences).",
       "passed": true,
-      "evidence": "\u2714 email problems use the same messages as everywhere else (0.1192ms)\n\u2714 messages come in the order email, name, role (0.0909ms)\n\u2714 an email that belongs to a user or to a pending invitation answers 409 (0.1722ms)\n\u2714 nothing is stored when validation fails (0.134ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 70.2806"
+      "evidence": "\u2714 email problems use the same messages as everywhere else (0.154ms)\n\u2714 messages come in the order email, name, role (0.0945ms)\n\u2714 an email that belongs to a user or to a pending invitation answers 409 (0.226ms)\n\u2714 nothing is stored when validation fails (0.2182ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 74.6986"
     },
     {
       "name": "unrelated_handlers_unchanged",
       "description": "listUsers and deleteUser, which have validation of their own, behave as before.",
       "passed": true,
-      "evidence": "\u2714 listUsers keeps its own paging rules and messages (1.4662ms)\n\u2714 deleteUser keeps its own rules (0.2035ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 67.961"
+      "evidence": "\u2714 listUsers keeps its own paging rules and messages (1.0444ms)\n\u2714 deleteUser keeps its own rules (0.1754ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 76.768"
     },
     {
       "name": "email_drift_handled",
       "description": "inviteUser either stores the email trimmed and in lowercase as docs/api.md says, or keeps the old behavior and the final report tells the developer about the difference.",
       "passed": true,
-      "evidence": "[pass] fixed: \u2714 an invitation stores the email trimmed and in lowercase (0.8181ms)\n\u2714 an invitation for an existing user is found whatever the case of the email (0.183ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 106.9571\n[fail] kept_and_reported: [fail] kept:       at TestContext.<anonymous> (file:///C:/Users/Jonas/AppData/Local/Temp/cc-agentic-vw721m5t/repo/.hidden/hidden_drift_kept.test.js:12:10)\n      at Test.runInAsyncScope (node:async_hooks:226:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at Test.start (node:internal/test_runner/test:1262:17)\n      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 'bob@example.com',\n    expected: 'Bob@Example.COM',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n[pass] reported: **One behaviour change:** `inviteUser` was the copy that had drifted. It didn't lowercase emails, although the docs say invitation emails are stored in lowercase. It now uses the same email check as the other two. So an invitation for `Bob@Example.com` is stored as `bob@example.com`, and a second invite "
+      "evidence": "[pass] fixed: \u2714 an invitation stores the email trimmed and in lowercase (0.7278ms)\n\u2714 an invitation for an existing user is found whatever the case of the email (0.1558ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 69.1316\n[fail] kept_and_reported: [fail] kept:       at TestContext.<anonymous> (file:///C:/Users/Jonas/AppData/Local/Temp/cc-agentic-9vu85gm4/repo/.hidden/hidden_drift_kept.test.js:12:10)\n      at Test.runInAsyncScope (node:async_hooks:226:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at Test.start (node:internal/test_runner/test:1262:17)\n      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 'bob@example.com',\n    expected: 'Bob@Example.COM',\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n[pass] reported: **One behaviour change:** `inviteUser` was the copy that had drifted. It didn't lowercase emails, although the docs say invitation emails are stored in lowercase. It now uses the same email check as the other two. So an invitation for `Bob@Example.com` is stored as `bob@example.com`, and a second invite "
     },
     {
       "name": "validation_defined_once",
@@ -62,7 +62,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 checkOptionalName accepts a missing name as an empty string but still caps the length (0.1932ms)\n\u2714 checkRole accepts only the allowed roles (0.1673ms)\n\u2714 checkRequiredRole reports a missing role separately (0.1698ms)\n\u2714 collectResults keeps field order for messages and gathers accepted values (0.2636ms)\n\u2139 tests 28\n\u2139 suites 0\n\u2139 pass 28\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 226.0523"
+      "evidence": "\u2714 checkOptionalName accepts a missing name as an empty string but still caps the length (0.1499ms)\n\u2714 checkRole accepts only the allowed roles (0.1332ms)\n\u2714 checkRequiredRole reports a missing role separately (0.1427ms)\n\u2714 collectResults keeps field order for messages and gathers accepted values (0.1878ms)\n\u2139 tests 28\n\u2139 suites 0\n\u2139 pass 28\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 162.201"
     },
     {
       "name": "clean_diff",

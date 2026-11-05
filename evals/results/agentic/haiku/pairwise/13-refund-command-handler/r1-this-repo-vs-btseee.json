@@ -1,0 +1,87 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d0771495562166b5",
+    "btseee": "e9937b5c67dec93d"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.192388,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two handlers are functionally equivalent: same validation, same SHIPPED/DELIVERED check, a cap on amountPaid across all refunds, and status left unchanged. A's tests are slightly stronger because they use an order paid less than its total. They test both the exact boundary (refund 80 of 80 paid) and a refund that is below the total but above the amount paid, so they tell a total-based cap from a paid-based one in both directions. A's `recordRefund` name and its placement next to the other mutators also fit the existing code a little better.",
+        "a_issues": [
+          "The README table row is much wider than the other rows, which breaks the column alignment.",
+          "The cancelled-order test only covers cancelling a placed order, not a paid one."
+        ],
+        "b_issues": [
+          "The exact-boundary tests use paid == total, so they cannot tell a paid-based cap from a total-based cap at the boundary.",
+          "`refund()` is a slightly less descriptive name than the existing markX-style mutators and is added after `cancel()` rather than grouped with them.",
+          "The README adds a prose paragraph that mostly repeats the table row; this is minor."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.19106,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both handlers apply the same rules in the same order: validation, existence, SHIPPED/DELIVERED status, and a cap on cumulative refunds at amountPaid. They also use the same error codes, so they are functionally equivalent. B's tests are a little more explicit about the key rule. They include a refund below the total but above the amount paid, a combined refund that goes over the amount paid, and an exact-boundary case. B also checks the recorded amount on the delivered path. A's extra README prose and separate placed-order test are minor pluses, but they don't outweigh B's sharper edge-case coverage.",
+        "a_issues": [
+          "refundsADeliveredOrder does not assert amountRefunded was recorded",
+          "No test isolates the paid-vs-total distinction with a single refund below the total but above the amount paid"
+        ],
+        "b_issues": [
+          "Helper placeAndPartlyPay also ships the order, which its name and comment do not say",
+          "No test for refunding a PLACED (unpaid) order directly; only a paid-but-unshipped order and a placed-then-cancelled order",
+          "README table row is wider than the column, which makes the raw Markdown table uneven"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

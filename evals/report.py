@@ -14,7 +14,7 @@ from html import escape
 from statistics import mean
 
 from charts import ASSETS_DIR, SEQUENTIAL_STEPS, chart_frame, row_highlight, short_label
-from harness import ALL_CONDITIONS, GRADES_DIR, RESULTS_DIR, RUNS_DIR, THIS_REPO, load_cases
+from harness import GRADES_DIR, RESULTS_DIR, RUNS_DIR, SINGLE_TURN_CONDITIONS, THIS_REPO, load_cases
 
 HIGHLIGHTED_CONDITION = THIS_REPO
 NOT_RUN = "n/a"
@@ -55,7 +55,7 @@ def _collect_stats() -> list[ConditionStats]:
     graded = {name for grade in grades for name in grade["results"]}
     return [
         _stats_for(condition.name, condition.label, grades)
-        for condition in ALL_CONDITIONS
+        for condition in SINGLE_TURN_CONDITIONS
         if condition.name in graded
     ]
 

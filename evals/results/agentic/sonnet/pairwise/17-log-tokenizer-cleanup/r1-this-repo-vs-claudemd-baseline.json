@@ -1,0 +1,93 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "8a93070a66755558",
+    "claudemd-baseline": "2ec830cdc432b4d3"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 1.0,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.214892,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors look behavior-preserving. Tracing each branch, the token boundaries, error variants and error positions match the original, including empty bare values and errors at the line end. A is cleaner: `next()` handles the stop-after-error rule in one place, the per-token methods read straightforwardly, and it adds seven focused, durable edge-case tests. B commits a 170-line frozen copy of the old tokenizer as a test, which the report itself calls deletable and which will break on every intended format change. B also has some dense combinator chains and a dummy statement to silence an unused import.",
+        "a_issues": [
+          "The exhaustive equivalence check against the old implementation was run but not kept, so only the targeted tests guard against regressions.",
+          "No benchmark on a real dump; the timing evidence is synthetic, which the report acknowledges."
+        ],
+        "b_issues": [
+          "`tests/equivalence.rs` duplicates the entire old tokenizer (about 170 lines) as a committed test. The report calls it removable, so it is effectively a leftover.",
+          "That frozen reference will fail by design whenever the line format is extended, which is exactly the change the user expects to make.",
+          "`scan_timestamp(b, p).and_then(|e| check_separator(b, e + 1).map(|_| e))` and the matching quoted version are dense and harder to read than plain code.",
+          "`let _ = Token::Word(\"\");` is a hack to silence an unused import.",
+          "The `reference` module body is not indented, which hurts readability of the test file.",
+          "The equivalence test runs about 1.1M cases. That takes about 2s in release, but the default `cargo test` debug build will be noticeably slower.",
+          "No new targeted edge-case tests were added to `tests/tokens.rs`."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.19970000000000002,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors match the original's tokens, error variants, error positions and post-error behavior, and both keep the single-pass byte scan without allocation. B is the cleaner result: it puts the 'after an error, yield nothing' rule in one place in `next()`, uses one small, plainly named method per token kind, and adds focused regression tests for previously untested error paths. A leaves a 225-line frozen copy of the old tokenizer in the repo as a ~2s, million-case test, plus a stray `let _ = Token::Word(\"\");`. A's `and_then(...).map(|_| e)` chains and scattered `#[inline(always)]`/`#[cold]` attributes are also harder to read.",
+        "a_issues": [
+          "Commits `tests/equivalence.rs`, a 225-line verbatim copy of the old implementation, which duplicates code and must be deleted later.",
+          "The exhaustive test enumerates over 1M strings and adds about 2s to every `cargo test`.",
+          "The meaningless `let _ = Token::Word(\"\");` was left in the test, apparently to silence an unused import.",
+          "The `scan_timestamp(b, p).and_then(|e| check_separator(b, e + 1).map(|_| e))` chain is clunky and appears twice.",
+          "Micro-optimization attributes (`#[inline(always)]`, `#[cold]`) add noise without demonstrated need."
+        ],
+        "b_issues": [
+          "The equivalence harness was removed, so the repo has no lasting broad old-vs-new comparison, only targeted unit tests.",
+          "Methods mix scanning with state mutation (setting `pos` and `expect`), so each scanner is slightly less pure than A's free functions."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

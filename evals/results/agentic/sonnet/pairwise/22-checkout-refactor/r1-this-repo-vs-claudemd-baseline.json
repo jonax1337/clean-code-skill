@@ -1,0 +1,89 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "37075b9c61f427d6",
+    "claudemd-baseline": "5e3e412baad2d2b7"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.16328399999999998,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors preserve behavior: the computation order, side-effect order, error messages, statuses and exception chaining are all the same. A's rollback in `_charge` releases `order.items` instead of the reserved list, which is equivalent because every item is reserved by that point. A's characterization tests are clearly stronger: they assert the exact `inventory.log` sequence and that a declined payment does not redeem the coupon, and they also cover exhausted coupons, the exact free-shipping threshold and several countries. B's code is slightly more literal and explicit, but its tests leave the coupon/decline interaction unprotected.",
+        "a_issues": [
+          "`_charge` releases `order.items` rather than the actually reserved items. This is correct only because of an implicit invariant that all items are reserved before charging.",
+          "`_tax_cents` recomputes `unit_price_cents * quantity` separately from the subtotal sum, a minor duplication.",
+          "`_charge` takes five parameters, so the helper signatures are a bit wide."
+        ],
+        "b_issues": [
+          "No test that a declined payment leaves the coupon unredeemed, or that stock is committed and the coupon redeemed exactly once on success.",
+          "Rollback tests check only `available()`, not the exact reserve/release sequence. The exhausted-coupon and exact-threshold-without-discount edge cases are only partly covered.",
+          "Pricing arithmetic (`total = subtotal - discount + tax + shipping`) stays inline in `process_order` instead of sitting in one pricing helper.",
+          "`_charge` takes six parameters, including the threaded `reserved` list."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.164476,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors preserve behavior: the order of side effects, the error messages, the status values and the exception chaining all match the original. B's characterization tests are much stronger. Its rounding test (two 50-cent lines at 19%) actually separates per-line rounding from rounding the sum, and it checks the exact inventory log, the exact free-shipping threshold boundary and that a declined payment does not redeem the coupon. A's CH rounding test gives the same total under either rounding scheme, so it would not catch a regression to rounding the sum.",
+        "a_issues": [
+          "The tax-rounding test (CH, 100 + 500) gives 49 under both per-line and whole-sum rounding, so it does not pin the per-line behavior it claims to.",
+          "There is no test that a declined payment leaves the coupon unredeemed, and none of the exact reserve/release/commit sequence.",
+          "The free-shipping threshold is only tested at 5000; there is no just-below case at 4999."
+        ],
+        "b_issues": [
+          "`_charge` releases `order.items` rather than the list that was actually reserved. This is equivalent today, but it depends implicitly on every item having been reserved.",
+          "Shipping is computed inline in `_price_order` rather than in its own helper. This is minor."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

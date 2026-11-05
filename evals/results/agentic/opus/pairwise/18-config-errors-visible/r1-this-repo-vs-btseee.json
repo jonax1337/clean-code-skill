@@ -1,0 +1,90 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "bc431de125c4cef4",
+    "btseee": "746d0ffad99e1c8a"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.234464,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes do the same job: they collect every config problem, reject unknown keys, refuse to start and print to stderr with a distinct exit code. A also rejects timeouts too large to convert to milliseconds; otherwise they would later throw ArithmeticException inside ConsoleUplink.send. A leaves the unspecified zero-timeout question to the developer and has more thorough boundary tests. B is slightly better at keeping old behaviour, since it still accepts `TRUE` and `HTTPS` in any case, but it adds a zero-timeout rule the task did not ask for and misses the overflow case.",
+        "a_issues": [
+          "`metrics.enabled` now accepts only lowercase `true`/`false`. The old `Boolean.parseBoolean` accepted `TRUE`/`True`, so existing configs using those will now fail to start.",
+          "The URL scheme check is case-sensitive, so `HTTPS://...` is rejected.",
+          "A nested `Settings` class sits inside a static utility class. This is a little more structure than needed."
+        ],
+        "b_issues": [
+          "It does not reject durations whose millisecond value overflows (e.g. `9223372036854775807s`). These pass validation and then throw ArithmeticException in `ConsoleUplink.send` at runtime.",
+          "It adds a new rule rejecting a zero timeout and changes the README wording. The task did not ask for this, though the report does flag it.",
+          "A missing file gets only the generic 'Cannot read configuration file ... NoSuchFileException' message, not a clear 'not found'.",
+          "Tests are less thorough: no int-overflow case, no present-but-empty value, no blank token, and no full set of minimum-boundary acceptance checks."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.216876,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes turn every silent fallback into a collected ConfigException, reject unknown keys, keep defaults for absent keys and exit with a distinct code. B also rejects timeouts too large for the uplink's `toMillis()` call, which A lets through to crash later at send time. B keeps the existing rule that a zero timeout is allowed and flags the question, and its tests cover more boundaries. B's case-sensitive `true`/`false` and http/https scheme checks are a small regression against the old lenient parsing that A preserves.",
+        "a_issues": [
+          "Rejects `request.timeout=0s`, a behavior change the original rules did not call for (though it is reported and documented).",
+          "Does not reject timeouts that overflow `toMillis()`, e.g. `9223372036854775807s`, so `ConsoleUplink` would throw at runtime instead of at startup.",
+          "Fewer boundary tests: no test that the minimum values are accepted for all numeric keys, and no int-overflow or empty-value tests."
+        ],
+        "b_issues": [
+          "`metrics.enabled` now requires exact lowercase `true`/`false`; the old `Boolean.parseBoolean` accepted `TRUE`, so existing configs could stop starting.",
+          "The URL scheme check is case-sensitive, so `HTTPS://...` is rejected.",
+          "No test protects the claim that the API token is never echoed."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

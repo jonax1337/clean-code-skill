@@ -1,0 +1,88 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d152fe152f0e9628",
+    "btseee": "9715b8fe57223ab6"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.15781599999999998,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes share the same core design: a mutually exclusive `--with`/`--percent` group, a `split_by_percent` built on `allocate`, and a shared duplicate check. Both are correct. A's tests protect the change somewhat better: they pin exact leftover-cent shares, cover one person at 100%, test `alice=101`, and test giving neither option. A also keeps the range check in one place. B adds a nice touch by stripping whitespace from names, but its leftover-cent test only checks the sum, it has no test for omitting both options, and its range validation is split between the parser and the splitting function.",
+        "a_issues": [
+          "Names are not stripped, so `--percent ' =50'` is accepted with a name that is only whitespace.",
+          "A 0% share is allowed, which records a person who owes nothing (the report flags this as a decision)."
+        ],
+        "b_issues": [
+          "Range validation is split: the parser checks the format, while 0 and above-100 are checked later in `split_by_percent`.",
+          "The leftover-cent test only checks that the shares add up, not which person gets the extra cent.",
+          "No test for `add` given neither `--with` nor `--percent`, and no test for a percentage above 100."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.16048800000000002,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes reuse `allocate` and pull out a shared duplicate check, and both handle the wrong-total and repeated-name errors correctly. B's tests protect the behavior more tightly: they assert the exact leftover-cent distribution and cover the single-person 100% case, values like 101 and +50, and the case where neither `--with` nor `--percent` is given. A keeps all percentage-range validation in the domain function and strips whitespace from names, which is slightly cleaner design. Neither difference is large, so the edge goes to B's stronger test coverage.",
+        "a_issues": [
+          "The leftover-cent test only checks the sum, not which person gets the extra cent.",
+          "No test for omitting both `--with` and `--percent`, which the new required mutually exclusive group is meant to enforce.",
+          "Rejects 0% shares, a policy choice the task did not ask for (disclosed in the report)."
+        ],
+        "b_issues": [
+          "The cli imports `WHOLE` from splitting, and the 0\u2013100 range check lives in the argparse type rather than in `split_by_percent`, so validation is split across layers.",
+          "Names are not stripped of whitespace, so ' alice=50' and 'alice=50' would be different people.",
+          "Allows 0% shares, recording a person who owes nothing (disclosed in the report)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

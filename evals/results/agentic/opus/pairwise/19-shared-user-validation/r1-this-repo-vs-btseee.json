@@ -1,0 +1,87 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "601d3e468a9a5f24",
+    "btseee": "8b0326984d76971e"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.25,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.18670799999999999,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes extract the same per-field checks into a shared module, keep the message wording and ordering, and fix the inviteUser lowercase drift the same way. A's added tests pin down more of the behavior a refactor could break: the 80/81 name boundary, a null role not falling back to the default, all three update fields held to the create rules, and the duplicate pending-invitation 409. B's single `collectChecks` helper is somewhat tidier, and its report usefully notes that existing mixed-case invitations are not migrated. Both reports misstate the total test count by one.",
+        "a_issues": [
+          "Report claims 27 tests, but by the diff there are 15 original + 11 new = 26.",
+          "updateUser rebuilds `changes` with an `Object.fromEntries(Object.entries(...).map(...))` step that is harder to follow than returning values and messages together.",
+          "The invite lowercase test only checks the 409, not that the stored invitation email is lowercased."
+        ],
+        "b_issues": [
+          "Report claims 23 tests, but the diff gives 15 + 7 = 22.",
+          "Fewer refactor-guarding tests: no 80/81 boundary check, no null-role check, no check that an updated email is stored normalized, no pending-invitation conflict test.",
+          "`collectChecks` treats a result as an error when `check.message` is truthy rather than checking whether it is present, which is a slightly fragile contract."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "B",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.194472,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both PRs do the same extraction into one shared module, keep the client-facing messages and their order intact, and fix the same invite-email lowercasing drift. B's tests cover more of the contract: the 80/81 character boundary, a null role, a pending-invitation 409, unknown-only fields in an update, and several invalid fields in one update. That makes B safer to rely on for future validation fixes. A's `collectChecks` is slightly tidier at the call sites, but the difference is small.",
+        "a_issues": [
+          "Fewer edge-case tests: no 80/81 boundary check, no null-role check, no test for a 409 on a pending invitation.",
+          "`collectChecks` relies on object insertion order to keep messages in the email, name, role order. The comment states this, but it is implicit coupling."
+        ],
+        "b_issues": [
+          "The test named 'stores the email in lowercase so it matches existing users' only asserts a 409. It never checks that the stored invitation email is lowercase.",
+          "Handlers unpack `.value` by hand from each check result, so call sites are a little more verbose than with a combined values object."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

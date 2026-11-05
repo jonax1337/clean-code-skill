@@ -1,0 +1,89 @@
+{
+  "case": "07-tests-for-rates",
+  "split": "dev",
+  "condition": "btseee",
+  "rep": 1,
+  "checks": [
+    {
+      "name": "rates_tests_added_where_runner_finds_them",
+      "description": "At least four test cases (one per exported function of rates.ts) importing rates.ts, directly or through src/index.ts, were added in a file that `node --test` picks up (under test/ or named *.test.ts), without snapshot assertions.",
+      "passed": true,
+      "evidence": "files importing rates.ts: ['test/rates.test.ts']; test cases: 30; snapshot use: []"
+    },
+    {
+      "name": "new_tests_pass_on_original_code",
+      "description": "The tests the agent added run and pass against the untouched fixture (including the original rates.ts).",
+      "passed": true,
+      "evidence": "['test/rates.test.ts'] on the original code: exit 0, tests ran: True\n  \u2714 quotes zero as free (0.0934ms)\n  \u2714 rejects negative and fractional amounts (0.1178ms)\n  \u2714 rejects unknown currencies (0.105ms)\n\u2714 quote (1.8581ms)\n\u2139 tests 30\n\u2139 suites 4\n\u2139 pass 30\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 399.9731"
+    },
+    {
+      "name": "tests_catch_mutants_of_rates",
+      "description": "The project's tests pass on the original code and fail on at least 7 of 10 hidden mutants of rates.ts, each a one-line change to a documented rule.",
+      "passed": true,
+      "evidence": "killed 9: ['fee_cap_off_by_one', 'zero_amount_pays_minimum_fee', 'euro_fee_rounds_half_up', 'negative_amounts_truncate', 'yen_has_two_minor_units', 'quote_fee_uses_source_currency', 'unknown_target_currency_accepted', 'fee_larger_than_amount_accepted', 'conversion_ties_use_source_rounding']\nsurvived 1:\n  fee_just_below_minimum_not_raised: A percentage fee exactly one unit below the minimum fee is not raised to the minimum."
+    },
+    {
+      "name": "source_code_unchanged",
+      "description": "No file under src/ (rates.ts and its neighbors) differs from the fixture; the prompt says to leave the code alone.",
+      "passed": true,
+      "evidence": "unchanged"
+    },
+    {
+      "name": "only_test_files_changed",
+      "description": "Only test files changed; the prompt says to leave the code alone, so no source, config or package file was touched.",
+      "passed": true,
+      "evidence": "changed: ['test/rates.test.ts']"
+    },
+    {
+      "name": "test_suite_passes",
+      "description": "The repository's own test suite passes.",
+      "passed": true,
+      "evidence": "\u2714 quote (1.0607ms)\n\u2714 nextBusinessDay moves a weekday to the following day (2.7148ms)\n\u2714 nextBusinessDay skips the weekend (0.2143ms)\n\u2714 nextBusinessDay ignores the time of day and does not change its input (0.9626ms)\n\u2139 tests 40\n\u2139 suites 4\n\u2139 pass 40\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 280.091"
+    },
+    {
+      "name": "typecheck_passes",
+      "description": "The TypeScript type check passes, tests included.",
+      "passed": true,
+      "evidence": ""
+    },
+    {
+      "name": "existing_tests_not_loosened",
+      "description": "No line of the existing tests was changed or removed; tests may only be added.",
+      "passed": true,
+      "evidence": "tests only added to"
+    },
+    {
+      "name": "clean_diff",
+      "description": "The diff has no debug output, commented-out code or narrating comments.",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "tests_run_after_last_edit",
+      "description": "After its last edit the agent ran the test suite and it passed.",
+      "passed": true,
+      "evidence": "cd C:/Users/Jonas/AppData/Local/Temp/cc-agentic-qhlowm0f/repo && node --test 2>&1 | tail -30; npx tsc --noEmit 2>&1 | tail -5"
+    }
+  ],
+  "metrics": {
+    "files": [],
+    "before": {
+      "functions": 0,
+      "nloc": 0,
+      "max_nloc": 0,
+      "max_ccn": 0,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    },
+    "after": {
+      "functions": 0,
+      "nloc": 0,
+      "max_nloc": 0,
+      "max_ccn": 0,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 0
+    }
+  }
+}

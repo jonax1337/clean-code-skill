@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from agentic import AgenticCase, AgentRun, Transcript, load_agentic_cases, results_dir, run_agent
-from harness import ALL_CONDITIONS, CONDITIONS, NO_SKILL, Condition, write_text_atomic
+from harness import ALL_CONDITIONS, CONDITIONS, Condition, write_text_atomic
 
 DEFAULT_CONDITIONS = ",".join(condition.name for condition in CONDITIONS)
 SKILL_DIR_MARKER = "cc-skill-"
@@ -58,9 +58,8 @@ class Job:
         meta_file = self.run_dir / "meta.json"
         if not meta_file.exists():
             return False
-        skill = self.condition.skill(self.case.language)
         recorded = json.loads(meta_file.read_text(encoding="utf-8")).get("skill_fingerprint")
-        return recorded == (skill.fingerprint() if skill else None)
+        return recorded == self.condition.fingerprint(self.case.language)
 
 
 def main() -> None:
@@ -73,7 +72,7 @@ def main() -> None:
     cases = [case for case in load_agentic_cases(args.split) if args.case in (None, case.case_id)]
     if args.mode != "appended":
         # Without a skill there is nothing to install; that run is the same as in the appended mode.
-        conditions = [condition for condition in conditions if condition.name != NO_SKILL]
+        conditions = [condition for condition in conditions if condition.sources]
     jobs = [
         Job(case, condition, rep, args.model, args.mode)
         for case in cases

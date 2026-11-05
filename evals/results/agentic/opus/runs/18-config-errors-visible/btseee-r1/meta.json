@@ -1,0 +1,24 @@
+{
+  "model": "opus",
+  "model_ids": [
+    "claude-opus-5-5"
+  ],
+  "outcome": "success",
+  "is_error": false,
+  "cost_usd": 0.35178300000000007,
+  "duration_ms": 87754,
+  "num_turns": 13,
+  "output_tokens": 8193,
+  "permission_denials": 0,
+  "skill_fingerprint": "02ab8bd3a4046603",
+  "tools": [
+    "Bash",
+    "Edit",
+    "Glob",
+    "Grep",
+    "Read",
+    "Write"
+  ],
+  "skill_files_read": [],
+  "returncode": 0
+}

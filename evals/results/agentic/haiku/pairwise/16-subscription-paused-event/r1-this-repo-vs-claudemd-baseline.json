@@ -1,0 +1,84 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d2464bb22d7a58fc",
+    "claudemd-baseline": "7cd498092b80f616"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.150688,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes implement the same behavior correctly across events, reducer, audit and notifier, and both keep the existing exhaustiveness pattern. A's tests also cover a repeated pause keeping the original resume date, an edge case B leaves untested. A's report is a bit more complete about its judgment calls: the repeated-pause behavior and that `plan_changed` still applies while paused.",
+        "a_issues": [
+          "Does not validate the `resumeOn` format (this is disclosed in the report)."
+        ],
+        "b_issues": [
+          "No test that a second pause on an already paused subscription leaves the state and original `resumeOn` unchanged.",
+          "The report does not mention that a repeated pause is ignored or that plan changes still apply while paused."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.151968,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both diffs implement the pause the same way and match the spec: active-only pausing, payment events ignored while paused, cancellation clearing resumeOn, and the correct audit line and customer-only email. B also tests that a second pause on an already paused subscription keeps the original resume date, and it checks the null default inside its pause test. B's report also flags two decisions the reviewer may want to revisit: a repeated pause is ignored, and plan changes still apply while paused.",
+        "a_issues": [
+          "No test that pausing an already paused subscription leaves it unchanged, a status-guard edge case.",
+          "The report does not mention that plan_changed still applies while paused, or how a repeated pause behaves."
+        ],
+        "b_issues": [
+          "No standalone test for the never-paused null default (it is covered by an assertion inside the pause test).",
+          "Places the new subscription_paused cases before subscription_canceled, which is harmless but different from the order of the union."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

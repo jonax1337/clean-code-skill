@@ -1,0 +1,91 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d152fe152f0e9628",
+    "claudemd-baseline": "d83ae0d0a9662762"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.25,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.158676,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes add a mutually exclusive `--with`/`--percent` group, reuse `allocate`, and share the duplicate-name check, so they are functionally very close. B parses `NAME=PCT` through a `MoneyError` in `splitting.py`, so every input error gets the project's consistent `error: ...` output and nothing is saved. A's argparse `type=` hook produces a second, usage-style error format, which A's report itself flags as a quirk. A's tests are a little stronger (they check the exact leftover-cent placement and the case where neither option is given), but B's consistency with the existing error-handling pattern edges it ahead.",
+        "a_issues": [
+          "A malformed `--percent` value is reported through argparse's usage-style error rather than the project's `error: ...` convention, so the CLI has two error styles.",
+          "Percent parsing lives in `cli.py` and imports a `WHOLE` constant from `splitting.py`, which spreads the percentage rules across two modules.",
+          "Names are not stripped of whitespace."
+        ],
+        "b_issues": [
+          "No test covers giving neither `--with` nor `--percent`, though the report claims that case gives a usage error.",
+          "The leftover-cent test only checks the sum, not which person gets the extra cent.",
+          "The CLI test for malformed input covers only one form (`bob`); the other forms are tested only at the unit level.",
+          "Using `re` for a digits check is slightly heavier than needed."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.156476,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes reuse `allocate` and share the duplicate-name check, and both use a mutually exclusive group, so the core behavior is equivalent. A raises `MoneyError` for a malformed `NAME=PCT`, so every user input error goes through the existing `error: ...` path. A also strips whitespace from names and values. B parses inside an argparse `type=`, which produces a second error format (the report acknowledges this) and adds a `WHOLE` constant that isn't needed. B's tests are a bit tighter, with exit-code checks, a test for giving neither option and an exact leftover-cent result, but that does not outweigh A's more consistent error handling.",
+        "a_issues": [
+          "The test combining `--with` and `--percent` only checks for SystemExit, not the exit code.",
+          "No test covers giving neither `--with` nor `--percent`.",
+          "The keep-every-cent test checks only the sum, not where the leftover cent goes."
+        ],
+        "b_issues": [
+          "A malformed `--percent` produces argparse's usage-style error, while other input errors use the existing `error: ...` format, so error output is inconsistent.",
+          "Names are not stripped, so `' alice=50'` records a person named `' alice'`.",
+          "The `WHOLE = 100` constant is an indirection that adds nothing over the literal 100.",
+          "Percent parsing lives in `cli.py` rather than next to the splitting logic."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

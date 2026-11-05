@@ -1,0 +1,88 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "77170ee207707cbd",
+    "btseee": "149a366f5aee7d09"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.25,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 0.5
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.1801,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find and reproduce the same core blockers: SQL injection in search, audit errors silently swallowed, floor-division `pages`, crashing paging input, and unknown ids being audited. Their line references are mostly accurate. B adds a real compliance gap that A misses: the existing single-user `deactivate_user` path writes nothing to `audit_log`, although the PR claims every deactivation is audited. B also notes that already-inactive users get re-audited. A's only extra edge case is `per_page=-1` bypassing the cap, which B's minimum-1 parser would also cover.",
+        "a_issues": [
+          "Misses that single-user `deactivate_user` is still not audited, despite the PR's claim that every deactivation is.",
+          "Does not flag that already-inactive users get a new deactivate audit entry.",
+          "Line range for the audit loop in `users.py` is off by one."
+        ],
+        "b_issues": [
+          "Some line references are off by one, e.g. `_user_id` at api.py:17-21 (actually 18-22) and `deactivate_user` at users.py:48-53.",
+          "Does not call out that `per_page=-1` bypasses the 100 cap through SQLite's `LIMIT -1`; it only mentions negative values in general."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.16344799999999998,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews find the same core blockers with accurate line references and a correct do-not-merge verdict: the SQL injection, the swallowed audit errors, the floor-divided `pages`, unvalidated paging and bulk input, unknown ids being audited, and the caller-supplied actor. B adds a working injection payload, the `per_page=-1` bypass of the 100 cap, and the silent change to `list_users` for existing callers, and gives a concrete test for each fix. A uniquely catches that single-user deactivation is still unaudited, which contradicts the PR's compliance claim, and that already-inactive users get extra audit entries. B's more actionable and slightly more thorough treatment of input handling edges it ahead.",
+        "a_issues": [
+          "Misses that `per_page=-1` becomes `LIMIT -1`, which bypasses the 100 cap.",
+          "Test recommendations are given only as a list at the end, not tied to each finding.",
+          "Claims to use a 'worktree of main' even though the environment is not a git repository."
+        ],
+        "b_issues": [
+          "Misses that the existing single-user `deactivate_user` path is still not audited, although the PR says every deactivation must be.",
+          "Does not mention that already-inactive users get new 'deactivate' audit entries.",
+          "Cites a specific commit hash for a worktree even though the environment is not a git repository."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

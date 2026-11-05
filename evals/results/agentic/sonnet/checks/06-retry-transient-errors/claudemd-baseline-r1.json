@@ -1,0 +1,109 @@
+{
+  "case": "06-retry-transient-errors",
+  "split": "dev",
+  "condition": "claudemd-baseline",
+  "rep": 1,
+  "checks": [
+    {
+      "name": "transient_failures_are_retried",
+      "description": "Reads (get_shipment, list_shipments, wait_for_label) succeed when the first attempt hits a timeout, a connection failure, a 502 or a 503; this is the request.",
+      "passed": true,
+      "evidence": "............                                                             [100%]\n12 passed in 0.06s"
+    },
+    {
+      "name": "permanent_errors_are_not_retried",
+      "description": "A 4xx answer (reads and keyed creates) and an unexpected exception such as a ValueError are raised after a single request: retrying cannot fix them and would only delay the failure.",
+      "passed": true,
+      "evidence": "........                                                                 [100%]\n8 passed in 0.05s"
+    },
+    {
+      "name": "gives_up_and_keeps_the_original_error",
+      "description": "A failure that never clears stops after a bounded number of attempts (at least 2, at most 10) and raises the original error, or an error explicitly raised from it; the sync job fails loudly instead of reporting success.",
+      "passed": true,
+      "evidence": "....                                                                     [100%]\n4 passed in 0.05s"
+    },
+    {
+      "name": "keyed_create_is_retried_safely",
+      "description": "POST /shipments with an Idempotency-Key survives a timeout, a lost response and a 503, repeated with the same key, so the carrier ends up with exactly one shipment per order (the README says a repeated key returns the first shipment).",
+      "passed": true,
+      "evidence": "....                                                                     [100%]\n4 passed in 0.04s"
+    },
+    {
+      "name": "unsafe_posts_are_not_repeated",
+      "description": "A create without a key and POST /pickups are sent once when they time out: the README says every such call creates a new shipment or books a new pickup, so a repeat could duplicate it.",
+      "passed": true,
+      "evidence": "...                                                                      [100%]\n3 passed in 0.04s"
+    },
+    {
+      "name": "waiting_is_injectable_and_never_real_in_tests",
+      "description": "The pauses between attempts go through the client's existing `sleep` argument (the README and the existing tests inject it), and neither the hidden tests nor the project's own tests really sleep.",
+      "passed": true,
+      "evidence": "[pass] waiting_is_injectable_and_never_real_in_tests: ..                                                                       [100%]\n2 passed in 0.04s\n[pass] waiting_is_injectable_and_never_real_in_tests: the project's tests really slept 0.0s (limit 1.0s)"
+    },
+    {
+      "name": "no_new_catch_all_that_swallows",
+      "description": "No new bare `except:` or `except Exception/BaseException` handler in shipsync/ lacks a `raise`: a catch-all that returns, logs or continues would hide real failures behind the retry.",
+      "passed": true,
+      "evidence": "none"
+    },
+    {
+      "name": "only_expected_files_changed_and_no_new_dependency",
+      "description": "Only the client, its error and transport modules, new modules under shipsync/, tests and the README changed (the sync job, the CLI, the models and pyproject.toml stay as they are), and no retry or HTTP library is imported: the request is about the client, and the project has no dependencies.",
+      "passed": true,
+      "evidence": "[pass] only_expected_files_changed_and_no_new_dependency: changed: ['shipsync/client.py', 'tests/test_client.py']\n[pass] only_expected_files_changed_and_no_new_dependency: no matching added lines"
+    },
+    {
+      "name": "existing_tests_not_loosened",
+      "description": "No line of the existing test modules was changed or removed, apart from import lines that grow to bring in new names; tests may only be added.",
+      "passed": true,
+      "evidence": "tests only added to"
+    },
+    {
+      "name": "regression_tests_fail_on_original_code",
+      "description": "The agent added at least one test, and the added tests do not all pass on the untouched client: they pin the new retry behavior.",
+      "passed": true,
+      "evidence": "8 new tests on the original code: exit 4"
+    },
+    {
+      "name": "test_suite_passes",
+      "description": "The repository's own test suite passes.",
+      "passed": true,
+      "evidence": "..........................                                               [100%]\n26 passed in 0.05s"
+    },
+    {
+      "name": "clean_diff",
+      "description": "The diff has no debug output, commented-out code or narrating comments.",
+      "passed": true,
+      "evidence": "clean"
+    },
+    {
+      "name": "tests_run_after_last_edit",
+      "description": "After its last edit the agent ran the test suite and it passed.",
+      "passed": true,
+      "evidence": " LABEL_POLL_ATTEMPTS,\\n    LABEL_POLL_INTERVAL_S,\\n    RETRY_ATTEMPTS,\\n    RETRY_BASE_DELAY_S,\\n)/; s/^from shipsync.errors import ApiError, LabelNotReady/from shipsync.errors import ApiError, ConnectionFailed, LabelNotReady, RequestTimeout/' tests/test_client.py\npython -m pytest -q 2>&1 | tail -15"
+    }
+  ],
+  "metrics": {
+    "files": [
+      "shipsync/client.py"
+    ],
+    "before": {
+      "functions": 7,
+      "nloc": 53,
+      "max_nloc": 17,
+      "max_ccn": 4,
+      "long_functions": 0,
+      "complex_functions": 0,
+      "many_parameter_functions": 2
+    },
+    "after": {
+      "functions": 7,
+      "nloc": 70,
+      "max_nloc": 32,
+      "max_ccn": 11,
+      "long_functions": 1,
+      "complex_functions": 1,
+      "many_parameter_functions": 2
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "b477b75d43eca366",
+    "btseee": "b3dd67dbcd164834"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.1385,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep the original order of steps and side effects (tax lookup, coupon check, reservation, charge, commit and redeem, receipt), so production behavior is preserved in both. B also adds characterization tests for the paths the existing suite misses: VIP stacking, the free-shipping boundary, per-line rounding, invalid coupon and quantity, partial release, and no coupon redemption on decline. B confirmed these tests passed on the original code and they hold up when checked by hand. A refactored a production function with thin test coverage and only told the reviewer to check coverage themselves.",
+        "a_issues": [
+          "No tests added, although the existing suite does not cover VIP, invalid-coupon, invalid-quantity, partial-release or notifier-failure paths for a production refactor.",
+          "`_charge` signature is one overly long line, and `list` is used without an element type in the helper signatures.",
+          "The report leaves coverage verification to the developer instead of doing it."
+        ],
+        "b_issues": [
+          "`_charge` takes six parameters, which is a slightly awkward helper boundary (A shares this).",
+          "The free-shipping test name mentions discounts but exercises no discount."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.140196,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors keep behavior the same: helper boundaries, call order (tax lookup, coupon check, reservation, charge, commit, redeem, notify), error messages, statuses and exception chaining all match the original. A adds 11 characterization tests, confirmed against the original code before refactoring. They pin the paths the existing suite misses: VIP stacked on a coupon, the free-shipping boundary, per-line rounding, partial-reservation release, no coupon redemption on decline, and a failing notifier. B relies only on the 9 existing tests and leaves coverage for the reviewer to check, which is weak protection for a refactor of live production code.",
+        "a_issues": [
+          "Adds about 90 lines of tests in the same PR. They are useful as characterization tests, but they make the diff larger than the refactor itself.",
+          "`_charge` takes six parameters, which is somewhat clunky."
+        ],
+        "b_issues": [
+          "Adds no tests, even though the existing suite does not cover VIP discounts, the shipping boundary, per-line rounding, partial-reservation release or notifier failure.",
+          "Moves `process_order` below the helpers, so the diff is noisier than needed and the entry point is harder to find.",
+          "Uses a bare `list` type for `reserved` instead of `list[Item]`, and the `_charge` signature is an over-long single line.",
+          "The extra `_shipping` helper is a one-line function that adds little."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

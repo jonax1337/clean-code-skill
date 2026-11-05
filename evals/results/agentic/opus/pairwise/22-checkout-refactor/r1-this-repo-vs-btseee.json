@@ -1,0 +1,89 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "7b5cfa904064fe15",
+    "btseee": "c2c5e4a74ddb938d"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.183676,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors are almost the same, and both preserve behavior, including the safe switch from `reserved` to `order.items` on a declined payment. B's characterization tests are stronger. They check that the free-shipping threshold is measured after the coupon discount, which A's test name promises but never exercises. They also cover the country-specific tax rate, the 'paid' log line and negative quantities. B's report also points out real existing hazards: reservations leak when the gateway or inventory raises an unexpected exception.",
+        "a_issues": [
+          "`test_shipping_is_free_from_5000_cents_after_discounts` uses no discount, so the 'after discounts' threshold behavior is not actually covered, though the report claims it is.",
+          "No test for the country-specific tax rate or for the 'order paid' info log line.",
+          "`_discount` mixes the coupon lookup and validation with the VIP calculation, so the coupon rejection is buried inside a pricing helper."
+        ],
+        "b_issues": [
+          "Adds a new comment in `_send_receipt` that wasn't strictly needed (harmless).",
+          "The parametrized shipping test computes the expected tax with float `round(unit_price * 0.19)`, which is slightly fragile compared with hardcoded expected values."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.17771599999999999,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors break the function into nearly the same private helpers, and both preserve behavior exactly, including the equivalent release of `order.items` on a declined payment. A's characterization tests go further: they also cover negative quantities, the tax rate by country, the success log line, and the free-shipping threshold measured after a coupon discount. B never actually tests that last case. A's report also flags real pre-existing risks: stock stays reserved if `gateway.charge` or `inventory.reserve` raises an unexpected exception.",
+        "a_issues": [
+          "Added a new comment in `_send_receipt`; harmless but slightly beyond a pure move",
+          "Shipping test computes expected tax with float `round(unit_price * 0.19)`, which is less explicit than literal values"
+        ],
+        "b_issues": [
+          "`test_shipping_is_free_from_5000_cents_after_discounts` uses no discount, so the 'after discounts' threshold behavior is not actually covered",
+          "No test for the tax rate by country, negative quantities, or the paid-order log line",
+          "`_send_receipt` takes its parameters in a different order (`notifier` first) than the other helpers",
+          "Coupon checks redeem the coupon manually inside the tests, which makes them harder to read",
+          "Accidentally rewrote the file with CRLF line endings and then reverted it; the slip is disclosed but shows a fragile edit process"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

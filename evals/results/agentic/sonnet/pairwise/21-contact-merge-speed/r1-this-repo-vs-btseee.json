@@ -1,0 +1,85 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "6055b6aaeb3cc9a8",
+    "btseee": "572ca4c4e4a6c645"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.06421199999999999,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs make the same Map-based change to `mergeContacts`: they keep first-match semantics for duplicates already in `existing`, and they register appended contacts so duplicates inside the upload still merge. A also adds a test that pins down the duplicate-in-existing behavior. A reports a measured timing and a clean typecheck. B's report is honest but says it verified neither, and B adds no test for the edge case it describes.",
+        "a_issues": [
+          "The timing came from a throwaway script that was not committed, so the 79 ms figure cannot be reproduced from the PR.",
+          "No test covers the performance itself."
+        ],
+        "b_issues": [
+          "No test for the duplicate-in-existing edge case, even though the report calls it preserved.",
+          "Typecheck result not confirmed.",
+          "Speedup not measured on a realistic dataset."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.065,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes make the same fix to mergeContacts: a Map from normalized email to index, built once and updated on append. Both keep first-match semantics for duplicates already in the book and still merge duplicates within the upload. B also adds a test for the duplicate-in-existing edge case, which A only mentions in its report. B's report also covers a measured timing and a clean typecheck, while A left both unverified.",
+        "a_issues": [
+          "No test for the case where the existing book already holds duplicate emails, though the report calls it out as preserved behavior.",
+          "Typecheck not confirmed and no timing measured, so the speedup and type safety are asserted but not verified."
+        ],
+        "b_issues": [
+          "The timing came from a throwaway script and no benchmark was committed, which the report acknowledges."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

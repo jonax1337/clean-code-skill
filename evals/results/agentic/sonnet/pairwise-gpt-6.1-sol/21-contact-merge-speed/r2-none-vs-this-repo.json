@@ -1,0 +1,83 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "c28089c1d0b161f2",
+    "this-repo": "4d0c9a3aaa91c4b8"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes replace repeated scans with a normalized-email index while preserving ordering, first-match behavior, and merging of incoming duplicates. B is preferable because it adds regression coverage for duplicate stored emails and reports passing tests and typechecking, whereas A adds no tests and was not verified. B's wall-clock performance assertion is a maintenance risk on slow or heavily loaded CI machines, but its additional coverage still gives it a slight advantage.",
+        "a_issues": [
+          "Adds no regression tests for the optimization, particularly preservation of first-match behavior when existing contacts contain duplicate normalized emails.",
+          "Neither tests nor typechecking were run, and the performance improvement was not measured."
+        ],
+        "b_issues": [
+          "The fixed one-second performance assertion is environment-dependent and may fail on slow or heavily loaded CI; a separate benchmark or deterministic complexity regression check would be more robust."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes replace repeated scans with a normalized-email index while preserving first-match behavior, ordering, and merges between incoming duplicates. A is preferable because it adds regression coverage for repeated existing emails and reports passing tests and typechecking, whereas B adds no tests and was not run. A's fixed one-second performance assertion is a potential source of CI flakiness, so its testing advantage is qualified.",
+        "a_issues": [
+          "The performance test uses a fixed wall-clock threshold in the ordinary test suite, which can fail on slow or heavily loaded CI machines despite correct linear-time behavior."
+        ],
+        "b_issues": [
+          "Adds no regression tests for the indexed implementation, particularly preservation of the first matching entry when existing emails repeat.",
+          "Reports no test execution, typechecking, or performance measurement."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

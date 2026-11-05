@@ -1,0 +1,90 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "6cbb88408c2821da",
+    "btseee": "84b2e9f74f32a919"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.1055,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both PRs find the real cause (the CRM delivers `customer_id`) and make unknown customers fail through `requireCustomer`. B fixes the key at the point where CRM data is loaded and leaves `buildCustomerIndex` and its existing tests untouched. A puts source-specific key handling into the generic index, copies every record, and weakens three existing identity assertions to `deepEqual`. B also adds a test for the new unknown-customer error path, which A leaves untested; A's error text (`invoice INV-\u2026`) matches the existing convention slightly better.",
+        "a_issues": [
+          "Puts CRM-specific key handling into the generic `buildCustomerIndex` instead of where CRM data is loaded.",
+          "The index now stores copies, which leave a stray `customer_id` field on CRM records and break object identity.",
+          "Weakens three existing assertions from `equal` to `deepEqual` to fit the change.",
+          "No test covers the new `requireCustomer` error path in the export."
+        ],
+        "b_issues": [
+          "The error message says `referenced by INV-9` rather than `invoice INV-9`, unlike the existing convention in the tests.",
+          "`sources.test.js` reads the real `data/` directory, which relies on the working directory and on production data files."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.107244,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes find the same root cause (the CRM key is `customer_id`) and both route the export through `requireCustomer`. A normalizes the CRM records at the loading edge in `sources.js`, so `buildCustomerIndex` and its identity semantics stay untouched. B puts source-specific knowledge into the domain index, copies every record, and has to weaken three existing assertions from `equal` to `deepEqual`. A also tests the new unknown-customer error path in the export, which B leaves untested, though B's `referencedBy` label (\"invoice INV-\u2026\") matches the repo convention better than A's bare id.",
+        "a_issues": [
+          "The `referencedBy` passed is just `invoice.id`, giving \"(referenced by INV-9)\" instead of the conventional \"invoice INV-9\" used in the existing customers test.",
+          "`tests/sources.test.js` reads the real `data/` directory, which couples the test to production data files.",
+          "The report admits the new tests were not run against the old code to confirm they fail."
+        ],
+        "b_issues": [
+          "CRM-specific key handling lives in `buildCustomerIndex` instead of at the source boundary, mixing data-source quirks into the domain helper.",
+          "The index now stores copies of the records, which forced three existing identity assertions to be changed to `deepEqual`, weakening those tests.",
+          "There is no test for the export's new unknown-customer error path.",
+          "There is no test that exercises the actual load path (`sources.js` together with the index) for CRM data."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

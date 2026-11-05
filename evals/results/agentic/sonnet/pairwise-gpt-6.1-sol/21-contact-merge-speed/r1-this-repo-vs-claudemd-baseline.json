@@ -1,0 +1,77 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "this-repo": "6055b6aaeb3cc9a8",
+    "claudemd-baseline": "590b2418eadb217d"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes replace repeated scans with the same efficient email index while preserving first-match behavior, append order, and merging of incoming duplicates. Both also add coverage for duplicate emails already present in the address book. I slightly prefer A because B puts a fixed wall-clock deadline in the default test suite, introducing environment-dependent failures; its useful large-input correctness coverage could be retained without that deadline.",
+        "a_issues": [],
+        "b_issues": [
+          "The performance test requires completion within two seconds, making the default suite sensitive to slow or contended CI machines. Separate benchmarking from correctness assertions rather than treating elapsed time as a deterministic unit-test result."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes implement the same linear-time indexing strategy and preserve first-match behavior, incoming duplicate merging, and append order. Both also add a useful regression test for duplicate emails in the existing book. I slightly prefer B because A adds a hard two-second assertion to the ordinary test suite, making test success depend on machine speed and load; B reports a separate timing measurement without introducing that source of flakiness.",
+        "a_issues": [
+          "The performance test uses a fixed wall-clock threshold, which can fail on slow or heavily loaded CI machines despite a correct linear-time implementation."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

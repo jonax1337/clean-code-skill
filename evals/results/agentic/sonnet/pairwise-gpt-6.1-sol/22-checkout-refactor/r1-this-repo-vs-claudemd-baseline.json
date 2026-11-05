@@ -1,0 +1,85 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "this-repo": "37075b9c61f427d6",
+    "claudemd-baseline": "5e3e412baad2d2b7"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "B is the more conservative behavior-preserving refactor: it retains the original single-pass subtotal/tax calculation and explicitly carries the successful reservations into payment-failure cleanup. A has stronger characterization tests and a clean orchestration function, but replaces the reservation snapshot with the live order.items list during rollback. Both changes stay within scope and provide useful, substantially accurate reports.",
+        "a_issues": [
+          "Payment-decline cleanup releases order.items rather than the recorded successful reservations. If the items list changes during charging, rollback differs from the original implementation and may release the wrong stock.",
+          "Pricing now traverses the items twice and calculates each line price twice, rather than extracting the existing single-pass subtotal/tax calculation unchanged."
+        ],
+        "b_issues": [
+          "The per-line tax test does not distinguish per-line rounding from aggregate rounding: both produce 49 cents for its chosen prices.",
+          "The added tests omit some useful protections present in A, including coupon preservation after payment decline, exact rollback operation order, and exhausted coupons."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "A is the more faithful behavior-preserving refactor: it retains the exact list of successfully reserved items for payment-failure rollback and preserves the original single-pass pricing calculation. B instead releases the current order.items on payment failure, which can differ from what was reserved if the mutable order changes during charging. Both changes are appropriately scoped and readable, and B has stronger characterization tests, but preserving production behavior takes priority.",
+        "a_issues": [
+          "The tax-rounding test exercises half-up rounding but does not distinguish per-line rounding from rounding the aggregate tax: both produce 49 cents for its chosen lines.",
+          "The added tests cover fewer edge cases than B, notably negative quantities, exhausted coupons, and exact inventory operation sequences."
+        ],
+        "b_issues": [
+          "_charge rolls back order.items rather than the successfully reserved snapshot used by the original implementation. If the order's item list changes during charging and payment is declined, this can release the wrong items or leave reservations outstanding.",
+          "Pricing now traverses items twice and recomputes each line price, rather than preserving the original single-pass subtotal-and-tax calculation."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

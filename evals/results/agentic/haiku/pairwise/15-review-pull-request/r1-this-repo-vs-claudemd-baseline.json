@@ -1,0 +1,90 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d2035e3c299b17d4",
+    "claudemd-baseline": "2e8c4ec95759391d"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.75,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.152788,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews correctly block the PR on the SQL injection and the swallowed audit errors. A ran the suite in a scratch copy without touching the repo and reproduced each finding. It also gives the file and line numbers the task asked for, and it notes that the README handler table is now out of date. B adds two findings A missed: the single-user deactivation is not audited, and `actor` is a client-supplied value. However, B checked nothing at runtime, and several of its locations are function names rather than lines.",
+        "a_issues": [
+          "Misses that the single-user `deactivate_user` path still writes no audit row, although the PR says every deactivation is audited.",
+          "Does not flag that `actor` comes from the request and so can be forged in the audit trail.",
+          "Gives the swallowed exception as `audit.py:14-16`; the `except` block is lines 15-16."
+        ],
+        "b_issues": [
+          "Did not run the tests or reproduce any finding. The 28-passed claim and all its findings are unverified, which is weaker evidence for the merge decision.",
+          "Several findings give a function name instead of a line number, although the task asked for file and line.",
+          "Does not mention that the README handler table for `list_users` is now wrong and that the new handlers are undocumented.",
+          "Its framing of running a colleague's PR in a scratch copy as untrusted code is overly cautious for an internal review."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.14876,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both reviews put the SQL injection and the swallowed audit failures first and both correctly reject the PR. B applied the patch in a scratch copy, confirmed the 28 passing tests and reproduced its main findings: the injection payload, the swallowed audit error, the bogus audit row for id 99, `per_page=0` and `%` matching every user. B also gives line numbers throughout, as the task asked, and spots that the README is now stale. A raises two good points B misses: single-user deactivation is not audited, and `actor` is client-supplied and can be forged. But A's evidence is unverified and many of its locations are function names, not lines.",
+        "a_issues": [
+          "Did not run the tests or reproduce any finding, so the 28-pass claim and the impact of each issue stay unverified",
+          "Several findings give only a function name, not a line number, although the task asked for file and line",
+          "Misses that README.md's handler table is now wrong (`list_users` with no parameters returning everyone)"
+        ],
+        "b_issues": [
+          "Misses that single-user `deactivate_user` writes no audit row, which contradicts the PR's 'every deactivation' claim",
+          "Misses that `actor` comes from the request body, so audit entries can be forged",
+          "Treats the search `per_page` and pager gap as harmless, when the console needs a page count for search results"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

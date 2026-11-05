@@ -1,0 +1,89 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "b477b75d43eca366",
+    "claudemd-baseline": "5e3e412baad2d2b7"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.12992,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep the original order of side effects, error messages, statuses and exception chaining, so behavior is preserved in each. B also adds characterization tests that it ran against the old code. They cover the VIP stacking, shipping-threshold, rounding, invalid-coupon, partial-rollback and receipt-failure paths that the existing tests skip. For a refactor of live production code, this is the safety net a reviewer wants. A only ran the existing 9 tests and passed the coverage check on to the developer.",
+        "a_issues": [
+          "No tests added, even though the existing suite skips the VIP, invalid-coupon, partial-rollback, free-shipping and receipt-failure paths of a production-critical function.",
+          "`_charge` signature is crammed onto one very long line.",
+          "Uses a bare `list` type for reserved items instead of `list[Item]`.",
+          "The report pushes the job of checking test coverage onto the developer instead of doing it."
+        ],
+        "b_issues": [
+          "Adds an `Item` import to checkout.py purely for type hints, which is minor.",
+          "The `_subtotal_and_tax` docstring describes the rounding rule but not the return value."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.132428,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors keep the original order of side effects, the error messages, the statuses and the exception chaining, so behavior is preserved in both. A also adds nine characterization tests, run against the old code first, that pin branches the existing suite skipped: VIP stacking on a coupon, the free-shipping threshold, half-up per-line tax rounding, the default tax rate, invalid coupons without side effects, partial reservation rollback, and receipt failure. B relies only on the existing tests for a production refactor and admits it never checked their coverage, leaving that to the developer.",
+        "a_issues": [
+          "Adds an `Item` import only for type hints (harmless).",
+          "Splitting `_release` out as a separate helper is a slight extra layer for a two-line loop."
+        ],
+        "b_issues": [
+          "No new tests, so key branches stay unprotected during a production refactor: VIP discount, free-shipping threshold, invalid coupon, partial rollback, receipt failure and rounding.",
+          "The report admits the existing tests' coverage was never checked and pushes that check onto the developer.",
+          "The `_charge` signature is a single overly long line, and it uses a bare `list` type instead of `list[Item]`.",
+          "Moves `process_order` to the bottom of the module, which enlarges the diff and makes the entry point harder to find."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

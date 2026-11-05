@@ -1,0 +1,6 @@
+The email, name and role checks now live in one new module, `src/userValidation.js`. `createUser`, `updateUser` and `inviteUser` all call it. All 16 tests pass, and I didn't add new tests for the module.
+
+- **Shared validators:** `validateEmail`, `validateName` and `validateRole` each return `{ value }` or `{ error }`. The email pattern, the 80-character name limit, the role list and the error messages are defined only there.
+- **Handler differences kept:** The three handlers keep their own rules. `inviteUser` allows an empty name and requires a role, limited to `INVITABLE_ROLES` (everything except `owner`). `createUser` defaults the role to `member`. `updateUser` only validates fields that are present.
+
+**Email casing is inconsistent.** `createUser` and `updateUser` lowercase emails, but `inviteUser` never did. I kept that as it was, so the shared validator only trims, and create and update lowercase the result themselves. That means the lowercasing is still in two handlers. If the missing lowercase in `inviteUser` is a bug, say so. The fix is one line, and it would stop a differently-cased email from slipping past the duplicate check.

@@ -1,0 +1,88 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "dffaf7ade9df84e0",
+    "this-repo": "b97cba07653d8e51"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "A is the more faithful mechanical refactor, preserving pricing evaluation order and the exact reservation list used for rollback. B adds substantially better characterization tests and a readable top-level workflow, but changes execution order and rollback bookkeeping despite the explicit requirement that production behavior remain unchanged. Those preservation risks outweigh B's stronger test coverage.",
+        "a_issues": [
+          "Adds no characterization tests, leaving important pricing boundaries, partial rollback, and notification failures unprotected.",
+          "Uses bare list annotations for reserved items rather than list[Item], and the six-argument _charge helper is somewhat cumbersome."
+        ],
+        "b_issues": [
+          "Moves tax calculation and tax_rate lookup after coupon validation, whereas the original performs them first. This changes observable evaluation order and can change which exception escapes when both operations would fail.",
+          "Recomputes line prices in a second traversal instead of preserving the original combined subtotal-and-tax calculation.",
+          "Discards the successful-reservation list and releases the current order.items on payment decline. If a collaborator changes the item list during checkout, rollback can release different items than the original implementation would.",
+          "The report's blanket claim that side-effect order is unchanged overlooks the reordered pricing operations and altered rollback source."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "B",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "B is the more faithful extraction, preserving the original pricing evaluation order and the recorded reservation list used for payment-failure rollback. A adds valuable characterization tests, but it moves tax calculation after coupon lookup and substitutes the current order items for the reservation snapshot, introducing avoidable behavioral differences. For a production refactor explicitly requiring unchanged behavior, B's fidelity outweighs its weaker test coverage.",
+        "a_issues": [
+          "Tax calculation and tax-rate lookup now occur after coupon validation rather than before it. This changes exception precedence when tax calculation would fail and allows coupon lookup side effects to occur first.",
+          "Payment-decline cleanup uses order.items instead of the recorded successful reservations. If a collaborator changes the order's item list during checkout, rollback can release different items than the original implementation.",
+          "The report overstates preservation of execution order; the added tests do not cover the pricing-order and reservation-snapshot differences."
+        ],
+        "b_issues": [
+          "Adds no characterization tests despite limited existing coverage of pricing boundaries, partial rollback, and notification failures.",
+          "Uses unparameterized list annotations for reservations; list[Item] would make the helper contracts clearer."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "B",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

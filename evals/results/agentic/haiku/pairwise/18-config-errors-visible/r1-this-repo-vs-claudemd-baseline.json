@@ -1,0 +1,89 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d25be316cdeedc33",
+    "claudemd-baseline": "b7461c3e32e81654"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.205824,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same core fix: they collect every configuration problem, refuse bad values instead of defaulting, and reject missing files, unknown keys and bad URLs. Main exits with status 2 in both, and both report accurate test counts (17 and 20). B wins on tests: it covers the incident-style typo `8x`, negative retries, unknown timeout units, and ftp or path-only upstream URLs. B's report also shows the actual error output and lists the judgement calls and the untested Main exit path. A's loader is a bit leaner, but it leaves more edge cases untested.",
+        "a_issues": [
+          "Fewer edge-case tests: no trailing-letter typo like `4a` or `8x`, no negative retries, no unknown timeout unit.",
+          "An empty optional value produces a less direct message (`must be a whole number..., got \"\"`) than a dedicated empty-value message.",
+          "The report does not mention that Main's exit path has no automated test."
+        ],
+        "b_issues": [
+          "`intValue`, `duration` and `flag` each check `getProperty == null` again before calling `present`, which adds redundancy.",
+          "The `uri.isAbsolute()` check is redundant with the scheme check.",
+          "Every helper repeats the absent-or-empty boilerplate, so the code is slightly more verbose than A's."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.210868,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes do the same work. Each stops falling back on bad values, rejects unknown keys and missing files, validates upstream.url, gathers every problem into one message, and exits with status 2 from Main. A's tests cover the incident case better: a trailing letter (`8x`), negative retries, queue capacity, an unknown timeout unit and several bad URLs, written with a small assertion helper. B's coverage is thinner, though its implementation is a bit simpler and its below-minimum message is more precise. Both reports are accurate, so the deciding factor is A's stronger regression protection.",
+        "a_issues": [
+          "A value below the minimum gets the same 'must be a whole number of at least N' message as a non-numeric one, which is less precise.",
+          "The `present`/`required` helpers check `getProperty == null` twice, which adds some redundancy.",
+          "The report lists 'a missing api.token' among new rejections, but that was already rejected before."
+        ],
+        "b_issues": [
+          "An empty optional value such as `queue.capacity=` is reported as 'must be a whole number ... got \"\"', not as an explicit empty-value message.",
+          "The tests do not cover the exact incident shape (a number with a trailing letter), negative retries, non-numeric queue.capacity or an unknown timeout unit.",
+          "Each test repeats the same assertThrows/contains boilerplate instead of sharing a helper."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

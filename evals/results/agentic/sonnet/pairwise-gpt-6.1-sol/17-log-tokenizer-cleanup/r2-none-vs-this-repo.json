@@ -1,0 +1,88 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "2acc9d92d21951eb",
+    "this-repo": "b96acc341f4b801c"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors appear to preserve token contents, error variants, byte offsets, and termination after errors while making the state machine substantially easier to follow. B is preferable because it commits meaningful characterization tests covering previously unprotected branches, rather than leaving equivalence checking entirely in a temporary harness. Its report also provides broader performance evidence and more clearly acknowledges measurement uncertainty, although neither change includes a reproducible benchmark.",
+        "a_issues": [
+          "Adds no regression tests despite restructuring every tokenizer path; the reported differential harness is not retained in the repository.",
+          "Performance evidence covers only one synthetic realistic workload, leaving word-heavy and other token distributions unexamined.",
+          "The report refers to eight existing tests, but the repository contains eleven: eight tokenizer tests and three stats/unescape tests."
+        ],
+        "b_issues": [
+          "read_field returns Ok(None) without advancing self.pos past trailing separators, unlike the original; repeated next() calls after exhaustion unnecessarily rescan that whitespace.",
+          "The benchmark and differential harnesses were removed, so the reported performance parity and exhaustive comparison cannot be reproduced directly from the PR."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors appear to preserve token contents, error kinds, byte offsets, and termination after errors while making the state machine much easier to follow. A is preferable because it commits substantial characterization tests covering the previously unprotected branches, rather than leaving those checks in a temporary harness. Its report also gives more qualified, workload-specific performance evidence, although neither change establishes the no-slowdown requirement conclusively.",
+        "a_issues": [
+          "read_field returns Ok(None) without advancing self.pos past trailing separators, so repeated next() calls after exhaustion rescan that whitespace; the original records the end position.",
+          "The differential and benchmark harnesses were removed, preventing reviewers and future maintainers from reproducing the reported checks.",
+          "Reported word-only timings include a possible 3\u20135% slowdown, so the strict performance requirement still needs stronger validation."
+        ],
+        "b_issues": [
+          "Adds no regression tests despite identifying important untested error paths and edge cases; temporary fuzzing does not provide lasting protection.",
+          "Performance evidence covers only one synthetic workload and best timings, which is insufficient to establish no regression across token shapes.",
+          "The differential and benchmark harness remains outside the repository, so the reported results are not reproducible from the PR."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

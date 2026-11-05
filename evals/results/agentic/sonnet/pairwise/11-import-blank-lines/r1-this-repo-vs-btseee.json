@@ -1,0 +1,79 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ffffe84b2e6a3f25",
+    "btseee": "244d5ba81d1226ac"
+  },
+  "score": 0.75,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.75,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.07572000000000001,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the identical code fix: `parse_entries` skips empty or whitespace-only lines before parsing, and line numbers still count those skipped lines. The difference is in the line-number test. A's test puts a malformed `oops` line after a blank line, which exercises the same field-count unpack error the user hit and checks it is still reported with the right line number. B's test uses a bad date with three fields instead. Both reports are accurate and say the tests passed but the real CSV was not tried.",
+        "a_issues": [],
+        "b_issues": [
+          "B's report says a non-blank line with the wrong number of fields still fails, but no test in the change exercises that path; its line-number test uses a bad date with three fields."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.07368,
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both changes make the identical code fix: `parse_entries` skips empty and whitespace-only lines, and line numbering stays tied to the physical file lines. The tests are equivalent. Each adds a blank-line skipping test and a test that line numbers still count skipped blank lines, differing only in which malformed line they use. Both reports are accurate and say the real CSV was not tried, so I would be equally happy to merge either.",
+        "a_issues": [
+          "Report says all tests pass but does not name the command that was run."
+        ],
+        "b_issues": [
+          "The line-number test uses a malformed 'oops' line, which only checks the unpack failure path and not a realistic bad field."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

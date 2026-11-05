@@ -8,19 +8,19 @@
       "name": "parser_returns_milliseconds",
       "description": "parseDuration returns milliseconds for every unit and still rejects invalid text.",
       "passed": true,
-      "evidence": "\u2714 parseDuration returns milliseconds for every unit (0.5179ms)\n\u2714 parseDuration still trims whitespace and rejects invalid text (0.2742ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 96.292"
+      "evidence": "\u2714 parseDuration returns milliseconds for every unit (1.0197ms)\n\u2714 parseDuration still trims whitespace and rejects invalid text (0.3394ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 164.0102"
     },
     {
       "name": "timing_callers_unchanged",
       "description": "Retry delays, cache expiry and job scheduling still work in the same milliseconds as before.",
       "passed": true,
-      "evidence": "\u2714 backoffDelayMs keeps returning milliseconds (0.5771ms)\n\u2714 withRetry sleeps for the same number of milliseconds as before (0.637ms)\n\u2714 cache entries expire after the same wall-clock time as before (0.1754ms)\n\u2714 scheduler computes timestamps in milliseconds (0.1258ms)\n\u2139 tests 4\n\u2139 suites 0\n\u2139 pass 4\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 95.2024"
+      "evidence": "\u2714 backoffDelayMs keeps returning milliseconds (0.6639ms)\n\u2714 withRetry sleeps for the same number of milliseconds as before (0.6933ms)\n\u2714 cache entries expire after the same wall-clock time as before (0.1954ms)\n\u2714 scheduler computes timestamps in milliseconds (0.125ms)\n\u2139 tests 4\n\u2139 suites 0\n\u2139 pass 4\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 133.7655"
     },
     {
       "name": "unit_sensitive_callers_unchanged",
       "description": "The TTL range validation, the Retry-After header (seconds) and the settings report (seconds) behave as before, although none of them multiplied the old result.",
       "passed": true,
-      "evidence": "\u2714 validateTtl accepts every ttl between 5 seconds and one day (0.6044ms)\n\u2714 validateTtl rejects a ttl outside the allowed range (0.168ms)\n\u2714 Retry-After is still sent in whole seconds (0.4158ms)\n\u2714 the settings report still prints seconds (0.0976ms)\n\u2139 tests 4\n\u2139 suites 0\n\u2139 pass 4\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 98.5228"
+      "evidence": "\u2714 validateTtl accepts every ttl between 5 seconds and one day (0.571ms)\n\u2714 validateTtl rejects a ttl outside the allowed range (0.1725ms)\n\u2714 Retry-After is still sent in whole seconds (0.4005ms)\n\u2714 the settings report still prints seconds (0.0945ms)\n\u2139 tests 4\n\u2139 suites 0\n\u2139 pass 4\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 113.0598"
     },
     {
       "name": "only_expected_files_changed",
@@ -38,7 +38,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 nextRun adds the interval to the last run (0.5713ms)\n\u2714 dueJobs returns the jobs whose next run has been reached (0.4492ms)\n\u2714 rejects text that is not a duration (0.5974ms)\n\u2714 rejects a ttl above the maximum (0.1207ms)\n\u2139 tests 12\n\u2139 suites 0\n\u2139 pass 12\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 141.4534"
+      "evidence": "\u2714 nextRun adds the interval to the last run (0.6259ms)\n\u2714 dueJobs returns the jobs whose next run has been reached (0.533ms)\n\u2714 rejects text that is not a duration (0.6421ms)\n\u2714 rejects a ttl above the maximum (0.1169ms)\n\u2139 tests 12\n\u2139 suites 0\n\u2139 pass 12\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 269.9578"
     },
     {
       "name": "typecheck_passes",

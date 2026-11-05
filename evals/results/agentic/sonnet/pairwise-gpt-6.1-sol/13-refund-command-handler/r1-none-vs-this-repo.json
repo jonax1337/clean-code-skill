@@ -1,0 +1,81 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "d0fd3941d1b2e90d",
+    "this-repo": "cfc5518d65186853"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes correctly validate refunds, restrict eligible statuses, accumulate refunds against amountPaid, preserve status, and follow the existing handler architecture. B has a slight advantage in regression coverage, explicitly testing cancelled orders, negative amounts, and a single refund equal to the amount actually paid. A's report is more accurate: B claims eight new tests, but its diff contains nine.",
+        "a_issues": [
+          "Tests do not explicitly cover cancelled-order or negative-amount rejection, both of which B covers."
+        ],
+        "b_issues": [
+          "The report incorrectly states that there are eight new refund tests; the diff contains nine. Its reported total of 29 is consistent with the supplied tests."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes correctly implement cumulative refunds capped at the amount actually paid, preserve order status, and follow the existing validation and repository patterns. A has slightly stronger regression coverage, explicitly testing cancelled orders and negative refund amounts in addition to the core scenarios covered by both. B's report is more accurate: A adds nine tests, not the eight it claims.",
+        "a_issues": [
+          "The report incorrectly says eight refund tests were added; the diff contains nine. Its reported total of 29 is consistent with nine additions to the 20 existing tests."
+        ],
+        "b_issues": [
+          "Refund-handler tests omit explicit cancelled-order and negative-amount cases that A covers, although the implementation correctly rejects both through its status check and shared validator."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

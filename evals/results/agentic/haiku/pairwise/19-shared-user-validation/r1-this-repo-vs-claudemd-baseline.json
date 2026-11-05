@@ -1,0 +1,92 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "2912a14c096dd3a7",
+    "claudemd-baseline": "f91671d30e9f2897"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.75
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.16148800000000002,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors preserve behavior and keep the same messages and order. B moves more into the shared module: trimming, lowercasing and the optional-name rule are now options there. A leaves `trimmed(...).toLowerCase()` and the choice between required and length-only name checks in each handler, so some normalization is still duplicated and a fix may still have to be made twice. B's tests also cover more edge cases, such as non-string inputs and trimming to exactly 80 characters. Against that, B adds a code comment that points to a docs note that does not exist.",
+        "a_issues": [
+          "Email normalization (`trimmed(...).toLowerCase()`) is still repeated in createUser and updateUser, so a normalization fix has to be made in more than one place.",
+          "Two name functions (`nameError` and `nameLengthError`) leave the required-or-optional choice to each caller instead of making it an explicit parameter.",
+          "The report says 16 existing tests, but the repository has 15.",
+          "The claimed 17,496-case differential comparison was done with a script that was then deleted, so it cannot be checked."
+        ],
+        "b_issues": [
+          "The comment in validation/user.js says to 'see the note in docs/api.md', but no such note exists; the docs actually say invitation emails are lowercased.",
+          "The checks push into a `messages` array passed in by the caller and also return a value, which is a less pure interface.",
+          "The report says 16 existing tests, but the repository has 15."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.176364,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors keep behavior identical, including the existing failure to lowercase invitation emails, and both flag that bug instead of fixing it. A consolidates more: each check does both normalization and validation, so handlers make one call per field and a fix to trimming or lowercasing happens in one place. B leaves `trimmed(...).toLowerCase()` repeated in the handlers and needs three lines per field. A's tests also cover more edge cases (non-string input, case preservation, the trimmed 80-character boundary), though its source comment points to a docs note that does not exist.",
+        "a_issues": [
+          "The comment on `checkEmail` says to 'see the note in docs/api.md', but no such note exists. docs/api.md actually says invitation emails are stored lowercase, so the comment is misleading.",
+          "The `lowercase: false` option builds the known bug into the shared API as a supported configuration.",
+          "The header comment claims every client-visible rule lives in the module, but 'role is required' still lives in inviteUser.",
+          "The report says 16 existing tests; the repository has 15, so the totals given in the report are off by one."
+        ],
+        "b_issues": [
+          "Normalization (trim plus lowercase) is still spread across the handlers, so the module centralizes validation but not cleaning, which falls short of the 'fix once' goal.",
+          "Handlers are more verbose (separate value, problem and push lines per field), and the module exposes five functions, including a split nameError/nameLengthError.",
+          "Tests do not cover non-string inputs or trimming, because `trimmed` is not tested at all.",
+          "The report says 16 existing tests and 20 total; the actual numbers are 15 and 19. The equivalence check over 17,496 combinations cannot be verified because the script was deleted."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

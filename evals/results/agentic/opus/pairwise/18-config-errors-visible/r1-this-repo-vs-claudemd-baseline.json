@@ -1,0 +1,90 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "bc431de125c4cef4",
+    "claudemd-baseline": "f6cf98d286542a5e"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.75,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.240896,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both stop the relay on a bad config, collect every problem, reject unknown keys and missing files, and document the change. B keeps the existing case-insensitive boolean parsing, whereas A now rejects values like `TRUE` that used to work, which could break configs already in production. B also makes `Main` testable and adds an end-to-end test proving a bad config exits non-zero and relays nothing. A's extra overflow check on the timeout and its narrower scope do not quite outweigh this.",
+        "a_issues": [
+          "`metrics.enabled` now accepts only lowercase `true`/`false`, so existing `TRUE`/`True` values that `Boolean.parseBoolean` used to accept will now block startup.",
+          "No test covers `Main`'s exit path; the `System.exit` call and the stderr message are only checked by hand.",
+          "`System.exit` sits inside `main` with no seam for testing."
+        ],
+        "b_issues": [
+          "Adds a new rule rejecting `request.timeout=0s` that the README does not require (disclosed, but still scope creep).",
+          "Does not reject timeouts too large for `toMillis` (e.g. `9223372036854775807s`); this passes validation and then throws an `ArithmeticException` in `ConsoleUplink` at send time, outside the `IOException` retry handling.",
+          "Exit status 2 is less conventional than `EX_CONFIG` (78) for configuration errors.",
+          "Adds a problems list to `ConfigException` and refactors `Main`, a little more structure than strictly needed."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.23648,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes turn silent fallbacks into collected, reported errors, reject unknown keys and fail on a missing file, so they solve the task equally well at the core. A keeps the original case-insensitive boolean parsing, so `TRUE` still works, and it accepts `HTTPS` schemes. It also adds a testable `Main.run` with a test showing that a bad config exits with an error and relays nothing. B rejects booleans like `True` that used to be accepted, which could break existing configs, and it has no test of the startup path. B is better at rejecting timeouts whose milliseconds overflow, which A misses.",
+        "a_issues": [
+          "Accepts timeouts like 9223372036854775807s whose toMillis() overflows; ConsoleUplink would then throw at send time.",
+          "Adds a new rule rejecting 0s timeouts that the README does not state (it is disclosed in the report).",
+          "The example output in the report mixes a misspelled-key error and a bad-value error in a way that looks made up."
+        ],
+        "b_issues": [
+          "Booleans are now case-sensitive, so `TRUE`/`True` (previously accepted by Boolean.parseBoolean) now fail startup.",
+          "The URL scheme check is case-sensitive, so `HTTPS://...` is rejected.",
+          "No test covers Main's catch, message and exit code; the System.exit path is untestable as written."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

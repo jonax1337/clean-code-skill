@@ -1,0 +1,86 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "2a29f0f0d9192b06",
+    "claudemd-baseline": "f9fc150133a6e4a8"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.0,
+    "design": 0.5,
+    "readability": 0.75,
+    "tests": 0.5,
+    "report": 0.75
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.12646,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes are correct and nearly identical. Each removes the `* 1000` from the millisecond callers, converts back to seconds in http, report and validate, and adds tests for those seconds-based callers. A ties the TTL limits to the same `5s`/`1d` strings used in the error messages and names the conversion factor instead of repeating bare 1000 literals. A also reports that its new tests passed against the original code before the change. B's `Math.ceil` is harmless but unnecessary, since durations are always whole seconds.",
+        "a_issues": [
+          "Adds a new exported `MS_PER_SECOND` constant from duration.ts, a small surface addition the task did not ask for",
+          "Calls `parseDuration` at module load to define the TTL limits, which is slightly indirect"
+        ],
+        "b_issues": [
+          "Repeats bare `1000` literals in http.ts, report.ts and validate.ts",
+          "`Math.ceil` in `rateLimitHeaders` handles a fractional case that cannot occur, which may suggest to readers that durations can be fractional"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.127748,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes convert parseDuration to milliseconds correctly, and both update all six callers, including the three that need seconds (http, report, validate). A does this with minimal inline edits. B adds a new exported MS_PER_SECOND constant and a private helper, which widens the module's surface without real need. Tests and reports are comparably good, so A wins narrowly on simplicity and scope.",
+        "a_issues": [
+          "Math.ceil in rateLimitHeaders is unnecessary because durations are always whole seconds, though it does no harm",
+          "The validate limits are written as raw arithmetic (5 * 1000), which is less clearly tied to the '5s'/'1d' wording in the messages than B's approach"
+        ],
+        "b_issues": [
+          "It adds and exports a new MS_PER_SECOND constant from duration.ts, which widens that module's exported surface beyond what the task needs",
+          "It adds a small inSeconds helper in report.ts that a plain / 1000 would have covered",
+          "The http test checks only a single value"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

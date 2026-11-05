@@ -1,0 +1,86 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "7fbb1946ff3fa04f",
+    "this-repo": "dbe7c7e5c73291ff"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "B centralizes the shared rules while preserving endpoint-specific defaults, optional names, partial updates, and validation-message ordering. It also makes invitation email normalization comply with the documented contract, whereas A deliberately retains the known case-sensitive duplicate-check bug. B adds useful validator boundary tests and invitation regression tests; both reports accurately describe their changes and verification.",
+        "a_issues": [
+          "Explicitly disables lowercasing for invitations, retaining a documented-contract violation that allows case variants to bypass email conflict checks.",
+          "Adds no tests for the extracted validators or endpoint-specific behavior.",
+          "Duplicates the invitation role list instead of deriving it from the shared roles, leaving another opportunity for rules to drift."
+        ],
+        "b_issues": [
+          "The invitation normalization test checks the returned email, but no new regression test directly verifies case-insensitive conflicts against existing users or pending invitations."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "A centralizes the shared rules and adds meaningful regression coverage while preserving endpoint-specific validation policies and message ordering. Its invitation email normalization fixes a documented contract violation; B instead adds an option specifically to preserve that bug. Both reports are candid, but A provides the more merge-ready implementation.",
+        "a_issues": [
+          "The added tests verify lowercase invitation storage but do not directly verify case-insensitive conflicts against existing users or pending invitations.",
+          "Handler-level regression coverage could better protect multi-field error ordering and partial-update behavior after the refactor."
+        ],
+        "b_issues": [
+          "Invitation emails intentionally remain case-sensitive, violating the documented normalization and matching contract and allowing mixed-case duplicates.",
+          "Adds no tests for the extracted validators or their endpoint-specific integration.",
+          "Maintains two independent role lists rather than deriving invitation roles from the canonical list."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

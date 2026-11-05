@@ -1,0 +1,82 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "5f2690d022105286",
+    "btseee": "da0ab49a405d2fce"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.140992,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The source changes are effectively identical and both correct: the new event type, the paused status, a nullable resumeOn, the payment_failed guard, clearing resumeOn on cancel, plus the audit and notifier cases. The difference lies in the tests. B's cancel-while-paused test also asserts canceledAt, so it checks that cancelling a paused subscription still works as usual and does not only check that resumeOn is cleared. Both reports are accurate, and the test counts (19) add up for both.",
+        "a_issues": [
+          "The cancel-while-paused test does not check that canceledAt is still recorded, so 'cancelling works as usual' is only partly protected."
+        ],
+        "b_issues": [
+          "The resumeOn field comment on Subscription leaves out the YYYY-MM-DD format, which is minor."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.140952,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The production changes are effectively identical and both meet every requirement: the paused status, `resumeOn` cleared to null on cancel, payment events ignored while paused, the audit line format and the customer-only notification. The tests are also nearly identical. A's cancel-while-paused test additionally checks that `canceledAt` is still recorded, and its fixtures are formatted more readably, so it edges out B.",
+        "a_issues": [
+          "The `Subscription.resumeOn` doc comment does not mention the YYYY-MM-DD format, though the event type documents it."
+        ],
+        "b_issues": [
+          "The cancel-while-paused test does not check that `canceledAt` is still recorded.",
+          "Placeholder reasons (\"x\") and long one-line event literals make the tests slightly harder to read."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

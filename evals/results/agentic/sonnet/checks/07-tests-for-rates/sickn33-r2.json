@@ -14,7 +14,7 @@
       "name": "new_tests_pass_on_original_code",
       "description": "The tests the agent added run and pass against the untouched fixture (including the original rates.ts).",
       "passed": true,
-      "evidence": "['test/rates.test.ts'] on the original code: exit 0, tests ran: True\n  \u2714 quotes zero as all zeros (0.0544ms)\n  \u2714 rejects negative and fractional amounts (0.0694ms)\n  \u2714 rejects unknown currencies (0.0626ms)\n\u2714 quote (1.022ms)\n\u2139 tests 31\n\u2139 suites 4\n\u2139 pass 31\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 107.1342"
+      "evidence": "['test/rates.test.ts'] on the original code: exit 0, tests ran: True\n  \u2714 quotes zero as all zeros (0.051ms)\n  \u2714 rejects negative and fractional amounts (0.0649ms)\n  \u2714 rejects unknown currencies (0.0576ms)\n\u2714 quote (0.9721ms)\n\u2139 tests 31\n\u2139 suites 4\n\u2139 pass 31\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 121.2218"
     },
     {
       "name": "tests_catch_mutants_of_rates",
@@ -38,7 +38,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 quote (1.1423ms)\n\u2714 nextBusinessDay moves a weekday to the following day (1.4479ms)\n\u2714 nextBusinessDay skips the weekend (0.1138ms)\n\u2714 nextBusinessDay ignores the time of day and does not change its input (0.2462ms)\n\u2139 tests 41\n\u2139 suites 4\n\u2139 pass 41\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 137.7942"
+      "evidence": "\u2714 quote (1.0995ms)\n\u2714 nextBusinessDay moves a weekday to the following day (2.0724ms)\n\u2714 nextBusinessDay skips the weekend (0.2284ms)\n\u2714 nextBusinessDay ignores the time of day and does not change its input (0.2527ms)\n\u2139 tests 41\n\u2139 suites 4\n\u2139 pass 41\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 170.4525"
     },
     {
       "name": "typecheck_passes",

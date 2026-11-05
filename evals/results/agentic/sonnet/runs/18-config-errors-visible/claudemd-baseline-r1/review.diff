@@ -1,0 +1,296 @@
+diff --git a/src/main/java/com/acme/relay/Main.java b/src/main/java/com/acme/relay/Main.java
+index a6e5c7f..b2e8a7f 100644
+--- a/src/main/java/com/acme/relay/Main.java
++++ b/src/main/java/com/acme/relay/Main.java
+@@ -1,26 +1,34 @@
+ package com.acme.relay;
+ 
++import com.acme.relay.config.ConfigException;
+ import com.acme.relay.config.ConfigLoader;
+ import com.acme.relay.config.ServiceConfig;
+ import java.io.BufferedReader;
+ import java.io.IOException;
+ import java.io.InputStreamReader;
+ import java.nio.charset.StandardCharsets;
+ import java.nio.file.Path;
+ 
+ public final class Main {
+     private static final String DEFAULT_CONFIG_FILE = "config.properties";
+ 
+     private Main() {}
+ 
+     public static void main(String[] args) throws IOException, InterruptedException {
+         Path configFile = Path.of(args.length > 0 ? args[0] : DEFAULT_CONFIG_FILE);
+-        ServiceConfig config = ConfigLoader.load(configFile);
++        ServiceConfig config;
++        try {
++            config = ConfigLoader.load(configFile);
++        } catch (ConfigException e) {
++            System.err.println("relay: refusing to start. " + e.getMessage());
++            System.exit(1);
++            return;
++        }
+         Relay relay = new Relay(config, new ConsoleUplink(config, System.out), System.err);
+         try (BufferedReader input = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8))) {
+             String line;
+             while ((line = input.readLine()) != null) {
+                 relay.submit(line);
+             }
+         }
+         relay.shutdown();
+diff --git a/src/main/java/com/acme/relay/config/ConfigLoader.java b/src/main/java/com/acme/relay/config/ConfigLoader.java
+index 1cbbf01..0f18305 100644
+--- a/src/main/java/com/acme/relay/config/ConfigLoader.java
++++ b/src/main/java/com/acme/relay/config/ConfigLoader.java
+@@ -1,94 +1,156 @@
+ package com.acme.relay.config;
+ 
+ import java.io.IOException;
+ import java.io.Reader;
+ import java.net.URI;
++import java.net.URISyntaxException;
+ import java.nio.file.Files;
+ import java.nio.file.Path;
+ import java.time.Duration;
++import java.util.ArrayList;
++import java.util.List;
+ import java.util.Properties;
++import java.util.Set;
++import java.util.TreeSet;
+ import java.util.regex.Matcher;
+ import java.util.regex.Pattern;
+ 
+ /** Reads the relay's configuration from a properties file. */
+ public final class ConfigLoader {
+     static final int DEFAULT_WORKER_THREADS = 4;
+     static final int DEFAULT_QUEUE_CAPACITY = 1000;
+     static final int DEFAULT_RETRY_ATTEMPTS = 3;
+     static final Duration DEFAULT_REQUEST_TIMEOUT = Duration.ofSeconds(30);
+ 
+     private static final Pattern DURATION = Pattern.compile("(\\d+)(ms|s|m)");
++    private static final Set<String> KNOWN_KEYS = Set.of(
++            "upstream.url", "api.token", "worker.threads", "queue.capacity",
++            "retry.max-attempts", "request.timeout", "metrics.enabled");
+ 
+     private ConfigLoader() {}
+ 
++    /**
++     * Loads and validates the configuration.
++     *
++     * @throws ConfigException listing every problem found, if the file is missing, unreadable or invalid
++     */
+     public static ServiceConfig load(Path file) {
++        List<String> errors = new ArrayList<>();
+         Properties properties = read(file);
+-        return new ServiceConfig(
+-                uri(properties.getProperty("upstream.url")),
+-                required(properties, "api.token"),
+-                intValue(properties, "worker.threads", DEFAULT_WORKER_THREADS, 1),
+-                intValue(properties, "queue.capacity", DEFAULT_QUEUE_CAPACITY, 1),
+-                intValue(properties, "retry.max-attempts", DEFAULT_RETRY_ATTEMPTS, 0),
+-                duration(properties.getProperty("request.timeout")),
+-                Boolean.parseBoolean(properties.getProperty("metrics.enabled")));
++
++        for (String key : new TreeSet<>(properties.stringPropertyNames())) {
++            if (!KNOWN_KEYS.contains(key)) {
++                errors.add("unknown key '" + key + "'");
++            }
++        }
++        URI upstream = uri(properties, errors);
++        String token = required(properties, "api.token", errors);
++        int workers = intValue(properties, "worker.threads", DEFAULT_WORKER_THREADS, 1, errors);
++        int capacity = intValue(properties, "queue.capacity", DEFAULT_QUEUE_CAPACITY, 1, errors);
++        int retries = intValue(properties, "retry.max-attempts", DEFAULT_RETRY_ATTEMPTS, 0, errors);
++        Duration timeout = duration(properties, errors);
++        boolean metrics = bool(properties, "metrics.enabled", errors);
++
++        if (!errors.isEmpty()) {
++            throw new ConfigException(
++                    "Invalid configuration in " + file + ":\n  - " + String.join("\n  - ", errors));
++        }
++        return new ServiceConfig(upstream, token, workers, capacity, retries, timeout, metrics);
+     }
+ 
+     private static Properties read(Path file) {
+         Properties properties = new Properties();
+         try (Reader reader = Files.newBufferedReader(file)) {
+             properties.load(reader);
+-        } catch (IOException e) {
+-            // no readable file: run on the defaults
++        } catch (IOException | IllegalArgumentException e) {
++            throw new ConfigException("Cannot read configuration file " + file + ": " + e);
+         }
+         return properties;
+     }
+ 
+-    private static String required(Properties properties, String key) {
++    private static String required(Properties properties, String key, List<String> errors) {
+         String value = properties.getProperty(key);
+         if (value == null || value.isBlank()) {
+-            throw new ConfigException(key + " is required");
++            errors.add(key + " is required");
++            return null;
+         }
+         return value.trim();
+     }
+ 
+-    private static URI uri(String raw) {
++    private static URI uri(Properties properties, List<String> errors) {
++        String raw = required(properties, "upstream.url", errors);
++        if (raw == null) {
++            return null;
++        }
+         try {
+-            return new URI(raw.trim());
+-        } catch (Exception e) {
++            URI uri = new URI(raw);
++            if (uri.getScheme() == null || uri.getHost() == null) {
++                errors.add("upstream.url must be an absolute URL with a host, got '" + raw + "'");
++                return null;
++            }
++            return uri;
++        } catch (URISyntaxException e) {
++            errors.add("upstream.url is not a valid URL: '" + raw + "'");
+             return null;
+         }
+     }
+ 
+-    private static int intValue(Properties properties, String key, int defaultValue, int minimum) {
++    private static int intValue(
++            Properties properties, String key, int defaultValue, int minimum, List<String> errors) {
+         String raw = properties.getProperty(key);
+         if (raw == null) {
+             return defaultValue;
+         }
+         try {
+             int value = Integer.parseInt(raw.trim());
+-            return value >= minimum ? value : defaultValue;
++            if (value < minimum) {
++                errors.add(key + " must be at least " + minimum + ", got '" + raw.trim() + "'");
++            }
++            return value;
+         } catch (NumberFormatException e) {
++            errors.add(key + " must be a whole number, got '" + raw.trim() + "'");
+             return defaultValue;
+         }
+     }
+ 
+-    private static Duration duration(String raw) {
++    private static boolean bool(Properties properties, String key, List<String> errors) {
++        String raw = properties.getProperty(key);
++        if (raw == null) {
++            return false;
++        }
++        String value = raw.trim();
++        if (value.equals("true") || value.equals("false")) {
++            return Boolean.parseBoolean(value);
++        }
++        errors.add(key + " must be 'true' or 'false', got '" + value + "'");
++        return false;
++    }
++
++    private static Duration duration(Properties properties, List<String> errors) {
++        String raw = properties.getProperty("request.timeout");
+         if (raw == null) {
+             return DEFAULT_REQUEST_TIMEOUT;
+         }
+         Matcher matcher = DURATION.matcher(raw.trim());
+         if (!matcher.matches()) {
++            errors.add("request.timeout must be a whole number plus ms, s or m (e.g. 30s), got '"
++                    + raw.trim() + "'");
+             return DEFAULT_REQUEST_TIMEOUT;
+         }
+         try {
+             long amount = Long.parseLong(matcher.group(1));
+-            return switch (matcher.group(2)) {
++            Duration value = switch (matcher.group(2)) {
+                 case "ms" -> Duration.ofMillis(amount);
+                 case "s" -> Duration.ofSeconds(amount);
+                 default -> Duration.ofMinutes(amount);
+             };
++            if (value.isZero()) {
++                errors.add("request.timeout must be greater than zero, got '" + raw.trim() + "'");
++            }
++            return value;
+         } catch (ArithmeticException | NumberFormatException e) {
++            errors.add("request.timeout is too large: '" + raw.trim() + "'");
+             return DEFAULT_REQUEST_TIMEOUT;
+         }
+     }
+ }
+diff --git a/src/test/java/com/acme/relay/config/ConfigLoaderTest.java b/src/test/java/com/acme/relay/config/ConfigLoaderTest.java
+index a99510e..0397e29 100644
+--- a/src/test/java/com/acme/relay/config/ConfigLoaderTest.java
++++ b/src/test/java/com/acme/relay/config/ConfigLoaderTest.java
+@@ -69,25 +69,65 @@ class ConfigLoaderTest {
+         Path file = write("upstream.url=https://uplink.example.com/v1/events\n");
+ 
+         ConfigException error = assertThrows(ConfigException.class, () -> ConfigLoader.load(file));
+ 
+         assertTrue(error.getMessage().contains("api.token"));
+     }
+ 
+     @Test
+-    void fallsBackToDefaultWorkerCountWhenNotANumber() throws IOException {
+-        ServiceConfig config = ConfigLoader.load(write(REQUIRED + "worker.threads=four\n"));
++    void rejectsWorkerCountThatIsNotANumber() throws IOException {
++        assertRejected(REQUIRED + "worker.threads=4x\n", "worker.threads", "4x");
++    }
+ 
+-        assertEquals(ConfigLoader.DEFAULT_WORKER_THREADS, config.workerThreads());
++    @Test
++    void rejectsValuesBelowTheMinimum() throws IOException {
++        assertRejected(REQUIRED + "worker.threads=0\n", "worker.threads", "at least 1");
++        assertRejected(REQUIRED + "retry.max-attempts=-1\n", "retry.max-attempts", "at least 0");
+     }
+ 
+     @Test
+-    void fallsBackToDefaultTimeoutWhenTheUnitIsMissing() throws IOException {
+-        ServiceConfig config = ConfigLoader.load(write(REQUIRED + "request.timeout=30\n"));
++    void rejectsTimeoutWithoutUnitOrZero() throws IOException {
++        assertRejected(REQUIRED + "request.timeout=30\n", "request.timeout", "'30'");
++        assertRejected(REQUIRED + "request.timeout=0s\n", "request.timeout", "greater than zero");
++    }
+ 
+-        assertEquals(ConfigLoader.DEFAULT_REQUEST_TIMEOUT, config.requestTimeout());
++    @Test
++    void rejectsBadBooleanUnknownKeyAndBadUrl() throws IOException {
++        assertRejected(REQUIRED + "metrics.enabled=yes\n", "metrics.enabled", "yes");
++        assertRejected(REQUIRED + "worker.thread=8\n", "unknown key", "worker.thread");
++        assertRejected("upstream.url=not a url\napi.token=x\n", "upstream.url", "not a url");
++    }
++
++    @Test
++    void missingUpstreamUrlIsReported() throws IOException {
++        assertRejected("api.token=x\n", "upstream.url is required");
++    }
++
++    @Test
++    void missingFileIsReported() {
++        Path missing = dir.resolve("nope.properties");
++
++        ConfigException error = assertThrows(ConfigException.class, () -> ConfigLoader.load(missing));
++
++        assertTrue(error.getMessage().contains("nope.properties"));
++    }
++
++    @Test
++    void reportsAllProblemsAtOnce() throws IOException {
++        assertRejected("api.token=x\nworker.threads=a\nqueue.capacity=b\n",
++                "upstream.url", "worker.threads", "queue.capacity");
++    }
++
++    private void assertRejected(String content, String... expectedFragments) throws IOException {
++        Path file = write(content);
++
++        ConfigException error = assertThrows(ConfigException.class, () -> ConfigLoader.load(file));
++
++        for (String fragment : expectedFragments) {
++            assertTrue(error.getMessage().contains(fragment), error.getMessage());
++        }
+     }
+ 
+     private Path write(String content) throws IOException {
+         return Files.writeString(dir.resolve("config.properties"), content);
+     }
+ }

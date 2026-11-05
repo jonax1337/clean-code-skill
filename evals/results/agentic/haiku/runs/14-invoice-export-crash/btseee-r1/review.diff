@@ -1,0 +1,51 @@
+diff --git a/src/sources.js b/src/sources.js
+index 637fd82..2eca5f6 100644
+--- a/src/sources.js
++++ b/src/sources.js
+@@ -4,15 +4,20 @@ import { join } from "node:path";
+ function readJson(directory, file) {
+   return JSON.parse(readFileSync(join(directory, file), "utf8"));
+ }
+ 
+ export function loadInvoices(directory) {
+   return readJson(directory, "invoices.json");
+ }
+ 
++/** The CRM names the id `customer_id`; translate it to the billing shape. */
++function fromCrmRecord({ customer_id, ...rest }) {
++  return { customerId: customer_id, ...rest };
++}
++
+ /** The customers of both systems in one list: billing first, then the CRM. */
+ export function loadCustomerRecords(directory) {
+   return [
+     ...readJson(directory, "billing-customers.json"),
+-    ...readJson(directory, "crm-customers.json"),
++    ...readJson(directory, "crm-customers.json").map(fromCrmRecord),
+   ];
+ }
+diff --git a/tests/sources.test.js b/tests/sources.test.js
+new file mode 100644
+index 0000000..1964ecf
+--- /dev/null
++++ b/tests/sources.test.js
+@@ -0,0 +1,19 @@
++import assert from "node:assert/strict";
++import { test } from "node:test";
++import { buildCustomerIndex } from "../src/customers.js";
++import { loadCustomerRecords, loadInvoices } from "../src/sources.js";
++
++const DATA = new URL("../data", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
++
++test("every customer record, from both systems, is indexed by customerId", () => {
++  const index = buildCustomerIndex(loadCustomerRecords(DATA));
++  assert.equal(index.has(undefined), false);
++  for (const invoice of loadInvoices(DATA)) {
++    assert.ok(index.get(invoice.customerId), `no customer for ${invoice.id}`);
++  }
++});
++
++test("CRM customers keep their name under the billing id field", () => {
++  const index = buildCustomerIndex(loadCustomerRecords(DATA));
++  assert.equal(index.get("C-2201").name, "Birch & Co");
++});

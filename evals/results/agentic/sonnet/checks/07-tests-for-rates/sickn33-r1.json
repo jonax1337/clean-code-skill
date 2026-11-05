@@ -14,7 +14,7 @@
       "name": "new_tests_pass_on_original_code",
       "description": "The tests the agent added run and pass against the untouched fixture (including the original rates.ts).",
       "passed": true,
-      "evidence": "['test/rates.test.ts'] on the original code: exit 0, tests ran: True\n  \u2714 rejects an amount that does not cover the fee (0.0761ms)\n  \u2714 rejects negative amounts (0.0827ms)\n  \u2714 rejects unknown currencies and non-integer amounts (0.0619ms)\n\u2714 quote (1.0056ms)\n\u2139 tests 29\n\u2139 suites 4\n\u2139 pass 29\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 108.0283"
+      "evidence": "['test/rates.test.ts'] on the original code: exit 0, tests ran: True\n  \u2714 rejects an amount that does not cover the fee (0.1184ms)\n  \u2714 rejects negative amounts (0.0957ms)\n  \u2714 rejects unknown currencies and non-integer amounts (0.0984ms)\n\u2714 quote (1.4169ms)\n\u2139 tests 29\n\u2139 suites 4\n\u2139 pass 29\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 140.5724"
     },
     {
       "name": "tests_catch_mutants_of_rates",
@@ -38,7 +38,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 quote (1.0147ms)\n\u2714 nextBusinessDay moves a weekday to the following day (1.402ms)\n\u2714 nextBusinessDay skips the weekend (0.1151ms)\n\u2714 nextBusinessDay ignores the time of day and does not change its input (0.2275ms)\n\u2139 tests 39\n\u2139 suites 4\n\u2139 pass 39\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 133.4815"
+      "evidence": "\u2714 quote (1.6495ms)\n\u2714 nextBusinessDay moves a weekday to the following day (2.5566ms)\n\u2714 nextBusinessDay skips the weekend (0.1574ms)\n\u2714 nextBusinessDay ignores the time of day and does not change its input (0.2951ms)\n\u2139 tests 39\n\u2139 suites 4\n\u2139 pass 39\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 281.1724"
     },
     {
       "name": "typecheck_passes",

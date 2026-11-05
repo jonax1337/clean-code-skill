@@ -1,0 +1,84 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "8074c3e7445d4b1e",
+    "btseee": "0a7a45cb15ad16c3"
+  },
+  "score": 0.5,
+  "dimension_scores": {
+    "correctness": 0.75,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 0.0
+  },
+  "contradictory": true,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.10942,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs fix the actual cause the same way: they rename the CRM `customer_id` to `customerId` when loading, and they route the lookup through the existing `requireCustomer`. The export now fails visibly, as the README requires. A's rest-spread mapping keeps any other fields the CRM delivers. B's explicit field list silently drops anything beyond name and country. That makes A slightly more robust to future CRM fields. The tests are equivalent, and B's report is a little more careful in noting it was verified only against the sample data.",
+        "a_issues": [
+          "Report does not say that verification was limited to the sample `data/` folder"
+        ],
+        "b_issues": [
+          "`crmToCustomer` picks only `name` and `country`, so any other field the CRM delivers is silently dropped",
+          "The `errors.js` import is placed after `export.js`, breaking the alphabetical import order used in the other test files"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.108968,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct fix. They rename the CRM `customer_id` to `customerId` at load time, and they route the export lookup through `requireCustomer`, which gives the error behaviour the README requires. They also add equivalent tests. A's test is more direct, without the single-use helper B adds. A's report is a little more careful: it says only the sample data was checked and that the real monthly files should be checked before sending. The differences are minor.",
+        "a_issues": [
+          "The `crmToCustomer` mapping lists the fields explicitly, so any extra CRM fields are silently dropped.",
+          "The test import order is not alphabetical (`errors.js` comes after `export.js`)."
+        ],
+        "b_issues": [
+          "Adds a `withDataDirectory` helper that only one test uses, which is a small unneeded abstraction.",
+          "The report does not say that the fix was only checked against the sample `data/` folder."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

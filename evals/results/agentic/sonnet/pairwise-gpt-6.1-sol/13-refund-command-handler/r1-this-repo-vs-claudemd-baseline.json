@@ -1,0 +1,84 @@
+{
+  "case": "13-refund-command-handler",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "this-repo": "cfc5518d65186853",
+    "claudemd-baseline": "768c9016d4c7322e"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both implementations satisfy the refund rules and preserve existing behavior using the repository's established handler and validation patterns. A narrowly wins because its tests additionally cover sub-cent rejection and a successful refund exactly equal to an underpaid order's amount paid, while its remaining-refundable calculation and README are slightly clearer. B has the more accurate report; A incorrectly reports eight new tests when its diff contains nine.",
+        "a_issues": [
+          "The report says eight new refund tests, but the diff contains nine."
+        ],
+        "b_issues": [
+          "The refund tests omit sub-cent rejection and successful refunding up to the exact amount paid when that amount is below the order total.",
+          "The over-limit error path repeats the cumulative-refund calculation, and the README packs the refund rules into an unwieldy table cell."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes correctly implement cumulative refunds capped at the amount actually paid, preserve order status, and follow the existing command-handler conventions. B has a slightly clearer remaining-refundable calculation and tests both sub-cent rejection and successful refunding exactly the amount paid on an underpaid order. A has somewhat stronger persistence assertions and an accurate test count in its report, but B's small readability and coverage advantages narrowly outweigh those differences.",
+        "a_issues": [
+          "The over-cap error message repeats the cumulative-refund calculation rather than naming the calculated value.",
+          "Refund tests omit explicit sub-cent rejection and successful refunding exactly the amount paid on an underpaid order."
+        ],
+        "b_issues": [
+          "The report says there are 8 new refund tests, but the diff contains 9.",
+          "The delivered-order test verifies success and unchanged status but does not verify the persisted refunded amount, unlike A."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

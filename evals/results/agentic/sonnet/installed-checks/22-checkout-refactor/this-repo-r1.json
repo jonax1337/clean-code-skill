@@ -14,7 +14,7 @@
       "name": "failures_and_side_effects_unchanged",
       "description": "Rejections, stock reservation and release order, charge timing, coupon redemption, logging and swallowed receipt errors behave exactly as before.",
       "passed": true,
-      "evidence": ".............                                                            [100%]\n13 passed in 0.04s"
+      "evidence": ".............                                                            [100%]\n13 passed in 0.05s"
     },
     {
       "name": "only_expected_files_changed",
@@ -38,7 +38,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "............................                                             [100%]\n28 passed in 0.06s"
+      "evidence": "............................                                             [100%]\n28 passed in 0.07s"
     },
     {
       "name": "no_function_longer_than_thirty_lines",

@@ -1,0 +1,87 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "f9686ec69d7f7017",
+    "btseee": "1cf5025a1bb53817"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 1.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.136864,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two diffs are nearly identical: each removes the flag, the `compact` field, the render path, the help line and the README row, and adds the same changelog entry. A's test covers both `--compact` and `-c`. B's integration test covers only `--compact`, but it does exercise the public `run` entry point. B's report flags a real problem both diffs share: the changelog line saying \"use `--max-width`\" is misleading, since that option truncates cells rather than removing padding. Spotting this tips the balance slightly to B.",
+        "a_issues": [
+          "The changelog line 'Use `--max-width` to keep output narrow' is not a real replacement for compact mode, and the report does not mention it.",
+          "The `-c` rejection is checked only with `is_err()`, not the specific error."
+        ],
+        "b_issues": [
+          "The new test checks only `--compact`, not `-c`.",
+          "Same misleading changelog sentence, though the report calls it out.",
+          "The report gives only the integration test count and leaves out the unit tests."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.13628400000000002,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The two code changes are essentially the same: both remove the flag, the field, the render path, the help line and the README row, and both add the same changelog entry. A's report is more careful: it notes that the copied 'Use `--max-width`' advice is not a real replacement for compact mode and asks how to handle it, while B repeats that advice without comment. A's diff is also slightly cleaner. B's test is a bit stronger because it also covers `-c`.",
+        "a_issues": [
+          "Changelog entry still points users to `--max-width` as a replacement, even though A's own report says that is misleading.",
+          "The new rejection test only checks `--compact`, not the short `-c` flag."
+        ],
+        "b_issues": [
+          "Changelog entry points users to `--max-width` as a replacement, which is misleading, and the report does not flag this.",
+          "Leaves a stray blank line before the closing brace of the render tests module.",
+          "The `-c` check only asserts `is_err()` instead of the specific `UnknownOption` error."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

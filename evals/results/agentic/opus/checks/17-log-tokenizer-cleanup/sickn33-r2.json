@@ -8,19 +8,19 @@
       "name": "token_stream_unchanged",
       "description": "For about 20 groups of edge cases (blanks, empty values, escapes, unterminated quotes and timestamps, stray quotes, empty keys, non-ASCII text) the tokens and the error with its byte position are exactly what the original produced, and nothing follows an error.",
       "passed": true,
-      "evidence": "exit 0, 21 tests passed\ntest tokens_timestamp_forms ... ok\ntest tokens_typical_line ... ok\ntest tokens_unterminated_quotes ... ok\ntest tokens_words ... ok\n\ntest result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Blocking waiting for file lock on package cache\n     Locking 1 package to highest compatible version\n    Blocking waiting for file lock on package cache\n   Compiling logscan v0.4.2 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-r77yk5a9\\repo)\n   Compiling logscan-hidden v0.0.0 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-r77yk5a9\\repo\\.hidden)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.28s\n     Running tests\\tokens.rs (.hidden\\target\\debug\\deps\\tokens-f0a25f49a16e8796.exe)"
+      "evidence": "exit 0, 21 tests passed\ntest tokens_timestamp_errors ... ok\ntest tokens_quoted_value_must_be_followed_by_a_blank ... ok\ntest tokens_timestamp_forms ... ok\ntest tokens_typical_line ... ok\ntest tokens_unterminated_quotes ... ok\ntest tokens_words ... ok\n\ntest result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Locking 1 package to highest compatible version\n   Compiling logscan v0.4.2 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-belr9syn\\repo)\n   Compiling logscan-hidden v0.0.0 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-belr9syn\\repo\\.hidden)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.74s\n     Running tests\\tokens.rs (.hidden\\target\\debug\\deps\\tokens-76b25d69364a5c07.exe)"
     },
     {
       "name": "public_api_unchanged",
       "description": "A test crate that uses `tokenize`, `Tokens`, `Token`, `LexError`, `Stats` and `unescape` as before (signatures, variants, derives, `Clone` iterator, tokens outliving the iterator) still compiles and passes.",
       "passed": true,
-      "evidence": "exit 0, 9 tests passed\ntest api_cloned_iterator_continues_independently ... ok\ntest api_tokens_can_be_built_directly ... ok\ntest api_stats_counts_stay_the_same ... ok\ntest api_functions_keep_their_signatures ... ok\ntest api_tokens_outlive_the_iterator ... ok\ntest api_unescape_still_resolves_escapes ... ok\ntest api_variants_and_payloads_are_unchanged ... ok\ntest api_types_keep_their_traits ... ok\n\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling logscan-hidden v0.0.0 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-r77yk5a9\\repo\\.hidden)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.33s\n     Running tests\\api.rs (.hidden\\target\\debug\\deps\\api-dd888c9b48776147.exe)"
+      "evidence": "exit 0, 9 tests passed\ntest api_errors_are_described ... ok\ntest api_stats_counts_stay_the_same ... ok\ntest api_functions_keep_their_signatures ... ok\ntest api_tokens_outlive_the_iterator ... ok\ntest api_unescape_still_resolves_escapes ... ok\ntest api_types_keep_their_traits ... ok\ntest api_tokens_can_be_built_directly ... ok\ntest api_variants_and_payloads_are_unchanged ... ok\n\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling logscan-hidden v0.0.0 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-belr9syn\\repo\\.hidden)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.49s\n     Running tests\\api.rs (.hidden\\target\\debug\\deps\\api-3cd6969b9415338c.exe)"
     },
     {
       "name": "tokenizing_does_not_allocate",
       "description": "With a counting global allocator, tokenizing 4000 valid and 2000 malformed lines performs zero heap allocations.",
       "passed": true,
-      "evidence": "exit 0, 1 tests passed\nrunning 1 test\ntest alloc_tokenizing_never_allocates ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n   Compiling logscan-hidden v0.0.0 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-r77yk5a9\\repo\\.hidden)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.38s\n     Running tests\\alloc.rs (.hidden\\target\\debug\\deps\\alloc-ca2fba18f13b84f9.exe)"
+      "evidence": "exit 0, 1 tests passed\nrunning 1 test\ntest alloc_tokenizing_never_allocates ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n   Compiling logscan-hidden v0.0.0 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-belr9syn\\repo\\.hidden)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.44s\n     Running tests\\alloc.rs (.hidden\\target\\debug\\deps\\alloc-82144c483678acfa.exe)"
     },
     {
       "name": "no_allocating_code_in_tokenizer",
@@ -50,7 +50,7 @@
       "name": "suite_passes",
       "description": "The project's own test suite passes.",
       "passed": true,
-      "evidence": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling logscan v0.4.2 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-r77yk5a9\\repo)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.46s\n     Running unittests src\\lib.rs (target\\debug\\deps\\logscan-62955453cb260ce5.exe)\n     Running unittests src\\main.rs (target\\debug\\deps\\logscan-3ecb744096419cc1.exe)\n     Running tests\\stats.rs (target\\debug\\deps\\stats-3e16e8f40968b558.exe)\n     Running tests\\tokens.rs (target\\debug\\deps\\tokens-fdedcc803317f7cc.exe)\n   Doc-tests logscan"
+      "evidence": "\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling logscan v0.4.2 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-belr9syn\\repo)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.61s\n     Running unittests src\\lib.rs (target\\debug\\deps\\logscan-62955453cb260ce5.exe)\n     Running unittests src\\main.rs (target\\debug\\deps\\logscan-3ecb744096419cc1.exe)\n     Running tests\\stats.rs (target\\debug\\deps\\stats-3e16e8f40968b558.exe)\n     Running tests\\tokens.rs (target\\debug\\deps\\tokens-fdedcc803317f7cc.exe)\n   Doc-tests logscan"
     },
     {
       "name": "existing_tests_kept",
@@ -62,7 +62,7 @@
       "name": "clippy_clean",
       "description": "`cargo clippy --all-targets -- -D warnings` reports nothing (the fixture is clean), and no lint was silenced with an `allow` attribute.",
       "passed": true,
-      "evidence": "clippy exit 0; allow attributes: no matching added lines\nChecking logscan v0.4.2 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-r77yk5a9\\repo)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.37s"
+      "evidence": "clippy exit 0; allow attributes: no matching added lines\nChecking logscan v0.4.2 (C:\\Users\\Jonas\\AppData\\Local\\Temp\\cc-agentic-belr9syn\\repo)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.70s"
     },
     {
       "name": "clean_diff",

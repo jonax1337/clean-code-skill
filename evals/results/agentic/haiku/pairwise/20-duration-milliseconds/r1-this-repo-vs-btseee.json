@@ -1,0 +1,84 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "ef055682729a8867",
+    "btseee": "e42149f79f4a4bf6"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.109912,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "The source diffs are identical: both convert `parseDuration` to milliseconds, drop the `* 1000` multipliers, divide by 1000 where seconds are needed (`Retry-After`, report text), and rescale the TTL bounds, so behavior is preserved in both. The only code difference is that B renames one test to mention milliseconds, which is a small clarity gain. A's report is more candid about what was verified: it says it did not capture the typecheck exit code and that `report.ts`, `http.ts` and the TTL math have no direct tests. That tips the choice to A.",
+        "a_issues": [
+          "No tests added for the changed `/ 1000` conversions in `http.ts` and `report.ts` (A does say so in its report)."
+        ],
+        "b_issues": [
+          "No tests added for the changed `/ 1000` conversions in `http.ts` and `report.ts`, and the report does not mention this gap.",
+          "Report says the typecheck is 'clean' without noting how that was confirmed, and does not say that several converted paths were checked only by reading."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.10756,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two code diffs are functionally identical and both correct. Each drops the `* 1000` multipliers, divides by 1000 where output must stay in seconds (Retry-After, the report text), and converts the validate bounds to milliseconds. The only code difference is that A renames one test, which is a cosmetic edit. B's report is more careful: it says it did not capture the typecheck exit code and that `report.ts` and `http.ts` are untested, whereas A states flatly that the typecheck is clean.",
+        "a_issues": [
+          "The report says the typecheck is clean without saying how that was confirmed.",
+          "The report does not mention that `report.ts` and `http.ts` have no test coverage for the divide-by-1000 changes.",
+          "No tests were added for `rateLimitHeaders` or `describeSettings`, the two places where behavior had to stay the same."
+        ],
+        "b_issues": [
+          "No tests were added for `rateLimitHeaders` or `describeSettings`, the two places where behavior had to stay the same. The report acknowledges this but leaves the gap."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

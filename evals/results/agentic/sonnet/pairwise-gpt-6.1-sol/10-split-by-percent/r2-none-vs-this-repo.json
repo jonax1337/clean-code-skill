@@ -1,0 +1,86 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "c547e2bf0e45bd8d",
+    "this-repo": "64a50938bd669fab"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 1.0,
+    "design": 0.0,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "A implements the requested whole-number percentages summing to 100 without adding B's unsupported restriction that every percentage must be positive. Both reuse the existing exact-cent allocation, preserve equal splitting, and validate before saving. B has better automated coverage and cleaner CLI validation, but its rejection of valid zero-percent entries tips the decision toward A.",
+        "a_issues": [
+          "No automated CLI tests cover percentage splitting, persistence, or rejecting both/neither split options.",
+          "Duplicates the duplicate-name validation rather than sharing it with split_equally.",
+          "New tests use redundant local imports and combine several distinct validation cases into one test."
+        ],
+        "b_issues": [
+          "Rejects zero-percent entries even when the percentages sum to 100; the task requires whole numbers, not strictly positive numbers.",
+          "Adds a test enforcing that unsupported zero-percent restriction."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "B follows the stated percentage rules without adding A's unsupported restriction that every percentage must be greater than zero: a 100/0 split uses whole numbers totaling 100 and should be accepted. Both reuse the existing allocation logic and preserve equal splitting, but A has better structure and substantially stronger automated coverage. B's closer adherence to the requested behavior narrowly outweighs those advantages.",
+        "a_issues": [
+          "Rejects zero percentages even though the task only requires whole-number percentages totaling 100; its tests explicitly enforce this unnecessary restriction."
+        ],
+        "b_issues": [
+          "Has no automated CLI coverage for percentage splitting, mutually exclusive split modes, missing split options, or ensuring invalid input saves nothing.",
+          "Duplicates the duplicate-name validation instead of sharing it with split_equally.",
+          "New tests contain redundant function-local imports and combine several independent validation cases into one test."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "B",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

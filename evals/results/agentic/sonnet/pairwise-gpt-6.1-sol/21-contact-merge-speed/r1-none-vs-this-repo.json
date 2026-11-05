@@ -1,0 +1,79 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "e189290b7f4ef9bb",
+    "this-repo": "6055b6aaeb3cc9a8"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes replace repeated scans with a normalized-email index, preserving first-match behavior, output order, and merging of duplicates within the upload. B adds a focused regression test for duplicate emails already in the address book. Its report also documents typechecking and a representative workload timing, although the throwaway benchmark is not independently reproducible from the diff.",
+        "a_issues": [
+          "Adds no regression test for preserving first-match behavior when existing contacts contain duplicate normalized emails.",
+          "Does not report workload timing or typecheck verification."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes replace repeated scans with a normalized-email index while preserving first-match behavior, append order, and merging of duplicates within the upload. A is preferable because it adds a focused regression test for duplicate emails already present in the address book. Its report also provides a measured runtime and explicitly reports typechecking, while clearly disclosing that the benchmark was not committed.",
+        "a_issues": [],
+        "b_issues": [
+          "Adds no regression test for preserving first-match behavior when existing contacts have duplicate normalized emails.",
+          "Reports passing existing tests but provides no measured performance result or typecheck result."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

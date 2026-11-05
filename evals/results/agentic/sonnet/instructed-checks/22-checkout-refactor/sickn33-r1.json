@@ -8,13 +8,13 @@
       "name": "totals_unchanged",
       "description": "Prices, tax rounding per line, discounts and shipping come out exactly as before for orders that exercise rounding, coupons, VIP customers and the free-shipping boundary.",
       "passed": true,
-      "evidence": ".........                                                                [100%]\n9 passed in 0.04s"
+      "evidence": ".........                                                                [100%]\n9 passed in 0.05s"
     },
     {
       "name": "failures_and_side_effects_unchanged",
       "description": "Rejections, stock reservation and release order, charge timing, coupon redemption, logging and swallowed receipt errors behave exactly as before.",
       "passed": true,
-      "evidence": ".............                                                            [100%]\n13 passed in 0.04s"
+      "evidence": ".............                                                            [100%]\n13 passed in 0.05s"
     },
     {
       "name": "only_expected_files_changed",
@@ -38,7 +38,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": ".........                                                                [100%]\n9 passed in 0.03s"
+      "evidence": ".........                                                                [100%]\n9 passed in 0.04s"
     },
     {
       "name": "no_function_longer_than_thirty_lines",

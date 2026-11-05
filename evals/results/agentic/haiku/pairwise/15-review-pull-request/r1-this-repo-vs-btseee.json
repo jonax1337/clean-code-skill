@@ -1,0 +1,87 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d2035e3c299b17d4",
+    "btseee": "355c25c96cbca9d5"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.25,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.161804,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both reviews find the two blockers (SQL injection in search, swallowed audit errors), back them with reproductions, and give accurate line references. B also flags that the audit `actor` comes straight from the request parameters, which matters for the compliance audit trail the PR exists to deliver; A misses this. B also catches more verified edge cases: duplicate ids producing two audit rows, and negative `per_page` returning every user. A's review is accurate and well prioritised, but B's is more complete on the issues that matter.",
+        "a_issues": [
+          "Misses that the audit `actor` is taken from client-supplied request params, so the audit trail can be forged",
+          "Misses duplicate ids producing duplicate audit rows, and negative per_page acting as no limit",
+          "audit.py line range 14-16 is slightly off (the except/pass is at 15-16)"
+        ],
+        "b_issues": [
+          "Somewhat longer, and the merge condition (#1-#6 all before merge) is stricter than needed",
+          "The claim that the injection can read other tables is asserted without a demonstration"
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.157316,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both reviews correctly put the SQL injection and the swallowed audit errors first as blockers, give accurate file and line references, and say not to merge. A also flags that the audit actor is taken from client-supplied request params, a real weakness for a compliance audit trail that B misses. A also catches duplicate-id audit rows and the default page size change to `list_users`. B adds a separate LIKE-wildcard finding and a useful 'good parts' section, but missing the actor issue makes it slightly less thorough.",
+        "a_issues": [
+          "LIKE wildcard escaping is only mentioned in passing inside the fix for #1, not as its own finding",
+          "Severity labels are somewhat inflated (e.g. param validation rated High alongside the pager count bug)"
+        ],
+        "b_issues": [
+          "Misses that `actor` is taken from client-supplied params, so audit entries can be attributed to anyone",
+          "Does not mention duplicate ids producing duplicate audit rows",
+          "Treats the default page-size change mostly as a docs issue, not a behaviour change for existing callers"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

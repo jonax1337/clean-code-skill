@@ -1,0 +1,82 @@
+{
+  "case": "21-contact-merge-speed",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "3c6d7f4b2238cd5d",
+    "btseee": "60bd67aebb5bbf59"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 1.0,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.06956,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both diffs make the same correct change: they build a Map from normalized email to index once and register appended contacts so duplicates inside the upload still merge. This preserves first-entry-wins, original position and arrival order. A also adds a regression test that pins first-entry-wins when the existing book already has duplicate emails, the rule the index could most easily break, plus a short comment explaining why the first index is kept. B checked equivalence with a 2,000-case random comparison, but nothing in the repo protects that behavior from future regressions.",
+        "a_issues": [
+          "The benchmark harness is not committed, so the timing claim cannot be reproduced from the repo (this is acceptable)."
+        ],
+        "b_issues": [
+          "No test covers first-entry-wins when the existing book has duplicate emails; the random equivalence check was thrown away rather than kept as a test.",
+          "No comment explains why the Map keeps only the first index per email, which is a subtle way of matching the old findIndex behavior."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.067916,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two `src/import.ts` changes are functionally identical: a normalized-email Map built once, first existing entry wins, and new contacts are added to the map as they are appended, so behavior is preserved and the O(n\u00b7m) scan is gone. B also adds a regression test that pins the first-entry-wins rule for duplicate emails already in the book, which is the behavior the index could most easily break. B's short comment explains why the `has` check exists. A checked the same rule only with a throwaway randomized comparison that it did not keep, so nothing in the repo protects it.",
+        "a_issues": [
+          "No test protects the first-existing-entry-wins rule for duplicate emails already in the book; the equivalence check was a deleted throwaway script."
+        ],
+        "b_issues": [
+          "The one-line `if` without braces differs slightly in style from the rest of the function (minor)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

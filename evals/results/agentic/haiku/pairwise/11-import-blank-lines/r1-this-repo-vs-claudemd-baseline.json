@@ -1,0 +1,88 @@
+{
+  "case": "11-import-blank-lines",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c0a6be3a392b3869",
+    "claudemd-baseline": "1893cf593cf753db"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.080196,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes make the same one-line fix: skip lines that are empty or whitespace-only, while keeping the original line numbers. B's tests protect more of the behaviour. They cover whitespace-only lines with CRLF endings and check that a bad line after a blank one still reports its real line number. A's single CLI test covers neither. A's report is a little stronger because it confirmed the new test fails without the fix, but B's better coverage of the edge cases decides it.",
+        "a_issues": [
+          "No test that line numbers in error messages stay correct after skipped blank lines, even though the report claims this",
+          "No test for whitespace-only or CRLF blank lines; the only test uses bare '\\n' lines",
+          "The test is at the CLI level only and does not check which entries were stored, just the count"
+        ],
+        "b_issues": [
+          "Did not check that the new tests fail on the old code (the report says so honestly)",
+          "The report includes an odd remark about not checking whether Entry enforces positive minutes; the check is plainly in entries.py and has nothing to do with the task",
+          "The inline comment is fine, but 'such as a trailing newline' is slightly misleading: a trailing newline alone does not produce an extra line, only a blank line does"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.076616,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same correct one-line fix: skip blank and whitespace-only lines while still counting them for line numbers. A's tests cover more: whitespace-only lines, blank lines in the middle and at the end, and a test that an error after a blank line still names the real line. B states that line numbers are preserved but has no test for it. B's report is stronger because it confirmed the new test fails without the fix, but A's broader tests protect the behavior better.",
+        "a_issues": [
+          "Did not check that the new tests fail on the old code",
+          "Report raises a doubt about whether Entry rejects non-positive minutes, which is clearly implemented in entries.py"
+        ],
+        "b_issues": [
+          "No test for the claim that error line numbers still count skipped blank lines",
+          "No test for whitespace-only lines, only empty ones",
+          "CLI test does not check the stored entries via report"
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "case": "19-shared-user-validation",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "2912a14c096dd3a7",
+    "btseee": "1a3843915345fb55"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 1.0,
+    "design": 0.0,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.25
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.165964,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "B puts the whole email normalization (trim plus lowercase) inside `checkEmail`, so all three handlers share one rule. That brings `inviteUser` in line with docs/api.md, which says invitation emails are stored lowercase. B states this behavior change plainly and tests it. A keeps the documented bug and leaves `.toLowerCase()` repeated in two handlers and missing from the third, so the normalization rule still lives in several places, which is what the task wanted to end.",
+        "a_issues": [
+          "Email lowercasing stays in the handlers (`trimmed(...).toLowerCase()` in create and update, absent in invite), so normalization is not centralized and a fix would still touch several files.",
+          "Keeps the `inviteUser` email case bug even though docs/api.md says invitation emails are stored lowercase.",
+          "Splits name validation into `nameError` and `nameLengthError` rather than one rule with a required option, which is slightly more API surface.",
+          "The report misdescribes the bug's effect: `createUser` never checks invitations, so the real consequence is duplicate invitations that differ only in case.",
+          "No handler-level tests were added; the new tests cover only the helpers."
+        ],
+        "b_issues": [
+          "Changes behavior inside a refactor (`inviteUser` now lowercases emails), although the change matches the documented contract and is flagged and tested.",
+          "The ad-hoc `{ error: 'role is required' }` object in `inviteUser` is a little awkward next to the shared check results."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "A",
+          "design": "B",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.16489600000000001,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "A also moves email normalization (trim plus lowercase) into the shared `checkEmail`. That brings `inviteUser` in line with docs/api.md, which says invitation emails are stored lowercased, and closes the case-sensitive invitation-conflict bug. A adds a test for it and discloses it as a behavior change. B leaves `.toLowerCase()` in each handler, so the email normalization rule is still copied and was already copied inconsistently, which is the kind of drift the task wanted removed. B also knowingly keeps the documented-contract violation in `inviteUser`.",
+        "a_issues": [
+          "Changes invite email storage, although disclosed and consistent with docs/api.md",
+          "The `role is required` message for invitations is built in the handler as an ad-hoc `{ error }` object rather than coming from the shared module",
+          "The report's test counts are wrong: it claims 16 existing tests, but the repository has 15"
+        ],
+        "b_issues": [
+          "Email lowercasing is still applied separately in each handler instead of in the shared rule, so normalization can drift again",
+          "Keeps `inviteUser` storing mixed-case emails even though docs/api.md says invitation emails are stored lowercased, so case-variant duplicates escape the conflict check",
+          "The report's test counts are wrong: it claims 16 existing tests, but the repository has 15",
+          "Cites a 17,496-input equivalence check whose script was deleted, so the claim cannot be checked",
+          "No handler-level test covers the invitable-role restriction or email casing"
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

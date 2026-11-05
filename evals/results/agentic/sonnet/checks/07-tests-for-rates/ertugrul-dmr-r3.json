@@ -14,7 +14,7 @@
       "name": "new_tests_pass_on_original_code",
       "description": "The tests the agent added run and pass against the untouched fixture (including the original rates.ts).",
       "passed": true,
-      "evidence": "['test/rates.test.ts'] on the original code: exit 0, tests ran: True\n  \u2714 quotes a zero amount as zero everywhere (0.0733ms)\n  \u2714 rejects negative amounts (0.0642ms)\n  \u2714 rejects invalid amounts and unknown currencies (0.0691ms)\n\u2714 quote (1.147ms)\n\u2139 tests 36\n\u2139 suites 6\n\u2139 pass 36\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 121.0317"
+      "evidence": "['test/rates.test.ts'] on the original code: exit 0, tests ran: True\n  \u2714 quotes a zero amount as zero everywhere (0.1362ms)\n  \u2714 rejects negative amounts (0.096ms)\n  \u2714 rejects invalid amounts and unknown currencies (0.1139ms)\n\u2714 quote (1.829ms)\n\u2139 tests 36\n\u2139 suites 6\n\u2139 pass 36\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 144.443"
     },
     {
       "name": "tests_catch_mutants_of_rates",
@@ -38,7 +38,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 quote (1.4608ms)\n\u2714 nextBusinessDay moves a weekday to the following day (2.0523ms)\n\u2714 nextBusinessDay skips the weekend (0.2113ms)\n\u2714 nextBusinessDay ignores the time of day and does not change its input (0.3755ms)\n\u2139 tests 46\n\u2139 suites 6\n\u2139 pass 46\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 145.923"
+      "evidence": "\u2714 quote (1.7544ms)\n\u2714 nextBusinessDay moves a weekday to the following day (2.3035ms)\n\u2714 nextBusinessDay skips the weekend (0.2361ms)\n\u2714 nextBusinessDay ignores the time of day and does not change its input (0.3937ms)\n\u2139 tests 46\n\u2139 suites 6\n\u2139 pass 46\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 426.5745"
     },
     {
       "name": "typecheck_passes",

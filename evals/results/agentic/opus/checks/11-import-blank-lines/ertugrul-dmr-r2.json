@@ -8,13 +8,13 @@
       "name": "blank_lines_skipped",
       "description": "Blank lines are skipped wherever they are in the file: empty, whitespace-only and Windows line endings, at the start, in the middle and at the end.",
       "passed": true,
-      "evidence": ".........                                                                [100%]\n9 passed, 8 deselected in 0.09s"
+      "evidence": ".........                                                                [100%]\n9 passed, 8 deselected in 0.06s"
     },
     {
       "name": "malformed_lines_still_rejected",
       "description": "Rows that are really malformed (missing or extra fields, bad date, bad or negative minutes, empty project) still fail the import, and the error names the line's position in the file even after blank lines.",
       "passed": true,
-      "evidence": "........                                                                 [100%]\n8 passed, 9 deselected in 0.06s"
+      "evidence": "........                                                                 [100%]\n8 passed, 9 deselected in 0.04s"
     },
     {
       "name": "no_catch_all_handler",
@@ -38,13 +38,13 @@
       "name": "regression_test_added",
       "description": "The agent added at least one test that fails on the original code, so the bug cannot return unnoticed.",
       "passed": true,
-      "evidence": "['tests/test_importer.py::test_trailing_blank_line_is_ignored', 'tests/test_importer.py::test_whitespace_only_lines_are_ignored', 'tests/test_importer.py::test_line_numbers_still_count_skipped_blank_lines'] on the original code: exit 1\n>       with pytest.raises(ImportFormatError, match=r\"line 3\\b\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       AssertionError: Regex pattern did not match.\nE         Expected regex: 'line 3\\\\b'\nE         Actual message: 'line 2: not enough values to unpack (expected 3, got 1)'\n\ntests\\test_importer.py:40: AssertionError\n=========================== short test summary info ===========================\nFAILED tests/test_importer.py::test_trailing_blank_line_is_ignored - hourlog....\nFAILED tests/test_importer.py::test_whitespace_only_lines_are_ignored - hourl...\nFAILED tests/test_importer.py::test_line_numbers_still_count_skipped_blank_lines\n3 failed in 0.16s"
+      "evidence": "['tests/test_importer.py::test_trailing_blank_line_is_ignored', 'tests/test_importer.py::test_whitespace_only_lines_are_ignored', 'tests/test_importer.py::test_line_numbers_still_count_skipped_blank_lines'] on the original code: exit 1\n>       with pytest.raises(ImportFormatError, match=r\"line 3\\b\"):\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE       AssertionError: Regex pattern did not match.\nE         Expected regex: 'line 3\\\\b'\nE         Actual message: 'line 2: not enough values to unpack (expected 3, got 1)'\n\ntests\\test_importer.py:40: AssertionError\n=========================== short test summary info ===========================\nFAILED tests/test_importer.py::test_trailing_blank_line_is_ignored - hourlog....\nFAILED tests/test_importer.py::test_whitespace_only_lines_are_ignored - hourl...\nFAILED tests/test_importer.py::test_line_numbers_still_count_skipped_blank_lines\n3 failed in 0.10s"
     },
     {
       "name": "suite_passes",
       "description": "The project's own test suite passes.",
       "passed": true,
-      "evidence": ".....................                                                    [100%]\n21 passed in 0.14s"
+      "evidence": ".....................                                                    [100%]\n21 passed in 0.09s"
     },
     {
       "name": "clean_diff",

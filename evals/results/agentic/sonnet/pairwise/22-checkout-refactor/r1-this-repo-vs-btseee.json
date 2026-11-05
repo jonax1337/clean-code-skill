@@ -1,0 +1,90 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "37075b9c61f427d6",
+    "btseee": "b3dd67dbcd164834"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.174292,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors preserve behavior. They have the same order of checks and side effects, the same statuses and messages, and the coupon is still redeemed only after payment. A's tests are stronger: they assert the exact `inventory.log` sequence on rollback and on commit, and they cover an exhausted coupon, shipping judged after discounts, and several tax countries. B is a little more faithful to the original structure because it passes the `reserved` list explicitly, but that does not outweigh A's better safety net.",
+        "a_issues": [
+          "`_charge` releases `order.items` instead of the reserved list. This is correct only because a successful `_reserve_stock` always reserves every item, and that dependency is not stated in the code.",
+          "`_tax_cents` packs the per-line rounding into one dense generator expression, which is harder to read than the original loop."
+        ],
+        "b_issues": [
+          "`test_shipping_is_free_from_5000_after_discounts` uses no discount at all, so its name promises something the test does not check.",
+          "`_charge` takes six parameters, which makes the extracted helper awkward to call.",
+          "The rollback tests only check `available()` rather than the exact release and commit sequence, so they are weaker against mistakes in the refactored rollback paths.",
+          "There is no test for an exhausted coupon or for the tax rate of an unknown country."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.171412,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors preserve behavior: the order of side effects, error messages, statuses and rollback are all unchanged. A threads the `reserved` list through, while B releases `order.items`. These are equivalent because `_reserve_stock` either reserves every item or raises. B's tests are noticeably stronger. They assert on `inventory.log` to pin the exact reserve, release and commit sequence, and they also cover an exhausted coupon, free shipping judged after discounts, and the unknown-country default rate. A's test named \"after discounts\" never applies a discount.",
+        "a_issues": [
+          "`test_shipping_is_free_from_5000_after_discounts` never applies a discount, so the \"after discounts\" rule it is named for is not tested.",
+          "The rollback tests check `available()` instead of the reserve/release/commit sequence, so a release done twice or in the wrong order could slip through.",
+          "No test for an exhausted coupon or for the default tax rate of an unknown country.",
+          "`_charge` takes six parameters, partly to thread through a `reserved` list that always equals `order.items` at that point."
+        ],
+        "b_issues": [
+          "`_charge` releases `order.items` instead of the list that was actually reserved. This is correct today but relies on `_reserve_stock` reserving everything or raising.",
+          "The new test file duplicates the `CUSTOMER` and `make_order` helpers from `test_checkout.py`.",
+          "Subtotal and tax are now computed in two separate passes over the items, a small structural drift from the original single loop."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

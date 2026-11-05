@@ -1,0 +1,81 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "f9686ec69d7f7017",
+    "claudemd-baseline": "6b983190217a25c2"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.0,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.13145600000000002,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two changes remove the same source code, docs and help text, and both are correct and fully in scope. B's tests are stronger. Its unit test checks the exact `UnknownOption` error for both `--compact` and `-c`, where A only checks `is_err` for `-c`. B also adds an integration test through `run`, so the public entry point rejects the removed flag. A also leaves a stray blank line before the closing brace of the render tests module.",
+        "a_issues": [
+          "Unit test checks only `is_err()` for `-c`, not the exact `UnknownOption` error.",
+          "No integration test checks that `run` now rejects the removed flag.",
+          "Leaves a trailing blank line before the closing `}` of the `render.rs` tests module."
+        ],
+        "b_issues": [],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.13023600000000002,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make the same production edits: they remove the flag, the field, the render path, the help line and the README row, and they add the same CHANGELOG entry. A's tests protect the removal better. It adds an integration test that checks `run` rejects both `--compact` and `-c` with `UnknownOption`. Its unit test also checks the exact error for both spellings, whereas B only checks `is_err()` for `-c`. B also leaves a stray blank line at the end of the render test module.",
+        "a_issues": [],
+        "b_issues": [
+          "Has no integration test showing that `--compact` / `-c` are now rejected at the `run` level.",
+          "The unit test only checks `is_err()` for `-c` instead of the exact `UnknownOption` error.",
+          "Leaves a stray blank line before the closing brace of the render tests module."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "A",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

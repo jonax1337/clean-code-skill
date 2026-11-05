@@ -44,7 +44,7 @@
       "name": "suite_green",
       "description": "The full test suite passes, including the agent's own tests.",
       "passed": true,
-      "evidence": ".....                                                                    [100%]\n5 passed in 0.02s"
+      "evidence": ".....                                                                    [100%]\n5 passed in 0.03s"
     },
     {
       "name": "clean_diff",

@@ -1,0 +1,87 @@
+{
+  "case": "20-duration-milliseconds",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "34c7afcc2465701d",
+    "btseee": "963f40110c5d7617"
+  },
+  "score": 0.25,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.5,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.10988400000000001,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The source changes are byte-for-byte identical and correct. Callers that wanted milliseconds drop the `* 1000`, and callers that wanted seconds (`Retry-After`, the settings text) divide by 1000. The regex only allows integer counts of s/m/h/d, so those results stay integers and behavior is preserved. The only difference is that B's test literals use numeric separators (`30_000`, `7_200_000`), matching the new `MS_PER_UNIT` table, which makes the expected values slightly easier to check than A's `7200000`.",
+        "a_issues": [
+          "Test literals such as `7200000` and `86400000` lack separators, so they are harder to verify at a glance and inconsistent with `MS_PER_UNIT` in the source.",
+          "No tests were added for the `/ 1000` conversions in `rateLimitHeaders` and `describeSettings`, so a regression there would go unnoticed.",
+          "Typecheck was not run (disclosed in the report)."
+        ],
+        "b_issues": [
+          "No tests were added for the `/ 1000` conversions in `rateLimitHeaders` and `describeSettings`, so a regression there would go unnoticed.",
+          "Typecheck was not run (disclosed in the report)."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.10740000000000001,
+      "verdict": {
+        "winner": "tie",
+        "margin": "slight",
+        "rationale": "Both diffs make the same source changes in every file. Both drop `* 1000` where milliseconds were wanted, divide by 1000 in `http.ts` and `report.ts`, and convert the TTL limits in `validate.ts`, so behavior is preserved in both. The only difference is formatting in the test literals: A writes `30_000` and B writes `30000`. Both reports are accurate and both say typecheck was not run, so either is equally mergeable.",
+        "a_issues": [
+          "No tests were added for the outputs that must stay the same: the `Retry-After` header, the `describeSettings` text and the `validateTtl` minimum boundary.",
+          "Typecheck was not run."
+        ],
+        "b_issues": [
+          "No tests were added for the outputs that must stay the same: the `Retry-After` header, the `describeSettings` text and the `validateTtl` minimum boundary.",
+          "Typecheck was not run.",
+          "Millisecond literals in the test have no digit separators, so they are slightly harder to read."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

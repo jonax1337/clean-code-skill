@@ -14,7 +14,7 @@
       "name": "new_tests_pass_on_original_code",
       "description": "The tests the agent added run and pass against the untouched fixture (including the original rates.ts).",
       "passed": true,
-      "evidence": "['test/rates.test.ts'] on the original code: exit 0, tests ran: True\n\u2714 quote of zero is free (0.0556ms)\n\u2714 quote accepts an amount that exactly covers the fee (0.0917ms)\n\u2714 quote rejects an amount that does not cover the fee (0.092ms)\n\u2714 quote rejects negative amounts, bad amounts and unknown currencies (0.093ms)\n\u2139 tests 27\n\u2139 suites 0\n\u2139 pass 27\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 106.0379"
+      "evidence": "['test/rates.test.ts'] on the original code: exit 0, tests ran: True\n\u2714 quote of zero is free (0.0638ms)\n\u2714 quote accepts an amount that exactly covers the fee (0.0515ms)\n\u2714 quote rejects an amount that does not cover the fee (0.0779ms)\n\u2714 quote rejects negative amounts, bad amounts and unknown currencies (0.0884ms)\n\u2139 tests 27\n\u2139 suites 0\n\u2139 pass 27\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 165.5335"
     },
     {
       "name": "tests_catch_mutants_of_rates",
@@ -38,7 +38,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 quote rejects negative amounts, bad amounts and unknown currencies (0.0935ms)\n\u2714 nextBusinessDay moves a weekday to the following day (1.8772ms)\n\u2714 nextBusinessDay skips the weekend (0.1654ms)\n\u2714 nextBusinessDay ignores the time of day and does not change its input (0.3189ms)\n\u2139 tests 37\n\u2139 suites 0\n\u2139 pass 37\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 141.7126"
+      "evidence": "\u2714 quote rejects negative amounts, bad amounts and unknown currencies (0.1496ms)\n\u2714 nextBusinessDay moves a weekday to the following day (1.6655ms)\n\u2714 nextBusinessDay skips the weekend (0.1362ms)\n\u2714 nextBusinessDay ignores the time of day and does not change its input (0.2766ms)\n\u2139 tests 37\n\u2139 suites 0\n\u2139 pass 37\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 182.2514"
     },
     {
       "name": "typecheck_passes",

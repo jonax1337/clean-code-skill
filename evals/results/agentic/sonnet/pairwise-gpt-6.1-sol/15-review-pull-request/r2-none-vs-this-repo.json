@@ -1,0 +1,90 @@
+{
+  "case": "15-review-pull-request",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "10ae7b61a562c348",
+    "this-repo": "ba64f2dd10ba7272"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.25,
+    "tests": 0.5,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "B provides the more actionable review: it explicitly identifies its references as diff-line numbers, whereas A incorrectly labels those numbers as lines in the patched files. Both catch the central injection, audit-failure, and pagination defects, but B additionally identifies unchecked bulk-input types and the unaudited single-user deactivation path. B still needs some security claims tightened, but it better fulfills the requested review and accurately states what was not verified.",
+        "a_issues": [
+          "Claims its line numbers refer to the new file versions, but they are diff-line numbers; references such as adminhub/search.py:105 cannot locate the finding in the 17-line file.",
+          "Misses malformed bulk-input types and the existing single-user deactivation path remaining unaudited despite the stated requirement to audit every deactivation.",
+          "Includes speculative recommendations, such as future audit-log indexes, that dilute the actionable findings."
+        ],
+        "b_issues": [
+          "Overstates the demonstrated SQL-injection impact as allowing database alteration; the shown single SELECT executed through sqlite3 does not establish that capability.",
+          "The example q=x' OR '1'='1 does not return every user as claimed because the interpolated trailing percent sign changes the equality comparison.",
+          "Treats actor forgery as established without confirming whether the web layer supplies or authenticates that parameter; this should be framed as a trust-boundary question."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes deliver the requested review and identify the major injection, audit-atomicity, and pagination defects. A is preferable because it explicitly identifies its locations as patch-line references and additionally catches malformed bulk inputs and the unaudited single-user deactivation path. B incorrectly labels patch-line numbers as new-file line numbers, making many findings difficult to locate, although it usefully identifies duplicate audit entries and pagination tie-breaking. Neither review is fully precise about its SQL-injection examples or the assumed authentication boundary.",
+        "a_issues": [
+          "Overstates the demonstrated SQL-injection impact by claiming callers can alter the database through this SELECT; sqlite3.execute does not permit arbitrary stacked statements.",
+          "The supplied SQL-injection example does not establish the claimed return-all behavior.",
+          "Treats request-supplied actor identity as definitively forgeable without establishing whether the web layer supplies or validates it."
+        ],
+        "b_issues": [
+          "Claims locations refer to new-file line numbers but largely uses patch-line numbers; search.py:105 and audit.py:66-67 do not exist in those new files.",
+          "Omits the unchecked bulk ids input and the existing single-user deactivation path's lack of auditing.",
+          "The suggested comment-based injection payload removes the parameter placeholders, causing a binding-count error with the supplied arguments rather than demonstrating the stated query behavior.",
+          "Assumes the actor comes from an untrusted request body without establishing the web-layer contract."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

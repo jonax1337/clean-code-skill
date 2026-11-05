@@ -1,0 +1,86 @@
+{
+  "case": "14-invoice-export-crash",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "c574043ff7e8c196",
+    "btseee": "8f6b6e8b0705ca5b"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.25,
+    "design": 1.0,
+    "readability": 0.0,
+    "tests": 1.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.10034799999999999,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both PRs find the real cause: the CRM file uses `customer_id`, so CRM customers were indexed under `undefined`. Both fix it at load time without touching the data files. A also switches the export to the existing `requireCustomer`. A truly unknown customer then gives the README's `UnknownReferenceError`, with exit status 1 and nothing on stdout, instead of a TypeError. That reuses existing code to meet the stated convention for exactly the failure the user hit. B handles the loader more cleanly and has robust data tests, but it knowingly leaves the export able to crash with a raw stack trace on a real data error.",
+        "a_issues": [
+          "`tests/sources.test.js` reads `\"data\"` relative to the working directory, so it only passes when tests run from the repository root.",
+          "The doc comment on `loadCustomerRecords` grew into one long line, and the CRM mapping is written inline instead of in a named helper."
+        ],
+        "b_issues": [
+          "The export still uses `customers.get`, so an invoice whose customer is truly unknown still crashes with an uncaught TypeError. This goes against the README rule that such references raise `UnknownReferenceError` and exit 1. The report acknowledges this but defers it.",
+          "No test covers what the export does when a customer is missing."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "B",
+          "design": "A",
+          "readability": "B",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.100488,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both changes fix the actual cause the same way: CRM records are mapped from `customer_id` to `customerId` at load time, which brings back all 8 invoices including INV-1041. B also replaces the bare `customers.get` in `invoiceRow` with the existing `requireCustomer` helper. A genuinely missing customer then raises `UnknownReferenceError`, which the CLI reports cleanly with exit status 1 and no output, exactly as the README requires, instead of the TypeError crash the user hit. A sees this gap and openly leaves it, so the export path still crashes with a stack trace on bad data, against the documented convention. B's addition is one line, reuses existing code and has its own test.",
+        "a_issues": [
+          "Leaves `invoiceRow` using `customers.get` without a check, so an unknown customer id still crashes with a TypeError instead of `UnknownReferenceError`, against the README convention.",
+          "The report says it did not run the new test against the old code, so the claim that it would have failed there is unverified."
+        ],
+        "b_issues": [
+          "`tests/sources.test.js` reads from the relative path \"data\", so it depends on being run from the repository root.",
+          "The rewrite of `loadCustomerRecords` reads the CRM file before the billing file, a small reordering that was not needed.",
+          "Wrote a scratch file to /tmp outside the repo; harmless, and disclosed in the report."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "B",
+          "readability": "A",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

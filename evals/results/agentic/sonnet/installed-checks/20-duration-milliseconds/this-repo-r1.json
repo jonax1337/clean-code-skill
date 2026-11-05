@@ -8,19 +8,19 @@
       "name": "parser_returns_milliseconds",
       "description": "parseDuration returns milliseconds for every unit and still rejects invalid text.",
       "passed": true,
-      "evidence": "\u2714 parseDuration returns milliseconds for every unit (0.568ms)\n\u2714 parseDuration still trims whitespace and rejects invalid text (0.2821ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 132.5369"
+      "evidence": "\u2714 parseDuration returns milliseconds for every unit (0.7402ms)\n\u2714 parseDuration still trims whitespace and rejects invalid text (0.4352ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 117.6258"
     },
     {
       "name": "timing_callers_unchanged",
       "description": "Retry delays, cache expiry and job scheduling still work in the same milliseconds as before.",
       "passed": true,
-      "evidence": "\u2714 backoffDelayMs keeps returning milliseconds (0.6058ms)\n\u2714 withRetry sleeps for the same number of milliseconds as before (0.6445ms)\n\u2714 cache entries expire after the same wall-clock time as before (0.1369ms)\n\u2714 scheduler computes timestamps in milliseconds (0.1197ms)\n\u2139 tests 4\n\u2139 suites 0\n\u2139 pass 4\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 141.7076"
+      "evidence": "\u2714 backoffDelayMs keeps returning milliseconds (0.538ms)\n\u2714 withRetry sleeps for the same number of milliseconds as before (0.6127ms)\n\u2714 cache entries expire after the same wall-clock time as before (0.2294ms)\n\u2714 scheduler computes timestamps in milliseconds (0.1651ms)\n\u2139 tests 4\n\u2139 suites 0\n\u2139 pass 4\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 113.6486"
     },
     {
       "name": "unit_sensitive_callers_unchanged",
       "description": "The TTL range validation, the Retry-After header (seconds) and the settings report (seconds) behave as before, although none of them multiplied the old result.",
       "passed": true,
-      "evidence": "\u2714 validateTtl accepts every ttl between 5 seconds and one day (0.5698ms)\n\u2714 validateTtl rejects a ttl outside the allowed range (0.1748ms)\n\u2714 Retry-After is still sent in whole seconds (0.4288ms)\n\u2714 the settings report still prints seconds (0.0954ms)\n\u2139 tests 4\n\u2139 suites 0\n\u2139 pass 4\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 98.6665"
+      "evidence": "\u2714 validateTtl accepts every ttl between 5 seconds and one day (0.5826ms)\n\u2714 validateTtl rejects a ttl outside the allowed range (0.1579ms)\n\u2714 Retry-After is still sent in whole seconds (0.3963ms)\n\u2714 the settings report still prints seconds (0.0937ms)\n\u2139 tests 4\n\u2139 suites 0\n\u2139 pass 4\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 113.9882"
     },
     {
       "name": "only_expected_files_changed",
@@ -38,7 +38,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 Retry-After is expressed in whole seconds (1.0395ms)\n\u2714 settings are described in seconds (0.2603ms)\n\u2714 rejects text that is not a duration (0.6119ms)\n\u2714 rejects a ttl above the maximum (0.1181ms)\n\u2139 tests 14\n\u2139 suites 0\n\u2139 pass 14\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 152.479"
+      "evidence": "\u2714 Retry-After is expressed in whole seconds (0.8979ms)\n\u2714 settings are described in seconds (0.1398ms)\n\u2714 rejects text that is not a duration (0.6238ms)\n\u2714 rejects a ttl above the maximum (0.1232ms)\n\u2139 tests 14\n\u2139 suites 0\n\u2139 pass 14\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 182.0827"
     },
     {
       "name": "typecheck_passes",

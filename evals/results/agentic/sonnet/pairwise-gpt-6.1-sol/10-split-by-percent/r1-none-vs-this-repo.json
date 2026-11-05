@@ -1,0 +1,85 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "6ebffa2962215a2f",
+    "this-repo": "f6b9c9c33acd563d"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 1.0,
+    "scope": 0.75,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "A implements the requested percentage split without adding an unsupported restriction: B rejects 0%, even when the whole-number percentages total 100. B has the cleaner CLI design and substantially stronger tests, but those advantages do not outweigh rejecting otherwise valid input. Both reuse the existing cent allocator and accurately describe their changes.",
+        "a_issues": [
+          "Manually checks split-mode exclusivity and introduces UsageError where a required argparse mutually exclusive group would be simpler and consistent with existing CLI validation.",
+          "Tests omit direct coverage of the new helpers, percentage splits with leftover cents, zero-percentage entries, and supplying neither split mode."
+        ],
+        "b_issues": [
+          "Requires every percentage to be strictly positive, although the task only requires whole numbers totaling 100; consequently, inputs such as alice=100 and bob=0 are unnecessarily rejected.",
+          "Tests explicitly enforce the unsupported zero-percentage restriction."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "A",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "B meets the percentage-splitting requirement without imposing A's unsupported restriction that every percentage must be strictly positive: a 100/0 split uses whole numbers totaling 100 and can be handled by the existing allocator. A has the stronger implementation structure and substantially better tests, but those advantages do not outweigh rejecting otherwise valid input. Both changes preserve equal splitting and reuse the existing cent-allocation logic.",
+        "a_issues": [
+          "Rejects zero-percent entries even though the task requires only whole-number percentages totaling 100; this unnecessarily rejects valid splits such as alice=100, bob=0."
+        ],
+        "b_issues": [
+          "Tests cover basic CLI success and rejection cases but do not directly protect percentage rounding, zero-percent entries, or the new splitting functions.",
+          "Duplicates duplicate-name validation instead of sharing it with split_equally.",
+          "Manually enforces mutually exclusive, required split modes and introduces UsageError where an argparse mutually exclusive group would express the constraint more directly and expose it in usage output."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

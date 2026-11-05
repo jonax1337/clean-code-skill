@@ -1,0 +1,92 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "none",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "none": "6ebffa2962215a2f",
+    "btseee": "214b44be68e2b762"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.25,
+    "design": 0.25,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.14248,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes implement `--percent` correctly: they reuse `allocate`, reject duplicate names and totals other than 100, and handle the both-or-neither case with exit code 2. B's tests are clearly stronger. It unit-tests `split_by_percent` for exactness, keeping every cent and bad totals, and its CLI tests cover the neither case, a missing `=` and decimal percentages. B also shares the duplicate check through a helper instead of copying it. A's separate `UsageError` is the cleaner way to classify an option-conflict error, but that does not outweigh B's better test coverage.",
+        "a_issues": [
+          "The duplicate-name check is copied from `split_equally` instead of shared.",
+          "No unit tests for `split_by_percent` or `parse_percent`. Only CLI-level tests were added.",
+          "No test for giving neither `--with` nor `--percent`, which is a newly reachable path now that `--with` is no longer required.",
+          "No tests for a missing `=` or a decimal percentage.",
+          "The report opens with an odd process remark about the README."
+        ],
+        "b_issues": [
+          "The both-or-neither option conflict is raised as `MoneyError`, which mislabels a usage problem as a money problem.",
+          "Percent parsing lives in `cli.py` while splitting lives in `splitting.py`. This is acceptable but splits related logic across modules.",
+          "`isdecimal` accepts non-ASCII Unicode digits. This is harmless, but it is laxer than intended."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "none",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.141152,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both changes implement `--percent` correctly. Both reuse `allocate` and reject mixing `--percent` with `--with`, or giving neither. A also pulls the duplicate-name check into a shared helper instead of copying it, and its tests are more thorough: unit tests for `split_by_percent` plus CLI cases for the neither case, missing '=', and a non-integer value. B duplicates the duplicate-check logic, adds a new error class the task did not need, and has thinner tests with no splitting unit tests and no test for the neither case.",
+        "a_issues": [
+          "The negative-percentage check in `split_by_percent` cannot be reached from the CLI, because the parser already rejects '-'. It is harmless defensive code.",
+          "`_parse_percent` lives in `cli.py` while the other split logic lives in `splitting.py`. This is a minor placement inconsistency."
+        ],
+        "b_issues": [
+          "Copies the duplicate-name detection into `split_by_percent` instead of reusing or extracting it from `split_equally`.",
+          "Adds a `UsageError` class that the task does not need, since `MoneyError` or `TabtallyError` would have worked.",
+          "No unit tests for `parse_percent` or `split_by_percent`, and no CLI test for giving neither `--with` nor `--percent`.",
+          "`test_with_and_percent_cannot_be_mixed` does not check the error message.",
+          "The report opens with an odd process remark ('The README row came out right, so I'm wrapping up')."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "A",
+          "readability": "A",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

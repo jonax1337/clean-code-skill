@@ -9,6 +9,9 @@ rationale, so the results say why one change won, not only that it did.
 By default this repo's skill is compared with every other condition; `--pairs` judges only the listed pairs and
 `--conditions` every pair of the listed conditions.
 Writes results/agentic/<coder>/pairwise/<case>/r<n>-<X>-vs-<Y>.json. A verdict is kept until one of its runs changes.
+Another judge model writes to pairwise-<model>/ instead, so its verdicts sit next to Opus's without replacing them.
+`--via gateway` sends the judge prompt to the Anthropic-compatible endpoint Claude Code is configured with, for judge
+models from other providers that a gateway such as Claudapter routes (for example `--model gpt-6.1-sol`).
 """
 
 from __future__ import annotations
@@ -18,18 +21,30 @@ import hashlib
 import json
 import re
 import subprocess
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from itertools import combinations
 from pathlib import Path
 
 from agentic import AgenticCase, coder_models, load_agentic_cases, results_dir
-from harness import ALL_CONDITIONS, CONDITIONS, THIS_REPO, ask_claude, extract_json, write_text_atomic
+from harness import (
+    ALL_CONDITIONS,
+    CONDITIONS,
+    THIS_REPO,
+    ClaudeReply,
+    ask_claude,
+    ask_gateway,
+    extract_json,
+    write_text_atomic,
+)
 
 DEFAULT_PAIRS = ",".join(
     f"{THIS_REPO}:{condition.name}" for condition in CONDITIONS if condition.name != THIS_REPO
 )
 CONDITION_ORDER = [condition.name for condition in ALL_CONDITIONS]
+DEFAULT_JUDGE = "opus"
+ASK = {"cli": ask_claude, "gateway": ask_gateway}
 JUDGE_SYSTEM_PROMPT = (
     "You are a strict senior engineer deciding which of two pull requests for the same task to merge. "
     "You only output JSON."
@@ -61,11 +76,12 @@ class Comparison:
     rep: int
     first: str
     second: str
+    judge: str = DEFAULT_JUDGE
 
     @property
     def path(self) -> Path:
         return (
-            results_dir(self.coder, "pairwise")
+            results_dir(self.coder, verdicts_kind(self.judge))
             / self.case.case_id
             / f"r{self.rep}-{self.first}-vs-{self.second}.json"
         )
@@ -88,7 +104,7 @@ def main() -> None:
     pairs = _pairs(args)
     coders = [args.coder] if args.coder else coder_models()
     comparisons = [
-        Comparison(coder, case, rep, first, second)
+        Comparison(coder, case, rep, first, second, args.model)
         for coder in coders
         for case in load_agentic_cases(args.split)
         for first, second in pairs
@@ -98,7 +114,7 @@ def main() -> None:
     print(f"{len(comparisons)} comparisons ({2 * len(comparisons)} judge calls), {len(pending)} still to do")
 
     with ThreadPoolExecutor(max_workers=args.jobs) as pool:
-        futures = {pool.submit(_compare, comparison, args.model): comparison for comparison in pending}
+        futures = {pool.submit(_compare, comparison, ASK[args.via]): comparison for comparison in pending}
         for future in as_completed(futures):
             comparison = futures[future]
             label = (
@@ -129,7 +145,12 @@ def _reps_with_runs(coder: str, case: AgenticCase, conditions: list[str]) -> lis
     return [rep for rep in reps if all((case_dir / f"{c}-r{rep}" / "meta.json").exists() for c in conditions)]
 
 
-def _compare(comparison: Comparison, model: str) -> float:
+def verdicts_kind(judge: str) -> str:
+    """The results folder of a judge model's verdicts: `pairwise` for the default judge, `pairwise-<model>` else."""
+    return "pairwise" if judge == DEFAULT_JUDGE else f"pairwise-{judge}"
+
+
+def _compare(comparison: Comparison, ask: Callable[..., ClaudeReply]) -> float:
     """Judge both orders and return the first condition's score: 1 = always preferred, 0.5 = even."""
     orders = []
     for shown_as_a, shown_as_b in (
@@ -137,13 +158,21 @@ def _compare(comparison: Comparison, model: str) -> float:
         (comparison.second, comparison.first),
     ):
         prompt = _judge_prompt(
-            comparison.case, _change(comparison, shown_as_a), _change(comparison, shown_as_b)
+            comparison.case, shown_change(comparison, shown_as_a), shown_change(comparison, shown_as_b)
         )
-        reply = ask_claude(prompt, JUDGE_SYSTEM_PROMPT, model, effort="high")
+        reply = ask(prompt, JUDGE_SYSTEM_PROMPT, comparison.judge, effort="high")
         verdict = extract_json(reply.text)
         if verdict.get("winner") not in WINNER_SCORE:
             raise ValueError(f"unexpected winner {verdict.get('winner')!r}")
-        orders.append({"A": shown_as_a, "B": shown_as_b, "model_ids": reply.model_ids, "verdict": verdict})
+        orders.append(
+            {
+                "A": shown_as_a,
+                "B": shown_as_b,
+                "model_ids": reply.model_ids,
+                "cost_usd": reply.cost_usd,
+                "verdict": verdict,
+            }
+        )
     first_scores = [
         WINNER_SCORE[orders[0]["verdict"]["winner"]],
         1 - WINNER_SCORE[orders[1]["verdict"]["winner"]],
@@ -154,7 +183,7 @@ def _compare(comparison: Comparison, model: str) -> float:
         "coder": comparison.coder,
         "rep": comparison.rep,
         "pair": [comparison.first, comparison.second],
-        "judge_model": model,
+        "judge_model": comparison.judge,
         "fingerprints": comparison.fingerprints(),
         "score": sum(first_scores) / 2,
         "dimension_scores": _dimension_scores(orders),
@@ -176,7 +205,7 @@ def _dimension_scores(orders: list[dict]) -> dict[str, float]:
     return scores
 
 
-def _change(comparison: Comparison, condition: str) -> str:
+def shown_change(comparison: Comparison, condition: str) -> str:
     run_dir = comparison.run_dir(condition)
     diff = (run_dir / "review.diff").read_text(encoding="utf-8")
     report = (run_dir / "report.md").read_text(encoding="utf-8")
@@ -249,7 +278,13 @@ def _dimension_list() -> str:
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Judge agentic runs pairwise and blind.")
-    parser.add_argument("--model", default="opus", help="judge model")
+    parser.add_argument("--model", default=DEFAULT_JUDGE, help="judge model")
+    parser.add_argument(
+        "--via",
+        choices=list(ASK),
+        default="cli",
+        help="cli: the claude CLI (Claude models); gateway: the Anthropic-compatible endpoint, for other providers",
+    )
     parser.add_argument("--coder", help="judge only the runs of this coder model (default: all)")
     parser.add_argument("--split", choices=["dev", "test"], help="judge only this split (default: all cases)")
     parser.add_argument(

@@ -1,0 +1,84 @@
+{
+  "case": "16-subscription-paused-event",
+  "split": "test",
+  "coder": "haiku",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "d2464bb22d7a58fc",
+    "btseee": "d33bce33f07e1fb0"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 1.0,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.5,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.216248,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "The source changes are effectively identical and both meet every requirement: paused status, resumeOn handling, the active-only pause, payments ignored while paused, cancel clearing resumeOn, the audit format and the customer-only email. B also commits a new 408-line package-lock.json, which the task did not ask for and which its report never mentions. A's diff contains only the change that was requested. B's report usefully flags that the notifier sends the pause email even when the state ignores the event, but that does not make up for the unreported lockfile.",
+        "a_issues": [
+          "Report does not mention that the notifier sends the pause email even when the reducer ignores the pause, e.g. on a past_due subscription."
+        ],
+        "b_issues": [
+          "Adds an unrelated 408-line package-lock.json to the diff.",
+          "Report's 'What changed' list leaves out the new lockfile, so it is incomplete about what was changed.",
+          "The repeated-pause case is folded into the 'only an active subscription can be paused' test rather than tested on its own, which makes that test less clear."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "A",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.21482400000000001,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "The source changes are effectively the same in both: the same reducer logic, audit format, notifier entry and resumeOn handling, and both meet every requirement in the spec. A also commits a 408-line package-lock.json that the task did not ask for, and its report does not mention it. B stays within scope, and its report states its judgment calls accurately (repeated pause keeps the first date, plan_changed still applies while paused). A's note about the notifier sending an email for a no-op pause is a useful observation, but it does not outweigh the unrequested, unreported file.",
+        "a_issues": [
+          "Adds an unrequested 408-line package-lock.json, outside the task's scope.",
+          "The report does not mention the added lockfile, so its 'What changed' list is incomplete."
+        ],
+        "b_issues": [
+          "Places SubscriptionPaused after SubscriptionCanceled in the union. This is a minor ordering inconsistency with the switch cases."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "B",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "tie",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

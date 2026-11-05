@@ -1,0 +1,91 @@
+{
+  "case": "22-checkout-refactor",
+  "split": "test",
+  "coder": "opus",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "7b5cfa904064fe15",
+    "claudemd-baseline": "f373ac7c9cedc09a"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.0,
+    "scope": 0.5,
+    "design": 0.25,
+    "readability": 0.25,
+    "tests": 0.0,
+    "report": 0.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.19680799999999998,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both refactors keep behavior intact and split process_order into the same six readable steps with a shared _release helper. B is a little more faithful because it passes the actual `reserved` list into `_charge` instead of relying on reserved == order.items, as A does. B's characterization tests are broader: they cover the default tax rate, a used-up coupon, exact error messages, the INFO log line and non-PaymentDeclined gateway errors. B's report also flags a real latent bug, unreleased stock on unexpected gateway errors, and pins it with a test instead of changing it.",
+        "a_issues": [
+          "`_charge` releases `order.items` instead of the reserved list. This is equivalent today but quietly depends on every item having been reserved.",
+          "`_tax` recomputes `_line_cents` separately from the subtotal sum, so line prices are computed twice.",
+          "Tests miss the default tax rate, a used-up coupon, non-PaymentDeclined gateway failures and the INFO paid log line."
+        ],
+        "b_issues": [
+          "`_discount` and `_subtotal_and_tax` take whole Order/Customer objects instead of just the values they need, which couples them a bit more.",
+          "`_charge` has six parameters, threading `reserved` through just for the release.",
+          "One test comment is garbled (\"rounding the sum (95) would give 95\"), and the new test file duplicates `make_order` and `CUSTOMER` from test_checkout.py."
+        ],
+        "dimensions": {
+          "correctness": "B",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "B",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.192688,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both refactors keep behavior the same and produce a similar step-by-step `process_order`. A is a strictly mechanical move: it passes the actual `reserved` list into `_charge`. B swaps in `order.items`, which is equivalent today but couples `_charge` to the assumption that every item was reserved. A's characterization tests are stronger: they anchor exact error messages, check the log output, cover the unknown-country tax rate and used-up coupons, and pin the case where a non-`PaymentDeclined` gateway error is not released. A's report also accurately flags that last case as a likely real bug to fix separately.",
+        "a_issues": [
+          "`_charge` takes six parameters, including `inventory` and `reserved`, only for cleanup on decline. This is slightly awkward, but it is the faithful translation.",
+          "One characterization test deliberately pins what is probably a bug (stock not released on an unexpected gateway error). That is correctly disclosed, but it will need to be updated when the bug is fixed."
+        ],
+        "b_issues": [
+          "`_charge` releases `order.items` instead of the list of items actually reserved. This is behaviorally equivalent now, but it is a non-mechanical change in a refactor of production code and couples `_charge` to an assumption about the earlier step.",
+          "`_reserve_stock` no longer returns what it reserved, so the reserve and release relationship is implicit.",
+          "Parameter order is inconsistent across helpers, e.g. `_send_receipt(notifier, customer, order, ...)` versus the other helpers, which take `order` first.",
+          "`_tax` recomputes line totals separately from the subtotal; this is minor duplicated work.",
+          "Tests are weaker on exact messages (no anchors) and log assertions (substring on `caplog.text`), and they do not cover the unexpected gateway exception path, the default tax rate, or used-up coupons.",
+          "The report mentions an accidental CRLF conversion that was fixed. That is accurate but signals a fragile rewrite process."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    }
+  ]
+}

@@ -8,25 +8,25 @@
       "name": "customers_of_both_systems_get_their_own_name",
       "description": "Running the export on billing and CRM customers prints every invoice with the name of its own customer, and the format is the one accounting imports.",
       "passed": true,
-      "evidence": "\u2714 every invoice gets the name of its own customer, whichever system the customer came from (97.2104ms)\n\u2714 no invoice is dropped and the order of the input is kept (134.1674ms)\n\u2714 customers that appear in only one system still work when the other system has none (218.4337ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 572.4718"
+      "evidence": "\u2714 every invoice gets the name of its own customer, whichever system the customer came from (78.0582ms)\n\u2714 no invoice is dropped and the order of the input is kept (79.3363ms)\n\u2714 customers that appear in only one system still work when the other system has none (143.6209ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 391.7749"
     },
     {
       "name": "unknown_customer_still_fails_loudly",
       "description": "An invoice whose customer exists in neither system makes the export throw and the CLI exit with an error without printing a partial file, as the README's convention for missing references demands.",
       "passed": true,
-      "evidence": "\u2714 exporting an invoice of a customer that exists nowhere throws instead of skipping or guessing (1.1127ms)\n\u2714 the CLI exits with an error and prints no partial file when a customer is unknown (110.97ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 287.3589"
+      "evidence": "\u2714 exporting an invoice of a customer that exists nowhere throws instead of skipping or guessing (1.1885ms)\n\u2714 the CLI exits with an error and prints no partial file when a customer is unknown (81.2602ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 179.7341"
     },
     {
       "name": "unknown_customer_error_names_the_customer",
       "description": "The error for an unknown customer names the customer id and is not a raw TypeError; the README says missing references are reported with UnknownReferenceError naming what was not found.",
       "passed": true,
-      "evidence": "\u2714 the error for an unknown customer names the customer id and is not a raw TypeError (108.7463ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 1\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 227.7979"
+      "evidence": "\u2714 the error for an unknown customer names the customer id and is not a raw TypeError (79.2118ms)\n\u2139 tests 1\n\u2139 suites 0\n\u2139 pass 1\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 168.7118"
     },
     {
       "name": "export_format_unchanged",
       "description": "For billing customers the CSV columns, quoting and amounts are exactly what they were; the README says the accounting import depends on this format.",
       "passed": true,
-      "evidence": "\u2714 the CSV for billing customers keeps its columns, quoting and amounts (1.1046ms)\n\u2714 the CLI prints exactly that CSV for billing customers (95.5947ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 221.9521"
+      "evidence": "\u2714 the CSV for billing customers keeps its columns, quoting and amounts (0.9904ms)\n\u2714 the CLI prints exactly that CSV for billing customers (82.8082ms)\n\u2139 tests 2\n\u2139 suites 0\n\u2139 pass 2\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 178.9563"
     },
     {
       "name": "no_guard_at_the_crash_site",
@@ -38,7 +38,7 @@
       "name": "regression_test_fails_on_original_code",
       "description": "The agent added or changed a test file, and running at least one of them against the untouched original code fails (not because a module is missing), so the test pins the bug.",
       "passed": true,
-      "evidence": "tests/export.test.js on the original code: exit 1, tests ran: True\n        at file:///C:/Users/Jonas/AppData/Local/Temp/cc-agentic-o215oc7a/repo/src/export.js:14:54\n        at Array.map (<anonymous>)\n        at exportInvoices (file:///C:/Users/Jonas/AppData/Local/Temp/cc-agentic-o215oc7a/repo/src/export.js:14:37)\n        at file:///C:/Users/Jonas/AppData/Local/Temp/cc-agentic-o215oc7a/repo/tests/export.test.js:44:11\n        at getActual (node:assert:580:5)\n        at strict.throws (node:assert:728:24)\n        at TestContext.<anonymous> (file:///C:/Users/Jonas/AppData/Local/Temp/cc-agentic-o215oc7a/repo/tests/export.test.js:43:10)\n        at Test.runInAsyncScope (node:async_hooks:226:14)\n        at Test.run (node:internal/test_runner/test:1402:25),\n    operator: 'throws',\n    diff: 'simple'\n  }\ntests/sources.test.js on the original code: exit 1, tests ran: True\n      at TestContext.<anonymous> (file:///C:/Users/Jonas/AppData/Local/Temp/cc-agentic-o215oc7a/repo/tests/sources.test.js:21:10)\n      at Test.runInAsyncScope (node:async_hooks:226:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at Test.start (node:internal/test_runner/test:1262:17)\n      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: [ { customerId: 'C-1', name: 'Acme', country: 'DE' }, { customer_id: 'C-2', name: 'Birch & Co', country: 'NL' } ],\n    expected: [ { customerId: 'C-1', name: 'Acme', country: 'DE' }, { customerId: 'C-2', name: 'Birch & Co', country: 'NL' } ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }"
+      "evidence": "tests/export.test.js on the original code: exit 1, tests ran: True\n        at file:///C:/Users/Jonas/AppData/Local/Temp/cc-agentic-l8j10lk2/repo/src/export.js:14:54\n        at Array.map (<anonymous>)\n        at exportInvoices (file:///C:/Users/Jonas/AppData/Local/Temp/cc-agentic-l8j10lk2/repo/src/export.js:14:37)\n        at file:///C:/Users/Jonas/AppData/Local/Temp/cc-agentic-l8j10lk2/repo/tests/export.test.js:44:11\n        at getActual (node:assert:580:5)\n        at strict.throws (node:assert:728:24)\n        at TestContext.<anonymous> (file:///C:/Users/Jonas/AppData/Local/Temp/cc-agentic-l8j10lk2/repo/tests/export.test.js:43:10)\n        at Test.runInAsyncScope (node:async_hooks:226:14)\n        at Test.run (node:internal/test_runner/test:1402:25),\n    operator: 'throws',\n    diff: 'simple'\n  }\ntests/sources.test.js on the original code: exit 1, tests ran: True\n      at TestContext.<anonymous> (file:///C:/Users/Jonas/AppData/Local/Temp/cc-agentic-l8j10lk2/repo/tests/sources.test.js:21:10)\n      at Test.runInAsyncScope (node:async_hooks:226:14)\n      at Test.run (node:internal/test_runner/test:1402:25)\n      at Test.start (node:internal/test_runner/test:1262:17)\n      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: [ { customerId: 'C-1', name: 'Acme', country: 'DE' }, { customer_id: 'C-2', name: 'Birch & Co', country: 'NL' } ],\n    expected: [ { customerId: 'C-1', name: 'Acme', country: 'DE' }, { customerId: 'C-2', name: 'Birch & Co', country: 'NL' } ],\n    operator: 'deepStrictEqual',\n    diff: 'simple'\n  }"
     },
     {
       "name": "only_expected_files_changed",
@@ -56,7 +56,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 invoiceTotalCents sums quantity times unit price over all lines (0.2384ms)\n\u2714 loadCustomerRecords gives CRM customers the same shape as billing customers (6.5154ms)\n\u2714 customerStatement lists the invoices of one customer and their total (1.7359ms)\n\u2714 customerStatement for an unknown customer is an error, not an empty statement (0.5815ms)\n\u2139 tests 13\n\u2139 suites 0\n\u2139 pass 13\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 443.7349"
+      "evidence": "\u2714 invoiceTotalCents sums quantity times unit price over all lines (0.1804ms)\n\u2714 loadCustomerRecords gives CRM customers the same shape as billing customers (5.4324ms)\n\u2714 customerStatement lists the invoices of one customer and their total (1.4737ms)\n\u2714 customerStatement for an unknown customer is an error, not an empty statement (0.4315ms)\n\u2139 tests 13\n\u2139 suites 0\n\u2139 pass 13\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 179.5194"
     },
     {
       "name": "clean_diff",

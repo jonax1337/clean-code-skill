@@ -1,0 +1,155 @@
+{
+  "seed": 2026,
+  "items": {
+    "P01": {
+      "case": "16-subscription-paused-event",
+      "rep": 1,
+      "pair": [
+        "this-repo",
+        "claudemd-baseline"
+      ],
+      "A": "this-repo",
+      "B": "claudemd-baseline"
+    },
+    "P02": {
+      "case": "13-refund-command-handler",
+      "rep": 2,
+      "pair": [
+        "none",
+        "this-repo"
+      ],
+      "A": "none",
+      "B": "this-repo"
+    },
+    "P03": {
+      "case": "17-log-tokenizer-cleanup",
+      "rep": 1,
+      "pair": [
+        "this-repo",
+        "claudemd-baseline"
+      ],
+      "A": "claudemd-baseline",
+      "B": "this-repo"
+    },
+    "P04": {
+      "case": "21-contact-merge-speed",
+      "rep": 2,
+      "pair": [
+        "none",
+        "this-repo"
+      ],
+      "A": "none",
+      "B": "this-repo"
+    },
+    "P05": {
+      "case": "18-config-errors-visible",
+      "rep": 1,
+      "pair": [
+        "this-repo",
+        "claudemd-baseline"
+      ],
+      "A": "claudemd-baseline",
+      "B": "this-repo"
+    },
+    "P06": {
+      "case": "18-config-errors-visible",
+      "rep": 1,
+      "pair": [
+        "none",
+        "this-repo"
+      ],
+      "A": "none",
+      "B": "this-repo"
+    },
+    "P07": {
+      "case": "22-checkout-refactor",
+      "rep": 2,
+      "pair": [
+        "none",
+        "this-repo"
+      ],
+      "A": "none",
+      "B": "this-repo"
+    },
+    "P08": {
+      "case": "10-split-by-percent",
+      "rep": 1,
+      "pair": [
+        "this-repo",
+        "claudemd-baseline"
+      ],
+      "A": "this-repo",
+      "B": "claudemd-baseline"
+    },
+    "P09": {
+      "case": "11-import-blank-lines",
+      "rep": 2,
+      "pair": [
+        "none",
+        "this-repo"
+      ],
+      "A": "this-repo",
+      "B": "none"
+    },
+    "P10": {
+      "case": "18-config-errors-visible",
+      "rep": 2,
+      "pair": [
+        "none",
+        "this-repo"
+      ],
+      "A": "none",
+      "B": "this-repo"
+    },
+    "P11": {
+      "case": "21-contact-merge-speed",
+      "rep": 1,
+      "pair": [
+        "this-repo",
+        "claudemd-baseline"
+      ],
+      "A": "claudemd-baseline",
+      "B": "this-repo"
+    },
+    "P12": {
+      "case": "20-duration-milliseconds",
+      "rep": 1,
+      "pair": [
+        "none",
+        "this-repo"
+      ],
+      "A": "none",
+      "B": "this-repo"
+    },
+    "P13": {
+      "case": "13-refund-command-handler",
+      "rep": 1,
+      "pair": [
+        "this-repo",
+        "claudemd-baseline"
+      ],
+      "A": "this-repo",
+      "B": "claudemd-baseline"
+    },
+    "P14": {
+      "case": "15-review-pull-request",
+      "rep": 1,
+      "pair": [
+        "none",
+        "this-repo"
+      ],
+      "A": "none",
+      "B": "this-repo"
+    },
+    "P15": {
+      "case": "19-shared-user-validation",
+      "rep": 1,
+      "pair": [
+        "this-repo",
+        "claudemd-baseline"
+      ],
+      "A": "this-repo",
+      "B": "claudemd-baseline"
+    }
+  }
+}

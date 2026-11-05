@@ -1,0 +1,81 @@
+{
+  "case": "12-remove-compact-flag",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "claudemd-baseline"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "1bed82f5001c2452",
+    "claudemd-baseline": "6b983190217a25c2"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.5,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "claudemd-baseline",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.128752,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "The two changes are nearly identical: both remove the flag, the field, the render path and the help line, and both update the README and CHANGELOG correctly. B's integration test checks that both `--compact` and `-c` are rejected end to end, while A's integration test checks only `--compact`. The reports are both accurate. A's note about the version still being 0.9.0 is useful but does not outweigh B's slightly better coverage.",
+        "a_issues": [
+          "The integration test checks only `--compact`, not `-c`, for rejection through `run`."
+        ],
+        "b_issues": [
+          "The report does not mention that the crate version was left at 0.9.0, even though the task refers to the 1.0 removal."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "claudemd-baseline",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.130012,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes make identical edits to the code, README and CHANGELOG. Both remove the flag, the field, the warning, the help line, the render path and its helpers. The only difference is the integration test: A checks that both `--compact` and `-c` now return `UnknownOption`, while B's integration test checks only `--compact`. Both reports are accurate, and B's note about the version number is a small plus, but A's slightly stronger test coverage of the public `run` entry point tips it.",
+        "a_issues": [
+          "The report does not mention that `Cargo.toml` is still at 0.9.0 even though the task ties the removal to 1.0. This is minor."
+        ],
+        "b_issues": [
+          "The integration test covers only `--compact`. The short `-c` form is checked only at the `parse_args` level."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "A",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

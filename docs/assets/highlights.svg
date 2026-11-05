@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="880" height="248" viewBox="0 0 880 248" role="img" aria-labelledby="title desc">
   <title id="title">Results at a glance</title>
-  <desc id="desc">On 13 held-out tasks a blind pairwise judge preferred the pull requests written with this skill over those written without a skill in 94% of verdicts with Claude Sonnet 5.5 and 71% with Claude Opus 5.5. Installed and never mentioned, the skill loaded on its own on 11 of 13 tasks; the other clean-code skills did so in 1 of 33 runs. With Claude Haiku 5.5 the effect was not measurable.</desc>
+  <desc id="desc">On 13 held-out tasks a blind pairwise judge preferred the pull requests written with this skill over those written without a skill in 94% of verdicts with Claude Sonnet 5.5 and 71% with Claude Opus 5.5. Installed and never mentioned, the skill loaded on its own on 11 of 13 tasks; the other clean-code skills did so in 2 of 46 runs. Four sentences in CLAUDE.md asking for tests and an honest report get part of this lead.</desc>
   <style>
     text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
     .mono { font-family: 'Cascadia Code', 'JetBrains Mono', 'SF Mono', Consolas, monospace; }
@@ -41,13 +41,13 @@
   </g>
 
   <g>
-    <title>Installed and never mentioned, the skill loaded on its own on 11 of 13 held-out tasks; the other clean-code skills in 1 of 33 runs</title>
+    <title>Installed and never mentioned, the skill loaded on its own on 11 of 13 held-out tasks; the other clean-code skills in 2 of 46 runs</title>
     <text class="ink" x="608" y="122" font-size="58" font-weight="800" letter-spacing="-2">11<tspan class="muted" font-size="34" dx="4">/ 13</tspan></text>
     <text class="ink" x="608" y="150" font-size="15" font-weight="600">tasks where it loaded on its own</text>
-    <text class="muted" x="608" y="171" font-size="13">other clean-code skills: 1 of 33 runs</text>
+    <text class="muted" x="608" y="171" font-size="13">other clean-code skills: 2 of 46 runs</text>
     <rect class="track" x="608" y="186" width="236" height="6" rx="3"/>
     <rect class="accent" x="608" y="186" width="200" height="6" rx="3"/>
   </g>
 
-  <text class="muted" x="32" y="226" font-size="12">Tasks written by agents that never saw the skill. Preference: share of verdicts, a tie counting half. With Haiku 5.5 the effect was not measurable.</text>
+  <text class="muted" x="32" y="226" font-size="12">Tasks written by agents that never saw the skill. Preference: share of verdicts, a tie counting half. Four sentences in CLAUDE.md get part of the lead.</text>
 </svg>

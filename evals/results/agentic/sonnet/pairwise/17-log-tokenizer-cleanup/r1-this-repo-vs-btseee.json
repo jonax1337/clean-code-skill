@@ -1,0 +1,84 @@
+{
+  "case": "17-log-tokenizer-cleanup",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "8a93070a66755558",
+    "btseee": "8644c0d29e370cdd"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.0,
+    "readability": 0.5,
+    "tests": 1.0,
+    "report": 1.0
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.16591599999999998,
+      "verdict": {
+        "winner": "A",
+        "margin": "clear",
+        "rationale": "Both refactors look behavior-preserving: on a trace through each, the error variants, positions, empty-value handling and stop-after-error behavior all match the original. A also adds seven focused tests that lock in edge cases the existing suite never covered: separator errors, nested brackets, invalid and trailing escapes, stray quotes and empty values. For a refactor whose whole requirement is \"exactly the same tokens and errors\", those tests are the deciding factor. B's pure scan functions are slightly cleaner, but B leaves the edge cases unprotected once its temporary comparison is gone.",
+        "a_issues": [
+          "State updates are split across helpers: `key_or_word` sets `Value`, `value()` resets to `Field` before scanning, and `finish_delimited` advances `pos` as a side effect. The state flow is harder to see than in a single place."
+        ],
+        "b_issues": [
+          "No tests added. The untested edge cases (ExpectedSeparator, NestedBracket, InvalidEscape, trailing backslash, stray quotes, empty values) stay unprotected after the temporary comparison is discarded.",
+          "`next()` matches on `self.state` twice and has a separate end-of-line check, which is a bit awkward for a dispatcher."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "A"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.16541599999999998,
+      "verdict": {
+        "winner": "B",
+        "margin": "clear",
+        "rationale": "Both refactors keep the original behavior. Tracing each scanner, I found the tokens, error variants, error positions, final `pos` and the stop-after-error rule all match the old code, and both stay byte-level with no allocation. B also adds seven focused tests for edge cases the old suite never covered: separator errors, nested brackets, invalid and trailing escapes, stray-quote positions and empty values. Those tests protect the refactor and any future change to this hot path. A rests its equivalence claim on a one-off random comparison that was not kept in the repository.",
+        "a_issues": [
+          "Adds no tests, so the claimed equivalence is not protected by anything in the repository and future edits to the tokenizer stay unguarded.",
+          "`next()` matches on `self.state` twice and has a separate `State::Field && start >= len` check, which is slightly awkward for a dispatcher."
+        ],
+        "b_issues": [
+          "State changes are spread across the helper methods: `value` sets `Field`, `key_or_word` sets `Value`, and `finish_delimited`/`bare` set `pos`. That makes the transitions a little harder to see than with pure scanners returning `(token, next_pos)`.",
+          "`value()` relies on `bare()` returning an empty token at a blank or the end of the line. This is correct but implicit."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "A",
+          "readability": "tie",
+          "tests": "B",
+          "report": "B"
+        }
+      }
+    }
+  ]
+}

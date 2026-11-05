@@ -8,19 +8,19 @@
       "name": "reducer_handles_pause",
       "description": "The state reducer pauses only active subscriptions, keeps payment events and a second pause from moving a paused one, and clears the resume date when a paused subscription is canceled.",
       "passed": true,
-      "evidence": "\u2714 a recovered payment does not move a paused subscription (0.1456ms)\n\u2714 a plan change on a paused subscription keeps it paused (0.1883ms)\n\u2714 cancelling a paused subscription cancels it and clears the resume date (0.2323ms)\n\u2714 payments after cancelling a paused subscription change nothing (0.1331ms)\n\u2139 tests 11\n\u2139 suites 0\n\u2139 pass 11\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 196.3172"
+      "evidence": "\u2714 a recovered payment does not move a paused subscription (0.0973ms)\n\u2714 a plan change on a paused subscription keeps it paused (0.1712ms)\n\u2714 cancelling a paused subscription cancels it and clears the resume date (0.1425ms)\n\u2714 payments after cancelling a paused subscription change nothing (0.1275ms)\n\u2139 tests 11\n\u2139 suites 0\n\u2139 pass 11\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 120.5712"
     },
     {
       "name": "audit_log_records_pause",
       "description": "The audit log line for a pause has the resume date, then the quoted reason, and the other lines are unchanged.",
       "passed": true,
-      "evidence": "\u2714 a pause entry has the resume date, then the quoted reason (0.9866ms)\n\u2714 the reason of a pause entry is escaped like a cancellation reason (0.1803ms)\n\u2714 entries of the other events keep their format (0.1848ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 200.2298"
+      "evidence": "\u2714 a pause entry has the resume date, then the quoted reason (0.8232ms)\n\u2714 the reason of a pause entry is escaped like a cancellation reason (0.1331ms)\n\u2714 entries of the other events keep their format (0.1179ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 117.002"
     },
     {
       "name": "notifier_handles_pause",
       "description": "A pause emails the customer the resume date and nobody else, and the other events keep their emails.",
       "passed": true,
-      "evidence": "\u2714 a pause sends the customer one email with the resume date and nothing else (1.495ms)\n\u2714 the billing team is not told about a pause (0.1826ms)\n\u2714 the other events keep their emails (0.3008ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 198.7987"
+      "evidence": "\u2714 a pause sends the customer one email with the resume date and nothing else (0.8551ms)\n\u2714 the billing team is not told about a pause (0.133ms)\n\u2714 the other events keep their emails (0.1458ms)\n\u2139 tests 3\n\u2139 suites 0\n\u2139 pass 3\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 111.7806"
     },
     {
       "name": "typecheck_passes",
@@ -74,7 +74,7 @@
       "name": "test_suite_passes",
       "description": "The repository's own test suite passes.",
       "passed": true,
-      "evidence": "\u2714 a plan change switches the plan (0.1722ms)\n\u2714 a failed payment makes the subscription past due and a recovery makes it active again (0.4094ms)\n\u2714 cancelling records when it happened and a canceled subscription stays canceled (1.3544ms)\n\u2714 a history that does not begin with the start is rejected (0.5013ms)\n\u2139 tests 19\n\u2139 suites 0\n\u2139 pass 19\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 275.39"
+      "evidence": "\u2714 a plan change switches the plan (0.8242ms)\n\u2714 a failed payment makes the subscription past due and a recovery makes it active again (0.1767ms)\n\u2714 cancelling records when it happened and a canceled subscription stays canceled (0.162ms)\n\u2714 a history that does not begin with the start is rejected (0.5449ms)\n\u2139 tests 19\n\u2139 suites 0\n\u2139 pass 19\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 172.6079"
     },
     {
       "name": "clean_diff",

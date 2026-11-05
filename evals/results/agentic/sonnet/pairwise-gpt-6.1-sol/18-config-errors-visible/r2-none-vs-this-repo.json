@@ -1,0 +1,85 @@
+{
+  "case": "18-config-errors-visible",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 2,
+  "pair": [
+    "none",
+    "this-repo"
+  ],
+  "judge_model": "gpt-6.1-sol",
+  "fingerprints": {
+    "none": "5ad551194e7f2757",
+    "this-repo": "3d4376183cfa0fc6"
+  },
+  "score": 0.0,
+  "dimension_scores": {
+    "correctness": 0.5,
+    "scope": 0.5,
+    "design": 0.75,
+    "readability": 0.5,
+    "tests": 0.0,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "none",
+      "B": "this-repo",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes fix the silent-fallback problem, preserve defaults for absent optional keys, and provide actionable startup errors before constructing the relay. B wins narrowly because its tests cover more important boundaries, including zero retries, queue-capacity minimums, and zero, negative, and overflowing timeouts. A has the useful advantage of documenting the new startup behavior in the README, but the implementations are otherwise substantially equivalent.",
+        "a_issues": [
+          "Tests do not cover several newly enforced boundaries that B covers: zero and overflowing timeouts, the queue-capacity minimum, and acceptance of zero retries."
+        ],
+        "b_issues": [
+          "The README does not document the new strict-validation policy, rejection of unknown keys, or configuration-error exit status."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "tie",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "this-repo",
+      "B": "none",
+      "model_ids": [
+        "gpt-6.1-sol"
+      ],
+      "cost_usd": null,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes address the incident correctly: invalid supplied values cause actionable startup errors instead of silent defaults, while omitted optional keys retain their defaults. A has stronger regression coverage, including timeout overflow and zero, queue bounds, zero retries, and unsupported URL schemes. That gives A a slight advantage over B's somewhat simpler implementation and useful README update.",
+        "a_issues": [
+          "The README does not document the new startup failure behavior or exit status.",
+          "Like B, validation misses downstream arithmetic limits: retry.max-attempts=2147483647 overflows Relay's attempt count, and some accepted large timeouts overflow ConsoleUplink's toMillis() call.",
+          "The nonzero exit status and absence of delivery on configuration failure are not protected by an automated startup test."
+        ],
+        "b_issues": [
+          "Tests omit several important boundaries covered by A, including zero and overflowing timeouts, queue capacity below its minimum, and valid zero retries.",
+          "Like A, validation misses downstream arithmetic limits: retry.max-attempts=2147483647 overflows Relay's attempt count, and some accepted large timeouts overflow ConsoleUplink's toMillis() call.",
+          "The nonzero exit status and absence of delivery on configuration failure are not protected by an automated startup test."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "A",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "case": "10-split-by-percent",
+  "split": "test",
+  "coder": "sonnet",
+  "rep": 1,
+  "pair": [
+    "this-repo",
+    "btseee"
+  ],
+  "judge_model": "opus",
+  "fingerprints": {
+    "this-repo": "f6b9c9c33acd563d",
+    "btseee": "214b44be68e2b762"
+  },
+  "score": 1.0,
+  "dimension_scores": {
+    "correctness": 0.75,
+    "scope": 0.5,
+    "design": 1.0,
+    "readability": 0.75,
+    "tests": 0.75,
+    "report": 0.5
+  },
+  "contradictory": false,
+  "orders": [
+    {
+      "A": "this-repo",
+      "B": "btseee",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.153828,
+      "verdict": {
+        "winner": "A",
+        "margin": "slight",
+        "rationale": "Both changes add a working `--percent` split that reuses `allocate` and the duplicate-name check, and both keep `--with` behaving as before. A enforces 'exactly one of `--with`/`--percent`' with an argparse mutually exclusive group, so the rule appears in usage and help. Its validation messages are specific, and its percent parsing is in the splitting module with unit tests. B repurposes MoneyError for a CLI usage rule, and its combined negative/total check produces a confusing 'got 100' message. B's CLI tests do cover more failure paths, including the 'neither' case.",
+        "a_issues": [
+          "There is no CLI test for giving neither `--with` nor `--percent`.",
+          "Rejecting 0% is a judgement call the task did not ask for, though the report discloses it.",
+          "The 'both options' case exits through argparse SystemExit rather than the `error:` path, so it is tested differently from the other errors."
+        ],
+        "b_issues": [
+          "The both/neither rule is enforced in code with MoneyError instead of an argparse mutually exclusive group, so help/usage no longer shows that a split option is required.",
+          "Negative percentages that total 100 (e.g. 110/-10) give the misleading message 'adding up to 100, got 100'.",
+          "`_parse_percent` is in cli.py with no unit tests; `isdecimal` accepts non-ASCII digits and the name is not stripped.",
+          "MoneyError is used for a usage error that has nothing to do with money representation."
+        ],
+        "dimensions": {
+          "correctness": "A",
+          "scope": "tie",
+          "design": "A",
+          "readability": "A",
+          "tests": "tie",
+          "report": "tie"
+        }
+      }
+    },
+    {
+      "A": "btseee",
+      "B": "this-repo",
+      "model_ids": [
+        "claude-opus-5-5"
+      ],
+      "cost_usd": 0.158272,
+      "verdict": {
+        "winner": "B",
+        "margin": "slight",
+        "rationale": "Both changes work, reuse `allocate` and the shared duplicate check, and keep the shares adding up to the full amount. B enforces 'exactly one of --with or --percent' with argparse's required mutually exclusive group, which is idiomatic and also shows up correctly in usage and help. A drops `required=True` and re-implements the check by hand. B also has more thorough unit tests for parsing, and its report clearly flags its one judgement call (rejecting 0%).",
+        "a_issues": [
+          "Removes `required=True` from `--with` and re-checks 'both or neither' by hand in `_split` instead of using argparse's mutually exclusive group, so the usage line no longer shows that one of the two is required.",
+          "Uses `isdecimal()`, which also accepts non-ASCII digits; harmless, but looser than intended.",
+          "No unit tests for `_parse_percent` on its own; malformed input is covered only through a few CLI cases.",
+          "Silently allows 0% entries without mentioning it in the report."
+        ],
+        "b_issues": [
+          "Rejects 0% entries, which is stricter than the task asked for (disclosed in the report as a judgement call).",
+          "No CLI test for giving neither `--with` nor `--percent`, and no CLI test that malformed `--percent` input saves nothing.",
+          "The 'both options' CLI test only checks the SystemExit code, not that nothing was saved."
+        ],
+        "dimensions": {
+          "correctness": "tie",
+          "scope": "tie",
+          "design": "B",
+          "readability": "tie",
+          "tests": "B",
+          "report": "tie"
+        }
+      }
+    }
+  ]
+}
